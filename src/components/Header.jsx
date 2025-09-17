@@ -1,6 +1,6 @@
 import { Link, NavLink } from "react-router-dom";
 
-export default function Header({ brand, user, onLogin, onLogout }) {
+export default function Header({ brand, user, onLogin, onLogout, onSignup }) {
   return (
     <header className="header">
       <div className="container nav">
@@ -21,7 +21,7 @@ export default function Header({ brand, user, onLogin, onLogout }) {
           ) : (
             <>
               <button className="btn btn-ghost" onClick={onLogin}>Sign In</button>
-              <button className="btn btn-primary" onClick={onLogin}>Start Free</button>
+              <button className="btn btn-primary" onClick={onSignup}>Sign Up</button>
             </>
           )}
         </div>

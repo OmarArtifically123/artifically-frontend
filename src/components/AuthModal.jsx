@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useRef } from "react";
 import axios from "axios";
 
 export default function AuthModal({ onClose, onAuthenticated }) {
@@ -12,6 +12,8 @@ export default function AuthModal({ onClose, onAuthenticated }) {
     websiteUrl: ""
   });
   const [loading, setLoading] = useState(false);
+  const modalRef = useRef(null);
+
   const swap = () => setMode(mode === "signin" ? "signup" : "signin");
 
   const submit = async (e) => {
@@ -35,9 +37,16 @@ export default function AuthModal({ onClose, onAuthenticated }) {
     }
   };
 
+  // Close modal if clicked outside
+  const handleOverlayClick = (e) => {
+    if (modalRef.current && !modalRef.current.contains(e.target)) {
+      onClose();
+    }
+  };
+
   return (
-    <div className="modal-overlay">
-      <div className="modal" style={{ maxWidth: 520 }}>
+    <div className="modal-overlay" onClick={handleOverlayClick}>
+      <div ref={modalRef} className="modal" style={{ maxWidth: 520 }}>
         <div className="modal-header">
           <h2>{mode === "signin" ? "Sign In" : "Create your account"}</h2>
           <button className="close-btn" onClick={onClose}>×</button>
