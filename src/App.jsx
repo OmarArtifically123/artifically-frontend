@@ -3,6 +3,7 @@ import { Routes, Route, Navigate, useNavigate, useLocation } from "react-router-
 import axios from "axios";
 
 import Header from "./components/Header";
+import Footer from "./components/Footer"; // ✅ import the new Footer
 import Home from "./pages/Home";
 import Pricing from "./pages/Pricing";
 import Docs from "./pages/Docs";
@@ -21,8 +22,9 @@ function App() {
   useEffect(() => {
     const token = localStorage.getItem("token");
     if (!token) return;
-    axios.get("/api/auth/me", { headers: { Authorization: `Bearer ${token}` }})
-      .then(res => setUser(res.data.user))
+    axios
+      .get("/api/auth/me", { headers: { Authorization: `Bearer ${token}` } })
+      .then((res) => setUser(res.data.user))
       .catch(() => localStorage.removeItem("token"));
   }, []);
 
@@ -51,37 +53,41 @@ function App() {
         onLogout={handleLogout}
       />
 
-      <Routes>
-        <Route
-          path="/"
-          element={
-            <Home
-              user={user}
-              onRequireAuth={() => setAuthModal("signin")}
-              onNotify={(m)=>setToast(m)}
-            />
-          }
-        />
-        <Route
-          path="/marketplace"
-          element={
-            <Home
-              user={user}
-              onRequireAuth={() => setAuthModal("signin")}
-              onNotify={(m)=>setToast(m)}
-              scrollTo="marketplace"
-            />
-          }
-        />
+      <main>
+        <Routes>
+          <Route
+            path="/"
+            element={
+              <Home
+                user={user}
+                onRequireAuth={() => setAuthModal("signin")}
+                onNotify={(m) => setToast(m)}
+              />
+            }
+          />
+          <Route
+            path="/marketplace"
+            element={
+              <Home
+                user={user}
+                onRequireAuth={() => setAuthModal("signin")}
+                onNotify={(m) => setToast(m)}
+                scrollTo="marketplace"
+              />
+            }
+          />
+          <Route path="/pricing" element={<Pricing />} />
+          <Route path="/docs" element={<Docs />} />
+          <Route
+            path="/dashboard"
+            element={
+              user ? <Dashboard user={user} /> : <Navigate to="/" replace />
+            }
+          />
+        </Routes>
+      </main>
 
-        <Route path="/pricing" element={<Pricing />} />
-        <Route path="/docs" element={<Docs />} />
-
-        <Route
-          path="/dashboard"
-          element={user ? <Dashboard user={user} /> : <Navigate to="/" replace />}
-        />
-      </Routes>
+      <Footer /> {/* ✅ always shows footer at the bottom */}
 
       {authModal && (
         <AuthModal
