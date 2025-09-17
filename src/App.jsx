@@ -12,7 +12,7 @@ import Toast from "./components/Toast";
 
 function App() {
   const [user, setUser] = useState(null);
-  const [authModal, setAuthModal] = useState(false);
+  const [authModal, setAuthModal] = useState(null); // null | "signin" | "signup"
   const [toast, setToast] = useState(null);
   const navigate = useNavigate();
   const location = useLocation();
@@ -29,7 +29,7 @@ function App() {
   const handleAuthenticated = ({ token, user }) => {
     localStorage.setItem("token", token);
     setUser(user);
-    setAuthModal(false);
+    setAuthModal(null);
     setToast(`Welcome, ${user.businessName}`);
     navigate("/dashboard");
   };
@@ -38,7 +38,6 @@ function App() {
     localStorage.removeItem("token");
     setUser(null);
     setToast("Logged out.");
-    // if you log out while on /dashboard, go home
     if (location.pathname.startsWith("/dashboard")) navigate("/");
   };
 
@@ -47,31 +46,51 @@ function App() {
       <Header
         brand="Artifically"
         user={user}
-        onLogin={() => setAuthModal(true)}
+        onLogin={() => setAuthModal("signin")}
+        onSignup={() => setAuthModal("signup")}
         onLogout={handleLogout}
       />
 
       <Routes>
-        {/* Home and a convenience route that scrolls to marketplace */}
-        <Route path="/" element={
-          <Home user={user} onRequireAuth={() => setAuthModal(true)} onNotify={(m)=>setToast(m)} />
-        } />
-        <Route path="/marketplace" element={
-          <Home user={user} onRequireAuth={() => setAuthModal(true)} onNotify={(m)=>setToast(m)} scrollTo="marketplace" />
-        } />
+        <Route
+          path="/"
+          element={
+            <Home
+              user={user}
+              onRequireAuth={() => setAuthModal("signin")}
+              onNotify={(m)=>setToast(m)}
+            />
+          }
+        />
+        <Route
+          path="/marketplace"
+          element={
+            <Home
+              user={user}
+              onRequireAuth={() => setAuthModal("signin")}
+              onNotify={(m)=>setToast(m)}
+              scrollTo="marketplace"
+            />
+          }
+        />
 
         <Route path="/pricing" element={<Pricing />} />
         <Route path="/docs" element={<Docs />} />
 
-        {/* Protected dashboard */}
-        <Route path="/dashboard" element={
-          user ? <Dashboard user={user} /> : <Navigate to="/" replace />
-        } />
+        <Route
+          path="/dashboard"
+          element={user ? <Dashboard user={user} /> : <Navigate to="/" replace />}
+        />
       </Routes>
 
       {authModal && (
-        <AuthModal onClose={() => setAuthModal(false)} onAuthenticated={handleAuthenticated} />
+        <AuthModal
+          initialMode={authModal} // pass "signin" or "signup"
+          onClose={() => setAuthModal(null)}
+          onAuthenticated={handleAuthenticated}
+        />
       )}
+
       {toast && <Toast message={toast} onClose={() => setToast(null)} />}
     </>
   );

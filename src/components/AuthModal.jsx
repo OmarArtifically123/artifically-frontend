@@ -1,8 +1,8 @@
 import { useState, useRef } from "react";
 import axios from "axios";
 
-export default function AuthModal({ onClose, onAuthenticated }) {
-  const [mode, setMode] = useState("signin"); // 'signin' | 'signup'
+export default function AuthModal({ onClose, onAuthenticated, initialMode = "signin" }) {
+  const [mode, setMode] = useState(initialMode); // use the prop instead of hardcoding
   const [form, setForm] = useState({
     email: "",
     password: "",
