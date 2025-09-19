@@ -1,5 +1,6 @@
 import { useState, useRef } from "react";
 import api from "./api";
+import Toast from "./Toast";
 
 export default function AuthModal({ onClose, onAuthenticated, initialMode = "signin" }) {
   const [mode, setMode] = useState(initialMode);
@@ -12,6 +13,7 @@ export default function AuthModal({ onClose, onAuthenticated, initialMode = "sig
     websiteUrl: ""
   });
   const [loading, setLoading] = useState(false);
+  const [toast, setToast] = useState(null);
   const modalRef = useRef(null);
 
   const swap = () => setMode(mode === "signin" ? "signup" : "signin");
@@ -21,14 +23,13 @@ export default function AuthModal({ onClose, onAuthenticated, initialMode = "sig
     setLoading(true);
     try {
       if (mode === "signup") {
-        // create account
         await api.post("/auth/signup", form);
-        // no auto-login; require email verification
         onAuthenticated({
           token: null,
           user: null,
-          notice: "Account created. Check your email to verify your address.",
+          notice: "Account created. Please check your email to verify your address.",
         });
+        setToast("Account created. Please check your email to verify.");
       } else {
         const res = await api.post("/auth/signin", {
           email: form.email,
@@ -37,7 +38,12 @@ export default function AuthModal({ onClose, onAuthenticated, initialMode = "sig
         onAuthenticated(res.data);
       }
     } catch (err) {
-      alert(err?.message || "Authentication failed");
+      const res = err?.response?.data;
+      if (res?.errors?.length) {
+        setToast(res.errors.map(e => `${e.field}: ${e.message}`).join(", "));
+      } else {
+        setToast(res?.message || "Authentication failed");
+      }
     } finally {
       setLoading(false);
     }
@@ -73,8 +79,9 @@ export default function AuthModal({ onClose, onAuthenticated, initialMode = "sig
                   className="form-input"
                   value={form.businessPhone}
                   onChange={(e) => setForm({ ...form, businessPhone: e.target.value })}
-                  placeholder="+971-55-000-0000"
+                  placeholder="+971551234567"
                 />
+                <small className="form-hint">Enter in international format (e.g. +971551234567)</small>
               </div>
               <div className="form-group">
                 <label className="form-label">Business Email</label>
@@ -121,6 +128,9 @@ export default function AuthModal({ onClose, onAuthenticated, initialMode = "sig
               required
               placeholder="••••••••"
             />
+            <small className="form-hint">
+              Must be at least 12 characters, include uppercase, lowercase, number, and symbol.
+            </small>
           </div>
 
           <button className="btn btn-primary" type="submit" disabled={loading}>
@@ -135,6 +145,8 @@ export default function AuthModal({ onClose, onAuthenticated, initialMode = "sig
             <>Already have an account? <button className="linklike" onClick={swap}>Sign in</button></>
           )}
         </div>
+
+        {toast && <Toast message={toast} onClose={() => setToast(null)} />}
       </div>
     </div>
   );

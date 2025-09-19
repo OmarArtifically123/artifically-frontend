@@ -1,25 +1,31 @@
 import { useState } from "react";
+import api from "./api";
+import Toast from "./Toast";
 
 export default function DemoModal({ automation, onClose }) {
   const [running, setRunning] = useState(false);
   const [result, setResult] = useState(null);
 
-  const run = () => {
+  const run = async () => {
     setRunning(true);
-    setTimeout(() => {
-      setResult({
-        status: "success",
-        output: `Demo completed for ${automation.name}`,
-        cost: "$0.03",
-        latency: "1.2s",
-        logs: [
-          { time: "10:23:01", level: "INFO", message: "Starting…" },
-          { time: "10:23:02", level: "INFO", message: "Processing…" },
-          { time: "10:23:03", level: "SUCCESS", message: "Done." }
-        ]
-      });
+    setResult(null);
+    try {
+      const res = await api.post("/ai/demo", { automationId: automation.id });
+      setResult(res.data);
+    } catch (err) {
+      const res = err?.response?.data;
+      if (res?.errors?.length) {
+        setResult({
+          status: "error",
+          output: res.errors.map(e => `${e.field}: ${e.message}`).join(", "),
+          logs: [],
+        });
+      } else {
+        Toast({ message: res?.message || "Demo failed", onClose: () => {} });
+      }
+    } finally {
       setRunning(false);
-    }, 1200);
+    }
   };
 
   return (
@@ -44,25 +50,33 @@ export default function DemoModal({ automation, onClose }) {
           <>
             <div style={{ background: "var(--off-white)", padding: 16, borderRadius: 8, marginBottom: 16 }}>
               <div style={{ display: "flex", justifyContent: "space-between", marginBottom: 8 }}>
-                <span style={{ color: "var(--success)", fontWeight: 600 }}>✅ {result.status.toUpperCase()}</span>
-                <div style={{ color: "var(--gray-600)", fontSize: 14 }}>
-                  Cost: {result.cost} • Latency: {result.latency}
+                <span style={{ color: result.status === "success" ? "var(--success)" : "var(--danger)", fontWeight: 600 }}>
+                  {result.status === "success" ? "✅ SUCCESS" : "❌ FAILED"}
+                </span>
+                {result.cost && result.latency && (
+                  <div style={{ color: "var(--gray-600)", fontSize: 14 }}>
+                    Cost: {result.cost} • Latency: {result.latency}
+                  </div>
+                )}
+              </div>
+              <div style={{ fontFamily: "monospace", fontSize: 14 }}>
+                {result.output || "No output provided."}
+              </div>
+            </div>
+            {result.logs && result.logs.length > 0 && (
+              <div>
+                <h4 style={{ marginBottom: 8 }}>Execution Logs</h4>
+                <div style={{ background: "var(--charcoal)", color: "white", padding: 12, borderRadius: 8, fontFamily: "monospace", fontSize: 12 }}>
+                  {result.logs.map((log, i) => (
+                    <div key={i} style={{ marginBottom: 4 }}>
+                      <span style={{ opacity: 0.7 }}>[{log.time}]</span>
+                      <span style={{ marginLeft: 8 }}>{log.level}</span>
+                      <span style={{ marginLeft: 8 }}>{log.message}</span>
+                    </div>
+                  ))}
                 </div>
               </div>
-              <div style={{ fontFamily: "monospace", fontSize: 14 }}>{result.output}</div>
-            </div>
-            <div>
-              <h4 style={{ marginBottom: 8 }}>Execution Logs</h4>
-              <div style={{ background: "var(--charcoal)", color: "white", padding: 12, borderRadius: 8, fontFamily: "monospace", fontSize: 12 }}>
-                {result.logs.map((log, i) => (
-                  <div key={i} style={{ marginBottom: 4 }}>
-                    <span style={{ opacity: 0.7 }}>[{log.time}]</span>
-                    <span style={{ marginLeft: 8 }}>{log.level}</span>
-                    <span style={{ marginLeft: 8 }}>{log.message}</span>
-                  </div>
-                ))}
-              </div>
-            </div>
+            )}
           </>
         )}
       </div>

@@ -7,7 +7,7 @@ import Docs from "./Docs";
 import Marketplace from "./Marketplace";
 import Dashboard from "./Dashboard";
 import AuthModal from "./AuthModal";
-import Verify from "./Verify";            // NEW
+import Verify from "./Verify";
 import { ToastHost, toast } from "./Toast";
 import api, { pick } from "./api";
 import "./global.css";
@@ -28,7 +28,8 @@ export default function App() {
       setBooted(true);
       return;
     }
-    api.get("/auth/me")
+    api
+      .get("/auth/me")
       .then(pick("user"))
       .then((u) => setUser(u))
       .catch(() => {
@@ -53,7 +54,7 @@ export default function App() {
   const onAuthenticated = ({ token, user: u, notice }) => {
     if (token) localStorage.setItem("token", token);
     if (u) setUser(u);
-    if (notice) toast(notice, { type: "success" });
+    if (notice) toast(notice, { type: u?.verified ? "success" : "info" });
     setAuthOpen(false);
   };
 
@@ -79,9 +80,13 @@ export default function App() {
               onClick={async () => {
                 try {
                   await api.post("/auth/resend-verification");
-                  toast("Verification email sent. Check your inbox.", { type: "success" });
+                  toast("Verification email sent. Check your inbox.", {
+                    type: "success",
+                  });
                 } catch (e) {
-                  toast(e.message || "Could not resend verification", { type: "error" });
+                  toast(e.message || "Could not resend verification", {
+                    type: "error",
+                  });
                 }
               }}
             >
@@ -93,10 +98,22 @@ export default function App() {
 
       <Routes>
         <Route path="/" element={<Home openAuth={openAuth} user={user} />} />
-        <Route path="/pricing" element={<Pricing openAuth={openAuth} user={user} />} />
+        <Route path="/pricing" element={<Pricing />} />
         <Route path="/docs" element={<Docs />} />
-        <Route path="/marketplace" element={<Marketplace openAuth={openAuth} user={user} />} />
-        <Route path="/dashboard" element={<Dashboard user={user} openAuth={openAuth} />} />
+        <Route
+          path="/marketplace"
+          element={<Marketplace openAuth={openAuth} user={user} />}
+        />
+        <Route
+          path="/dashboard"
+          element={
+            user ? (
+              <Dashboard user={user} openAuth={openAuth} />
+            ) : (
+              <Home openAuth={openAuth} user={null} />
+            )
+          }
+        />
         <Route path="/verify" element={<Verify onVerified={(u) => setUser(u)} />} />
       </Routes>
 

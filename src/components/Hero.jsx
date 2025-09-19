@@ -1,6 +1,11 @@
 import { Link } from "react-router-dom";
 
 export default function Hero() {
+  const scrollToMarketplace = () => {
+    const el = document.getElementById("marketplace");
+    if (el) el.scrollIntoView({ behavior: "smooth" });
+  };
+
   return (
     <section className="hero">
       <div className="container">
@@ -12,12 +17,10 @@ export default function Hero() {
         </p>
 
         <div className="hero-ctas">
-          {/* Scrolls to marketplace section on Home */}
-          <a href="#marketplace" className="btn btn-primary">
+          <button onClick={scrollToMarketplace} className="btn btn-primary">
             Explore Marketplace
-          </a>
+          </button>
 
-          {/* Uses React Router to go to /docs page */}
           <Link to="/docs" className="btn btn-secondary">
             Read Docs
           </Link>

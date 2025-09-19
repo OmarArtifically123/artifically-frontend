@@ -16,11 +16,25 @@ export default function Dashboard({ user, openAuth }) {
     api.get("/deployments")
       .then(pick("deployments"))
       .then((list) => setDeployments(list || []))
-      .catch((e) => toast(e.message || "Failed to load deployments", { type: "error" }))
+      .catch((err) => {
+        const res = err?.response?.data;
+        if (res?.errors?.length) {
+          toast(res.errors.map(e => `${e.field}: ${e.message}`).join(", "), { type: "error" });
+        } else {
+          toast(res?.message || "Failed to load deployments", { type: "error" });
+        }
+      })
       .finally(() => setLoading(false));
   }, [user]);
 
   if (!user) return null;
+
+  const formatPrice = (price, currency = "USD") =>
+    new Intl.NumberFormat("en-US", {
+      style: "currency",
+      currency,
+      minimumFractionDigits: 0,
+    }).format(price);
 
   return (
     <div className="dashboard active">
@@ -48,7 +62,9 @@ export default function Dashboard({ user, openAuth }) {
                 <div className="deployment-head">
                   <div className="deployment-title">{d.automation?.name || "Automation"}</div>
                   {d.automation?.priceMonthly ? (
-                    <div className="deployment-plan">${d.automation.priceMonthly}/mo</div>
+                    <div className="deployment-plan">
+                      {formatPrice(d.automation.priceMonthly, d.automation.currency)}/mo
+                    </div>
                   ) : null}
                 </div>
                 <div className="deployment-body">
