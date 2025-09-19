@@ -1,16 +1,16 @@
 import { useEffect, useState } from "react";
 import { Routes, Route, useNavigate, useLocation } from "react-router-dom";
-import Header from "./Header";
-import Home from "./Home";
-import Pricing from "./Pricing";
-import Docs from "./Docs";
-import Marketplace from "./Marketplace";
-import Dashboard from "./Dashboard";
-import AuthModal from "./AuthModal";
-import Verify from "./Verify";
-import { ToastHost, toast } from "./Toast";
+import Header from "./components/Header";
+import Home from "./pages/Home";
+import Pricing from "./pages/Pricing";
+import Docs from "./pages/Docs";
+import Marketplace from "./components/Marketplace";
+import Dashboard from "./components/Dashboard";
+import AuthModal from "./components/AuthModal";
+import Verify from "./components/Verify";
+import { ToastHost, toast } from "./components/Toast";
 import api, { pick } from "./api";
-import "./global.css";
+import "./styles/global.css";
 
 export default function App() {
   const [authOpen, setAuthOpen] = useState(false);
