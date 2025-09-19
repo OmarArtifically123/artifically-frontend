@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { fetchAutomations } from "./data/automations";
+import { fetchAutomations } from "../data/automations";
 import AutomationCard from "./AutomationCard";
 import DemoModal from "./DemoModal";
 import { toast } from "./Toast";
