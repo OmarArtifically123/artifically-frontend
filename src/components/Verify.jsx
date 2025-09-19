@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { useSearchParams, useNavigate } from "react-router-dom";
-import api, { pick } from "./api";
+import api, { pick } from "../api";
 import { toast } from "./Toast";
 
 export default function Verify({ onVerified }) {

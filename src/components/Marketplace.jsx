@@ -1,9 +1,9 @@
 import { useEffect, useState } from "react";
-import { fetchAutomations } from "./automations";
+import { fetchAutomations } from "./data/automations";
 import AutomationCard from "./AutomationCard";
 import DemoModal from "./DemoModal";
 import { toast } from "./Toast";
-import api from "./api";
+import api from "../api";
 
 export default function Marketplace({ user, openAuth }) {
   const [demo, setDemo] = useState(null);
