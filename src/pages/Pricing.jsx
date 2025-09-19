@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { fetchAutomations } from "../components/automations";
+import { fetchAutomations } from "../data/automations";
 import { toast } from "../components/Toast";
 
 export default function Pricing() {
