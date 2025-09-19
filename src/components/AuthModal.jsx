@@ -1,5 +1,5 @@
 import { useState, useRef } from "react";
-import api from "./api";
+import api from "../api";
 import Toast from "./Toast";
 
 export default function AuthModal({ onClose, onAuthenticated, initialMode = "signin" }) {
