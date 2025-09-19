@@ -1,8 +1,8 @@
 import { useState, useRef } from "react";
-import axios from "axios";
+import api from "./api";
 
 export default function AuthModal({ onClose, onAuthenticated, initialMode = "signin" }) {
-  const [mode, setMode] = useState(initialMode); // use the prop instead of hardcoding
+  const [mode, setMode] = useState(initialMode);
   const [form, setForm] = useState({
     email: "",
     password: "",
@@ -21,27 +21,30 @@ export default function AuthModal({ onClose, onAuthenticated, initialMode = "sig
     setLoading(true);
     try {
       if (mode === "signup") {
-        const res = await axios.post("/api/auth/signup", form);
-        onAuthenticated(res.data);
+        // create account
+        await api.post("/auth/signup", form);
+        // no auto-login; require email verification
+        onAuthenticated({
+          token: null,
+          user: null,
+          notice: "Account created. Check your email to verify your address.",
+        });
       } else {
-        const res = await axios.post("/api/auth/signin", {
+        const res = await api.post("/auth/signin", {
           email: form.email,
-          password: form.password
+          password: form.password,
         });
         onAuthenticated(res.data);
       }
     } catch (err) {
-      alert(err?.response?.data?.message || "Authentication failed");
+      alert(err?.message || "Authentication failed");
     } finally {
       setLoading(false);
     }
   };
 
-  // Close modal if clicked outside
   const handleOverlayClick = (e) => {
-    if (modalRef.current && !modalRef.current.contains(e.target)) {
-      onClose();
-    }
+    if (modalRef.current && !modalRef.current.contains(e.target)) onClose();
   };
 
   return (
@@ -127,15 +130,9 @@ export default function AuthModal({ onClose, onAuthenticated, initialMode = "sig
 
         <div style={{ marginTop: 12, fontSize: 14 }}>
           {mode === "signin" ? (
-            <>
-              New here?{" "}
-              <button className="linklike" onClick={swap}>Create an account</button>
-            </>
+            <>New here? <button className="linklike" onClick={swap}>Create an account</button></>
           ) : (
-            <>
-              Already have an account?{" "}
-              <button className="linklike" onClick={swap}>Sign in</button>
-            </>
+            <>Already have an account? <button className="linklike" onClick={swap}>Sign in</button></>
           )}
         </div>
       </div>

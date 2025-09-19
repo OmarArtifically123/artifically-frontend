@@ -1,35 +1,35 @@
-import { useEffect, useState } from "react";
-import { automations } from "../data/automations";
+import { useState } from "react";
+import automations from "./automations";
 import AutomationCard from "./AutomationCard";
 import DemoModal from "./DemoModal";
-import axios from "axios";
+import { toast } from "./Toast";
+import api from "./api";
 
-export default function Marketplace({ user, onRequireAuth, onNotify }) {
-  const [selectedDemo, setSelectedDemo] = useState(null);
-  const [loading, setLoading] = useState(false);
-
-  const buyAndDeploy = async (automation) => {
+export default function Marketplace({ user, openAuth }) {
+  const [demo, setDemo] = useState(null);
+  const buy = async (item) => {
     if (!user) {
-      onRequireAuth();
+      openAuth("signup");
+      return;
+    }
+    if (!user.verified) {
+      toast("Please verify your email before deploying automations.", { type: "warn" });
       return;
     }
     try {
-      setLoading(true);
-      const token = localStorage.getItem("token");
-      // For now, simulate purchase and immediate deployment (Stripe can be added later)
-      const res = await axios.post(
-        "/api/deployments",
-        {
-          automationId: automation.id,
-          placeholders: {} // backend will seed defaults based on user's profile
+      const res = await api.post("/deployments", {
+        automationId: item.id,
+        placeholders: {
+          businessName: user.businessName,
+          businessPhone: user.businessPhone,
+          businessEmail: user.businessEmail,
+          websiteUrl: user.websiteUrl
         },
-        { headers: { Authorization: `Bearer ${token}` } }
-      );
-      onNotify(`Deployed ${automation.name} for ${user.businessName}.`);
+      });
+      toast(`Deployed ${item.name} successfully`, { type: "success" });
+      // optionally redirect to dashboard
     } catch (e) {
-      onNotify("Purchase/deployment failed.");
-    } finally {
-      setLoading(false);
+      toast(e.message || "Purchase/deployment failed", { type: "error" });
     }
   };
 
@@ -38,30 +38,22 @@ export default function Marketplace({ user, onRequireAuth, onNotify }) {
       <div className="container">
         <div className="section-header">
           <h2>Automation Marketplace</h2>
-          <p>Per-automation pricing with clear request limits</p>
+          <p>Pick an automation. Launch in minutes.</p>
         </div>
-        <div className="automation-grid">
-          {automations.map((a) => (
+
+        <div className="grid">
+          {automations.map((item) => (
             <AutomationCard
-              key={a.id}
-              item={a}
-              onDemo={(it) => setSelectedDemo(it)}
-              onBuy={buyAndDeploy}
+              key={item.id}
+              item={item}
+              onDemo={setDemo}
+              onBuy={buy}
             />
           ))}
         </div>
       </div>
 
-      {selectedDemo && (
-        <DemoModal
-          automation={selectedDemo}
-          onClose={() => setSelectedDemo(null)}
-        />
-      )}
-
-      {loading && (
-        <div className="toast">Processing…</div>
-      )}
+      {demo && <DemoModal automation={demo} onClose={() => setDemo(null)} />}
     </section>
   );
 }

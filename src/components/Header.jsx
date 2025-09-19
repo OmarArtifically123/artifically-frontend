@@ -1,38 +1,36 @@
-import { Link, NavLink } from "react-router-dom";
+import { Link, useNavigate, useLocation } from "react-router-dom";
 
-export default function Header({ brand, user, onLogin, onLogout, onSignup }) {
+export default function Header({ user, onSignIn, onSignUp, onSignOut }) {
+  const navigate = useNavigate();
+  const { pathname } = useLocation();
+
   return (
-    <>
-      {/* Work-in-progress banner */}
-      <div className="bg-yellow-400 text-black text-center py-2 text-sm font-semibold">
-        🚧 THIS IS STILL A WORK IN PROGRESS — Some features may not work yet 🚧
-      </div>
-
-      <header className="header">
-        <div className="container nav">
-          <Link className="logo" to="/">{brand}</Link>
-
-          <ul className="nav-links">
-            <li><NavLink to="/marketplace">Marketplace</NavLink></li>
-            <li><NavLink to="/pricing">Pricing</NavLink></li>
-            <li><NavLink to="/docs">Docs</NavLink></li>
-          </ul>
-
-          <div className="auth-buttons">
-            {user ? (
-              <>
-                <Link className="btn btn-ghost" to="/dashboard">Dashboard</Link>
-                <button className="btn btn-secondary" onClick={onLogout}>Sign Out</button>
-              </>
-            ) : (
-              <>
-                <button className="btn btn-ghost" onClick={onLogin}>Sign In</button>
-                <button className="btn btn-primary" onClick={onSignup}>Sign Up</button>
-              </>
-            )}
-          </div>
+    <header className="site-header">
+      <div className="container header-inner">
+        <div className="brand" onClick={() => navigate("/")}>
+          <span className="brand-icon">🤖</span>
+          <span className="brand-name">Artifically</span>
         </div>
-      </header>
-    </>
+        <nav className="nav">
+          <Link to="/marketplace" className={pathname==="/marketplace" ? "active" : ""}>Marketplace</Link>
+          <Link to="/pricing" className={pathname==="/pricing" ? "active" : ""}>Pricing</Link>
+          <Link to="/docs" className={pathname==="/docs" ? "active" : ""}>Docs</Link>
+        </nav>
+        <div className="header-actions">
+          {!user ? (
+            <>
+              <button className="btn btn-text" onClick={onSignIn}>Sign in</button>
+              <button className="btn btn-primary" onClick={onSignUp}>Get started</button>
+            </>
+          ) : (
+            <>
+              <span className="user-chip">{user.businessName || user.email}</span>
+              <button className="btn" onClick={() => navigate("/dashboard")}>Dashboard</button>
+              <button className="btn btn-text" onClick={onSignOut}>Sign out</button>
+            </>
+          )}
+        </div>
+      </div>
+    </header>
   );
 }
