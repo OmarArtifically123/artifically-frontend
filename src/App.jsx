@@ -8,7 +8,7 @@ import Marketplace from "./components/Marketplace";
 import Dashboard from "./components/Dashboard";
 import AuthModal from "./components/AuthModal";
 import Verify from "./components/Verify";
-import { ToastHost, toast } from "./components/Toast";
+import Toast, { ToastHost, toast } from "./components/Toast";
 import api, { pick } from "./api";
 import "./styles/global.css";
 

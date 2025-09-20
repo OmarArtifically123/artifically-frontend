@@ -1,6 +1,6 @@
 import { useState, useRef } from "react";
 import api from "../api";
-import Toast from "./Toast";
+import Toast from "./Toast";   // ✅ keep default for inline usage
 
 export default function AuthModal({ onClose, onAuthenticated, initialMode = "signin" }) {
   const [mode, setMode] = useState(initialMode);
@@ -13,7 +13,7 @@ export default function AuthModal({ onClose, onAuthenticated, initialMode = "sig
     websiteUrl: ""
   });
   const [loading, setLoading] = useState(false);
-  const [toast, setToast] = useState(null);
+  const [toastMessage, setToastMessage] = useState(null);   // ✅ renamed state
   const modalRef = useRef(null);
 
   const swap = () => setMode(mode === "signin" ? "signup" : "signin");
@@ -29,7 +29,7 @@ export default function AuthModal({ onClose, onAuthenticated, initialMode = "sig
           user: null,
           notice: "Account created. Please check your email to verify your address.",
         });
-        setToast("Account created. Please check your email to verify.");
+        setToastMessage("Account created. Please check your email to verify.");
       } else {
         const res = await api.post("/auth/signin", {
           email: form.email,
@@ -40,9 +40,9 @@ export default function AuthModal({ onClose, onAuthenticated, initialMode = "sig
     } catch (err) {
       const res = err?.response?.data;
       if (res?.errors?.length) {
-        setToast(res.errors.map(e => `${e.field}: ${e.message}`).join(", "));
+        setToastMessage(res.errors.map(e => `${e.field}: ${e.message}`).join(", "));
       } else {
-        setToast(res?.message || "Authentication failed");
+        setToastMessage(res?.message || "Authentication failed");
       }
     } finally {
       setLoading(false);
@@ -62,8 +62,10 @@ export default function AuthModal({ onClose, onAuthenticated, initialMode = "sig
         </div>
 
         <form onSubmit={submit}>
+          {/* signup-only fields */}
           {mode === "signup" && (
             <>
+              {/* Business Name */}
               <div className="form-group">
                 <label className="form-label">Business Name *</label>
                 <input
@@ -73,6 +75,7 @@ export default function AuthModal({ onClose, onAuthenticated, initialMode = "sig
                   required
                 />
               </div>
+              {/* Phone */}
               <div className="form-group">
                 <label className="form-label">Business Phone</label>
                 <input
@@ -81,8 +84,9 @@ export default function AuthModal({ onClose, onAuthenticated, initialMode = "sig
                   onChange={(e) => setForm({ ...form, businessPhone: e.target.value })}
                   placeholder="+971551234567"
                 />
-                <small className="form-hint">Enter in international format (e.g. +971551234567)</small>
+                <small className="form-hint">Enter in international format</small>
               </div>
+              {/* Email */}
               <div className="form-group">
                 <label className="form-label">Business Email</label>
                 <input
@@ -93,6 +97,7 @@ export default function AuthModal({ onClose, onAuthenticated, initialMode = "sig
                   placeholder="support@yourbusiness.com"
                 />
               </div>
+              {/* Website */}
               <div className="form-group">
                 <label className="form-label">Website URL</label>
                 <input
@@ -106,6 +111,7 @@ export default function AuthModal({ onClose, onAuthenticated, initialMode = "sig
             </>
           )}
 
+          {/* universal fields */}
           <div className="form-group">
             <label className="form-label">Email *</label>
             <input
@@ -146,7 +152,7 @@ export default function AuthModal({ onClose, onAuthenticated, initialMode = "sig
           )}
         </div>
 
-        {toast && <Toast message={toast} onClose={() => setToast(null)} />}
+        {toastMessage && <Toast message={toastMessage} onClose={() => setToastMessage(null)} />}
       </div>
     </div>
   );
