@@ -263,7 +263,7 @@ const AuthModal = ({ onClose, onAuthenticated, initialMode = "signin" }) => {
   }, [onClose, submit, loading]);
 
   // Input component with optimized rendering
-  const InputField = useCallback(({ 
+  const InputField = (({ 
     label, 
     type = "text", 
     field, 
