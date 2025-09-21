@@ -560,7 +560,7 @@ export default function Footer() {
                 background: 'var(--success)',
                 animation: 'pulse 2s ease-in-out infinite'
               }} />
-              <span style={{ color: 'var(--gray-400)' }}>All systems operational</span>
+              <span style={{ color: 'var(--gray-400)' }}>Systems still not operational</span>
             </div>
             <div style={{
               display: 'flex',
@@ -589,7 +589,7 @@ export default function Footer() {
               fontSize: '0.75rem',
               color: 'var(--gray-600)'
             }}>
-              Empowering businesses with AI automation since 2024. Made with ❤️ in Abu Dhabi, UAE.
+              Empowering businesses with AI automation. Based in Abu Dhabi, UAE.
             </p>
           </div>
         </div>
