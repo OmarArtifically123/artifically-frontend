@@ -1,12 +1,31 @@
-// src/api.js - ENHANCED API ERROR HANDLING (Replaces existing)
+// src/api.js - CORS and SSL Issue Fix
 import axios from "axios";
 
-const base = (import.meta.env.VITE_API_URL?.replace(/\/$/, "") || "") + "/api/v1";
+// Determine the correct API base URL
+const getBaseURL = () => {
+  // Check if we're in development
+  if (import.meta.env.DEV) {
+    // Use localhost for development (adjust port as needed)
+    return import.meta.env.VITE_API_URL || "http://localhost:4000/api/v1";
+  } else {
+    // For production, use the environment variable
+    const envURL = import.meta.env.VITE_API_URL;
+    if (envURL) {
+      return envURL.replace(/\/$/, "") + "/api/v1";
+    }
+    // Fallback
+    return "/api/v1";
+  }
+};
+
+const baseURL = getBaseURL();
+
+console.log('API Base URL:', baseURL); // Debug log
 
 export const api = axios.create({
-  baseURL: base || "/api/v1",
-  withCredentials: false,
-  timeout: 30000, // Increased timeout
+  baseURL,
+  withCredentials: false, // Set to true if you need cookies
+  timeout: 30000,
   headers: {
     'Content-Type': 'application/json',
     'Accept': 'application/json'
@@ -27,7 +46,7 @@ api.interceptors.request.use(
 
     // Log requests in development
     if (import.meta.env.DEV) {
-      console.log(`API Request: ${config.method?.toUpperCase()} ${config.url}`, {
+      console.log(`API Request: ${config.method?.toUpperCase()} ${config.baseURL}${config.url}`, {
         data: config.data,
         params: config.params
       });
@@ -45,7 +64,7 @@ api.interceptors.request.use(
   }
 );
 
-// ENHANCED RESPONSE INTERCEPTOR - Fixes "Request Failed" bug
+// ENHANCED RESPONSE INTERCEPTOR - Better CORS/Network error handling
 api.interceptors.response.use(
   (response) => {
     // Log successful responses in development
@@ -70,15 +89,28 @@ api.interceptors.response.use(
 
     // Handle different error scenarios
     if (!error.response) {
-      // Network errors, timeouts, etc.
-      if (error.code === 'ECONNABORTED' || error.message.includes('timeout')) {
+      // Network errors, CORS, SSL issues, etc.
+      if (error.code === 'ERR_SSL_PROTOCOL_ERROR' || error.message.includes('SSL')) {
+        enhancedError.message = "SSL certificate error. Please contact support or try again later.";
+        enhancedError.status = 0;
+        enhancedError.code = "SSL_ERROR";
+      } else if (error.code === 'ECONNABORTED' || error.message.includes('timeout')) {
         enhancedError.message = "Request timeout. Please check your connection and try again.";
         enhancedError.status = 408;
         enhancedError.code = "REQUEST_TIMEOUT";
-      } else if (error.code === 'ERR_NETWORK') {
-        enhancedError.message = "Network error. Please check your internet connection.";
+      } else if (error.code === 'ERR_NETWORK' || error.message.includes('Network Error')) {
+        // Check if it might be a CORS issue
+        if (window.location.protocol === 'https:' && baseURL.startsWith('http:')) {
+          enhancedError.message = "Mixed content error: Cannot make HTTP requests from HTTPS page.";
+          enhancedError.code = "MIXED_CONTENT_ERROR";
+        } else if (baseURL.includes('localhost') || baseURL.includes('127.0.0.1')) {
+          enhancedError.message = "Cannot connect to local server. Make sure your backend is running.";
+          enhancedError.code = "LOCAL_SERVER_ERROR";
+        } else {
+          enhancedError.message = "Network error. This might be a CORS or connectivity issue.";
+          enhancedError.code = "NETWORK_ERROR";
+        }
         enhancedError.status = 0;
-        enhancedError.code = "NETWORK_ERROR";
       } else {
         enhancedError.message = "Unable to connect to server. Please try again.";
         enhancedError.status = 0;
@@ -118,6 +150,14 @@ api.interceptors.response.use(
 
     // Handle specific status codes
     switch (enhancedError.status) {
+      case 0:
+        // Network/CORS/SSL issues - provide helpful message
+        if (!enhancedError.code) {
+          enhancedError.message = "Cannot connect to server. This could be a network, CORS, or SSL certificate issue.";
+          enhancedError.code = "CONNECTION_FAILED";
+        }
+        break;
+        
       case 401:
         enhancedError.message = enhancedError.details?.message || "Authentication required. Please sign in again.";
         enhancedError.code = "UNAUTHORIZED";
@@ -192,7 +232,8 @@ api.interceptors.response.use(
         message: enhancedError.message,
         code: enhancedError.code,
         requestId: enhancedError.requestId,
-        details: enhancedError.details
+        details: enhancedError.details,
+        baseURL: error.config?.baseURL
       });
     }
 
@@ -200,6 +241,44 @@ api.interceptors.response.use(
     throw enhancedError;
   }
 );
+
+// Test connection function
+export const testConnection = async () => {
+  try {
+    console.log('Testing connection to:', baseURL);
+    
+    // Test the root endpoint first (this should work based on your server.js)
+    try {
+      const response = await axios.get(baseURL.replace('/api/v1', ''));
+      console.log('Root endpoint successful:', response.data);
+      return { success: true, data: response.data, endpoint: 'root' };
+    } catch (rootError) {
+      console.log('Root endpoint failed:', rootError.message);
+    }
+    
+    // Try health endpoint
+    try {
+      const response = await axios.get(baseURL.replace('/api/v1', '/health'));
+      console.log('Health endpoint successful:', response.data);
+      return { success: true, data: response.data, endpoint: '/health' };
+    } catch (healthError) {
+      console.log('/health failed:', healthError.message);
+    }
+    
+    throw new Error('No working endpoint found');
+  } catch (error) {
+    console.error('Connection test failed:', error);
+    return { 
+      success: false, 
+      error: error.message,
+      details: {
+        baseURL,
+        code: error.code,
+        status: error.status
+      }
+    };
+  }
+};
 
 // Enhanced helper functions
 export const pick = (path) => (response) => {
@@ -219,73 +298,6 @@ export const pick = (path) => (response) => {
   }
   
   return result;
-};
-
-// Retry mechanism for failed requests
-export const withRetry = async (apiCall, maxRetries = 3, delay = 1000) => {
-  let lastError;
-  
-  for (let attempt = 1; attempt <= maxRetries; attempt++) {
-    try {
-      return await apiCall();
-    } catch (error) {
-      lastError = error;
-      
-      // Don't retry client errors (4xx) except for 408, 429
-      if (error.status >= 400 && error.status < 500 && 
-          error.status !== 408 && error.status !== 429) {
-        throw error;
-      }
-      
-      // Don't retry on last attempt
-      if (attempt === maxRetries) {
-        throw error;
-      }
-      
-      // Wait before retrying with exponential backoff
-      const waitTime = delay * Math.pow(2, attempt - 1);
-      await new Promise(resolve => setTimeout(resolve, waitTime));
-      
-      console.log(`Retrying request (attempt ${attempt + 1}/${maxRetries}) after ${waitTime}ms`);
-    }
-  }
-  
-  throw lastError;
-};
-
-// Batch request helper
-export const batch = async (requests) => {
-  try {
-    const results = await Promise.allSettled(requests);
-    
-    return results.map((result, index) => ({
-      index,
-      success: result.status === 'fulfilled',
-      data: result.status === 'fulfilled' ? result.value : null,
-      error: result.status === 'rejected' ? result.reason : null
-    }));
-  } catch (error) {
-    throw {
-      message: "Batch request failed",
-      status: 500,
-      code: "BATCH_ERROR",
-      details: error
-    };
-  }
-};
-
-// Health check endpoint
-export const healthCheck = async () => {
-  try {
-    const response = await api.get('/health');
-    return response.data;
-  } catch (error) {
-    return {
-      status: 'error',
-      message: error.message,
-      timestamp: new Date().toISOString()
-    };
-  }
 };
 
 // Export configured axios instance as default
