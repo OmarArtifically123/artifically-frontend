@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { Routes, Route, useNavigate, useLocation } from "react-router-dom";
 import Header from "./components/Header";
+import Footer from "./components/Footer";
 import Home from "./pages/Home";
 import Pricing from "./pages/Pricing";
 import Docs from "./pages/Docs";
@@ -21,13 +22,14 @@ export default function App() {
   const navigate = useNavigate();
   const { pathname } = useLocation();
 
-  // restore session
+  // Restore session on app load
   useEffect(() => {
     const token = localStorage.getItem("token");
     if (!token) {
       setBooted(true);
       return;
     }
+
     api
       .get("/auth/me")
       .then(pick("user"))
@@ -47,18 +49,39 @@ export default function App() {
   const signOut = () => {
     localStorage.removeItem("token");
     setUser(null);
-    toast("Signed out", { type: "info" });
-    if (pathname.startsWith("/dashboard")) navigate("/");
+    toast("Successfully signed out", { type: "info" });
+    if (pathname.startsWith("/dashboard")) {
+      navigate("/");
+    }
   };
 
   const onAuthenticated = ({ token, user: u, notice }) => {
-    if (token) localStorage.setItem("token", token);
-    if (u) setUser(u);
-    if (notice) toast(notice, { type: u?.verified ? "success" : "info" });
+    if (token) {
+      localStorage.setItem("token", token);
+    }
+    if (u) {
+      setUser(u);
+    }
+    if (notice) {
+      toast(notice, { type: u?.verified ? "success" : "info" });
+    }
     setAuthOpen(false);
   };
 
-  if (!booted) return null;
+  // Show loading state while booting
+  if (!booted) {
+    return (
+      <div style={{ 
+        display: 'flex', 
+        alignItems: 'center', 
+        justifyContent: 'center', 
+        height: '100vh',
+        background: 'var(--bg-primary)'
+      }}>
+        <div className="loading" style={{ width: '40px', height: '40px' }}></div>
+      </div>
+    );
+  }
 
   return (
     <>
@@ -96,26 +119,41 @@ export default function App() {
         </div>
       )}
 
-      <Routes>
-        <Route path="/" element={<Home openAuth={openAuth} user={user} />} />
-        <Route path="/pricing" element={<Pricing />} />
-        <Route path="/docs" element={<Docs />} />
-        <Route
-          path="/marketplace"
-          element={<Marketplace openAuth={openAuth} user={user} />}
-        />
-        <Route
-          path="/dashboard"
-          element={
-            user ? (
-              <Dashboard user={user} openAuth={openAuth} />
-            ) : (
-              <Home openAuth={openAuth} user={null} />
-            )
-          }
-        />
-        <Route path="/verify" element={<Verify onVerified={(u) => setUser(u)} />} />
-      </Routes>
+      <main>
+        <Routes>
+          <Route 
+            path="/" 
+            element={<Home openAuth={openAuth} user={user} />} 
+          />
+          <Route path="/pricing" element={<Pricing />} />
+          <Route path="/docs" element={<Docs />} />
+          <Route
+            path="/marketplace"
+            element={<Marketplace openAuth={openAuth} user={user} />}
+          />
+          <Route
+            path="/dashboard"
+            element={
+              user ? (
+                <Dashboard user={user} openAuth={openAuth} />
+              ) : (
+                <Home openAuth={openAuth} user={null} />
+              )
+            }
+          />
+          <Route 
+            path="/verify" 
+            element={<Verify onVerified={(u) => setUser(u)} />} 
+          />
+          {/* Catch-all route for 404s */}
+          <Route 
+            path="*" 
+            element={<Home openAuth={openAuth} user={user} />} 
+          />
+        </Routes>
+      </main>
+
+      <Footer />
 
       {authOpen && (
         <AuthModal

@@ -3,33 +3,35 @@ import { Link } from "react-router-dom";
 export default function Hero() {
   const scrollToMarketplace = () => {
     const el = document.getElementById("marketplace");
-    if (el) el.scrollIntoView({ behavior: "smooth" });
+    if (el) {
+      el.scrollIntoView({ behavior: "smooth" });
+    }
   };
 
   return (
     <section className="hero">
       <div className="container">
-        <h1>Buy & Deploy AI Automations</h1>
+        <h1>Deploy Enterprise AI Automations in Minutes</h1>
         <p>
-          Browse a curated marketplace of automations for sales, support,
-          marketing and ops—priced per automation (e.g., $200/mo for AI Receptionist),
-          with generous request limits.
+          Transform your business operations with battle-tested AI automations. 
+          From AI receptionists to lead scoring systems—choose, configure, and deploy 
+          in under 10 minutes. No complex workflows, just results.
         </p>
 
         <div className="hero-ctas">
           <button onClick={scrollToMarketplace} className="btn btn-primary">
             Explore Marketplace
           </button>
-
           <Link to="/docs" className="btn btn-secondary">
-            Read Docs
+            View Documentation
           </Link>
         </div>
 
         <div className="hero-badges">
-          <span>✅ Deploy in minutes</span>
-          <span>🔒 Business-grade security</span>
-          <span>📈 Clear, per-automation pricing</span>
+          <span>⚡ Deploy in minutes</span>
+          <span>🔒 Enterprise security</span>
+          <span>📊 Transparent pricing</span>
+          <span>🚀 Scale infinitely</span>
         </div>
       </div>
     </section>

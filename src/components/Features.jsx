@@ -2,26 +2,42 @@ export default function Features() {
   const features = [
     {
       icon: "🛒",
-      title: "Marketplace, not a builder",
-      desc: "Choose proven automations. No complex flow building."
+      title: "Marketplace, Not a Builder",
+      desc: "Choose from battle-tested automations built by experts. No complex flow building or configuration nightmares."
     },
     {
       icon: "🔗",
-      title: "Plug & play integrations",
-      desc: "Connect Stripe, HubSpot, Shopify, Slack, WhatsApp and more."
+      title: "Enterprise Integrations", 
+      desc: "Seamlessly connects with Stripe, HubSpot, Shopify, Slack, WhatsApp, and 50+ business tools out of the box."
     },
     {
       icon: "🛡️",
-      title: "Enterprise-grade",
-      desc: "Least-privilege keys, audit logs, and per-workspace isolation."
+      title: "Military-Grade Security",
+      desc: "SOC 2 compliant with zero-trust architecture, end-to-end encryption, and granular permission controls."
+    },
+    {
+      icon: "⚡",
+      title: "Lightning Deployment",
+      desc: "From selection to production in under 10 minutes. No coding, no complex setup, just results."
+    },
+    {
+      icon: "📊",
+      title: "Real-Time Analytics",
+      desc: "Monitor performance, track ROI, and optimize operations with comprehensive dashboards and insights."
+    },
+    {
+      icon: "🚀",
+      title: "Infinite Scale",
+      desc: "Built on cloud-native infrastructure that scales from startup to enterprise without breaking stride."
     }
   ];
+
   return (
     <section className="features">
       <div className="container">
         <div className="section-header">
-          <h2>Built for Modern Teams</h2>
-          <p>Automations that actually ship value on day one</p>
+          <h2>Built for Modern Enterprises</h2>
+          <p>Automations that deliver measurable ROI from day one</p>
         </div>
         <div className="features-grid">
           {features.map((f, i) => (

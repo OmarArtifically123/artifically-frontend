@@ -2,43 +2,56 @@ import { Link } from "react-router-dom";
 
 export default function Footer() {
   return (
-    <footer className="bg-gray-100 border-t mt-10">
-      <div className="container mx-auto py-8 px-4 text-sm text-gray-600">
-        <div className="grid md:grid-cols-4 gap-8 text-left">
+    <footer className="site-footer">
+      <div className="container">
+        <div className="footer-content">
           {/* Company */}
-          <div>
-            <h4 className="font-semibold mb-2">Company</h4>
-            <ul className="space-y-1">
-              <li><Link to="/about" className="hover:underline">About</Link></li>
-              <li><Link to="/blog" className="hover:underline">Blog</Link></li>
-              <li><Link to="/careers" className="hover:underline">Careers</Link></li>
+          <div className="footer-section">
+            <h4>Company</h4>
+            <ul>
+              <li><Link to="/about">About</Link></li>
+              <li><Link to="/blog">Blog</Link></li>
+              <li><Link to="/careers">Careers</Link></li>
+              <li><Link to="/contact">Contact</Link></li>
             </ul>
           </div>
 
           {/* Resources */}
-          <div>
-            <h4 className="font-semibold mb-2">Resources</h4>
-            <ul className="space-y-1">
-              <li><Link to="/docs" className="hover:underline">Docs</Link></li>
-              <li><Link to="/faq" className="hover:underline">FAQ</Link></li>
-              <li><Link to="/contact" className="hover:underline">Contact</Link></li>
+          <div className="footer-section">
+            <h4>Resources</h4>
+            <ul>
+              <li><Link to="/docs">Documentation</Link></li>
+              <li><Link to="/marketplace">Marketplace</Link></li>
+              <li><Link to="/pricing">Pricing</Link></li>
+              <li><Link to="/api">API</Link></li>
             </ul>
           </div>
 
           {/* Legal */}
-          <div>
-            <h4 className="font-semibold mb-2">Legal</h4>
-            <ul className="space-y-1">
-              <li><Link to="/terms" className="hover:underline">Terms</Link></li>
-              <li><Link to="/privacy" className="hover:underline">Privacy</Link></li>
+          <div className="footer-section">
+            <h4>Legal</h4>
+            <ul>
+              <li><Link to="/terms">Terms of Service</Link></li>
+              <li><Link to="/privacy">Privacy Policy</Link></li>
+              <li><Link to="/security">Security</Link></li>
+              <li><Link to="/compliance">Compliance</Link></li>
             </ul>
           </div>
 
-          {/* Branding */}
-          <div className="text-center md:text-right">
-            <p className="mb-2">&copy; {new Date().getFullYear()} Artifically. All rights reserved.</p>
-            <p className="text-xs">Built with ❤️ for modern teams</p>
+          {/* Support */}
+          <div className="footer-section">
+            <h4>Support</h4>
+            <ul>
+              <li><Link to="/help">Help Center</Link></li>
+              <li><Link to="/status">System Status</Link></li>
+              <li><Link to="/community">Community</Link></li>
+              <li><a href="mailto:support@artifically.com">Email Support</a></li>
+            </ul>
           </div>
+        </div>
+        
+        <div className="footer-bottom">
+          <p>&copy; {new Date().getFullYear()} Artifically. All rights reserved. Built with precision for modern teams.</p>
         </div>
       </div>
     </footer>
