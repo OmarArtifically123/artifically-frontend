@@ -22,9 +22,9 @@ export default function Footer() {
       };
       
       const finalStats = {
-        automationsDeployed: 15420,
-        companiesServed: 2847,
-        timesSaved: 98234
+        automationsDeployed: 0,
+        companiesServed: 0,
+        timesSaved: 0
       };
 
       const duration = 2000; // 2 seconds
