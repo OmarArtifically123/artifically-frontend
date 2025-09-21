@@ -1,7 +1,9 @@
-import { useState, useRef } from "react";
+// src/components/AuthModal.jsx - RESPONSIVE & HIGH-PERFORMANCE
+import { useState, useRef, useCallback, useEffect, useMemo } from "react";
+import { debounce } from "lodash";
 import api from "../api";
 
-export default function AuthModal({ onClose, onAuthenticated, initialMode = "signin" }) {
+const AuthModal = ({ onClose, onAuthenticated, initialMode = "signin" }) => {
   const [mode, setMode] = useState(initialMode);
   const [form, setForm] = useState({
     email: "",
@@ -13,297 +15,534 @@ export default function AuthModal({ onClose, onAuthenticated, initialMode = "sig
   });
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
+  const [fieldErrors, setFieldErrors] = useState({});
+  const [csrfToken, setCsrfToken] = useState("");
   const modalRef = useRef(null);
+  const submitRef = useRef(false);
 
-  const swap = () => {
-    setMode(mode === "signin" ? "signup" : "signin");
+  // Get CSRF token on mount
+  useEffect(() => {
+    const getCsrfToken = async () => {
+      try {
+        const response = await api.get('/auth/csrf-token');
+        setCsrfToken(response.data.csrfToken);
+      } catch (error) {
+        console.warn('Could not get CSRF token:', error);
+      }
+    };
+    getCsrfToken();
+  }, []);
+
+  // Debounced validation to reduce lag
+  const debouncedValidation = useMemo(
+    () => debounce((field, value) => {
+      validateField(field, value);
+    }, 300),
+    []
+  );
+
+  // Real-time field validation
+  const validateField = useCallback((field, value) => {
+    const errors = {};
+
+    switch (field) {
+      case 'email':
+        const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+        if (value && !emailRegex.test(value)) {
+          errors.email = 'Invalid email format';
+        }
+        break;
+      
+      case 'password':
+        if (mode === 'signup') {
+          if (value.length < 12) {
+            errors.password = 'Password must be at least 12 characters';
+          } else if (!/(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[!@#$%^&*])/.test(value)) {
+            errors.password = 'Password must include uppercase, lowercase, number, and special character';
+          }
+        }
+        break;
+      
+      case 'businessName':
+        if (mode === 'signup' && (!value || value.trim().length < 2)) {
+          errors.businessName = 'Business name is required';
+        }
+        break;
+      
+      case 'businessPhone':
+        if (value && !/^\+?[\d\s\-()]+$/.test(value)) {
+          errors.businessPhone = 'Invalid phone number format';
+        }
+        break;
+      
+      case 'websiteUrl':
+        if (value && !/^https?:\/\/.+\..+/.test(value)) {
+          errors.websiteUrl = 'URL must include protocol (https://)';
+        }
+        break;
+    }
+
+    setFieldErrors(prev => ({
+      ...prev,
+      [field]: errors[field] || null
+    }));
+  }, [mode]);
+
+  // Optimized input handler
+  const handleInputChange = useCallback((field, value) => {
+    setForm(prev => ({ ...prev, [field]: value }));
+    setError(""); // Clear global error
+    
+    // Debounced validation for better performance
+    debouncedValidation(field, value);
+  }, [debouncedValidation]);
+
+  // Mode switcher with form reset
+  const swap = useCallback(() => {
+    setMode(prev => prev === "signin" ? "signup" : "signin");
     setError("");
+    setFieldErrors({});
     setForm({
-      email: "",
+      email: form.email, // Keep email when switching
       password: "",
       businessName: "",
       businessPhone: "",
       businessEmail: "",
       websiteUrl: ""
     });
-  };
+  }, [form.email]);
 
-  const validateForm = () => {
-    if (!form.email || !form.password) {
-      setError("Email and password are required");
-      return false;
+  // Comprehensive form validation
+  const validateForm = useCallback(() => {
+    const errors = {};
+
+    // Required fields validation
+    if (!form.email?.trim()) {
+      errors.email = "Email is required";
+    } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(form.email)) {
+      errors.email = "Invalid email format";
     }
 
-    if (mode === "signup" && !form.businessName) {
-      setError("Business name is required");
-      return false;
-    }
-
-    // Email validation
-    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    if (!emailRegex.test(form.email)) {
-      setError("Please enter a valid email address");
-      return false;
-    }
-
-    // Password validation
-    if (form.password.length < 8) {
-      setError("Password must be at least 8 characters long");
-      return false;
+    if (!form.password) {
+      errors.password = "Password is required";
+    } else if (mode === "signup") {
+      if (form.password.length < 12) {
+        errors.password = "Password must be at least 12 characters";
+      } else if (!/(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[!@#$%^&*])/.test(form.password)) {
+        errors.password = "Password must include uppercase, lowercase, number, and special character";
+      }
     }
 
     if (mode === "signup") {
-      // Strong password validation for signup
-      const hasUpper = /[A-Z]/.test(form.password);
-      const hasLower = /[a-z]/.test(form.password);
-      const hasNumber = /\d/.test(form.password);
-      const hasSpecial = /[!@#$%^&*(),.?":{}|<>]/.test(form.password);
-
-      if (!hasUpper || !hasLower || !hasNumber || !hasSpecial) {
-        setError("Password must include uppercase, lowercase, number, and special character");
-        return false;
+      if (!form.businessName?.trim()) {
+        errors.businessName = "Business name is required";
       }
 
-      // Phone validation if provided
+      // Optional field validations
       if (form.businessPhone && !/^\+?[\d\s\-()]+$/.test(form.businessPhone)) {
-        setError("Please enter a valid phone number");
-        return false;
+        errors.businessPhone = "Invalid phone number format";
       }
 
-      // URL validation if provided
+      if (form.businessEmail && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(form.businessEmail)) {
+        errors.businessEmail = "Invalid business email format";
+      }
+
       if (form.websiteUrl && !/^https?:\/\/.+\..+/.test(form.websiteUrl)) {
-        setError("Please enter a valid website URL (including http:// or https://)");
-        return false;
-      }
-
-      // Email validation if provided
-      if (form.businessEmail && !emailRegex.test(form.businessEmail)) {
-        setError("Please enter a valid business email address");
-        return false;
+        errors.websiteUrl = "Website URL must include protocol (https://)";
       }
     }
 
-    return true;
-  };
+    setFieldErrors(errors);
+    return Object.keys(errors).length === 0;
+  }, [form, mode]);
 
-  const submit = async (e) => {
+  // Form submission with anti-spam protection
+  const submit = useCallback(async (e) => {
     e.preventDefault();
+    
+    // Prevent double submission
+    if (submitRef.current || loading) return;
+    submitRef.current = true;
+    
     setError("");
-
+    
     if (!validateForm()) {
+      submitRef.current = false;
       return;
     }
 
     setLoading(true);
     
     try {
-      if (mode === "signup") {
-        const signupData = {
-          email: form.email.trim().toLowerCase(),
-          password: form.password,
-          businessName: form.businessName.trim(),
-          businessPhone: form.businessPhone.trim() || undefined,
-          businessEmail: form.businessEmail.trim().toLowerCase() || undefined,
-          websiteUrl: form.websiteUrl.trim() || undefined
-        };
+      const sanitizedData = {
+        email: form.email.trim().toLowerCase(),
+        password: form.password,
+        ...(csrfToken && { _csrf: csrfToken })
+      };
 
-        await api.post("/auth/signup", signupData);
+      if (mode === "signup") {
+        sanitizedData.businessName = form.businessName.trim();
+        if (form.businessPhone?.trim()) {
+          sanitizedData.businessPhone = form.businessPhone.trim();
+        }
+        if (form.businessEmail?.trim()) {
+          sanitizedData.businessEmail = form.businessEmail.trim().toLowerCase();
+        }
+        if (form.websiteUrl?.trim()) {
+          sanitizedData.websiteUrl = form.websiteUrl.trim();
+        }
+      }
+
+      const endpoint = mode === "signup" ? "/auth/signup" : "/auth/signin";
+      const response = await api.post(endpoint, sanitizedData);
+
+      // Handle different response formats
+      if (response.data.success !== false) {
         onAuthenticated({
-          token: null,
-          user: null,
-          notice: "Account created successfully! Please check your email to verify your address."
+          token: response.data.token || null,
+          user: response.data.user || null,
+          notice: response.data.message || (mode === "signup" 
+            ? "Account created! Please check your email to verify." 
+            : "Welcome back!")
         });
       } else {
-        const signinData = {
-          email: form.email.trim().toLowerCase(),
-          password: form.password
-        };
-
-        const res = await api.post("/auth/signin", signinData);
-        onAuthenticated({
-          token: res.data.token,
-          user: res.data.user,
-          notice: "Welcome back!"
-        });
+        throw new Error(response.data.message || "Authentication failed");
       }
+
     } catch (err) {
       console.error("Authentication error:", err);
       
-      const res = err?.response?.data;
-      if (res?.errors?.length) {
-        setError(res.errors.map(e => `${e.field}: ${e.message}`).join(", "));
-      } else if (res?.message) {
-        setError(res.message);
-      } else if (err.message) {
-        setError(err.message);
-      } else {
-        setError("Authentication failed. Please try again.");
+      // Enhanced error handling
+      let errorMessage = "An unexpected error occurred. Please try again.";
+      
+      if (err.message) {
+        errorMessage = err.message;
+      } else if (err.response?.data) {
+        const data = err.response.data;
+        if (data.errors && Array.isArray(data.errors)) {
+          errorMessage = data.errors.map(e => `${e.field}: ${e.message}`).join(", ");
+        } else if (data.message) {
+          errorMessage = data.message;
+        }
       }
+      
+      setError(errorMessage);
     } finally {
       setLoading(false);
+      submitRef.current = false;
     }
-  };
+  }, [form, mode, validateForm, onAuthenticated, loading, csrfToken]);
 
-  const handleOverlayClick = (e) => {
+  // Handle backdrop click
+  const handleOverlayClick = useCallback((e) => {
     if (modalRef.current && !modalRef.current.contains(e.target)) {
       onClose();
     }
-  };
+  }, [onClose]);
 
-  const handleInputChange = (field, value) => {
-    setForm(prev => ({ ...prev, [field]: value }));
-    if (error) setError(""); // Clear error when user starts typing
-  };
+  // Keyboard navigation
+  useEffect(() => {
+    const handleKeyDown = (e) => {
+      if (e.key === 'Escape') {
+        onClose();
+      }
+      if (e.key === 'Enter' && !loading) {
+        const activeElement = document.activeElement;
+        if (activeElement.tagName === 'BUTTON' && activeElement.type === 'submit') {
+          return; // Let the form handle it
+        }
+        if (activeElement.tagName === 'INPUT') {
+          e.preventDefault();
+          submit(e);
+        }
+      }
+    };
+
+    document.addEventListener('keydown', handleKeyDown);
+    return () => document.removeEventListener('keydown', handleKeyDown);
+  }, [onClose, submit, loading]);
+
+  // Input component with optimized rendering
+  const InputField = useCallback(({ 
+    label, 
+    type = "text", 
+    field, 
+    placeholder, 
+    required = false,
+    hint,
+    autoComplete
+  }) => (
+    <div className="form-group">
+      <label className="form-label">
+        {label} {required && <span style={{ color: 'var(--danger)' }}>*</span>}
+      </label>
+      <input
+        className={`form-input ${fieldErrors[field] ? 'error' : ''}`}
+        type={type}
+        value={form[field]}
+        onChange={(e) => handleInputChange(field, e.target.value)}
+        placeholder={placeholder}
+        required={required}
+        disabled={loading}
+        autoComplete={autoComplete}
+        style={{
+          borderColor: fieldErrors[field] ? 'var(--danger)' : 'var(--border-color)',
+          transition: 'all 0.2s ease'
+        }}
+      />
+      {fieldErrors[field] && (
+        <div style={{
+          color: 'var(--danger)',
+          fontSize: '0.75rem',
+          marginTop: '4px',
+          display: 'flex',
+          alignItems: 'center',
+          gap: '4px'
+        }}>
+          <span>⚠</span>
+          {fieldErrors[field]}
+        </div>
+      )}
+      {hint && !fieldErrors[field] && (
+        <small className="form-hint">{hint}</small>
+      )}
+    </div>
+  ), [form, fieldErrors, handleInputChange, loading]);
 
   return (
-    <div className="modal-overlay" onClick={handleOverlayClick}>
-      <div ref={modalRef} className="modal" style={{ maxWidth: 520 }}>
-        <div className="modal-header">
-          <h2>{mode === "signin" ? "Welcome Back" : "Create Your Account"}</h2>
-          <button className="close-btn" onClick={onClose} type="button">
+    <div 
+      className="modal-overlay" 
+      onClick={handleOverlayClick}
+      style={{
+        position: 'fixed',
+        inset: 0,
+        background: 'rgba(0, 0, 0, 0.8)',
+        backdropFilter: 'blur(8px)',
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+        zIndex: 1000,
+        padding: 'var(--space-4)',
+        overflowY: 'auto'
+      }}
+    >
+      <div 
+        ref={modalRef} 
+        className="modal"
+        style={{
+          width: '100%',
+          maxWidth: '520px',
+          maxHeight: '90vh',
+          overflowY: 'auto',
+          background: 'var(--bg-secondary)',
+          borderRadius: 'var(--rounded-2xl)',
+          padding: 'var(--space-8)',
+          border: '1px solid var(--border-color)',
+          boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.25)',
+          position: 'relative',
+          transform: 'scale(1)',
+          transition: 'all 0.3s ease'
+        }}
+      >
+        {/* Header */}
+        <div className="modal-header" style={{ marginBottom: 'var(--space-6)' }}>
+          <h2 style={{
+            fontSize: '1.5rem',
+            fontWeight: '700',
+            color: 'var(--white)',
+            margin: 0
+          }}>
+            {mode === "signin" ? "Welcome Back" : "Create Your Account"}
+          </h2>
+          <button 
+            className="close-btn" 
+            onClick={onClose} 
+            type="button"
+            disabled={loading}
+            style={{
+              background: 'none',
+              border: 'none',
+              fontSize: '1.5rem',
+              color: 'var(--gray-400)',
+              cursor: loading ? 'not-allowed' : 'pointer',
+              padding: 'var(--space-2)',
+              borderRadius: 'var(--rounded-lg)',
+              transition: 'all 0.2s ease',
+              opacity: loading ? 0.5 : 1
+            }}
+            onMouseEnter={(e) => {
+              if (!loading) {
+                e.target.style.color = 'var(--white)';
+                e.target.style.background = 'var(--bg-glass)';
+              }
+            }}
+            onMouseLeave={(e) => {
+              e.target.style.color = 'var(--gray-400)';
+              e.target.style.background = 'none';
+            }}
+          >
             ×
           </button>
         </div>
 
+        {/* Error Display */}
         {error && (
-          <div style={{ 
-            background: 'rgba(239, 68, 68, 0.1)', 
+          <div style={{
+            background: 'rgba(239, 68, 68, 0.1)',
             border: '1px solid rgba(239, 68, 68, 0.3)',
             color: 'var(--danger)',
             padding: 'var(--space-3)',
             borderRadius: 'var(--rounded-lg)',
             marginBottom: 'var(--space-4)',
-            fontSize: '0.875rem'
+            fontSize: '0.875rem',
+            display: 'flex',
+            alignItems: 'center',
+            gap: '8px'
           }}>
+            <span>⚠</span>
             {error}
           </div>
         )}
 
-        <form onSubmit={submit}>
+        {/* Form */}
+        <form onSubmit={submit} noValidate>
           {/* Signup-only fields */}
           {mode === "signup" && (
             <>
-              <div className="form-group">
-                <label className="form-label">Business Name *</label>
-                <input
-                  className="form-input"
-                  value={form.businessName}
-                  onChange={(e) => handleInputChange('businessName', e.target.value)}
-                  placeholder="Enter your business name"
-                  required
-                  disabled={loading}
-                />
-              </div>
+              <InputField
+                label="Business Name"
+                field="businessName"
+                placeholder="Enter your business name"
+                required
+                autoComplete="organization"
+              />
 
-              <div className="form-group">
-                <label className="form-label">Business Phone</label>
-                <input
-                  className="form-input"
-                  value={form.businessPhone}
-                  onChange={(e) => handleInputChange('businessPhone', e.target.value)}
-                  placeholder="+1 (555) 123-4567"
-                  disabled={loading}
-                />
-                <small className="form-hint">International format preferred</small>
-              </div>
+              <InputField
+                label="Business Phone"
+                field="businessPhone"
+                placeholder="+971 50 123 4567"
+                hint="International format preferred"
+                autoComplete="tel"
+              />
 
-              <div className="form-group">
-                <label className="form-label">Business Email</label>
-                <input
-                  className="form-input"
-                  type="email"
-                  value={form.businessEmail}
-                  onChange={(e) => handleInputChange('businessEmail', e.target.value)}
-                  placeholder="support@yourbusiness.com"
-                  disabled={loading}
-                />
-                <small className="form-hint">Different from your login email</small>
-              </div>
+              <InputField
+                label="Business Email"
+                type="email"
+                field="businessEmail"
+                placeholder="support@yourbusiness.com"
+                hint="Different from your login email"
+                autoComplete="email"
+              />
 
-              <div className="form-group">
-                <label className="form-label">Website URL</label>
-                <input
-                  className="form-input"
-                  type="url"
-                  value={form.websiteUrl}
-                  onChange={(e) => handleInputChange('websiteUrl', e.target.value)}
-                  placeholder="https://yourbusiness.com"
-                  disabled={loading}
-                />
-              </div>
+              <InputField
+                label="Website URL"
+                type="url"
+                field="websiteUrl"
+                placeholder="https://yourbusiness.com"
+                autoComplete="url"
+              />
             </>
           )}
 
           {/* Universal fields */}
-          <div className="form-group">
-            <label className="form-label">Email Address *</label>
-            <input
-              className="form-input"
-              type="email"
-              value={form.email}
-              onChange={(e) => handleInputChange('email', e.target.value)}
-              placeholder="you@example.com"
-              required
-              disabled={loading}
-              autoComplete="email"
-            />
-          </div>
+          <InputField
+            label="Email Address"
+            type="email"
+            field="email"
+            placeholder="you@example.com"
+            required
+            autoComplete="email"
+          />
 
-          <div className="form-group">
-            <label className="form-label">Password *</label>
-            <input
-              className="form-input"
-              type="password"
-              value={form.password}
-              onChange={(e) => handleInputChange('password', e.target.value)}
-              placeholder="Enter your password"
-              required
-              disabled={loading}
-              autoComplete={mode === "signin" ? "current-password" : "new-password"}
-            />
-            {mode === "signup" && (
-              <small className="form-hint">
-                Must be at least 8 characters with uppercase, lowercase, number, and special character
-              </small>
-            )}
-          </div>
+          <InputField
+            label="Password"
+            type="password"
+            field="password"
+            placeholder="Enter your password"
+            required
+            hint={mode === "signup" 
+              ? "Must be 12+ characters with uppercase, lowercase, number, and special character"
+              : undefined
+            }
+            autoComplete={mode === "signin" ? "current-password" : "new-password"}
+          />
 
+          {/* Submit Button */}
           <button 
             className="btn btn-primary" 
             type="submit" 
             disabled={loading}
-            style={{ width: '100%', marginTop: 'var(--space-4)' }}
+            style={{
+              width: '100%',
+              marginTop: 'var(--space-4)',
+              padding: 'var(--space-4)',
+              fontSize: '1rem',
+              fontWeight: '600',
+              opacity: loading ? 0.7 : 1,
+              cursor: loading ? 'not-allowed' : 'pointer',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              gap: '8px'
+            }}
           >
-            {loading ? (
-              <>
-                <span className="loading"></span>
-                <span style={{ marginLeft: 'var(--space-2)' }}>
-                  {mode === "signin" ? "Signing in..." : "Creating account..."}
-                </span>
-              </>
-            ) : (
-              mode === "signin" ? "Sign In" : "Create Account"
+            {loading && (
+              <div
+                style={{
+                  width: '16px',
+                  height: '16px',
+                  border: '2px solid rgba(255, 255, 255, 0.3)',
+                  borderTopColor: 'white',
+                  borderRadius: '50%',
+                  animation: 'spin 1s linear infinite'
+                }}
+              />
             )}
+            <span>
+              {loading 
+                ? (mode === "signin" ? "Signing in..." : "Creating account...")
+                : (mode === "signin" ? "Sign In" : "Create Account")
+              }
+            </span>
           </button>
         </form>
 
-        <div style={{ 
-          marginTop: 'var(--space-6)', 
-          fontSize: '0.875rem', 
+        {/* Mode Switch */}
+        <div style={{
+          marginTop: 'var(--space-6)',
+          fontSize: '0.875rem',
           textAlign: 'center',
           color: 'var(--gray-400)'
         }}>
           {mode === "signin" ? (
             <>
               New to Artifically?{" "}
-              <button className="linklike" onClick={swap} type="button">
+              <button 
+                className="linklike" 
+                onClick={swap} 
+                type="button"
+                disabled={loading}
+                style={{
+                  opacity: loading ? 0.5 : 1,
+                  cursor: loading ? 'not-allowed' : 'pointer'
+                }}
+              >
                 Create an account
               </button>
             </>
           ) : (
             <>
               Already have an account?{" "}
-              <button className="linklike" onClick={swap} type="button">
+              <button 
+                className="linklike" 
+                onClick={swap} 
+                type="button"
+                disabled={loading}
+                style={{
+                  opacity: loading ? 0.5 : 1,
+                  cursor: loading ? 'not-allowed' : 'pointer'
+                }}
+              >
                 Sign in
               </button>
             </>
@@ -312,4 +551,6 @@ export default function AuthModal({ onClose, onAuthenticated, initialMode = "sig
       </div>
     </div>
   );
-}
+};
+
+export default AuthModal;
