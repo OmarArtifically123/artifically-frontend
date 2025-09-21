@@ -560,7 +560,7 @@ export default function Footer() {
                 background: 'var(--success)',
                 animation: 'pulse 2s ease-in-out infinite'
               }} />
-              <span style={{ color: 'var(--gray-400)' }}>Systems still not operational</span>
+              <span style={{ color: 'var(--gray-400)' }}>Systems still non-operational</span>
             </div>
             <div style={{
               display: 'flex',
