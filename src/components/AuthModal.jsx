@@ -1,7 +1,58 @@
-// src/components/AuthModal.jsx - RESPONSIVE & HIGH-PERFORMANCE
+// src/components/AuthModal.jsx - FIXED INPUT REMOUNTING ISSUE
 import { useState, useRef, useCallback, useEffect, useMemo } from "react";
 import { debounce } from "lodash";
 import api from "../api";
+
+// ✅ Move InputField outside the component to prevent remounting
+const InputField = ({ 
+  label, 
+  type = "text", 
+  field, 
+  placeholder, 
+  required = false,
+  hint,
+  autoComplete,
+  form,
+  fieldErrors,
+  handleInputChange,
+  loading
+}) => (
+  <div className="form-group">
+    <label className="form-label">
+      {label} {required && <span style={{ color: 'var(--danger)' }}>*</span>}
+    </label>
+    <input
+      className={`form-input ${fieldErrors[field] ? 'error' : ''}`}
+      type={type}
+      value={form[field]}
+      onChange={(e) => handleInputChange(field, e.target.value)}
+      placeholder={placeholder}
+      required={required}
+      disabled={loading}
+      autoComplete={autoComplete}
+      style={{
+        borderColor: fieldErrors[field] ? 'var(--danger)' : 'var(--border-color)',
+        transition: 'all 0.2s ease'
+      }}
+    />
+    {fieldErrors[field] && (
+      <div style={{
+        color: 'var(--danger)',
+        fontSize: '0.75rem',
+        marginTop: '4px',
+        display: 'flex',
+        alignItems: 'center',
+        gap: '4px'
+      }}>
+        <span>⚠ </span>
+        {fieldErrors[field]}
+      </div>
+    )}
+    {hint && !fieldErrors[field] && (
+      <small className="form-hint">{hint}</small>
+    )}
+  </div>
+);
 
 const AuthModal = ({ onClose, onAuthenticated, initialMode = "signin" }) => {
   const [mode, setMode] = useState(initialMode);
@@ -250,54 +301,7 @@ const AuthModal = ({ onClose, onAuthenticated, initialMode = "signin" }) => {
 
     document.addEventListener('keydown', handleKeyDown);
     return () => document.removeEventListener('keydown', handleKeyDown);
-  }, [onClose, submit, loading]);
-
-  // Input component with optimized rendering
-  const InputField = useCallback(({ 
-    label, 
-    type = "text", 
-    field, 
-    placeholder, 
-    required = false,
-    hint,
-    autoComplete
-  }) => (
-    <div className="form-group">
-      <label className="form-label">
-        {label} {required && <span style={{ color: 'var(--danger)' }}>*</span>}
-      </label>
-      <input
-        className={`form-input ${fieldErrors[field] ? 'error' : ''}`}
-        type={type}
-        value={form[field]}
-        onChange={(e) => handleInputChange(field, e.target.value)}
-        placeholder={placeholder}
-        required={required}
-        disabled={loading}
-        autoComplete={autoComplete}
-        style={{
-          borderColor: fieldErrors[field] ? 'var(--danger)' : 'var(--border-color)',
-          transition: 'all 0.2s ease'
-        }}
-      />
-      {fieldErrors[field] && (
-        <div style={{
-          color: 'var(--danger)',
-          fontSize: '0.75rem',
-          marginTop: '4px',
-          display: 'flex',
-          alignItems: 'center',
-          gap: '4px'
-        }}>
-          <span>⚠</span>
-          {fieldErrors[field]}
-        </div>
-      )}
-      {hint && !fieldErrors[field] && (
-        <small className="form-hint">{hint}</small>
-      )}
-    </div>
-  ), [form, fieldErrors, handleInputChange, loading]);
+  }, [onClose]);
 
   return (
     <div 
@@ -389,7 +393,7 @@ const AuthModal = ({ onClose, onAuthenticated, initialMode = "signin" }) => {
             alignItems: 'center',
             gap: '8px'
           }}>
-            <span>⚠</span>
+            <span>⚠ </span>
             {error}
           </div>
         )}
@@ -405,6 +409,10 @@ const AuthModal = ({ onClose, onAuthenticated, initialMode = "signin" }) => {
                 placeholder="Enter your business name"
                 required
                 autoComplete="organization"
+                form={form}
+                fieldErrors={fieldErrors}
+                handleInputChange={handleInputChange}
+                loading={loading}
               />
 
               <InputField
@@ -413,6 +421,10 @@ const AuthModal = ({ onClose, onAuthenticated, initialMode = "signin" }) => {
                 placeholder="+971 50 123 4567"
                 hint="International format preferred"
                 autoComplete="tel"
+                form={form}
+                fieldErrors={fieldErrors}
+                handleInputChange={handleInputChange}
+                loading={loading}
               />
 
               <InputField
@@ -422,6 +434,10 @@ const AuthModal = ({ onClose, onAuthenticated, initialMode = "signin" }) => {
                 placeholder="support@yourbusiness.com"
                 hint="Different from your login email"
                 autoComplete="email"
+                form={form}
+                fieldErrors={fieldErrors}
+                handleInputChange={handleInputChange}
+                loading={loading}
               />
 
               <InputField
@@ -430,6 +446,10 @@ const AuthModal = ({ onClose, onAuthenticated, initialMode = "signin" }) => {
                 field="websiteUrl"
                 placeholder="https://yourbusiness.com"
                 autoComplete="url"
+                form={form}
+                fieldErrors={fieldErrors}
+                handleInputChange={handleInputChange}
+                loading={loading}
               />
             </>
           )}
@@ -442,6 +462,10 @@ const AuthModal = ({ onClose, onAuthenticated, initialMode = "signin" }) => {
             placeholder="you@example.com"
             required
             autoComplete="email"
+            form={form}
+            fieldErrors={fieldErrors}
+            handleInputChange={handleInputChange}
+            loading={loading}
           />
 
           <InputField
@@ -455,6 +479,10 @@ const AuthModal = ({ onClose, onAuthenticated, initialMode = "signin" }) => {
               : undefined
             }
             autoComplete={mode === "signin" ? "current-password" : "new-password"}
+            form={form}
+            fieldErrors={fieldErrors}
+            handleInputChange={handleInputChange}
+            loading={loading}
           />
 
           {/* Submit Button */}
