@@ -6,5 +6,8 @@
   "env": {
     "NODE_VERSION": "20",
     "VITE_API_URL": "https://api.artifically.com"
-  }
+  },
+  "rewrites": [
+    { "source": "/(.*)", "destination": "/" }
+  ]
 }
