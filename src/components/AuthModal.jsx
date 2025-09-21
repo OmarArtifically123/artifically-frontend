@@ -246,16 +246,6 @@ const AuthModal = ({ onClose, onAuthenticated, initialMode = "signin" }) => {
       if (e.key === 'Escape') {
         onClose();
       }
-      if (e.key === 'Enter' && !loading) {
-        const activeElement = document.activeElement;
-        if (activeElement.tagName === 'BUTTON' && activeElement.type === 'submit') {
-          return; // Let the form handle it
-        }
-        if (activeElement.tagName === 'INPUT') {
-          e.preventDefault();
-          submit(e);
-        }
-      }
     };
 
     document.addEventListener('keydown', handleKeyDown);
@@ -263,7 +253,7 @@ const AuthModal = ({ onClose, onAuthenticated, initialMode = "signin" }) => {
   }, [onClose, submit, loading]);
 
   // Input component with optimized rendering
-  const InputField = (({ 
+  const InputField = useCallback(({ 
     label, 
     type = "text", 
     field, 
