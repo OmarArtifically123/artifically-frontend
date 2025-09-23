@@ -24,7 +24,7 @@ console.log('API Base URL:', baseURL); // Debug log
 
 export const api = axios.create({
   baseURL,
-  withCredentials: false, // Set to true if you need cookies
+  withCredentials: true, // Set to true if you need cookies
   timeout: 30000,
   headers: {
     'Content-Type': 'application/json',
