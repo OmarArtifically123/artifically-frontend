@@ -5,9 +5,9 @@ import { useState, useEffect } from "react";
 export default function Footer() {
   const [currentYear] = useState(new Date().getFullYear());
   const [stats, setStats] = useState({
-    automationsDeployed: 15420,
-    companiesServed: 2847,
-    timesSaved: 98234
+    automationsDeployed: 0,
+    companiesServed: 0,
+    timesSaved: 0
   });
   const [newsletterEmail, setNewsletterEmail] = useState("");
   const [newsletterStatus, setNewsletterStatus] = useState("");
