@@ -228,6 +228,7 @@ const AuthModal = ({ onClose, onAuthenticated, initialMode = "signin" }) => {
       const sanitizedData = {
         email: form.email.trim().toLowerCase(),
         password: form.password,
+        ...(csrfToken && { _csrf: csrfToken })
       };
 
       if (mode === "signup") {
@@ -244,13 +245,7 @@ const AuthModal = ({ onClose, onAuthenticated, initialMode = "signin" }) => {
       }
 
       const endpoint = mode === "signup" ? "/auth/signup" : "/auth/signin";
-      const headers = {};
-      if (csrfToken) {
-        headers['X-CSRF-Token'] = csrfToken;  // ✅ CORRECT - CSRF goes in headers
-      }
-      const response = await api.post(endpoint, sanitizedData, {
-        headers
-      });
+      const response = await api.post(endpoint, sanitizedData);
 
       // Handle different response formats
       if (response.data.success !== false) {
