@@ -524,6 +524,7 @@ body::before {
 /* Marketplace Section */
 .marketplace {
   padding: var(--space-20) 0;
+  scroll-margin-top: 100px; 
 }
 
 .automation-grid {
