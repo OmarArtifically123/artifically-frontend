@@ -114,7 +114,8 @@ export default function Header({ user, onSignIn, onSignUp, onSignOut }) {
             src={darkMode ? LogoDark : LogoLight}
             alt="Artifically"
             style={{
-              height: "32px",
+              height: "40px",
+              width: "60px",
               display: "block",
               filter: darkMode
                 ? "drop-shadow(0 0 8px rgba(99, 102, 241, 0.6))"
