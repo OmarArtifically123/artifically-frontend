@@ -1,406 +1,276 @@
 import { Link, useNavigate, useLocation } from "react-router-dom";
-import { useState, useEffect } from "react";
+import { useEffect, useMemo, useState } from "react";
 import LogoLight from "../assets/logos/1_Primary.svg";
-import LogoDark  from "../assets/logos/3_Dark_Mode.svg";
+import LogoDark from "../assets/logos/3_Dark_Mode.svg";
+import ThemeToggle from "./ThemeToggle";
+import { useTheme } from "../context/ThemeContext";
 
 export default function Header({ user, onSignIn, onSignUp, onSignOut }) {
   const navigate = useNavigate();
   const { pathname } = useLocation();
-  const [darkMode, setDarkMode] = useState(true); // Default to dark mode
+  const { darkMode } = useTheme();
   const [scrolled, setScrolled] = useState(false);
 
-  // Handle scroll effect
   useEffect(() => {
-    const handleScroll = () => {
-      setScrolled(window.scrollY > 20);
-    };
-
-    window.addEventListener('scroll', handleScroll);
-    return () => window.removeEventListener('scroll', handleScroll);
+    const handleScroll = () => setScrolled(window.scrollY > 20);
+    window.addEventListener("scroll", handleScroll, { passive: true });
+    return () => window.removeEventListener("scroll", handleScroll);
   }, []);
 
-  // Load theme from localStorage on mount
-  useEffect(() => {
-    const savedTheme = localStorage.getItem('theme');
-    if (savedTheme) {
-      setDarkMode(savedTheme === 'dark');
-    }
-  }, []);
+  const navItems = useMemo(
+    () => [
+      { path: "/marketplace", label: "Marketplace" },
+      { path: "/pricing", label: "Pricing" },
+      { path: "/docs", label: "Docs" },
+    ],
+    []
+  );
 
-  // Apply theme to document and save to localStorage
-  useEffect(() => {
-    document.documentElement.setAttribute('data-theme', darkMode ? 'dark' : 'light');
-    localStorage.setItem('theme', darkMode ? 'dark' : 'light');
-  }, [darkMode]);
-
-  const toggleTheme = () => {
-    setDarkMode(!darkMode);
-  };
+  const headerBackground = useMemo(
+    () => ({
+      background: darkMode
+        ? "linear-gradient(120deg, rgba(15, 23, 42, 0.96), rgba(30, 41, 59, 0.9))"
+        : "linear-gradient(120deg, rgba(255, 255, 255, 0.95), rgba(226, 232, 240, 0.9))",
+      borderBottom: `1px solid ${darkMode ? "rgba(148, 163, 184, 0.28)" : "rgba(148, 163, 184, 0.35)"}`,
+      boxShadow: scrolled
+        ? darkMode
+          ? "0 20px 45px rgba(8, 15, 34, 0.65)"
+          : "0 20px 45px rgba(148, 163, 184, 0.45)"
+        : "none",
+    }),
+    [darkMode, scrolled]
+  );
 
   return (
-    <header 
-      className={`site-header ${scrolled ? 'scrolled' : ''}`}
+    <header
+      className={`site-header ${scrolled ? "scrolled" : ""}`}
       style={{
-        position: 'fixed',
+        position: "fixed",
         top: 0,
         left: 0,
         right: 0,
         zIndex: 1000,
-        background: darkMode 
-          ? 'rgba(15, 23, 42, 0.8)' 
-          : 'rgba(255, 255, 255, 0.8)',
-        backdropFilter: 'blur(20px)',
-        WebkitBackdropFilter: 'blur(20px)',
-        borderBottom: `1px solid ${darkMode ? 'rgba(148, 163, 184, 0.2)' : 'rgba(0, 0, 0, 0.1)'}`,
-        transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
-        padding: scrolled ? '0.75rem 0' : '1rem 0',
-        boxShadow: scrolled 
-          ? (darkMode 
-              ? '0 4px 20px rgba(0, 0, 0, 0.3), 0 0 40px rgba(99, 102, 241, 0.1)' 
-              : '0 4px 20px rgba(0, 0, 0, 0.1), 0 0 40px rgba(99, 102, 241, 0.05)')
-          : 'none'
+        padding: scrolled ? "0.65rem 0" : "1rem 0",
+        backdropFilter: "blur(20px)",
+        WebkitBackdropFilter: "blur(20px)",
+        transition: "all var(--transition-normal)",
+        ...headerBackground,
       }}
     >
-      <div 
+      <div
         className="header-inner"
         style={{
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'space-between',
-          maxWidth: '1200px',
-          margin: '0 auto',
-          padding: '0 1.5rem',
-          position: 'relative'
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "space-between",
+          maxWidth: "1200px",
+          margin: "0 auto",
+          padding: "0 1.75rem",
+          position: "relative",
         }}
       >
-        {/* Animated Background Effect */}
         <div
+          aria-hidden="true"
           style={{
-            position: 'absolute',
-            top: 0,
-            left: 0,
-            right: 0,
-            bottom: 0,
+            position: "absolute",
+            inset: 0,
+            borderRadius: "1.5rem",
             background: darkMode
-              ? 'linear-gradient(90deg, transparent 0%, rgba(99, 102, 241, 0.05) 50%, transparent 100%)'
-              : 'linear-gradient(90deg, transparent 0%, rgba(99, 102, 241, 0.02) 50%, transparent 100%)',
-            opacity: scrolled ? 1 : 0,
-            transition: 'opacity 0.3s ease',
-            pointerEvents: 'none'
+              ? "radial-gradient(circle at 20% 20%, rgba(99,102,241,0.18), transparent 55%), radial-gradient(circle at 80% 30%, rgba(6,182,212,0.18), transparent 55%)"
+              : "radial-gradient(circle at 20% 20%, rgba(99,102,241,0.12), transparent 55%), radial-gradient(circle at 80% 30%, rgba(6,182,212,0.12), transparent 55%)",
+            opacity: scrolled ? 1 : 0.65,
+            transition: "opacity var(--transition-normal)",
+            pointerEvents: "none",
           }}
         />
 
-        {/* Brand */}
-        <div 
-          className="brand" 
+        <div
+          className="brand"
           onClick={() => navigate("/")}
+          role="button"
+          tabIndex={0}
+          onKeyDown={(event) => {
+            if (event.key === "Enter" || event.key === " ") {
+              event.preventDefault();
+              navigate("/");
+            }
+          }}
           style={{
-            display: 'flex',
-            alignItems: 'center',
-            gap: '0.75rem',
-            cursor: 'pointer',
-            transition: 'all 0.2s ease',
-            position: 'relative',
-            zIndex: 1
-          }}
-          onMouseEnter={(e) => {
-            e.currentTarget.style.transform = 'translateY(-2px)';
-          }}
-          onMouseLeave={(e) => {
-            e.currentTarget.style.transform = 'translateY(0)';
+            display: "flex",
+            alignItems: "center",
+            gap: "0.75rem",
+            cursor: "pointer",
+            position: "relative",
+            zIndex: 1,
+            padding: "0.35rem 0.5rem",
+            borderRadius: "0.9rem",
+            transition: "transform var(--transition-fast)",
           }}
         >
           <img
             src={darkMode ? LogoDark : LogoLight}
             alt="Artifically"
             style={{
-              height: "60px",
+              height: "56px",
               width: "auto",
               display: "block",
               filter: darkMode
-                ? "drop-shadow(0 0 8px rgba(99, 102, 241, 0.6))"
-                : "drop-shadow(0 0 4px rgba(99, 102, 241, 0.3))",
-              transition: "all 0.3s ease"
+                ? "drop-shadow(0 0 10px rgba(99, 102, 241, 0.55))"
+                : "drop-shadow(0 0 6px rgba(99, 102, 241, 0.35))",
+              transition: "filter var(--transition-normal)",
             }}
           />
         </div>
-        
-        {/* Navigation */}
-        <nav 
+
+        <nav
           className="nav"
           style={{
-            display: 'flex',
-            alignItems: 'center',
-            gap: '2rem',
-            position: 'relative',
-            zIndex: 1
+            display: "flex",
+            alignItems: "center",
+            gap: "1.5rem",
+            position: "relative",
+            zIndex: 1,
           }}
         >
-          {['marketplace', 'pricing', 'docs'].map((route) => (
-            <Link
-              key={route}
-              to={`/${route}`}
-              style={{
-                color: pathname === `/${route}` 
-                  ? (darkMode ? '#ffffff' : '#1e293b')
-                  : (darkMode ? '#cbd5e1' : '#64748b'),
-                textDecoration: 'none',
-                fontWeight: '500',
-                transition: 'all 0.2s ease',
-                position: 'relative',
-                padding: '0.5rem 1rem',
-                borderRadius: '0.5rem',
-                background: pathname === `/${route}` 
-                  ? (darkMode ? 'rgba(255, 255, 255, 0.05)' : 'rgba(0, 0, 0, 0.05)')
-                  : 'transparent',
-                textTransform: 'capitalize'
-              }}
-              onMouseEnter={(e) => {
-                if (pathname !== `/${route}`) {
-                  e.target.style.color = darkMode ? '#ffffff' : '#1e293b';
-                  e.target.style.background = darkMode 
-                    ? 'rgba(255, 255, 255, 0.05)' 
-                    : 'rgba(0, 0, 0, 0.05)';
-                  e.target.style.transform = 'translateY(-1px)';
-                }
-              }}
-              onMouseLeave={(e) => {
-                if (pathname !== `/${route}`) {
-                  e.target.style.color = darkMode ? '#cbd5e1' : '#64748b';
-                  e.target.style.background = 'transparent';
-                  e.target.style.transform = 'translateY(0)';
-                }
-              }}
-            >
-              {route}
-              {pathname === `/${route}` && (
-                <div
+          {navItems.map(({ path, label }) => {
+            const isActive = pathname === path;
+            return (
+              <Link
+                key={path}
+                to={path}
+                className="nav-item"
+                style={{
+                  position: "relative",
+                  padding: "0.55rem 1.15rem",
+                  borderRadius: "0.85rem",
+                  textDecoration: "none",
+                  fontWeight: 600,
+                  letterSpacing: "0.01em",
+                  color: isActive
+                    ? darkMode
+                      ? "#ffffff"
+                      : "#0f172a"
+                    : darkMode
+                    ? "#cbd5e1"
+                    : "#475569",
+                  background: isActive
+                    ? darkMode
+                      ? "rgba(148, 163, 184, 0.16)"
+                      : "rgba(99, 102, 241, 0.15)"
+                    : "transparent",
+                  transition: "all var(--transition-fast)",
+                }}
+              >
+                {label}
+                <span
+                  aria-hidden="true"
                   style={{
-                    position: 'absolute',
-                    bottom: '-2px',
-                    left: '0',
-                    right: '0',
-                    height: '2px',
-                    background: 'linear-gradient(90deg, #6366f1, #06b6d4)',
-                    borderRadius: '1px'
+                    position: "absolute",
+                    inset: "auto 15% -6px 15%",
+                    height: "2px",
+                    borderRadius: "999px",
+                    background: isActive
+                      ? "linear-gradient(90deg, #6366f1 0%, #06b6d4 100%)"
+                      : "transparent",
+                    transition: "opacity var(--transition-fast)",
                   }}
                 />
-              )}
-            </Link>
-          ))}
+              </Link>
+            );
+          })}
         </nav>
-        
-        {/* Actions */}
-        <div 
+
+        <div
           className="header-actions"
           style={{
-            display: 'flex',
-            alignItems: 'center',
-            gap: '0.75rem',
-            position: 'relative',
-            zIndex: 1
+            display: "flex",
+            alignItems: "center",
+            gap: "1rem",
+            position: "relative",
+            zIndex: 1,
           }}
         >
-          {/* Theme Toggle */}
-          <button
-            onClick={toggleTheme}
-            style={{
-              width: '2.5rem',
-              height: '2.5rem',
-              borderRadius: '50%',
-              border: 'none',
-              background: darkMode 
-                ? 'rgba(255, 255, 255, 0.1)' 
-                : 'rgba(0, 0, 0, 0.1)',
-              color: darkMode ? '#ffffff' : '#1e293b',
-              cursor: 'pointer',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              fontSize: '1.1rem',
-              transition: 'all 0.2s ease',
-              backdropFilter: 'blur(10px)'
-            }}
-            onMouseEnter={(e) => {
-              e.target.style.transform = 'scale(1.05)';
-              e.target.style.background = darkMode 
-                ? 'rgba(255, 255, 255, 0.15)' 
-                : 'rgba(0, 0, 0, 0.15)';
-            }}
-            onMouseLeave={(e) => {
-              e.target.style.transform = 'scale(1)';
-              e.target.style.background = darkMode 
-                ? 'rgba(255, 255, 255, 0.1)' 
-                : 'rgba(0, 0, 0, 0.1)';
-            }}
-            title={`Switch to ${darkMode ? 'light' : 'dark'} mode`}
-          >
-            {darkMode ? '☀️' : '🌙'}
-          </button>
+          <ThemeToggle />
 
-          {!user ? (
-            <>
-              <button 
-                className="btn btn-text" 
-                onClick={onSignIn}
-                style={{
-                  background: 'transparent',
-                  color: darkMode ? '#cbd5e1' : '#64748b',
-                  padding: '0.5rem 1rem',
-                  border: 'none',
-                  borderRadius: '0.5rem',
-                  fontWeight: '500',
-                  cursor: 'pointer',
-                  transition: 'all 0.2s ease'
-                }}
-                onMouseEnter={(e) => {
-                  e.target.style.color = darkMode ? '#ffffff' : '#1e293b';
-                  e.target.style.background = darkMode 
-                    ? 'rgba(255, 255, 255, 0.05)' 
-                    : 'rgba(0, 0, 0, 0.05)';
-                }}
-                onMouseLeave={(e) => {
-                  e.target.style.color = darkMode ? '#cbd5e1' : '#64748b';
-                  e.target.style.background = 'transparent';
-                }}
-              >
-                Sign in
-              </button>
-              <button 
-                className="btn btn-primary" 
-                onClick={onSignUp}
-                style={{
-                  background: 'linear-gradient(135deg, #6366f1 0%, #5855eb 100%)',
-                  color: '#ffffff',
-                  padding: '0.75rem 1.5rem',
-                  border: 'none',
-                  borderRadius: '0.5rem',
-                  fontWeight: '600',
-                  cursor: 'pointer',
-                  transition: 'all 0.2s ease',
-                  position: 'relative',
-                  overflow: 'hidden',
-                  boxShadow: '0 4px 15px rgba(99, 102, 241, 0.3)'
-                }}
-                onMouseEnter={(e) => {
-                  e.target.style.transform = 'translateY(-2px)';
-                  e.target.style.boxShadow = '0 8px 25px rgba(99, 102, 241, 0.4)';
-                }}
-                onMouseLeave={(e) => {
-                  e.target.style.transform = 'translateY(0)';
-                  e.target.style.boxShadow = '0 4px 15px rgba(99, 102, 241, 0.3)';
-                }}
-              >
-                Get started
-              </button>
-            </>
-          ) : (
-            <>
-              <span 
-                className="user-chip"
-                style={{
-                  background: darkMode 
-                    ? 'rgba(255, 255, 255, 0.05)' 
-                    : 'rgba(0, 0, 0, 0.05)',
-                  color: darkMode ? '#ffffff' : '#1e293b',
-                  padding: '0.5rem 1rem',
-                  borderRadius: '9999px',
-                  fontSize: '0.875rem',
-                  fontWeight: '500',
-                  border: `1px solid ${darkMode ? 'rgba(148, 163, 184, 0.2)' : 'rgba(0, 0, 0, 0.1)'}`,
-                  backdropFilter: 'blur(10px)'
-                }}
-              >
-                {user.businessName || user.email}
-              </span>
-              <button 
-                className="btn btn-secondary" 
+          {user ? (
+            <div
+              style={{
+                display: "flex",
+                alignItems: "center",
+                gap: "0.75rem",
+              }}
+            >
+              <button
+                className="btn btn-ghost"
                 onClick={() => navigate("/dashboard")}
                 style={{
-                  background: darkMode 
-                    ? 'rgba(255, 255, 255, 0.05)' 
-                    : 'rgba(0, 0, 0, 0.05)',
-                  color: darkMode ? '#ffffff' : '#1e293b',
-                  padding: '0.75rem 1.5rem',
-                  border: `1px solid ${darkMode ? 'rgba(148, 163, 184, 0.2)' : 'rgba(0, 0, 0, 0.1)'}`,
-                  borderRadius: '0.5rem',
-                  fontWeight: '500',
-                  cursor: 'pointer',
-                  transition: 'all 0.2s ease',
-                  backdropFilter: 'blur(10px)'
-                }}
-                onMouseEnter={(e) => {
-                  e.target.style.background = darkMode 
-                    ? 'rgba(255, 255, 255, 0.1)' 
-                    : 'rgba(0, 0, 0, 0.1)';
-                  e.target.style.transform = 'translateY(-1px)';
-                }}
-                onMouseLeave={(e) => {
-                  e.target.style.background = darkMode 
-                    ? 'rgba(255, 255, 255, 0.05)' 
-                    : 'rgba(0, 0, 0, 0.05)';
-                  e.target.style.transform = 'translateY(0)';
+                  padding: "0.5rem 1.15rem",
+                  borderRadius: "0.85rem",
+                  border: `1px solid ${darkMode ? "rgba(148, 163, 184, 0.35)" : "rgba(148, 163, 184, 0.45)"}`,
+                  background: darkMode
+                    ? "rgba(148, 163, 184, 0.18)"
+                    : "rgba(99, 102, 241, 0.12)",
+                  color: darkMode ? "#e2e8f0" : "#1f2937",
+                  transition: "all var(--transition-fast)",
                 }}
               >
                 Dashboard
               </button>
-              <button 
-                className="btn btn-text" 
+              <button
+                className="btn btn-primary"
                 onClick={onSignOut}
                 style={{
-                  background: 'transparent',
-                  color: darkMode ? '#cbd5e1' : '#64748b',
-                  padding: '0.5rem 1rem',
-                  border: 'none',
-                  borderRadius: '0.5rem',
-                  fontWeight: '500',
-                  cursor: 'pointer',
-                  transition: 'all 0.2s ease'
-                }}
-                onMouseEnter={(e) => {
-                  e.target.style.color = darkMode ? '#ffffff' : '#1e293b';
-                  e.target.style.background = darkMode 
-                    ? 'rgba(255, 255, 255, 0.05)' 
-                    : 'rgba(0, 0, 0, 0.05)';
-                }}
-                onMouseLeave={(e) => {
-                  e.target.style.color = darkMode ? '#cbd5e1' : '#64748b';
-                  e.target.style.background = 'transparent';
+                  padding: "0.5rem 1.25rem",
+                  borderRadius: "0.85rem",
+                  boxShadow: darkMode
+                    ? "0 18px 30px rgba(99, 102, 241, 0.35)"
+                    : "0 18px 30px rgba(99, 102, 241, 0.25)",
                 }}
               >
                 Sign out
               </button>
-            </>
+            </div>
+          ) : (
+            <div
+              style={{
+                display: "flex",
+                alignItems: "center",
+                gap: "0.75rem",
+              }}
+            >
+              <button
+                className="btn btn-ghost"
+                onClick={onSignIn}
+                style={{
+                  padding: "0.5rem 1.1rem",
+                  borderRadius: "0.85rem",
+                  border: `1px solid ${darkMode ? "rgba(148, 163, 184, 0.35)" : "rgba(148, 163, 184, 0.45)"}`,
+                  background: darkMode
+                    ? "rgba(148, 163, 184, 0.18)"
+                    : "rgba(99, 102, 241, 0.12)",
+                  color: darkMode ? "#e2e8f0" : "#1f2937",
+                  transition: "all var(--transition-fast)",
+                }}
+              >
+                Sign in
+              </button>
+              <button
+                className="btn btn-primary"
+                onClick={onSignUp}
+                style={{
+                  padding: "0.5rem 1.25rem",
+                  borderRadius: "0.85rem",
+                  boxShadow: darkMode
+                    ? "0 18px 30px rgba(99, 102, 241, 0.35)"
+                    : "0 18px 30px rgba(99, 102, 241, 0.25)",
+                }}
+              >
+                Get started
+              </button>
+            </div>
           )}
         </div>
       </div>
-
-      {/* Add CSS animations */}
-      <style jsx>{`
-        @keyframes pulse {
-          0%, 100% { 
-            transform: scale(1); 
-            filter: ${darkMode 
-              ? 'drop-shadow(0 0 10px rgba(99, 102, 241, 0.5))' 
-              : 'drop-shadow(0 0 10px rgba(99, 102, 241, 0.3))'};
-          }
-          50% { 
-            transform: scale(1.05); 
-            filter: ${darkMode 
-              ? 'drop-shadow(0 0 15px rgba(99, 102, 241, 0.7))' 
-              : 'drop-shadow(0 0 15px rgba(99, 102, 241, 0.5))'};
-          }
-        }
-
-        .site-header {
-          transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-        }
-
-        .site-header.scrolled {
-          backdrop-filter: blur(20px) saturate(150%);
-          -webkit-backdrop-filter: blur(20px) saturate(150%);
-        }
-      `}</style>
     </header>
   );
 }

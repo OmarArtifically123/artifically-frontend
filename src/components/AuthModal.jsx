@@ -1,25 +1,37 @@
 // src/components/AuthModal.jsx - FIXED INPUT REMOUNTING ISSUE
 import { useState, useRef, useCallback, useEffect, useMemo } from "react";
+import { useTheme } from "../context/ThemeContext";
 import { debounce } from "lodash";
 import api from "../api";
+import ThemeToggle from "./ThemeToggle";
 
 // ✅ Move InputField outside the component to prevent remounting
-const InputField = ({ 
-  label, 
-  type = "text", 
-  field, 
-  placeholder, 
+const InputField = ({
+  label,
+  type = "text",
+  field,
+  placeholder,
   required = false,
   hint,
   autoComplete,
   form,
   fieldErrors,
   handleInputChange,
-  loading
+  loading,
+  darkMode
 }) => (
-  <div className="form-group">
-    <label className="form-label">
-      {label} {required && <span style={{ color: 'var(--danger)' }}>*</span>}
+  <div
+    className="form-group"
+    style={{ display: 'grid', gap: '0.35rem' }}
+  >
+    <label
+      className="form-label"
+      style={{
+        fontWeight: 600,
+        color: darkMode ? '#e2e8f0' : '#1f2937'
+      }}
+    >
+      {label} {required && <span style={{ color: '#ef4444' }}>*</span>}
     </label>
     <input
       className={`form-input ${fieldErrors[field] ? 'error' : ''}`}
@@ -31,13 +43,17 @@ const InputField = ({
       disabled={loading}
       autoComplete={autoComplete}
       style={{
-        borderColor: fieldErrors[field] ? 'var(--danger)' : 'var(--border-color)',
+        borderColor: fieldErrors[field] ? '#ef4444' : (darkMode ? 'rgba(148,163,184,0.4)' : 'rgba(148,163,184,0.55)'),
+        background: darkMode ? 'rgba(15,23,42,0.85)' : 'rgba(255,255,255,0.95)',
+        color: darkMode ? '#e2e8f0' : '#1f2937',
+        padding: '0.75rem 1rem',
+        borderRadius: '0.85rem',
         transition: 'all 0.2s ease'
       }}
     />
     {fieldErrors[field] && (
       <div style={{
-        color: 'var(--danger)',
+        color: '#ef4444',
         fontSize: '0.75rem',
         marginTop: '4px',
         display: 'flex',
@@ -49,12 +65,18 @@ const InputField = ({
       </div>
     )}
     {hint && !fieldErrors[field] && (
-      <small className="form-hint">{hint}</small>
+      <small
+        className="form-hint"
+        style={{ color: darkMode ? '#94a3b8' : '#475569', fontSize: '0.8rem' }}
+      >
+        {hint}
+      </small>
     )}
   </div>
 );
 
 const AuthModal = ({ onClose, onAuthenticated, initialMode = "signin" }) => {
+  const { darkMode } = useTheme();
   const [mode, setMode] = useState(initialMode);
   const [form, setForm] = useState({
     email: "",
@@ -80,7 +102,7 @@ const AuthModal = ({ onClose, onAuthenticated, initialMode = "signin" }) => {
       } catch (error) {
         console.warn('Could not get CSRF token:', error);
       }
-    };
+          };
     getCsrfToken();
   }, []);
 
@@ -279,7 +301,7 @@ const AuthModal = ({ onClose, onAuthenticated, initialMode = "signin" }) => {
       
       setError(errorMessage);
     } finally {
-      setLoading(false);
+setLoading(false);
       submitRef.current = false;
     }
   }, [form, mode, validateForm, onAuthenticated, loading, csrfToken]);
@@ -304,14 +326,14 @@ const AuthModal = ({ onClose, onAuthenticated, initialMode = "signin" }) => {
   }, [onClose]);
 
   return (
-    <div 
-      className="modal-overlay" 
+    <div
+      className="modal-overlay"
       onClick={handleOverlayClick}
       style={{
         position: 'fixed',
         inset: 0,
-        background: 'rgba(0, 0, 0, 0.8)',
-        backdropFilter: 'blur(8px)',
+        background: darkMode ? 'rgba(15, 23, 42, 0.85)' : 'rgba(148, 163, 184, 0.45)',
+        backdropFilter: 'blur(14px)',
         display: 'flex',
         alignItems: 'center',
         justifyContent: 'center',
@@ -320,19 +342,25 @@ const AuthModal = ({ onClose, onAuthenticated, initialMode = "signin" }) => {
         overflowY: 'auto'
       }}
     >
-      <div 
-        ref={modalRef} 
+      <div
+        ref={modalRef}
         className="modal"
         style={{
           width: '100%',
           maxWidth: '520px',
           maxHeight: '90vh',
           overflowY: 'auto',
-          background: 'var(--bg-secondary)',
+          background: darkMode
+            ? 'linear-gradient(140deg, rgba(15,23,42,0.95), rgba(30,41,59,0.9))'
+            : 'linear-gradient(140deg, rgba(255,255,255,0.98), rgba(241,245,249,0.95))',
           borderRadius: 'var(--rounded-2xl)',
           padding: 'var(--space-8)',
-          border: '1px solid var(--border-color)',
-          boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.25)',
+          border: darkMode
+            ? '1px solid rgba(148,163,184,0.35)'
+            : '1px solid rgba(148,163,184,0.45)',
+          boxShadow: darkMode
+            ? '0 40px 70px rgba(8, 15, 34, 0.55)'
+            : '0 40px 70px rgba(148, 163, 184, 0.35)',
           position: 'relative',
           transform: 'scale(1)',
           transition: 'all 0.3s ease'
@@ -340,14 +368,17 @@ const AuthModal = ({ onClose, onAuthenticated, initialMode = "signin" }) => {
       >
         {/* Header */}
         <div className="modal-header" style={{ marginBottom: 'var(--space-6)' }}>
-          <h2 style={{
-            fontSize: '1.5rem',
-            fontWeight: '700',
-            color: 'var(--white)',
-            margin: 0
-          }}>
-            {mode === "signin" ? "Welcome Back" : "Create Your Account"}
-          </h2>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: '1rem' }}>
+            <h2 style={{
+              fontSize: '1.5rem',
+              fontWeight: '700',
+              color: darkMode ? '#f8fafc' : '#0f172a',
+              margin: 0
+            }}>
+              {mode === "signin" ? "Welcome Back" : "Create Your Account"}
+            </h2>
+            <ThemeToggle />
+          </div>
           <button 
             className="close-btn" 
             onClick={onClose} 
@@ -357,7 +388,7 @@ const AuthModal = ({ onClose, onAuthenticated, initialMode = "signin" }) => {
               background: 'none',
               border: 'none',
               fontSize: '1.5rem',
-              color: 'var(--gray-400)',
+              color: darkMode ? '#94a3b8' : '#475569',
               cursor: loading ? 'not-allowed' : 'pointer',
               padding: 'var(--space-2)',
               borderRadius: 'var(--rounded-lg)',
@@ -366,12 +397,12 @@ const AuthModal = ({ onClose, onAuthenticated, initialMode = "signin" }) => {
             }}
             onMouseEnter={(e) => {
               if (!loading) {
-                e.target.style.color = 'var(--white)';
-                e.target.style.background = 'var(--bg-glass)';
+                e.target.style.color = darkMode ? '#f8fafc' : '#0f172a';
+                e.target.style.background = darkMode ? 'rgba(148,163,184,0.12)' : 'rgba(99,102,241,0.12)';
               }
             }}
             onMouseLeave={(e) => {
-              e.target.style.color = 'var(--gray-400)';
+              e.target.style.color = darkMode ? '#94a3b8' : '#475569';
               e.target.style.background = 'none';
             }}
           >
@@ -382,9 +413,9 @@ const AuthModal = ({ onClose, onAuthenticated, initialMode = "signin" }) => {
         {/* Error Display */}
         {error && (
           <div style={{
-            background: 'rgba(239, 68, 68, 0.1)',
-            border: '1px solid rgba(239, 68, 68, 0.3)',
-            color: 'var(--danger)',
+            background: darkMode ? 'rgba(239, 68, 68, 0.15)' : 'rgba(254, 226, 226, 0.9)',
+            border: darkMode ? '1px solid rgba(239,68,68,0.35)' : '1px solid rgba(239,68,68,0.45)',
+            color: darkMode ? '#fca5a5' : '#b91c1c',
             padding: 'var(--space-3)',
             borderRadius: 'var(--rounded-lg)',
             marginBottom: 'var(--space-4)',
@@ -413,6 +444,7 @@ const AuthModal = ({ onClose, onAuthenticated, initialMode = "signin" }) => {
                 fieldErrors={fieldErrors}
                 handleInputChange={handleInputChange}
                 loading={loading}
+                darkMode={darkMode}
               />
 
               <InputField
@@ -425,6 +457,7 @@ const AuthModal = ({ onClose, onAuthenticated, initialMode = "signin" }) => {
                 fieldErrors={fieldErrors}
                 handleInputChange={handleInputChange}
                 loading={loading}
+                darkMode={darkMode}
               />
 
               <InputField
@@ -438,6 +471,7 @@ const AuthModal = ({ onClose, onAuthenticated, initialMode = "signin" }) => {
                 fieldErrors={fieldErrors}
                 handleInputChange={handleInputChange}
                 loading={loading}
+                darkMode={darkMode}
               />
 
               <InputField
@@ -450,6 +484,7 @@ const AuthModal = ({ onClose, onAuthenticated, initialMode = "signin" }) => {
                 fieldErrors={fieldErrors}
                 handleInputChange={handleInputChange}
                 loading={loading}
+                darkMode={darkMode}
               />
             </>
           )}
@@ -466,6 +501,7 @@ const AuthModal = ({ onClose, onAuthenticated, initialMode = "signin" }) => {
             fieldErrors={fieldErrors}
             handleInputChange={handleInputChange}
             loading={loading}
+            darkMode={darkMode}
           />
 
           <InputField
@@ -483,12 +519,13 @@ const AuthModal = ({ onClose, onAuthenticated, initialMode = "signin" }) => {
             fieldErrors={fieldErrors}
             handleInputChange={handleInputChange}
             loading={loading}
+            darkMode={darkMode}
           />
 
           {/* Submit Button */}
-          <button 
-            className="btn btn-primary" 
-            type="submit" 
+          <button
+            className="btn btn-primary"
+            type="submit"
             disabled={loading}
             style={{
               width: '100%',
@@ -501,7 +538,10 @@ const AuthModal = ({ onClose, onAuthenticated, initialMode = "signin" }) => {
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'center',
-              gap: '8px'
+              gap: '8px',
+              boxShadow: darkMode
+                ? '0 20px 35px rgba(99, 102, 241, 0.35)'
+                : '0 20px 35px rgba(99, 102, 241, 0.25)'
             }}
           >
             {loading && (
@@ -530,7 +570,7 @@ const AuthModal = ({ onClose, onAuthenticated, initialMode = "signin" }) => {
           marginTop: 'var(--space-6)',
           fontSize: '0.875rem',
           textAlign: 'center',
-          color: 'var(--gray-400)'
+          color: darkMode ? '#94a3b8' : '#475569'
         }}>
           {mode === "signin" ? (
             <>
@@ -556,7 +596,7 @@ const AuthModal = ({ onClose, onAuthenticated, initialMode = "signin" }) => {
                 onClick={swap} 
                 type="button"
                 disabled={loading}
-                style={{
+                                style={{
                   opacity: loading ? 0.5 : 1,
                   cursor: loading ? 'not-allowed' : 'pointer'
                 }}
@@ -570,5 +610,3 @@ const AuthModal = ({ onClose, onAuthenticated, initialMode = "signin" }) => {
     </div>
   );
 };
-
-export default AuthModal;

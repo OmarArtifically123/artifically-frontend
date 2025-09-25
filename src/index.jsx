@@ -4,6 +4,7 @@ import ReactDOM from "react-dom/client";
 import { BrowserRouter } from "react-router-dom";
 import { ErrorBoundary } from "react-error-boundary";  // ✅ external library
 import App from "./App";
+import { ThemeProvider } from "./context/ThemeContext";
 import "./styles/global.css";
 
 // Fallback UI when an error is caught
@@ -21,9 +22,11 @@ function Fallback({ error }) {
 ReactDOM.createRoot(document.getElementById("root")).render(
   <React.StrictMode>
     <BrowserRouter>
-      <ErrorBoundary FallbackComponent={Fallback}>
-        <App />
-      </ErrorBoundary>
+      <ThemeProvider>
+        <ErrorBoundary FallbackComponent={Fallback}>
+          <App />
+        </ErrorBoundary>
+      </ThemeProvider>
     </BrowserRouter>
   </React.StrictMode>
 );
