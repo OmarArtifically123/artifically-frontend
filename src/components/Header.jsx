@@ -1,5 +1,7 @@
 import { Link, useNavigate, useLocation } from "react-router-dom";
 import { useState, useEffect } from "react";
+import LogoLight from "../assets/logos/1_Primary.svg";
+import LogoDark  from "../assets/logos/3_Dark_Mode.svg";
 
 export default function Header({ user, onSignIn, onSignUp, onSignOut }) {
   const navigate = useNavigate();
@@ -108,32 +110,18 @@ export default function Header({ user, onSignIn, onSignUp, onSignOut }) {
             e.currentTarget.style.transform = 'translateY(0)';
           }}
         >
-          <span 
-            className="brand-icon"
+          <img
+            src={darkMode ? LogoDark : LogoLight}
+            alt="Artifically"
             style={{
-              fontSize: '2rem',
-              filter: darkMode 
-                ? 'drop-shadow(0 0 10px rgba(99, 102, 241, 0.5))' 
-                : 'drop-shadow(0 0 10px rgba(99, 102, 241, 0.3))',
-              animation: 'pulse 2s ease-in-out infinite'
+              height: "32px",
+              display: "block",
+              filter: darkMode
+                ? "drop-shadow(0 0 8px rgba(99, 102, 241, 0.6))"
+                : "drop-shadow(0 0 4px rgba(99, 102, 241, 0.3))",
+              transition: "all 0.3s ease"
             }}
-          >
-            🤖
-          </span>
-          <span 
-            className="brand-name"
-            style={{
-              fontSize: '1.5rem',
-              fontWeight: '800',
-              background: 'linear-gradient(135deg, #6366f1 0%, #06b6d4 100%)',
-              WebkitBackgroundClip: 'text',
-              WebkitTextFillColor: 'transparent',
-              backgroundClip: 'text',
-              letterSpacing: '-0.02em'
-            }}
-          >
-            Artifically
-          </span>
+          />
         </div>
         
         {/* Navigation */}
