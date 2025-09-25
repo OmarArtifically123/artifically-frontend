@@ -1,6 +1,8 @@
 // src/components/Footer.jsx - Enhanced Glass Morphism Footer
 import { Link } from "react-router-dom";
 import { useState, useEffect } from "react";
+import LogoLight from "../assets/logos/1_Primary.svg";
+import LogoDark from "../assets/logos/3_Dark_Mode.svg";
 
 export default function Footer() {
   const [currentYear] = useState(new Date().getFullYear());
@@ -293,40 +295,50 @@ export default function Footer() {
             gap: '3rem',
             marginBottom: '3rem'
           }}>
-            {/* Company Info */}
-            <div>
-              <div style={{
-                display: 'flex',
-                alignItems: 'center',
-                gap: '0.75rem',
-                marginBottom: '1.5rem'
-              }}>
-                <span style={{
-                  fontSize: '2rem',
-                  filter: darkMode 
-                    ? 'drop-shadow(0 0 10px rgba(99, 102, 241, 0.5))'
-                    : 'drop-shadow(0 0 10px rgba(99, 102, 241, 0.3))'
-                }}>🤖</span>
-                <h3 style={{
-                  fontSize: '1.5rem',
-                  fontWeight: '800',
-                  background: 'linear-gradient(135deg, #6366f1 0%, #06b6d4 100%)',
-                  WebkitBackgroundClip: 'text',
-                  WebkitTextFillColor: 'transparent',
-                  backgroundClip: 'text',
-                  letterSpacing: '-0.02em'
-                }}>
-                  Artifically
-                </h3>
+              {/* Company Info */}
+              <div>
+                <div
+                  style={{
+                    display: "flex",
+                    alignItems: "center",
+                    gap: "0.75rem",
+                    marginBottom: "1.5rem",
+                    cursor: "pointer",
+                    transition: "all 0.3s ease",
+                  }}
+                  onMouseEnter={(e) => {
+                    e.currentTarget.style.transform = "translateY(-2px)";
+                  }}
+                  onMouseLeave={(e) => {
+                    e.currentTarget.style.transform = "translateY(0)";
+                  }}
+                >
+                  <img
+                    src={darkMode ? require("../assets/logos/3_Dark_Mode.png") : require("../assets/logos/1_Primary.png")}
+                    alt="Artifically Logo"
+                    style={{
+                      height: "70px",
+                      width: "auto",
+                      filter: darkMode
+                        ? "drop-shadow(0 0 12px rgba(99, 102, 241, 0.6))"
+                        : "drop-shadow(0 0 6px rgba(99, 102, 241, 0.3))",
+                      transition: "all 0.3s ease",
+                    }}
+                  />
+                </div>
+
+                <p
+                  style={{
+                    color: darkMode ? "#94a3b8" : "#64748b",
+                    lineHeight: "1.7",
+                    marginBottom: "1.5rem",
+                    fontSize: "0.95rem",
+                  }}
+                >
+                  Deploy enterprise-grade AI automations in minutes. Transform your
+                  business operations with battle-tested AI solutions that scale.
+                </p>
               </div>
-              <p style={{
-                color: darkMode ? '#94a3b8' : '#64748b',
-                lineHeight: '1.7',
-                marginBottom: '1.5rem',
-                fontSize: '0.95rem'
-              }}>
-                Deploy enterprise-grade AI automations in minutes. Transform your business operations with battle-tested AI solutions that scale.
-              </p>
               
               {/* Social Links */}
               <div style={{
@@ -567,27 +579,7 @@ export default function Footer() {
               </p>
             </div>
           </div>
-        </div>
       </footer>
-
-      {/* Add CSS animations */}
-      <style jsx>{`
-        @keyframes backgroundShift {
-          0%, 100% { opacity: 1; }
-          50% { opacity: 0.8; }
-        }
-        
-        @keyframes pulse {
-          0%, 100% { 
-            opacity: 1;
-            transform: scale(1);
-          }
-          50% { 
-            opacity: 0.5;
-            transform: scale(1.2);
-          }
-        }
-      `}</style>
     </>
   );
 }
