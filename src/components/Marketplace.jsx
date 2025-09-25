@@ -4,8 +4,11 @@ import AutomationCard from "./AutomationCard";
 import DemoModal from "./DemoModal";
 import { toast } from "./Toast";
 import api from "../api";
+import ThemeToggle from "./ThemeToggle";
+import { useTheme } from "../context/ThemeContext";
 
 export default function Marketplace({ user, openAuth }) {
+  const { darkMode } = useTheme();
   const [demo, setDemo] = useState(null);
   const [automations, setAutomations] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -16,31 +19,16 @@ export default function Marketplace({ user, openAuth }) {
       try {
         setLoading(true);
         setError(null);
-        
         const list = await fetchAutomations();
-        
-        // Additional validation - the fetchAutomations should handle this,
-        // but we add a safety net here
-        if (list === null || list === undefined) {
-          console.warn("fetchAutomations returned null/undefined, using empty array");
-          setAutomations([]);
-        } else if (!Array.isArray(list)) {
-          console.error("fetchAutomations returned non-array:", typeof list, list);
-          setAutomations([]);
-          setError(new Error("Invalid data format received"));
-        } else {
-          setAutomations(list);
+        if (!Array.isArray(list)) {
+          throw new Error("Invalid data format received");
         }
-        
+        setAutomations(list);
       } catch (err) {
         console.error("Error loading automations:", err);
+        setAutomations([]);
         setError(err);
-        setAutomations([]); // Ensure we always have an array
-        
-        // Show user-friendly error message
-        const errorMessage = err?.message || "Failed to load automations";
-        toast(errorMessage, { type: "error" });
-        
+        toast(err?.message || "Failed to load automations", { type: "error" });
       } finally {
         setLoading(false);
       }
@@ -50,7 +38,6 @@ export default function Marketplace({ user, openAuth }) {
   }, []);
 
   const buy = async (item) => {
-    // Validate item before proceeding
     if (!item || !item.id) {
       toast("Invalid automation selected", { type: "error" });
       return;
@@ -60,14 +47,12 @@ export default function Marketplace({ user, openAuth }) {
       openAuth("signup");
       return;
     }
-    
+
     if (!user.verified) {
-      toast("Please verify your email before deploying automations.", {
-        type: "warn",
-      });
+      toast("Please verify your email before deploying automations.", { type: "warn" });
       return;
     }
-    
+
     try {
       const deploymentData = {
         automationId: item.id,
@@ -80,17 +65,12 @@ export default function Marketplace({ user, openAuth }) {
       };
 
       await api.post("/deployments", deploymentData);
-      toast(`Successfully deployed ${item.name || 'automation'}`, { type: "success" });
-      
+      toast(`Successfully deployed ${item.name || "automation"}`, { type: "success" });
     } catch (err) {
       console.error("Deployment error:", err);
-      
       const res = err?.response?.data;
       if (res?.errors?.length) {
-        toast(
-          res.errors.map((e) => `${e.field}: ${e.message}`).join(", "),
-          { type: "error" }
-        );
+        toast(res.errors.map((e) => `${e.field}: ${e.message}`).join(", "), { type: "error" });
       } else {
         const errorMessage = res?.message || err?.message || "Deployment failed";
         toast(errorMessage, { type: "error" });
@@ -99,7 +79,6 @@ export default function Marketplace({ user, openAuth }) {
   };
 
   const handleDemo = (item) => {
-    // Validate item before opening demo
     if (!item || !item.id) {
       toast("Invalid automation selected", { type: "error" });
       return;
@@ -107,62 +86,106 @@ export default function Marketplace({ user, openAuth }) {
     setDemo(item);
   };
 
-  // Loading state
+  const sectionHeader = (
+    <div
+      className="section-header"
+      style={{
+        display: "flex",
+        flexDirection: "column",
+        gap: "1rem",
+      }}
+    >
+      <div
+        style={{
+          display: "flex",
+          justifyContent: "space-between",
+          alignItems: "center",
+          gap: "1rem",
+          flexWrap: "wrap",
+        }}
+      >
+        <div>
+          <h2 style={{ fontSize: "2.4rem", fontWeight: 800 }}>Automation Marketplace</h2>
+          <p style={{ color: darkMode ? "#94a3b8" : "#475569" }}>
+            Pick an automation, preview the workflow, and deploy with glassmorphism-rich previews.
+          </p>
+        </div>
+        <ThemeToggle />
+      </div>
+      <div
+        style={{
+          display: "flex",
+          flexWrap: "wrap",
+          gap: "0.75rem",
+        }}
+      >
+        {["Instant deployments", "Security reviews", "Theme-aware demos"].map((tag) => (
+          <span
+            key={tag}
+            style={{
+              padding: "0.4rem 0.75rem",
+              borderRadius: "0.8rem",
+              background: darkMode ? "rgba(148,163,184,0.18)" : "rgba(99,102,241,0.12)",
+              border: `1px solid ${darkMode ? "rgba(148,163,184,0.32)" : "rgba(99,102,241,0.25)"}`,
+              fontSize: "0.85rem",
+              fontWeight: 600,
+              color: darkMode ? "#cbd5e1" : "#1f2937",
+            }}
+          >
+            {tag}
+          </span>
+        ))}
+      </div>
+    </div>
+  );
+
   if (loading) {
     return (
-      <section className="marketplace" id="marketplace">
-        <div className="container">
-          <div className="section-header">
-            <h2>Automation Marketplace</h2>
-            <p>Pick an automation. Launch in minutes.</p>
-          </div>
-          <div style={{ textAlign: "center", padding: "48px 0" }}>
+      <section className="marketplace" id="marketplace" style={{ padding: "5rem 0" }}>
+        <div className="container" style={{ display: "grid", gap: "2rem" }}>
+          {sectionHeader}
+          <div
+            style={{
+              textAlign: "center",
+              padding: "4rem 0",
+              borderRadius: "1.5rem",
+              border: `1px solid ${darkMode ? "rgba(148,163,184,0.25)" : "rgba(148,163,184,0.35)"}`,
+              background: darkMode
+                ? "linear-gradient(145deg, rgba(15,23,42,0.75), rgba(30,41,59,0.82))"
+                : "linear-gradient(145deg, rgba(255,255,255,0.95), rgba(241,245,249,0.92))",
+            }}
+          >
             <div className="loading" style={{ width: "40px", height: "40px", margin: "0 auto" }}></div>
-            <p style={{ color: "var(--gray-400)", marginTop: "16px" }}>
-              Loading automations...
-            </p>
+            <p style={{ color: darkMode ? "#94a3b8" : "#475569", marginTop: "1rem" }}>Loading automations…</p>
           </div>
         </div>
       </section>
     );
   }
 
-  // Error state (when we couldn't load any data)
   if (error && automations.length === 0) {
     return (
-      <section className="marketplace" id="marketplace">
-        <div className="container">
-          <div className="section-header">
-            <h2>Automation Marketplace</h2>
-            <p>Pick an automation. Launch in minutes.</p>
-          </div>
-          <div style={{ textAlign: "center", padding: "48px 0" }}>
-            <div style={{ 
-              fontSize: "3rem", 
-              marginBottom: "16px",
-              opacity: 0.5 
-            }}>
-              ⚠️
-            </div>
-            <h3 style={{ 
-              color: "var(--danger)", 
-              marginBottom: "8px",
-              fontSize: "1.25rem" 
-            }}>
-              Unable to Load Marketplace
-            </h3>
-            <p style={{ 
-              color: "var(--gray-400)", 
-              marginBottom: "24px",
-              maxWidth: "400px",
-              margin: "0 auto 24px"
-            }}>
+      <section className="marketplace" id="marketplace" style={{ padding: "5rem 0" }}>
+        <div className="container" style={{ display: "grid", gap: "2rem" }}>
+          {sectionHeader}
+          <div
+            style={{
+              textAlign: "center",
+              padding: "4rem 0",
+              borderRadius: "1.5rem",
+              border: `1px solid ${darkMode ? "rgba(248,113,113,0.4)" : "rgba(248,113,113,0.5)"}`,
+              background: darkMode
+                ? "linear-gradient(145deg, rgba(127,29,29,0.45), rgba(15,23,42,0.85))"
+                : "linear-gradient(145deg, rgba(254,226,226,0.95), rgba(254,242,242,0.9))",
+              color: darkMode ? "#fecaca" : "#b91c1c",
+            }}
+          >
+            <div style={{ fontSize: "3rem", marginBottom: "1rem" }}>⚠️</div>
+            <h3 style={{ fontSize: "1.5rem", marginBottom: "0.5rem" }}>Unable to Load Marketplace</h3>
+            <p style={{ maxWidth: "420px", margin: "0 auto 1.5rem" }}>
               We're having trouble loading the automation marketplace. Please check your connection and try again.
             </p>
-            <button 
-              className="btn btn-primary" 
-              onClick={() => window.location.reload()}
-            >
+            <button className="btn btn-primary" onClick={() => window.location.reload()}>
               Retry
             </button>
           </div>
@@ -172,62 +195,52 @@ export default function Marketplace({ user, openAuth }) {
   }
 
   return (
-    <section className="marketplace" id="marketplace">
-      <div className="container">
-        <div className="section-header">
-          <h2>Automation Marketplace</h2>
-          <p>Pick an automation. Launch in minutes.</p>
-        </div>
+    <section className="marketplace" id="marketplace" style={{ padding: "5rem 0" }}>
+      <div className="container" style={{ display: "grid", gap: "2.5rem" }}>
+        {sectionHeader}
 
-        {/* Show warning if we had errors but still have some data */}
         {error && automations.length > 0 && (
-          <div style={{
-            marginBottom: "24px",
-            padding: "16px",
-            background: "rgba(245, 158, 11, 0.1)",
-            border: "1px solid rgba(245, 158, 11, 0.3)",
-            borderRadius: "8px",
-            color: "var(--warning)",
-            fontSize: "0.875rem",
-            textAlign: "center"
-          }}>
+          <div
+            role="alert"
+            style={{
+              padding: "1rem 1.25rem",
+              borderRadius: "1rem",
+              border: `1px solid ${darkMode ? "rgba(245,158,11,0.4)" : "rgba(245,158,11,0.5)"}`,
+              background: darkMode ? "rgba(245,158,11,0.12)" : "rgba(245,158,11,0.18)",
+              color: darkMode ? "#fbbf24" : "#b45309",
+              textAlign: "center",
+            }}
+          >
             Some automations may not be displayed due to a connection issue.
           </div>
         )}
 
         {automations.length === 0 ? (
-          <div style={{ textAlign: "center", padding: "48px 0" }}>
-            <div style={{ 
-              fontSize: "3rem", 
-              marginBottom: "16px",
-              opacity: 0.5 
-            }}>
-              🤖
-            </div>
-            <h3 style={{ 
-              color: "var(--white)", 
-              marginBottom: "8px",
-              fontSize: "1.25rem" 
-            }}>
-              No Automations Available
-            </h3>
-            <p style={{ 
-              color: "var(--gray-400)", 
-              maxWidth: "400px",
-              margin: "0 auto"
-            }}>
-              The marketplace is currently empty. New automations are added regularly, so check back soon!
+          <div
+            style={{
+              textAlign: "center",
+              padding: "4rem 0",
+              borderRadius: "1.5rem",
+              border: `1px solid ${darkMode ? "rgba(148,163,184,0.25)" : "rgba(148,163,184,0.35)"}`,
+            }}
+          >
+            <div style={{ fontSize: "3rem", marginBottom: "1rem" }}>🤔</div>
+            <h3 style={{ fontSize: "1.4rem", marginBottom: "0.75rem" }}>No automations found</h3>
+            <p style={{ color: darkMode ? "#94a3b8" : "#475569" }}>
+              Check back soon—new automations are added every week.
             </p>
           </div>
         ) : (
-          <div className="automation-grid">
+          <div
+            className="automation-grid"
+            style={{
+              display: "grid",
+              gridTemplateColumns: "repeat(auto-fit, minmax(280px, 1fr))",
+              gap: "1.5rem",
+            }}
+          >
             {automations.map((item) => (
-              <AutomationCard
-                key={item.id || `automation-${Math.random()}`} // Fallback key
-                item={item}
-                onDemo={handleDemo}
-                onBuy={buy}
-              />
+              <AutomationCard key={item.id} item={item} onDemo={handleDemo} onBuy={buy} />
             ))}
           </div>
         )}
