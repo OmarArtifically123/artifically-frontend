@@ -610,3 +610,5 @@ setLoading(false);
     </div>
   );
 };
+
+export default AuthModal;
