@@ -295,51 +295,51 @@ export default function Footer() {
             gap: '3rem',
             marginBottom: '3rem'
           }}>
-              {/* Company Info */}
-              <div>
-                <div
-                  style={{
-                    display: "flex",
-                    alignItems: "center",
-                    gap: "0.75rem",
-                    marginBottom: "1.5rem",
-                    cursor: "pointer",
-                    transition: "all 0.3s ease",
-                  }}
-                  onMouseEnter={(e) => {
-                    e.currentTarget.style.transform = "translateY(-2px)";
-                  }}
-                  onMouseLeave={(e) => {
-                    e.currentTarget.style.transform = "translateY(0)";
-                  }}
-                >
-                  <img
-                    src={darkMode ? require("../assets/logos/3_Dark_Mode.png") : require("../assets/logos/1_Primary.png")}
-                    alt="Artifically Logo"
-                    style={{
-                      height: "70px",
-                      width: "auto",
-                      filter: darkMode
-                        ? "drop-shadow(0 0 12px rgba(99, 102, 241, 0.6))"
-                        : "drop-shadow(0 0 6px rgba(99, 102, 241, 0.3))",
-                      transition: "all 0.3s ease",
-                    }}
-                  />
+            {/* Company Info */}
+            <div>
+              <div
+              style={{
+                display: "flex",
+                alignItems: "center",
+                gap: "0.75rem",
+                marginBottom: "1.5rem",
+                cursor: "pointer",
+                transition: "all 0.3s ease",
+              }}
+              onMouseEnter={(e) => {
+                e.currentTarget.style.transform = "translateY(-2px)";
+              }}
+              onMouseLeave={(e) => {
+                e.currentTarget.style.transform = "translateY(0)";
+              }}
+              >
+                <img
+                src={darkMode ? LogoDark : LogoLight}
+                alt="Artifically Logo"
+                style={{
+                  height: "70px",
+                  width: "auto",
+                  filter: darkMode
+                  ? "drop-shadow(0 0 12px rgba(99, 102, 241, 0.6))"
+                  : "drop-shadow(0 0 6px rgba(99, 102, 241, 0.3))",
+                  transition: "all 0.3s ease",
+                }}
+                />
                 </div>
 
                 <p
-                  style={{
-                    color: darkMode ? "#94a3b8" : "#64748b",
-                    lineHeight: "1.7",
-                    marginBottom: "1.5rem",
-                    fontSize: "0.95rem",
-                  }}
+                style={{
+                  color: darkMode ? "#94a3b8" : "#64748b",
+                  lineHeight: "1.7",
+                  marginBottom: "1.5rem",
+                  fontSize: "0.95rem",
+                }}
                 >
                   Deploy enterprise-grade AI automations in minutes. Transform your
                   business operations with battle-tested AI solutions that scale.
-                </p>
-              </div>
-              
+                  </p>
+                  </div>
+                            
               {/* Social Links */}
               <div style={{
                 display: 'flex',
