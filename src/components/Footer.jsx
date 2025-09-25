@@ -317,7 +317,7 @@ export default function Footer() {
                 src={darkMode ? LogoDark : LogoLight}
                 alt="Artifically Logo"
                 style={{
-                  height: "70px",
+                  height: "60px",
                   width: "auto",
                   filter: darkMode
                   ? "drop-shadow(0 0 12px rgba(99, 102, 241, 0.6))"
@@ -339,7 +339,7 @@ export default function Footer() {
                   business operations with battle-tested AI solutions that scale.
                   </p>
                   </div>
-                            
+
               {/* Social Links */}
               <div style={{
                 display: 'flex',
