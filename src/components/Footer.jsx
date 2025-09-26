@@ -75,7 +75,7 @@ export default function Footer() {
           { name: "API Reference", path: "/api", desc: "Developer resources" },
           { name: "Pricing", path: "/pricing", desc: "Transparent costs" },
           { name: "Blog", path: "/blog", desc: "Latest insights" },
-          { name: "Case Studies", path: "/cases", desc: "Success stories" },
+          { name: "Case Studies", path: "/case-studies", desc: "Success stories" },
           { name: "Changelog", path: "/changelog", desc: "Product updates" },
         ],
       },

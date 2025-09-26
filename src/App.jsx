@@ -5,6 +5,16 @@ import Footer from "./components/Footer";
 import Home from "./pages/Home";
 import Pricing from "./pages/Pricing";
 import Docs from "./pages/Docs";
+import ApiReference from "./pages/ApiReference";
+import Blog from "./pages/Blog";
+import CaseStudies from "./pages/CaseStudies";
+import Changelog from "./pages/Changelog";
+import HelpCenter from "./pages/HelpCenter";
+import StatusPage from "./pages/Status";
+import Security from "./pages/Security";
+import Privacy from "./pages/Privacy";
+import Terms from "./pages/Terms";
+import Contact from "./pages/Contact";
 import Marketplace from "./components/Marketplace";
 import Dashboard from "./components/Dashboard";
 import AuthModal from "./components/AuthModal";
@@ -127,9 +137,28 @@ export default function App() {
           />
           <Route path="/pricing" element={<Pricing />} />
           <Route path="/docs" element={<Docs />} />
+          <Route path="/documentation" element={<Docs />} />
+          <Route path="/api" element={<ApiReference />} />
+          <Route path="/docs/api" element={<ApiReference />} />
+          <Route path="/blog" element={<Blog />} />
+          <Route path="/case-studies" element={<CaseStudies />} />
+          <Route path="/customers" element={<CaseStudies />} />
+          <Route path="/changelog" element={<Changelog />} />
+          <Route path="/updates" element={<Changelog />} />
+          <Route path="/help" element={<HelpCenter />} />
+          <Route path="/support" element={<HelpCenter />} />
+          <Route path="/status" element={<StatusPage />} />
+          <Route path="/security" element={<Security />} />
+          <Route path="/privacy" element={<Privacy />} />
+          <Route path="/terms" element={<Terms />} />
+          <Route path="/contact" element={<Contact />} />
           <Route
             path="/marketplace"
             element={<Marketplace openAuth={openAuth} user={user} />}
+          />
+          <Route
+          path="/products/marketplace"
+          element={<Marketplace openAuth={openAuth} user={user} />}
           />
           <Route
             path="/dashboard"
