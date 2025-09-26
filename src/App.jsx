@@ -78,6 +78,12 @@ export default function App() {
     setAuthOpen(false);
   };
 
+  useEffect(() => {
+    window.requestAnimationFrame(() => {
+      window.scrollTo({ top: 0 });
+      });
+      }, [pathname]);
+
   // Show loading state while booting
   if (!booted) {
     return (
@@ -129,7 +135,7 @@ export default function App() {
         </div>
       )}
 
-      <main>
+      <main className="app-shell">
         <Routes>
           <Route 
             path="/" 

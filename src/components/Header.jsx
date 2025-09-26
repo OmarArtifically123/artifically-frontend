@@ -1,5 +1,5 @@
 import { Link, useNavigate, useLocation } from "react-router-dom";
-import { useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import LogoLight from "../assets/logos/1_Primary.svg";
 import LogoDark from "../assets/logos/3_Dark_Mode.svg";
 import ThemeToggle from "./ThemeToggle";
@@ -11,11 +11,29 @@ export default function Header({ user, onSignIn, onSignUp, onSignOut }) {
   const { darkMode } = useTheme();
   const [scrolled, setScrolled] = useState(false);
 
+  const syncHeaderOffset = useCallback(() => {
+    const header = document.querySelector(".site-header");
+    if (!header) return;
+    const height = Math.round(header.getBoundingClientRect().height);
+    document.documentElement.style.setProperty("--header-offset", `${height}px`);
+    }, []);
+
   useEffect(() => {
     const handleScroll = () => setScrolled(window.scrollY > 20);
     window.addEventListener("scroll", handleScroll, { passive: true });
     return () => window.removeEventListener("scroll", handleScroll);
   }, []);
+
+  useEffect(() => {
+    syncHeaderOffset();
+    window.addEventListener("resize", syncHeaderOffset, { passive: true });
+    return () => window.removeEventListener("resize", syncHeaderOffset);
+    }, [syncHeaderOffset]);
+
+    useEffect(() => {
+      const frame = window.requestAnimationFrame(syncHeaderOffset);
+      return () => window.cancelAnimationFrame(frame);
+      }, [scrolled, syncHeaderOffset]);
 
   const navItems = useMemo(
     () => [

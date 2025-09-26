@@ -22,9 +22,8 @@ export default function HelpCenter() {
   const [activeIndex, setActiveIndex] = useState(0);
   const contactOptions = useMemo(
     () => [
-      { label: "Email support", value: "support@artifically.ai" },
-      { label: "Enterprise hotline", value: "+1 (415) 555-0199" },
-      { label: "Status & uptime", value: "status.artifically.ai" },
+      { label: "Email support", value: "support@artifically.com" },
+      { label: "Status & uptime", value: "status.artifically.com" },
     ],
     []
   );
