@@ -56,8 +56,7 @@ export default function Security() {
       <section className="glass" style={{ padding: "32px", borderRadius: "16px" }}>
         <h2 style={{ marginBottom: "12px" }}>Report an issue</h2>
         <p style={{ color: "var(--gray-400)", lineHeight: 1.6 }}>
-          We run a coordinated vulnerability disclosure program. Email <strong>security@artifically.ai</strong>
-          or submit through our HackerOne program for fast triage and response.
+          We run a coordinated vulnerability disclosure program. Email <strong>support@artifically.com</strong>
         </p>
       </section>
     </main>
