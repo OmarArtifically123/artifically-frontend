@@ -18,9 +18,9 @@ export default function Footer() {
 
   useEffect(() => {
     const finalStats = {
-      automationsDeployed: 1247,
-      companiesServed: 356,
-      timesSaved: 89420,
+      automationsDeployed: 0,
+      companiesServed: 0,
+      timesSaved: 0,
     };
 
     let frame = 0;
