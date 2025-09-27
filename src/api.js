@@ -19,30 +19,57 @@ const getBaseURL = () => {
 };
 
 const baseURL = getBaseURL();
+const isBrowser = typeof window !== "undefined" && typeof window.document !== "undefined";
 
-console.log('API Base URL:', baseURL); // Debug log
+console.log("API Base URL:", baseURL); // Debug log
+
+const getCrypto = () => {
+  if (typeof globalThis !== "undefined" && globalThis.crypto) {
+    return globalThis.crypto;
+  }
+
+  return undefined;
+};
+
+const generateRequestId = () => {
+  const cryptoObj = getCrypto();
+
+  if (cryptoObj?.randomUUID) {
+    return cryptoObj.randomUUID();
+  }
+
+  if (cryptoObj?.getRandomValues) {
+    const buffer = new Uint32Array(4);
+    cryptoObj.getRandomValues(buffer);
+    return Array.from(buffer, (value) => value.toString(16).padStart(8, "0")).join("-");
+  }
+
+  return `req_${Date.now().toString(36)}_${Math.random().toString(36).slice(2, 10)}`;
+};
 
 export const api = axios.create({
   baseURL,
   withCredentials: true, // Set to true if you need cookies
   timeout: 30000,
   headers: {
-    'Content-Type': 'application/json',
-    'Accept': 'application/json'
-  }
+    "Content-Type": "application/json",
+    Accept: "application/json",
+  },
 });
 
 // Enhanced request interceptor
 api.interceptors.request.use(
   (config) => {
     // Attach JWT automatically
-    const token = localStorage.getItem("token");
-    if (token) {
-      config.headers.Authorization = `Bearer ${token}`;
+    if (isBrowser) {
+      const token = window.localStorage?.getItem("token");
+      if (token) {
+        config.headers.Authorization = `Bearer ${token}`;
+      }
     }
 
     // Add request ID for tracking
-    config.headers['X-Request-ID'] = crypto.randomUUID();
+    config.headers["X-Request-ID"] = generateRequestId();
 
     // Log requests in development
     if (import.meta.env.DEV) {
@@ -59,7 +86,7 @@ api.interceptors.request.use(
     return Promise.reject({
       message: "Failed to prepare request",
       status: 0,
-      requestId: crypto.randomUUID()
+      requestId: generateRequestId()
     });
   }
 );
@@ -81,7 +108,7 @@ api.interceptors.response.use(
     const enhancedError = {
       message: "Request failed",
       status: 500,
-      requestId: error.config?.headers?.['X-Request-ID'] || crypto.randomUUID(),
+      requestId: error.config?.headers?.["X-Request-ID"] || generateRequestId(),
       timestamp: new Date().toISOString(),
       details: null,
       originalError: error
@@ -100,10 +127,10 @@ api.interceptors.response.use(
         enhancedError.code = "REQUEST_TIMEOUT";
       } else if (error.code === 'ERR_NETWORK' || error.message.includes('Network Error')) {
         // Check if it might be a CORS issue
-        if (window.location.protocol === 'https:' && baseURL.startsWith('http:')) {
+        if (isBrowser && window.location.protocol === "https:" && baseURL.startsWith("http:")) {
           enhancedError.message = "Mixed content error: Cannot make HTTP requests from HTTPS page.";
           enhancedError.code = "MIXED_CONTENT_ERROR";
-        } else if (baseURL.includes('localhost') || baseURL.includes('127.0.0.1')) {
+        } else if (baseURL.includes("localhost") || baseURL.includes("127.0.0.1")) {
           enhancedError.message = "Cannot connect to local server. Make sure your backend is running.";
           enhancedError.code = "LOCAL_SERVER_ERROR";
         } else {
@@ -163,10 +190,16 @@ api.interceptors.response.use(
         enhancedError.code = "UNAUTHORIZED";
         
         // Auto-logout on 401
-        localStorage.removeItem("token");
-        
+        if (isBrowser) {
+          window.localStorage?.removeItem("token");
+        }
+
         // Redirect to home if not already there
-        if (window.location.pathname !== "/" && !window.location.pathname.startsWith("/verify")) {
+        if (
+          isBrowser &&
+          window.location.pathname !== "/" &&
+          !window.location.pathname.startsWith("/verify")
+        ) {
           setTimeout(() => {
             window.location.href = "/";
           }, 1000);
