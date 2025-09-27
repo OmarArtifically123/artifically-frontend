@@ -101,6 +101,9 @@ const resolvers = {
   marketplaceStats,
 };
 
+export const FALLBACK_FEATURE_HIGHLIGHTS = featureHighlights;
+export const FALLBACK_MARKETPLACE_STATS = marketplaceStats();
+
 const schemaLink = new ApolloLink((operation) => {
   return new Observable((observer) => {
     graphql({

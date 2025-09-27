@@ -1,22 +1,80 @@
-import { Suspense, useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import FeatureSkeletonGrid from "./skeletons/FeatureSkeleton";
 import useIntersectionLazy from "../hooks/useIntersectionLazy";
-import useServerComponent, { preloadServerComponent } from "../rsc/useServerComponent";
+import {
+  FALLBACK_FEATURE_HIGHLIGHTS,
+  FALLBACK_MARKETPLACE_STATS,
+} from "../lib/graphqlClient";
 
-const SERVER_COMPONENT_KEY = "/rsc/features";
+const SERVER_COMPONENT_ENDPOINT = "/rsc/features";
 
-function FeatureStream() {
-  const markup = useServerComponent(SERVER_COMPONENT_KEY);
+function FeatureHighlightFallback({
+  features = FALLBACK_FEATURE_HIGHLIGHTS,
+  stats = FALLBACK_MARKETPLACE_STATS,
+}) {
+  const safeFeatures = Array.isArray(features) ? features.slice(0, 4) : [];
+  const safeStats = stats || FALLBACK_MARKETPLACE_STATS;
+
   return (
-    <div
-      className="rsc-feature-grid"
-      dangerouslySetInnerHTML={{ __html: markup }}
-    />
+    <div className="rsc-feature-grid" aria-live="polite">
+      {safeFeatures.map((feature) => (
+        <article key={feature.id} data-fallback-node="feature-card">
+          <header style={{ display: "flex", alignItems: "center", gap: "0.75rem" }}>
+            <span
+              aria-hidden="true"
+              style={{
+                width: "3rem",
+                height: "3rem",
+                display: "grid",
+                placeItems: "center",
+                borderRadius: "1rem",
+                background:
+                  "linear-gradient(135deg, rgba(99,102,241,0.32), rgba(45,212,191,0.26))",
+                fontSize: "1.35rem",
+              }}
+            >
+              {feature.icon}
+            </span>
+            <div>
+              <h4>{feature.title}</h4>
+              <small style={{ color: "var(--gray-400)", fontWeight: 600 }}>
+                {feature.status}
+              </small>
+            </div>
+          </header>
+          <p>{feature.description}</p>
+          <footer>
+            <span>
+              <svg
+                width="16"
+                height="16"
+                viewBox="0 0 16 16"
+                fill="none"
+                xmlns="http://www.w3.org/2000/svg"
+                aria-hidden="true"
+              >
+                <path
+                  d="M2.5 8.5L6 12L13.5 4.5"
+                  stroke="currentColor"
+                  strokeWidth="1.5"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                />
+              </svg>
+              {safeStats?.averageROI ?? "5.0"}x avg ROI
+            </span>
+            <span>{safeStats?.totalAutomations ?? "100"}+ live</span>
+          </footer>
+        </article>
+      ))}
+    </div>
   );
 }
 
 export default function ServerFeatureHighlights() {
   const [hydrated, setHydrated] = useState(false);
+  const [state, setState] = useState({ status: "idle", markup: "", error: null });
+  const hasRequestedRef = useRef(false);
   const intersection = useIntersectionLazy({ rootMargin: "400px" });
 
   useEffect(() => {
@@ -24,32 +82,66 @@ export default function ServerFeatureHighlights() {
   }, []);
 
   useEffect(() => {
-    if (!hydrated || !intersection.isIntersecting) {
+    if (!hydrated || !intersection.isIntersecting || hasRequestedRef.current) {
       return;
     }
 
-    preloadServerComponent(SERVER_COMPONENT_KEY);
+    const controller = new AbortController();
+    hasRequestedRef.current = true;
+    setState({ status: "loading", markup: "", error: null });
+
+    fetch(SERVER_COMPONENT_ENDPOINT, {
+      headers: {
+        Accept: "text/html",
+        "X-Server-Component": "1",
+      },
+      credentials: "same-origin",
+      signal: controller.signal,
+    })
+      .then((response) => {
+        if (!response.ok) {
+          throw new Error(`Failed to load server component: ${response.status}`);
+        }
+        return response.text();
+      })
+      .then((html) => {
+        setState({ status: "success", markup: html, error: null });
+      })
+      .catch((error) => {
+        if (controller.signal.aborted) {
+          return;
+        }
+        console.error("Server feature highlight stream failed", error);
+        setState({ status: "error", markup: "", error });
+      });
+
+    return () => {
+      controller.abort();
+    };
   }, [hydrated, intersection.isIntersecting]);
 
   const sectionProps = {
     className: "rsc-feature-shell",
     "aria-hidden": hydrated ? undefined : true,
-    "aria-label": hydrated ? "Server rendered feature insights" : undefined,
+    "aria-label": hydrated ? "Feature insights" : undefined,
   };
 
   if (hydrated) {
     sectionProps.ref = intersection.ref;
   }
 
-  return (
-    <section {...sectionProps}>
-      {hydrated ? (
-        <Suspense fallback={<FeatureSkeletonGrid cards={4} />}>
-          <FeatureStream />
-        </Suspense>
-      ) : (
-        <FeatureSkeletonGrid cards={4} />
-      )}
-    </section>
-  );
+  let content = <FeatureSkeletonGrid cards={4} />;
+
+  if (state.status === "success" && state.markup) {
+    content = (
+      <div
+        className="rsc-feature-grid"
+        dangerouslySetInnerHTML={{ __html: state.markup }}
+      />
+    );
+  } else if (state.status === "error") {
+    content = <FeatureHighlightFallback />;
+  }
+
+  return <section {...sectionProps}>{content}</section>;
 }
