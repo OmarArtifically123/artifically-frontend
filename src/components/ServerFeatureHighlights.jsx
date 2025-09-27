@@ -1,4 +1,4 @@
-import { Suspense, useEffect } from "react";
+import { Suspense, useEffect, useState } from "react";
 import FeatureSkeletonGrid from "./skeletons/FeatureSkeleton";
 import useIntersectionLazy from "../hooks/useIntersectionLazy";
 import useServerComponent, { preloadServerComponent } from "../rsc/useServerComponent";
@@ -16,34 +16,40 @@ function FeatureStream() {
 }
 
 export default function ServerFeatureHighlights() {
-  const isServer = typeof window === "undefined";
+  const [hydrated, setHydrated] = useState(false);
   const intersection = useIntersectionLazy({ rootMargin: "400px" });
 
   useEffect(() => {
-    if (!isServer && intersection.isIntersecting) {
-      preloadServerComponent(SERVER_COMPONENT_KEY);
+    setHydrated(true);
+  }, []);
+
+  useEffect(() => {
+    if (!hydrated || !intersection.isIntersecting) {
+      return;
     }
-  }, [intersection.isIntersecting, isServer]);
 
-  const shellRef = isServer ? undefined : intersection.ref;
+    preloadServerComponent(SERVER_COMPONENT_KEY);
+  }, [hydrated, intersection.isIntersecting]);
 
-  if (isServer) {
-    return (
-      <section className="rsc-feature-shell" aria-hidden>
-        <FeatureSkeletonGrid cards={4} />
-      </section>
-    );
+  const sectionProps = {
+    className: "rsc-feature-shell",
+    "aria-hidden": hydrated ? undefined : true,
+    "aria-label": hydrated ? "Server rendered feature insights" : undefined,
+  };
+
+  if (hydrated) {
+    sectionProps.ref = intersection.ref;
   }
 
   return (
-    <section
-      ref={shellRef}
-      className="rsc-feature-shell"
-      aria-label="Server rendered feature insights"
-    >
-      <Suspense fallback={<FeatureSkeletonGrid cards={4} /> }>
-        <FeatureStream />
-      </Suspense>
+    <section {...sectionProps}>
+      {hydrated ? (
+        <Suspense fallback={<FeatureSkeletonGrid cards={4} />}>
+          <FeatureStream />
+        </Suspense>
+      ) : (
+        <FeatureSkeletonGrid cards={4} />
+      )}
     </section>
   );
 }
