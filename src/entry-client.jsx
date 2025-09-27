@@ -22,7 +22,6 @@ function Fallback({ error }) {
 }
 
 const rootElement = document.getElementById("root");
-const loadingOverlay = rootElement?.querySelector?.(".initial-loading");
 
 const apolloState = window.__APOLLO_STATE__ || null;
 const apolloClient = createApolloClient(apolloState);
@@ -43,12 +42,6 @@ const appTree = (
 
 startTransition(() => {
   hydrateRoot(rootElement, appTree);
-  if (loadingOverlay) {
-    loadingOverlay.classList.add("hydrated");
-    requestAnimationFrame(() => {
-      loadingOverlay?.parentElement?.removeChild(loadingOverlay);
-    });
-  }
 });
 
 const requestIdle =
