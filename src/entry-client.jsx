@@ -1,12 +1,12 @@
-// src/index.jsx
-import React from "react";
-import ReactDOM from "react-dom/client";
+import React, { StrictMode, startTransition } from "react";
+import { hydrateRoot } from "react-dom/client";
 import { BrowserRouter } from "react-router-dom";
-import { ErrorBoundary } from "react-error-boundary";  // ✅ external library
+import { ErrorBoundary } from "react-error-boundary";
 import { ApolloProvider } from "@apollo/client";
 import App from "./App";
 import { ThemeProvider } from "./context/ThemeContext";
-import apolloClient from "./lib/graphqlClient";
+import { createApolloClient } from "./lib/graphqlClient";
+import { warmupWasm } from "./lib/wasmMath";
 import "./styles/global.css";
 
 // Fallback UI when an error is caught
@@ -21,8 +21,14 @@ function Fallback({ error }) {
   );
 }
 
-ReactDOM.createRoot(document.getElementById("root")).render(
-  <React.StrictMode>
+const rootElement = document.getElementById("root");
+const loadingOverlay = rootElement?.querySelector?.(".initial-loading");
+
+const apolloState = window.__APOLLO_STATE__ || null;
+const apolloClient = createApolloClient(apolloState);
+
+const appTree = (
+  <StrictMode>
     <ApolloProvider client={apolloClient}>
       <BrowserRouter>
         <ThemeProvider>
@@ -32,8 +38,18 @@ ReactDOM.createRoot(document.getElementById("root")).render(
         </ThemeProvider>
       </BrowserRouter>
     </ApolloProvider>
-  </React.StrictMode>
+  </StrictMode>
 );
+
+startTransition(() => {
+  hydrateRoot(rootElement, appTree);
+  if (loadingOverlay) {
+    loadingOverlay.classList.add("hydrated");
+    requestAnimationFrame(() => {
+      loadingOverlay?.parentElement?.removeChild(loadingOverlay);
+    });
+  }
+});
 
 const requestIdle =
   window.requestIdleCallback ||
@@ -41,6 +57,8 @@ const requestIdle =
     window.setTimeout(() => cb({ didTimeout: false, timeRemaining: () => 0 }), 1));
 
 const cancelIdle = window.cancelIdleCallback || window.clearTimeout;
+
+const warmupHandle = requestIdle(() => warmupWasm());
 
 if ("serviceWorker" in navigator) {
   const registerServiceWorker = () => {

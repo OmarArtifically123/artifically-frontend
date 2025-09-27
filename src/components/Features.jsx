@@ -2,6 +2,7 @@ import { Suspense } from "react";
 import { useSuspenseQuery } from "@apollo/client";
 import { block } from "million/react";
 import ThemeToggle from "./ThemeToggle";
+import ServerFeatureHighlights from "./ServerFeatureHighlights";
 import { useTheme } from "../context/ThemeContext";
 import FeatureSkeletonGrid from "./skeletons/FeatureSkeleton";
 import { FEATURE_HIGHLIGHTS_QUERY } from "../lib/graphqlClient";
@@ -215,6 +216,8 @@ function FeaturesContent() {
           </div>
         </div>
 
+        <ServerFeatureHighlights />
+        
         <div
           className="features-grid"
           style={{

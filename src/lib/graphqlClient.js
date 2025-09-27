@@ -134,29 +134,42 @@ export const FEATURE_HIGHLIGHTS_QUERY = gql`
   }
 `;
 
-const cache = new InMemoryCache({
-  typePolicies: {
-    Query: {
-      fields: {
-        featureHighlights: {
-          merge(_, incoming) {
-            return incoming;
+const createCache = (initialState) => {
+  const cache = new InMemoryCache({
+    typePolicies: {
+      Query: {
+        fields: {
+          featureHighlights: {
+            merge(_, incoming) {
+              return incoming;
+            },
           },
-        },
-        marketplaceStats: {
-          merge(_, incoming) {
-            return incoming;
+          marketplaceStats: {
+            merge(_, incoming) {
+              return incoming;
+            },
           },
         },
       },
     },
-  },
-});
+  });
 
-export const apolloClient = new ApolloClient({
-  link: schemaLink,
-  cache,
-  ssrMode: typeof window === "undefined",
-});
+  if (initialState) {
+    cache.restore(initialState);
+  }
+
+  return cache;
+};
+
+export const createApolloClient = (initialState) =>
+  new ApolloClient({
+    link: schemaLink,
+    cache: createCache(initialState),
+    ssrMode: typeof window === "undefined",
+  });
+
+export const apolloClient = createApolloClient(
+  typeof window !== "undefined" ? window.__APOLLO_STATE__ : undefined
+);
 
 export default apolloClient;

@@ -83,6 +83,11 @@
             border-radius: 50%;
             animation: spin 1s linear infinite;
         }
+        .initial-loading.hydrated {
+            opacity: 0;
+            transition: opacity 180ms ease-in-out;
+            pointer-events: none;
+        }
         @keyframes spin {
             to { transform: rotate(360deg); }
         }
@@ -91,10 +96,11 @@
 <body>
     <div id="root">
         <!-- Initial loading screen -->
-        <div class="initial-loading">
+        <div class="initial-loading" aria-hidden="true">
             <div class="loading-spinner"></div>
         </div>
+        <!--app-html-->
     </div>
-    <script type="module" src="/src/index.jsx"></script>
+    <script type="module" src="/src/entry-client.jsx"></script>
 </body>
 </html>

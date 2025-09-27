@@ -14,9 +14,12 @@
   "scripts": {
     "dev": "vite --host 0.0.0.0",
     "build": "vite build",
+    "build:ssr": "npm run build && vite build --ssr server/entry-server.jsx --outDir dist/server",
     "lint": "eslint . --ext js,jsx --report-unused-disable-directives --max-warnings 0",
     "preview": "vite preview --host 0.0.0.0",
     "type-check": "tsc --noEmit",
+    "ssr:dev": "NODE_ENV=development node server/server.js",
+    "ssr:start": "NODE_ENV=production node server/server.js",
     "postinstall": "partytown copylib public/~partytown"
   },
   "dependencies": {
