@@ -3,6 +3,22 @@ import { createContext, useContext, useEffect, useMemo, useState, useCallback } 
 const ThemeContext = createContext();
 const STORAGE_KEY = "theme";
 
+const resolveThemeAttribute = () => {
+  if (typeof document === "undefined") return null;
+
+  const attr = document.documentElement.getAttribute("data-theme");
+  if (attr === "dark" || attr === "light") {
+    return attr;
+  }
+
+  const bodyAttr = document.body?.dataset?.theme;
+  if (bodyAttr === "dark" || bodyAttr === "light") {
+    return bodyAttr;
+  }
+
+  return null;
+};
+
 const detectPreferredTheme = () => {
   if (typeof window === "undefined" || !window.matchMedia) {
     return "dark";
@@ -10,22 +26,49 @@ const detectPreferredTheme = () => {
   return window.matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light";
 };
 
+const readStoredTheme = () => {
+  if (typeof window === "undefined") {
+    return null;
+  }
+
+  const stored = window.localStorage.getItem(STORAGE_KEY);
+  return stored === "light" || stored === "dark" ? stored : null;
+};
+
+const getInitialTheme = () => {
+  const fromDom = resolveThemeAttribute();
+  if (fromDom) {
+    return fromDom;
+  }
+
+  return "dark";
+};
+
 export function ThemeProvider({ children }) {
-  const [theme, setTheme] = useState(() => {
-    if (typeof window === "undefined") return "dark";
-    const stored = window.localStorage.getItem(STORAGE_KEY);
-    if (stored === "light" || stored === "dark") {
-      return stored;
-    }
-    return detectPreferredTheme();
-  });
+  const [theme, setTheme] = useState(getInitialTheme);
+
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+
+    const stored = readStoredTheme();
+    const preferred = stored ?? detectPreferredTheme();
+
+    setTheme((current) => (current === preferred ? current : preferred));
+  }, []);
 
   useEffect(() => {
     if (typeof document === "undefined") return;
+
     const root = document.documentElement;
     root.setAttribute("data-theme", theme);
-    document.body.dataset.theme = theme;
-    window.localStorage.setItem(STORAGE_KEY, theme);
+
+    if (document.body) {
+      document.body.dataset.theme = theme;
+    }
+
+    if (typeof window !== "undefined") {
+      window.localStorage.setItem(STORAGE_KEY, theme);
+    }
   }, [theme]);
 
   useEffect(() => {
