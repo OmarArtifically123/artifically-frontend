@@ -1,9 +1,17 @@
 import { defineConfig } from 'vite'
 import react from '@vitejs/plugin-react'
+import { million } from 'million/compiler'
 import { resolve } from 'path'
 
 export default defineConfig({
-  plugins: [react()],
+  plugins: [
+    million.vite({
+      auto: true,
+      mode: 'react',
+      isolate: true,
+    }),
+    react(),
+  ],
   
   // Resolve path aliases
   resolve: {
@@ -35,6 +43,8 @@ export default defineConfig({
       output: {
         manualChunks: {
           vendor: ['react', 'react-dom', 'react-router-dom'],
+          graphql: ['@apollo/client', 'graphql'],
+          performance: ['million'],
           api: ['axios'],
         },
       },
@@ -55,7 +65,15 @@ export default defineConfig({
 
   // Optimizations
   optimizeDeps: {
-    include: ['react', 'react-dom', 'react-router-dom', 'axios'],
+    include: [
+      'react',
+      'react-dom',
+      'react-router-dom',
+      'axios',
+      '@apollo/client',
+      'graphql',
+      'million/react',
+    ],
   },
 
   // Preview server (for production build testing)

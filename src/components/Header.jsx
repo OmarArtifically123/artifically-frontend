@@ -156,6 +156,7 @@ export default function Header({ user, onSignIn, onSignUp, onSignOut }) {
               <Link
                 key={path}
                 to={path}
+                data-prefetch-route={path}
                 className="nav-item"
                 style={{
                   position: "relative",
@@ -220,6 +221,7 @@ export default function Header({ user, onSignIn, onSignUp, onSignOut }) {
             >
               <button
                 className="btn btn-ghost"
+                data-prefetch-route="/dashboard"
                 onClick={() => navigate("/dashboard")}
                 style={{
                   padding: "0.5rem 1.15rem",
@@ -236,6 +238,7 @@ export default function Header({ user, onSignIn, onSignUp, onSignOut }) {
               </button>
               <button
                 className="btn btn-primary"
+                data-prefetch-route="/signout"
                 onClick={onSignOut}
                 style={{
                   padding: "0.5rem 1.25rem",
@@ -258,6 +261,7 @@ export default function Header({ user, onSignIn, onSignUp, onSignOut }) {
             >
               <button
                 className="btn btn-ghost"
+                data-prefetch-route="/signin"
                 onClick={onSignIn}
                 style={{
                   padding: "0.5rem 1.1rem",
@@ -274,6 +278,7 @@ export default function Header({ user, onSignIn, onSignUp, onSignOut }) {
               </button>
               <button
                 className="btn btn-primary"
+                data-prefetch-route="/signup"
                 onClick={onSignUp}
                 style={{
                   padding: "0.5rem 1.25rem",

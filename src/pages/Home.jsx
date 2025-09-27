@@ -1,11 +1,19 @@
-import { useEffect } from "react";
+import { lazy, Suspense, useEffect, useState } from "react";
 import { useLocation } from "react-router-dom";
 import Hero from "../components/Hero";
-import Features from "../components/Features";
-import Marketplace from "../components/Marketplace";
+import useIntersectionLazy from "../hooks/useIntersectionLazy";
+import RouteShell from "../components/skeletons/RouteShell";
 
-export default function Home({ user, onRequireAuth, onNotify, scrollTo }) {
+const Features = lazy(() => import("../components/Features"));
+const Marketplace = lazy(() => import("../components/Marketplace"));
+
+export default function Home({ user, scrollTo, openAuth }) {
   const location = useLocation();
+  const [shouldRenderFeatures, setShouldRenderFeatures] = useState(false);
+  const [shouldRenderMarketplace, setShouldRenderMarketplace] = useState(false);
+
+  const featureIntersection = useIntersectionLazy();
+  const marketplaceIntersection = useIntersectionLazy();
 
   useEffect(() => {
     let target = scrollTo;
@@ -24,17 +32,42 @@ export default function Home({ user, onRequireAuth, onNotify, scrollTo }) {
     });
   }, [scrollTo, location]);
 
+  useEffect(() => {
+    if (featureIntersection.isIntersecting) {
+      setShouldRenderFeatures(true);
+    }
+  }, [featureIntersection.isIntersecting]);
+
+  useEffect(() => {
+    if (marketplaceIntersection.isIntersecting) {
+      setShouldRenderMarketplace(true);
+    }
+  }, [marketplaceIntersection.isIntersecting]);
+
   return (
     <main>
       <Hero />
-      <Features />
+      <section ref={featureIntersection.ref} aria-label="Platform capabilities">
+        {shouldRenderFeatures ? (
+          <Suspense fallback={<RouteShell rows={4} />}>
+            <Features />
+          </Suspense>
+        ) : (
+          <RouteShell rows={4} />
+        )}
+      </section>
       {/* Marketplace section with id to allow smooth scroll */}
-      <div id="marketplace">
-        <Marketplace
-          user={user}
-          onRequireAuth={onRequireAuth}
-          onNotify={onNotify}
-        />
+      <div id="marketplace" ref={marketplaceIntersection.ref}>
+        {shouldRenderMarketplace ? (
+          <Suspense fallback={<RouteShell rows={5} />}>
+            <Marketplace
+              user={user}
+              openAuth={openAuth}
+            />
+          </Suspense>
+        ) : (
+          <RouteShell rows={5} />
+        )}
       </div>
     </main>
   );

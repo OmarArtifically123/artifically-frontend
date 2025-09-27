@@ -6,6 +6,7 @@ import { toast } from "./Toast";
 import api from "../api";
 import ThemeToggle from "./ThemeToggle";
 import { useTheme } from "../context/ThemeContext";
+import { warmupWasm, wasmAverage } from "../lib/wasmMath";
 
 export default function Marketplace({ user, openAuth }) {
   const { darkMode } = useTheme();
@@ -13,8 +14,11 @@ export default function Marketplace({ user, openAuth }) {
   const [automations, setAutomations] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const [averageROI, setAverageROI] = useState(null);
 
   useEffect(() => {
+    warmupWasm();
+
     const loadAutomations = async () => {
       try {
         setLoading(true);
@@ -24,6 +28,11 @@ export default function Marketplace({ user, openAuth }) {
           throw new Error("Invalid data format received");
         }
         setAutomations(list);
+
+        const roiValues = list.map((item) => Math.round((item.roi || 4.2) * 100));
+        wasmAverage(roiValues)
+          .then((avg) => setAverageROI(Number((avg / 100).toFixed(2))))
+          .catch((err) => console.warn("Failed to compute ROI average", err));
       } catch (err) {
         console.error("Error loading automations:", err);
         setAutomations([]);
@@ -119,7 +128,14 @@ export default function Marketplace({ user, openAuth }) {
           gap: "0.75rem",
         }}
       >
-        {["Instant deployments", "Security reviews", "Theme-aware demos"].map((tag) => (
+        {[
+          "Instant deployments",
+          "Security reviews",
+          "Theme-aware demos",
+          averageROI ? `Avg ROI ${averageROI}x` : null,
+        ]
+          .filter(Boolean)
+          .map((tag) => (
           <span
             key={tag}
             style={{
@@ -134,7 +150,7 @@ export default function Marketplace({ user, openAuth }) {
           >
             {tag}
           </span>
-        ))}
+          ))}
       </div>
     </div>
   );

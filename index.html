@@ -14,6 +14,24 @@
     <meta name="theme-color" content="#0f172a">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+
+    <script>
+      window.partytown = {
+        lib: "/~partytown/",
+        forward: ["dataLayer.push"],
+      };
+    </script>
+    <script type="module">
+      import { init } from "@builder.io/partytown";
+      init({ debug: false, lib: "/~partytown/" });
+    </script>
+    <script type="text/partytown" src="https://www.googletagmanager.com/gtag/js?id=UA-000000-2"></script>
+    <script type="text/partytown">
+      window.dataLayer = window.dataLayer || [];
+      function gtag(){dataLayer.push(arguments);}
+      gtag('js', new Date());
+      gtag('config', 'UA-000000-2');
+    </script>
     
     <!-- Open Graph / Facebook -->
     <meta property="og:type" content="website">

@@ -1,27 +1,44 @@
-import { useEffect, useState } from "react";
+import { lazy, Suspense, useEffect, useMemo, useState } from "react";
 import { Routes, Route, useNavigate, useLocation } from "react-router-dom";
 import Header from "./components/Header";
 import Footer from "./components/Footer";
-import Home from "./pages/Home";
-import Pricing from "./pages/Pricing";
-import Docs from "./pages/Docs";
-import ApiReference from "./pages/ApiReference";
-import Blog from "./pages/Blog";
-import CaseStudies from "./pages/CaseStudies";
-import Changelog from "./pages/Changelog";
-import HelpCenter from "./pages/HelpCenter";
-import StatusPage from "./pages/Status";
-import Security from "./pages/Security";
-import Privacy from "./pages/Privacy";
-import Terms from "./pages/Terms";
-import Contact from "./pages/Contact";
-import Marketplace from "./components/Marketplace";
-import Dashboard from "./components/Dashboard";
-import AuthModal from "./components/AuthModal";
-import Verify from "./components/Verify";
-import Toast, { ToastHost, toast } from "./components/Toast";
+import RouteShell from "./components/skeletons/RouteShell";
+import { ToastHost, toast } from "./components/Toast";
 import api, { pick } from "./api";
+import usePredictivePrefetch from "./hooks/usePredictivePrefetch";
 import "./styles/global.css";
+
+const Home = lazy(() => import("./pages/Home"));
+const Pricing = lazy(() => import("./pages/Pricing"));
+const Docs = lazy(() => import("./pages/Docs"));
+const ApiReference = lazy(() => import("./pages/ApiReference"));
+const Blog = lazy(() => import("./pages/Blog"));
+const CaseStudies = lazy(() => import("./pages/CaseStudies"));
+const Changelog = lazy(() => import("./pages/Changelog"));
+const HelpCenter = lazy(() => import("./pages/HelpCenter"));
+const StatusPage = lazy(() => import("./pages/Status"));
+const Security = lazy(() => import("./pages/Security"));
+const Privacy = lazy(() => import("./pages/Privacy"));
+const Terms = lazy(() => import("./pages/Terms"));
+const Contact = lazy(() => import("./pages/Contact"));
+const Marketplace = lazy(() => import("./components/Marketplace"));
+const Dashboard = lazy(() => import("./components/Dashboard"));
+const AuthModal = lazy(() => import("./components/AuthModal"));
+const Verify = lazy(() => import("./components/Verify"));
+
+const requestIdle =
+  typeof window !== "undefined" && typeof window.requestIdleCallback === "function"
+    ? (cb) => window.requestIdleCallback(cb)
+    : (cb) => setTimeout(() => cb({ didTimeout: false, timeRemaining: () => 0 }), 1);
+
+const cancelIdle =
+  typeof window !== "undefined" && typeof window.cancelIdleCallback === "function"
+    ? (id) => window.cancelIdleCallback(id)
+    : (id) => clearTimeout(id);
+
+function SuspenseBoundary({ children, rows = 3 }) {
+  return <Suspense fallback={<RouteShell rows={rows} />}>{children}</Suspense>;
+}
 
 export default function App() {
   const [authOpen, setAuthOpen] = useState(false);
@@ -32,7 +49,36 @@ export default function App() {
   const navigate = useNavigate();
   const { pathname } = useLocation();
 
-  // Restore session on app load
+  const routeLoaders = useMemo(
+    () => ({
+      "/": () => import("./pages/Home"),
+      "/pricing": () => import("./pages/Pricing"),
+      "/docs": () => import("./pages/Docs"),
+      "/documentation": () => import("./pages/Docs"),
+      "/api": () => import("./pages/ApiReference"),
+      "/docs/api": () => import("./pages/ApiReference"),
+      "/blog": () => import("./pages/Blog"),
+      "/case-studies": () => import("./pages/CaseStudies"),
+      "/customers": () => import("./pages/CaseStudies"),
+      "/changelog": () => import("./pages/Changelog"),
+      "/updates": () => import("./pages/Changelog"),
+      "/help": () => import("./pages/HelpCenter"),
+      "/support": () => import("./pages/HelpCenter"),
+      "/status": () => import("./pages/Status"),
+      "/security": () => import("./pages/Security"),
+      "/privacy": () => import("./pages/Privacy"),
+      "/terms": () => import("./pages/Terms"),
+      "/contact": () => import("./pages/Contact"),
+      "/marketplace": () => import("./components/Marketplace"),
+      "/products/marketplace": () => import("./components/Marketplace"),
+      "/dashboard": () => import("./components/Dashboard"),
+      "/verify": () => import("./components/Verify"),
+    }),
+    []
+  );
+
+  usePredictivePrefetch(routeLoaders, pathname);
+
   useEffect(() => {
     const token = localStorage.getItem("token");
     if (!token) {
@@ -50,6 +96,16 @@ export default function App() {
       })
       .finally(() => setBooted(true));
   }, []);
+
+  useEffect(() => {
+    const idleId = requestIdle(() => {
+      const history = JSON.parse(localStorage.getItem("route-history") || "[]");
+      history.unshift({ path: pathname, ts: Date.now() });
+      localStorage.setItem("route-history", JSON.stringify(history.slice(0, 10)));
+    });
+
+    return () => cancelIdle(idleId);
+  }, [pathname]);
 
   const openAuth = (mode = "signin") => {
     setAuthMode(mode);
@@ -80,21 +136,22 @@ export default function App() {
 
   useEffect(() => {
     window.requestAnimationFrame(() => {
-      window.scrollTo({ top: 0 });
-      });
-      }, [pathname]);
+      window.scrollTo({ top: 0, behavior: "smooth" });
+    });
+  }, [pathname]);
 
-  // Show loading state while booting
   if (!booted) {
     return (
-      <div style={{ 
-        display: 'flex', 
-        alignItems: 'center', 
-        justifyContent: 'center', 
-        height: '100vh',
-        background: 'var(--bg-primary)'
-      }}>
-        <div className="loading" style={{ width: '40px', height: '40px' }}></div>
+      <div
+        style={{
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "center",
+          height: "100vh",
+          background: "var(--bg-primary)",
+        }}
+      >
+        <div className="loading" style={{ width: "40px", height: "40px" }} />
       </div>
     );
   }
@@ -108,7 +165,6 @@ export default function App() {
         onSignOut={signOut}
       />
 
-      {/* Email verification reminder */}
       {user && !user.verified && (
         <div className="banner warn">
           <div className="container">
@@ -137,53 +193,193 @@ export default function App() {
 
       <main className="app-shell">
         <Routes>
-          <Route 
-            path="/" 
-            element={<Home openAuth={openAuth} user={user} />} 
+          <Route
+            path="/"
+            element={
+              <SuspenseBoundary rows={6}>
+                <Home openAuth={openAuth} user={user} />
+              </SuspenseBoundary>
+            }
           />
-          <Route path="/pricing" element={<Pricing />} />
-          <Route path="/docs" element={<Docs />} />
-          <Route path="/documentation" element={<Docs />} />
-          <Route path="/api" element={<ApiReference />} />
-          <Route path="/docs/api" element={<ApiReference />} />
-          <Route path="/blog" element={<Blog />} />
-          <Route path="/case-studies" element={<CaseStudies />} />
-          <Route path="/customers" element={<CaseStudies />} />
-          <Route path="/changelog" element={<Changelog />} />
-          <Route path="/updates" element={<Changelog />} />
-          <Route path="/help" element={<HelpCenter />} />
-          <Route path="/support" element={<HelpCenter />} />
-          <Route path="/status" element={<StatusPage />} />
-          <Route path="/security" element={<Security />} />
-          <Route path="/privacy" element={<Privacy />} />
-          <Route path="/terms" element={<Terms />} />
-          <Route path="/contact" element={<Contact />} />
+          <Route
+            path="/pricing"
+            element={
+              <SuspenseBoundary rows={4}>
+                <Pricing />
+              </SuspenseBoundary>
+            }
+          />
+          <Route
+            path="/docs"
+            element={
+              <SuspenseBoundary rows={5}>
+                <Docs />
+              </SuspenseBoundary>
+            }
+          />
+          <Route
+            path="/documentation"
+            element={
+              <SuspenseBoundary rows={5}>
+                <Docs />
+              </SuspenseBoundary>
+            }
+          />
+          <Route
+            path="/api"
+            element={
+              <SuspenseBoundary rows={5}>
+                <ApiReference />
+              </SuspenseBoundary>
+            }
+          />
+          <Route
+            path="/docs/api"
+            element={
+              <SuspenseBoundary rows={5}>
+                <ApiReference />
+              </SuspenseBoundary>
+            }
+          />
+          <Route
+            path="/blog"
+            element={
+              <SuspenseBoundary rows={6}>
+                <Blog />
+              </SuspenseBoundary>
+            }
+          />
+          <Route
+            path="/case-studies"
+            element={
+              <SuspenseBoundary rows={6}>
+                <CaseStudies />
+              </SuspenseBoundary>
+            }
+          />
+          <Route
+            path="/customers"
+            element={
+              <SuspenseBoundary rows={6}>
+                <CaseStudies />
+              </SuspenseBoundary>
+            }
+          />
+          <Route
+            path="/changelog"
+            element={
+              <SuspenseBoundary rows={4}>
+                <Changelog />
+              </SuspenseBoundary>
+            }
+          />
+          <Route
+            path="/updates"
+            element={
+              <SuspenseBoundary rows={4}>
+                <Changelog />
+              </SuspenseBoundary>
+            }
+          />
+          <Route
+            path="/help"
+            element={
+              <SuspenseBoundary rows={4}>
+                <HelpCenter />
+              </SuspenseBoundary>
+            }
+          />
+          <Route
+            path="/support"
+            element={
+              <SuspenseBoundary rows={4}>
+                <HelpCenter />
+              </SuspenseBoundary>
+            }
+          />
+          <Route
+            path="/status"
+            element={
+              <SuspenseBoundary rows={3}>
+                <StatusPage />
+              </SuspenseBoundary>
+            }
+          />
+          <Route
+            path="/security"
+            element={
+              <SuspenseBoundary rows={3}>
+                <Security />
+              </SuspenseBoundary>
+            }
+          />
+          <Route
+            path="/privacy"
+            element={
+              <SuspenseBoundary rows={3}>
+                <Privacy />
+              </SuspenseBoundary>
+            }
+          />
+          <Route
+            path="/terms"
+            element={
+              <SuspenseBoundary rows={3}>
+                <Terms />
+              </SuspenseBoundary>
+            }
+          />
+          <Route
+            path="/contact"
+            element={
+              <SuspenseBoundary rows={3}>
+                <Contact />
+              </SuspenseBoundary>
+            }
+          />
           <Route
             path="/marketplace"
-            element={<Marketplace openAuth={openAuth} user={user} />}
+            element={
+              <SuspenseBoundary rows={6}>
+                <Marketplace openAuth={openAuth} user={user} />
+              </SuspenseBoundary>
+            }
           />
           <Route
-          path="/products/marketplace"
-          element={<Marketplace openAuth={openAuth} user={user} />}
+            path="/products/marketplace"
+            element={
+              <SuspenseBoundary rows={6}>
+                <Marketplace openAuth={openAuth} user={user} />
+              </SuspenseBoundary>
+            }
           />
           <Route
             path="/dashboard"
             element={
-              user ? (
-                <Dashboard user={user} openAuth={openAuth} />
-              ) : (
-                <Home openAuth={openAuth} user={null} />
-              )
+              <SuspenseBoundary rows={6}>
+                {user ? (
+                  <Dashboard user={user} openAuth={openAuth} />
+                ) : (
+                  <Home openAuth={openAuth} user={null} />
+                )}
+              </SuspenseBoundary>
             }
           />
-          <Route 
-            path="/verify" 
-            element={<Verify onVerified={(u) => setUser(u)} />} 
+          <Route
+            path="/verify"
+            element={
+              <SuspenseBoundary rows={3}>
+                <Verify onVerified={(u) => setUser(u)} />
+              </SuspenseBoundary>
+            }
           />
-          {/* Catch-all route for 404s */}
-          <Route 
-            path="*" 
-            element={<Home openAuth={openAuth} user={user} />} 
+          <Route
+            path="*"
+            element={
+              <SuspenseBoundary rows={6}>
+                <Home openAuth={openAuth} user={user} />
+              </SuspenseBoundary>
+            }
           />
         </Routes>
       </main>
@@ -191,11 +387,13 @@ export default function App() {
       <Footer />
 
       {authOpen && (
-        <AuthModal
-          onClose={() => setAuthOpen(false)}
-          onAuthenticated={onAuthenticated}
-          initialMode={authMode}
-        />
+        <Suspense fallback={<RouteShell rows={4} />}>
+          <AuthModal
+            onClose={() => setAuthOpen(false)}
+            onAuthenticated={onAuthenticated}
+            initialMode={authMode}
+          />
+        </Suspense>
       )}
 
       <ToastHost />
