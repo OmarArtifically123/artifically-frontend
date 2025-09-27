@@ -1,6 +1,6 @@
 import { defineConfig } from 'vite'
 import react from '@vitejs/plugin-react'
-import { million } from 'million/compiler'
+import million from 'million/compiler'
 import { resolve } from 'path'
 
 export default defineConfig({

@@ -15,15 +15,17 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 
-    <script>
-      window.partytown = {
+    <script type="module">
+      import { partytownSnippet } from "@builder.io/partytown/integration";
+
+      const script = document.createElement("script");
+      script.innerHTML = partytownSnippet({
+        debug: false,
         lib: "/~partytown/",
         forward: ["dataLayer.push"],
-      };
-    </script>
-    <script type="module">
-      import { init } from "@builder.io/partytown";
-      init({ debug: false, lib: "/~partytown/" });
+      });
+
+      document.head.appendChild(script);
     </script>
     <script type="text/partytown" src="https://www.googletagmanager.com/gtag/js?id=UA-000000-2"></script>
     <script type="text/partytown">
