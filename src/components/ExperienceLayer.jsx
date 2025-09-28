@@ -136,113 +136,51 @@ function useAmbientNeumorphism() {
   }, [darkMode]);
 }
 
-function useDynamicTheme() {
+function useStaticThemeTokens() {
   const { darkMode } = useTheme();
 
   useEffect(() => {
     if (typeof window === "undefined") return;
 
-    let abortController = new AbortController();
-    let resolved = false;
+    const palette = darkMode
+      ? {
+          primary: "hsl(240, 92%, 72%)",
+          secondary: "hsl(199, 94%, 66%)",
+          accent: "hsl(318, 89%, 75%)",
+          gradient: "linear-gradient(135deg, hsla(222, 47%, 15%, 0.92), hsla(199, 94%, 32%, 0.88))",
+          sparkleHue: "210",
+          sparkleAlpha: "0.32",
+          themeKey: "midnight",
+        }
+      : {
+          primary: "hsl(241, 85%, 62%)",
+          secondary: "hsl(199, 94%, 58%)",
+          accent: "hsl(319, 88%, 68%)",
+          gradient: "linear-gradient(135deg, hsla(210, 100%, 97%, 0.95), hsla(199, 94%, 88%, 0.9))",
+          sparkleHue: "205",
+          sparkleAlpha: "0.24",
+          themeKey: "daylight",
+        };
 
-    const applyPalette = (palette) => {
-      if (!palette) return;
-      const root = document.documentElement;
-      root.style.setProperty("--dynamic-primary", palette.primary);
-      root.style.setProperty("--dynamic-secondary", palette.secondary);
-      root.style.setProperty("--dynamic-accent", palette.accent);
-      root.style.setProperty("--dynamic-gradient", palette.gradient);
-      if (palette.sparkleHue !== undefined) {
-        root.style.setProperty("--sparkle-hue", String(palette.sparkleHue));
-      }
-      if (palette.sparkleAlpha !== undefined) {
-        root.style.setProperty("--sparkle-alpha", String(palette.sparkleAlpha));
-      } else {
-        root.style.setProperty("--sparkle-alpha", darkMode ? "0.34" : "0.26");
-      }
-    };
+    const root = document.documentElement;
+    root.style.setProperty("--dynamic-primary", palette.primary);
+    root.style.setProperty("--dynamic-secondary", palette.secondary);
+    root.style.setProperty("--dynamic-accent", palette.accent);
+    root.style.setProperty("--dynamic-gradient", palette.gradient);
+    root.style.setProperty("--sparkle-hue", palette.sparkleHue);
+    root.style.setProperty("--sparkle-alpha", palette.sparkleAlpha);
 
-    const deriveFromTime = (weatherCode) => {
-      const now = new Date();
-      const hours = now.getHours();
-      const minutes = now.getMinutes();
-      const progress = (hours * 60 + minutes) / 1440;
-      const skyHue = weatherCode === null ? 210 + progress * 120 : 200 + weatherCode * 0.6;
-      const accentHue = (skyHue + 60) % 360;
-      const baseLightness = darkMode ? 22 : 92;
-      const primary = `hsl(${skyHue.toFixed(1)}, 92%, ${darkMode ? 60 : 45}%)`;
-      const secondary = `hsl(${(skyHue + 30).toFixed(1)}, 78%, ${baseLightness - 10}%)`;
-      const accent = `hsl(${accentHue.toFixed(1)}, 95%, ${darkMode ? 55 : 52}%)`;
-      const gradient = `linear-gradient(135deg, hsla(${skyHue.toFixed(1)}, 92%, ${
-        darkMode ? 16 : 88
-      }%, 0.92), hsla(${accentHue.toFixed(1)}, 85%, ${darkMode ? 30 : 70}%, 0.88))`;
-      const sparkleAlpha = darkMode ? 0.36 : 0.26;
-      applyPalette({ primary, secondary, accent, gradient, sparkleHue: skyHue.toFixed(2), sparkleAlpha });
-      if (typeof document !== "undefined") {
-        const themeBucket = hours < 6 ? "midnight" : hours < 12 ? "sunrise" : hours < 18 ? "daylight" : "midnight";
-        document.body.dataset.timeTheme = themeBucket;
-      }
-    };
-
-    const fallback = () => {
-      deriveFromTime(null);
-    };
-
-    const requestWeather = (lat, lon) => {
-      const params = new URLSearchParams({
-        latitude: lat.toFixed(4),
-        longitude: lon.toFixed(4),
-        current_weather: "true",
-      });
-      fetch(`https://api.open-meteo.com/v1/forecast?${params.toString()}`, {
-        signal: abortController.signal,
-      })
-        .then((res) => res.json())
-        .then((data) => {
-          if (!data?.current_weather) {
-            throw new Error("No weather data");
-          }
-          resolved = true;
-          deriveFromTime(Number(data.current_weather.weathercode || 0));
-        })
-        .catch((error) => {
-          if (abortController.signal.aborted) return;
-          console.warn("Weather theming fallback", error);
-          fallback();
-        });
-    };
-
-    if (navigator.geolocation && typeof navigator.geolocation.getCurrentPosition === "function") {
-      navigator.geolocation.getCurrentPosition(
-        (position) => {
-          requestWeather(position.coords.latitude, position.coords.longitude);
-        },
-        () => fallback(),
-        { timeout: 4000 }
-      );
-    } else {
-      fallback();
+    if (document.body) {
+      document.body.dataset.timeTheme = palette.themeKey;
     }
-
-    deriveFromTime(null);
-
-    const interval = window.setInterval(() => {
-      if (!resolved) return;
-      deriveFromTime(null);
-    }, 5 * 60 * 1000);
-
-    return () => {
-      abortController.abort();
-      window.clearInterval(interval);
-    };
   }, [darkMode]);
 }
 
 
 const DEFAULT_DYNAMIC_PALETTE = {
-  primary: "#6366f1",
-  secondary: "#38bdf8",
-  accent: "#f472b6",
+  primary: "hsl(241, 85%, 62%)",
+  secondary: "hsl(199, 94%, 58%)",
+  accent: "hsl(319, 88%, 68%)",
 };
 
 function readDynamicPalette() {
@@ -857,7 +795,7 @@ export default function ExperienceLayer({ children }) {
   const containerRef = useRef(null);
   useCssHoudini();
   useAmbientNeumorphism();
-  useDynamicTheme();
+  useStaticThemeTokens();
   useBackdropBlurWatcher();
   useInteractiveEffects();
   useParallaxDepth(containerRef);
