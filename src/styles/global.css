@@ -824,6 +824,15 @@ body::before {
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
   background-clip: text;
+  color: var(--white);
+  text-rendering: optimizeLegibility;
+}
+
+@supports not (-webkit-background-clip: text) {
+  .hero h1 {
+    background: none;
+    color: var(--white);
+  }
 }
 
 .hero p {
