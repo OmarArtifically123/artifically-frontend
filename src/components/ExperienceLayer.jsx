@@ -1,0 +1,493 @@
+import { useEffect, useMemo, useRef, useState } from "react";
+import { useTheme } from "../context/ThemeContext";
+import useInteractiveEffects from "../hooks/useInteractiveEffects";
+
+const PARTICLE_COUNT = 180;
+const GYRO_SMOOTHING = 0.08;
+
+function useCssHoudini() {
+  useEffect(() => {
+    if (typeof window === "undefined" || !window.CSS || !CSS.paintWorklet) {
+      return;
+    }
+
+    const moduleUrl = "/worklets/sparkle-paint.js";
+    CSS.paintWorklet.addModule(moduleUrl).catch((error) => {
+      console.warn("Failed to load paint worklet", error);
+    });
+  }, []);
+}
+
+function useAmbientNeumorphism() {
+  const { darkMode } = useTheme();
+
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+
+    let sensor;
+    let rafId;
+    let currentLevel = 100;
+    const applyLevel = (level) => {
+      currentLevel = Math.max(5, Math.min(1000, level));
+      const normalized = Math.min(1, Math.log10(currentLevel + 1) / 3);
+      document.documentElement.style.setProperty("--ambient-level", String(normalized));
+      document.documentElement.style.setProperty(
+        "--ambient-shadow-strength",
+        darkMode ? String(0.45 + normalized * 0.45) : String(0.25 + normalized * 0.35)
+      );
+    };
+
+    if ("AmbientLightSensor" in window) {
+      try {
+        sensor = new window.AmbientLightSensor({ frequency: 10 });
+        sensor.addEventListener("reading", () => applyLevel(sensor.illuminance || 100));
+        sensor.addEventListener("error", (event) => {
+          console.warn("Ambient light sensor error", event.error);
+        });
+        sensor.start();
+      } catch (error) {
+        console.warn("Ambient light sensor unavailable", error);
+      }
+    } else if (typeof window.matchMedia === "function") {
+      const mq = window.matchMedia("(prefers-color-scheme: dark)");
+      const fallbackLevel = mq.matches ? 60 : 200;
+      applyLevel(fallbackLevel);
+      const listener = (event) => applyLevel(event.matches ? 60 : 200);
+      mq.addEventListener("change", listener);
+      return () => {
+        mq.removeEventListener("change", listener);
+      };
+    }
+
+    if (!sensor) {
+      applyLevel(120);
+      return () => {};
+    }
+
+    const update = () => {
+      applyLevel(currentLevel);
+      rafId = window.requestAnimationFrame(update);
+    };
+
+    update();
+
+    return () => {
+      if (sensor && typeof sensor.stop === "function") {
+        sensor.stop();
+      }
+      if (rafId) {
+        window.cancelAnimationFrame(rafId);
+      }
+    };
+  }, [darkMode]);
+}
+
+function useDynamicTheme() {
+  const { darkMode } = useTheme();
+
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+
+    let abortController = new AbortController();
+    let resolved = false;
+
+    const applyPalette = (palette) => {
+      if (!palette) return;
+      const root = document.documentElement;
+      root.style.setProperty("--dynamic-primary", palette.primary);
+      root.style.setProperty("--dynamic-secondary", palette.secondary);
+      root.style.setProperty("--dynamic-accent", palette.accent);
+      root.style.setProperty("--dynamic-gradient", palette.gradient);
+    };
+
+    const deriveFromTime = (weatherCode) => {
+      const now = new Date();
+      const hours = now.getHours();
+      const minutes = now.getMinutes();
+      const progress = (hours * 60 + minutes) / 1440;
+      const skyHue = weatherCode === null ? 210 + progress * 120 : 200 + weatherCode * 0.6;
+      const accentHue = (skyHue + 60) % 360;
+      const baseLightness = darkMode ? 22 : 92;
+      const primary = `hsl(${skyHue.toFixed(1)}, 92%, ${darkMode ? 60 : 45}%)`;
+      const secondary = `hsl(${(skyHue + 30).toFixed(1)}, 78%, ${baseLightness - 10}%)`;
+      const accent = `hsl(${accentHue.toFixed(1)}, 95%, ${darkMode ? 55 : 52}%)`;
+      const gradient = `linear-gradient(135deg, hsla(${skyHue.toFixed(1)}, 92%, ${
+        darkMode ? 16 : 88
+      }%, 0.92), hsla(${accentHue.toFixed(1)}, 85%, ${darkMode ? 30 : 70}%, 0.88))`;
+      applyPalette({ primary, secondary, accent, gradient });
+      if (typeof document !== "undefined") {
+        const themeBucket = hours < 6 ? "midnight" : hours < 12 ? "sunrise" : hours < 18 ? "daylight" : "midnight";
+        document.body.dataset.timeTheme = themeBucket;
+      }
+    };
+
+    const fallback = () => {
+      deriveFromTime(null);
+    };
+
+    const requestWeather = (lat, lon) => {
+      const params = new URLSearchParams({
+        latitude: lat.toFixed(4),
+        longitude: lon.toFixed(4),
+        current_weather: "true",
+      });
+      fetch(`https://api.open-meteo.com/v1/forecast?${params.toString()}`, {
+        signal: abortController.signal,
+      })
+        .then((res) => res.json())
+        .then((data) => {
+          if (!data?.current_weather) {
+            throw new Error("No weather data");
+          }
+          resolved = true;
+          deriveFromTime(Number(data.current_weather.weathercode || 0));
+        })
+        .catch((error) => {
+          if (abortController.signal.aborted) return;
+          console.warn("Weather theming fallback", error);
+          fallback();
+        });
+    };
+
+    if (navigator.geolocation) {
+      navigator.geolocation.getCurrentPosition(
+        (position) => {
+          requestWeather(position.coords.latitude, position.coords.longitude);
+        },
+        () => fallback(),
+        { timeout: 4000 }
+      );
+    } else {
+      fallback();
+    }
+
+    const interval = window.setInterval(() => {
+      if (!resolved) return;
+      deriveFromTime(null);
+    }, 5 * 60 * 1000);
+
+    return () => {
+      abortController.abort();
+      window.clearInterval(interval);
+    };
+  }, [darkMode]);
+}
+
+function LiquidShaderCanvas() {
+  const canvasRef = useRef(null);
+  const [devicePixelRatio, setDevicePixelRatio] = useState(1);
+
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    const dprListener = () => setDevicePixelRatio(window.devicePixelRatio || 1);
+    dprListener();
+    window.addEventListener("resize", dprListener);
+    return () => window.removeEventListener("resize", dprListener);
+  }, []);
+
+  useEffect(() => {
+    const canvas = canvasRef.current;
+    if (!canvas) return;
+    const gl = canvas.getContext("webgl", { antialias: true, alpha: true });
+    if (!gl) return;
+
+    const vertexSrc = `
+      attribute vec2 position;
+      varying vec2 vUv;
+      void main() {
+        vUv = position * 0.5 + 0.5;
+        gl_Position = vec4(position, 0.0, 1.0);
+      }
+    `;
+
+    const fragmentSrc = `
+      precision highp float;
+      varying vec2 vUv;
+      uniform float u_time;
+      uniform vec2 u_resolution;
+      uniform vec3 u_colorA;
+      uniform vec3 u_colorB;
+
+      float hash(vec2 p) {
+        return fract(sin(dot(p, vec2(127.1, 311.7))) * 43758.5453123);
+      }
+
+      float noise(vec2 p) {
+        vec2 i = floor(p);
+        vec2 f = fract(p);
+        float a = hash(i);
+        float b = hash(i + vec2(1.0, 0.0));
+        float c = hash(i + vec2(0.0, 1.0));
+        float d = hash(i + vec2(1.0, 1.0));
+        vec2 u = f * f * (3.0 - 2.0 * f);
+        return mix(a, b, u.x) + (c - a) * u.y * (1.0 - u.x) + (d - b) * u.x * u.y;
+      }
+
+      void main() {
+        vec2 uv = vUv;
+        vec2 uvFlow = uv * 2.4;
+        float time = u_time * 0.05;
+        float n1 = noise(uvFlow + time);
+        float n2 = noise(uvFlow - time * 0.8);
+        float mask = smoothstep(0.25, 0.75, n1 + n2 * 0.5);
+        vec3 color = mix(u_colorA, u_colorB, mask);
+        float highlight = smoothstep(0.7, 0.95, mask);
+        color += highlight * 0.25;
+        gl_FragColor = vec4(color, smoothstep(0.25, 0.95, mask));
+      }
+    `;
+
+    const compile = (type, source) => {
+      const shader = gl.createShader(type);
+      gl.shaderSource(shader, source);
+      gl.compileShader(shader);
+      if (!gl.getShaderParameter(shader, gl.COMPILE_STATUS)) {
+        console.error(gl.getShaderInfoLog(shader));
+        return null;
+      }
+      return shader;
+    };
+
+    const vertexShader = compile(gl.VERTEX_SHADER, vertexSrc);
+    const fragmentShader = compile(gl.FRAGMENT_SHADER, fragmentSrc);
+    if (!vertexShader || !fragmentShader) return;
+
+    const program = gl.createProgram();
+    gl.attachShader(program, vertexShader);
+    gl.attachShader(program, fragmentShader);
+    gl.linkProgram(program);
+    if (!gl.getProgramParameter(program, gl.LINK_STATUS)) {
+      console.error(gl.getProgramInfoLog(program));
+      return;
+    }
+
+    const positionBuffer = gl.createBuffer();
+    gl.bindBuffer(gl.ARRAY_BUFFER, positionBuffer);
+    gl.bufferData(
+      gl.ARRAY_BUFFER,
+      new Float32Array([
+        -1, -1,
+        1, -1,
+        -1, 1,
+        -1, 1,
+        1, -1,
+        1, 1,
+      ]),
+      gl.STATIC_DRAW
+    );
+
+    gl.useProgram(program);
+    const positionLocation = gl.getAttribLocation(program, "position");
+    gl.enableVertexAttribArray(positionLocation);
+    gl.vertexAttribPointer(positionLocation, 2, gl.FLOAT, false, 0, 0);
+
+    const timeLocation = gl.getUniformLocation(program, "u_time");
+    const resolutionLocation = gl.getUniformLocation(program, "u_resolution");
+    const colorALocation = gl.getUniformLocation(program, "u_colorA");
+    const colorBLocation = gl.getUniformLocation(program, "u_colorB");
+
+    let frameId;
+    const colorCanvas = document.createElement("canvas");
+    colorCanvas.width = 1;
+    colorCanvas.height = 1;
+    const colorCtx = colorCanvas.getContext("2d");
+
+    const render = (time) => {
+      if (!canvas.parentElement) return;
+      const { clientWidth, clientHeight } = canvas.parentElement;
+      const width = clientWidth * devicePixelRatio;
+      const height = clientHeight * devicePixelRatio;
+      if (canvas.width !== width || canvas.height !== height) {
+        canvas.width = width;
+        canvas.height = height;
+        gl.viewport(0, 0, width, height);
+      }
+
+      gl.uniform1f(timeLocation, time * 0.001);
+      gl.uniform2f(resolutionLocation, width, height);
+
+      const root = getComputedStyle(document.documentElement);
+      const colorA = root.getPropertyValue("--dynamic-primary").trim() || "#6366f1";
+      const colorB = root.getPropertyValue("--dynamic-accent").trim() || "#06b6d4";
+      const toRGB = (color) => {
+        if (!colorCtx) return [0.3, 0.4, 0.9];
+        colorCtx.fillStyle = color;
+        const computed = colorCtx.fillStyle;
+        const m = /rgb[a]?\((\d+),\s*(\d+),\s*(\d+)/.exec(computed);
+        if (!m) return [0.3, 0.4, 0.9];
+        return [Number(m[1]) / 255, Number(m[2]) / 255, Number(m[3]) / 255];
+      };
+
+      const [r1, g1, b1] = toRGB(colorA);
+      const [r2, g2, b2] = toRGB(colorB);
+      gl.uniform3f(colorALocation, r1, g1, b1);
+      gl.uniform3f(colorBLocation, r2, g2, b2);
+
+      gl.drawArrays(gl.TRIANGLES, 0, 6);
+      frameId = requestAnimationFrame(render);
+    };
+
+    frameId = requestAnimationFrame(render);
+
+    return () => {
+      cancelAnimationFrame(frameId);
+      gl.deleteProgram(program);
+      gl.deleteShader(vertexShader);
+      gl.deleteShader(fragmentShader);
+      gl.deleteBuffer(positionBuffer);
+    };
+  }, [devicePixelRatio]);
+
+  return <canvas className="liquid-morphing-layer" ref={canvasRef} />;
+}
+
+function ParticleField() {
+  const canvasRef = useRef(null);
+  const particles = useMemo(() => {
+    return Array.from({ length: PARTICLE_COUNT }).map(() => ({
+      x: Math.random(),
+      y: Math.random(),
+      z: Math.random(),
+      vx: (Math.random() - 0.5) * 0.0025,
+      vy: (Math.random() - 0.5) * 0.0025,
+      size: 0.4 + Math.random() * 1.2,
+      hue: Math.random() * 360,
+    }));
+  }, []);
+
+  useEffect(() => {
+    const canvas = canvasRef.current;
+    if (!canvas) return;
+    const ctx = canvas.getContext("2d");
+    if (!ctx) return;
+
+    let frameId;
+    const render = () => {
+      if (!canvas.parentElement) return;
+      const { clientWidth, clientHeight } = canvas.parentElement;
+      const dpr = window.devicePixelRatio || 1;
+      if (canvas.width !== clientWidth * dpr || canvas.height !== clientHeight * dpr) {
+        canvas.width = clientWidth * dpr;
+        canvas.height = clientHeight * dpr;
+      }
+      ctx.save();
+      ctx.scale(dpr, dpr);
+      ctx.clearRect(0, 0, clientWidth, clientHeight);
+      const gradient = ctx.createLinearGradient(0, 0, clientWidth, clientHeight);
+      const root = getComputedStyle(document.documentElement);
+      const accent = root.getPropertyValue("--dynamic-accent").trim() || "#38bdf8";
+      gradient.addColorStop(0, "rgba(15, 23, 42, 0.35)");
+      gradient.addColorStop(1, `${accent}33`);
+      ctx.fillStyle = gradient;
+      ctx.fillRect(0, 0, clientWidth, clientHeight);
+
+      particles.forEach((particle) => {
+        particle.x += particle.vx;
+        particle.y += particle.vy;
+        if (particle.x < 0 || particle.x > 1) particle.vx *= -1;
+        if (particle.y < 0 || particle.y > 1) particle.vy *= -1;
+        const px = particle.x * clientWidth;
+        const py = particle.y * clientHeight;
+        const radius = particle.size + Math.sin(Date.now() * 0.001 + particle.hue) * 0.25;
+        ctx.beginPath();
+        ctx.fillStyle = `hsla(${particle.hue.toFixed(1)}, 85%, 65%, 0.65)`;
+        ctx.arc(px, py, radius, 0, Math.PI * 2);
+        ctx.fill();
+      });
+      ctx.restore();
+      frameId = requestAnimationFrame(render);
+    };
+    frameId = requestAnimationFrame(render);
+
+    return () => cancelAnimationFrame(frameId);
+  }, [particles]);
+
+  return <canvas className="particle-field" ref={canvasRef} aria-hidden="true" />;
+}
+
+function useParallaxDepth(containerRef) {
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    const container = containerRef.current;
+    if (!container) return;
+
+    const layers = Array.from(container.querySelectorAll("[data-depth]"));
+    if (!layers.length) return;
+
+    let pointerX = 0;
+    let pointerY = 0;
+    let gyroX = 0;
+    let gyroY = 0;
+    let rafId;
+
+    const apply = () => {
+      layers.forEach((layer) => {
+        const depth = Number(layer.dataset.depth || "1");
+        const translateX = (pointerX + gyroX) * depth * 12;
+        const translateY = (pointerY + gyroY) * depth * 12;
+        layer.style.transform = `translate3d(${translateX}px, ${translateY}px, 0)`;
+      });
+      rafId = requestAnimationFrame(apply);
+    };
+
+    const handlePointer = (event) => {
+      const { innerWidth, innerHeight } = window;
+      pointerX = ((event.clientX / innerWidth) - 0.5) * 2;
+      pointerY = ((event.clientY / innerHeight) - 0.5) * 2;
+    };
+
+    const handleOrientation = (event) => {
+      const beta = event.beta || 0;
+      const gamma = event.gamma || 0;
+      gyroX += ((gamma / 45) - gyroX) * GYRO_SMOOTHING;
+      gyroY += ((beta / 45) - gyroY) * GYRO_SMOOTHING;
+    };
+
+    window.addEventListener("pointermove", handlePointer);
+    window.addEventListener("deviceorientation", handleOrientation, true);
+    apply();
+
+    return () => {
+      window.removeEventListener("pointermove", handlePointer);
+      window.removeEventListener("deviceorientation", handleOrientation, true);
+      cancelAnimationFrame(rafId);
+    };
+  }, [containerRef]);
+}
+
+function useBackdropBlurWatcher() {
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    const observer = new ResizeObserver(() => {
+      document.querySelectorAll("[data-glass]").forEach((el) => {
+        const rect = el.getBoundingClientRect();
+        const radius = Math.min(24, Math.max(12, Math.round(rect.width / 48)));
+        el.style.backdropFilter = `blur(${radius}px) saturate(1.3)`;
+        el.style.setProperty("--glass-blur", `${radius}px`);
+      });
+    });
+    document.querySelectorAll("[data-glass]").forEach((el) => observer.observe(el));
+    return () => observer.disconnect();
+  }, []);
+}
+
+export default function ExperienceLayer({ children }) {
+  const containerRef = useRef(null);
+  useCssHoudini();
+  useAmbientNeumorphism();
+  useDynamicTheme();
+  useBackdropBlurWatcher();
+  useInteractiveEffects();
+  useParallaxDepth(containerRef);
+
+  return (
+    <div className="experience-shell" ref={containerRef}>
+      <LiquidShaderCanvas />
+      <ParticleField />
+      <div className="parallax-layer" data-depth="0.25" aria-hidden="true" />
+      <div className="parallax-layer" data-depth="0.45" aria-hidden="true" />
+      <div className="parallax-layer" data-depth="0.65" aria-hidden="true" />
+      <div className="experience-content">{children}</div>
+    </div>
+  );
+}

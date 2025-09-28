@@ -7,6 +7,7 @@ import { ToastHost, toast } from "./components/Toast";
 import api, { pick } from "./api";
 import usePredictivePrefetch from "./hooks/usePredictivePrefetch";
 import "./styles/global.css";
+import ExperienceLayer from "./components/ExperienceLayer";
 
 const Home = lazy(() => import("./pages/Home"));
 const Pricing = lazy(() => import("./pages/Pricing"));
@@ -201,7 +202,7 @@ export default function App() {
   };
 
   return (
-    <>
+    <ExperienceLayer>
       <Header
         user={user}
         onSignIn={() => openAuth("signin")}
@@ -443,6 +444,6 @@ export default function App() {
       )}
 
       <ToastHost />
-    </>
+    </ExperienceLayer>
   );
 }

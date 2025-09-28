@@ -15,6 +15,9 @@ export default function ThemeToggle({ className = "", label = "Toggle theme" }) 
       aria-pressed={darkMode}
       title={title}
       className={`theme-toggle ${className}`.trim()}
+      data-magnetic="true"
+      data-ripple="true"
+      data-magnetic-strength="0.5"
     >
       <span className="toggle-track" aria-hidden="true">
         <span className="toggle-indicator" data-dark={darkMode} />

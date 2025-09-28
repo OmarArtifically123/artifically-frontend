@@ -1,6 +1,8 @@
 /* Enhanced Global CSS - Production Grade */
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@100..900&display=swap');
 @import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Manrope:wght@200..800&display=swap');
 
 /* CSS Variables */
 :root {
@@ -44,6 +46,13 @@
   --bg-card-hover: rgba(51, 65, 85, 0.85);
   --bg-glass: rgba(15, 23, 42, 0.65);
   --bg-inset: rgba(15, 23, 42, 0.92);
+  --dynamic-primary: #6366f1;
+  --dynamic-secondary: #38bdf8;
+  --dynamic-accent: #f472b6;
+  --dynamic-gradient: linear-gradient(135deg, rgba(99, 102, 241, 0.85), rgba(14, 165, 233, 0.8));
+  --ambient-level: 0.6;
+  --ambient-shadow-strength: 0.4;
+  --glass-blur: 18px;
 
   /* Borders */
   --border-color: rgba(148, 163, 184, 0.25);
@@ -150,12 +159,25 @@ html {
 
 body {
   font-family: var(--font-sans);
+  font-variation-settings: 'wght' 480;
   background: var(--bg-primary);
   color: var(--text-primary);
   line-height: 1.6;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
   overflow-x: hidden;
+}
+
+body[data-time-theme="sunrise"] {
+  font-variation-settings: 'wght' 520, 'opsz' 18;
+}
+
+body[data-time-theme="daylight"] {
+  font-variation-settings: 'wght' 560, 'opsz' 20;
+}
+
+body[data-time-theme="midnight"] {
+  font-variation-settings: 'wght' 420, 'opsz' 14;
 }
 
 .app-shell {
@@ -179,12 +201,60 @@ body::before {
   left: 0;
   width: 100%;
   height: 100%;
-  background: 
-    radial-gradient(circle at 20% 50%, rgba(120, 119, 198, 0.15) 0%, transparent 50%),
-    radial-gradient(circle at 80% 20%, rgba(99, 102, 241, 0.15) 0%, transparent 50%),
-    radial-gradient(circle at 40% 80%, rgba(6, 182, 212, 0.15) 0%, transparent 50%);
+  background:
+    var(--dynamic-gradient),
+    radial-gradient(circle at 20% 50%, rgba(120, 119, 198, 0.22) 0%, transparent 55%),
+    radial-gradient(circle at 80% 20%, rgba(99, 102, 241, 0.18) 0%, transparent 55%),
+    radial-gradient(circle at 40% 80%, rgba(6, 182, 212, 0.22) 0%, transparent 50%);
   z-index: -1;
   animation: backgroundShift 20s ease-in-out infinite;
+}
+
+.experience-shell {
+  position: relative;
+  min-height: 100vh;
+  overflow: hidden;
+  background: rgba(15, 23, 42, 0.55);
+}
+
+.experience-content {
+  position: relative;
+  z-index: 10;
+  isolation: isolate;
+}
+
+.particle-field,
+.liquid-morphing-layer,
+.parallax-layer {
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  z-index: 1;
+}
+
+.liquid-morphing-layer {
+  opacity: 0.85;
+  mix-blend-mode: screen;
+}
+
+.particle-field {
+  mix-blend-mode: lighten;
+  opacity: 0.55;
+}
+
+.parallax-layer {
+  background: paint(sparkle);
+  opacity: 0.15;
+  transform: translate3d(0, 0, 0);
+  transition: transform 220ms ease-out;
+}
+
+.parallax-layer:nth-of-type(3) {
+  opacity: 0.22;
+}
+
+.parallax-layer:nth-of-type(4) {
+  opacity: 0.28;
 }
 
 .theme-toggle {
@@ -202,6 +272,112 @@ body::before {
   transition: transform var(--transition-fast), box-shadow var(--transition-fast), background var(--transition-fast);
   box-shadow: 0 12px 30px rgba(15, 23, 42, 0.25);
   min-height: 2.5rem;
+}
+
+[data-glass] {
+  background: var(--bg-glass);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  box-shadow:
+    0 20px 40px rgba(15, 23, 42, calc(0.35 + var(--ambient-shadow-strength) * 0.5)),
+    inset 0 1px 0 rgba(255, 255, 255, 0.08);
+  backdrop-filter: blur(var(--glass-blur)) saturate(1.3);
+  transition: box-shadow var(--transition-normal), transform var(--transition-normal);
+}
+
+[data-glass]:hover {
+  transform: translateY(-4px);
+  box-shadow:
+    0 28px 60px rgba(15, 23, 42, calc(0.45 + var(--ambient-shadow-strength) * 0.55)),
+    inset 0 1px 0 rgba(255, 255, 255, 0.12);
+}
+
+.neumorphic {
+  border-radius: 1.5rem;
+  background: linear-gradient(135deg, rgba(255, 255, 255, 0.08), rgba(148, 163, 184, 0.12));
+  box-shadow:
+    calc(-25px * var(--ambient-level)) calc(-25px * var(--ambient-level)) 55px rgba(255, 255, 255, 0.04),
+    calc(35px * var(--ambient-level)) calc(35px * var(--ambient-level)) 65px rgba(15, 23, 42, var(--ambient-shadow-strength));
+  transition: box-shadow var(--transition-normal), background var(--transition-normal);
+}
+
+.neumorphic:hover {
+  background: linear-gradient(145deg, rgba(255, 255, 255, 0.12), rgba(148, 163, 184, 0.18));
+}
+
+[data-magnetic] {
+  position: relative;
+  overflow: hidden;
+  transform: translate(0, 0);
+  transition: transform 180ms ease-out, box-shadow 180ms ease-out;
+}
+
+[data-magnetic] .ripple,
+[data-magnetic]::after {
+  pointer-events: none;
+}
+
+.ripple {
+  position: absolute;
+  border-radius: 50%;
+  transform: scale(0);
+  background: rgba(255, 255, 255, 0.35);
+  animation: rippleExpand 650ms ease-out;
+  opacity: 0.75;
+}
+
+@keyframes rippleExpand {
+  to {
+    transform: scale(2.4);
+    opacity: 0;
+  }
+}
+
+.btn {
+  font-family: 'Manrope', var(--font-sans);
+  font-variation-settings: 'wght' 600;
+  letter-spacing: 0.02em;
+}
+
+.btn-primary {
+  background: radial-gradient(circle at top, var(--dynamic-accent), transparent 55%),
+    linear-gradient(135deg, var(--dynamic-primary), var(--dynamic-accent));
+  border: none;
+  color: #fff;
+  box-shadow:
+    0 18px 35px rgba(99, 102, 241, 0.35),
+    0 0 35px rgba(14, 165, 233, 0.35);
+}
+
+.btn-primary:hover {
+  box-shadow:
+    0 28px 45px rgba(99, 102, 241, 0.45),
+    0 0 45px rgba(14, 165, 233, 0.45);
+}
+
+.btn-secondary {
+  background: rgba(255, 255, 255, 0.92);
+  color: #0f172a;
+  border: 1px solid rgba(148, 163, 184, 0.35);
+}
+
+.glass-panel {
+  position: relative;
+  background: rgba(15, 23, 42, 0.6);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 1.5rem;
+  padding: 2rem;
+  backdrop-filter: blur(var(--glass-blur)) saturate(1.25);
+  box-shadow: 0 30px 60px rgba(15, 23, 42, 0.45);
+  overflow: hidden;
+}
+
+.glass-panel::before {
+  content: '';
+  position: absolute;
+  inset: 1px;
+  border-radius: 1.4rem;
+  background: linear-gradient(135deg, rgba(255, 255, 255, 0.08), transparent 60%);
+  pointer-events: none;
 }
 
 .theme-toggle:hover,

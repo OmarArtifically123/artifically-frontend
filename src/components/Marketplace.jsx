@@ -157,7 +157,12 @@ export default function Marketplace({ user, openAuth }) {
 
   if (loading) {
     return (
-      <section className="marketplace" id="marketplace" style={{ padding: "5rem 0" }}>
+      <section
+        className="marketplace"
+        id="marketplace"
+        data-glass="true"
+        style={{ padding: "5rem 0" }}
+      >
         <div className="container" style={{ display: "grid", gap: "2rem" }}>
           {sectionHeader}
           <div
@@ -181,7 +186,12 @@ export default function Marketplace({ user, openAuth }) {
 
   if (error && automations.length === 0) {
     return (
-      <section className="marketplace" id="marketplace" style={{ padding: "5rem 0" }}>
+      <section
+        className="marketplace"
+        id="marketplace"
+        data-glass="true"
+        style={{ padding: "5rem 0" }}
+      >
         <div className="container" style={{ display: "grid", gap: "2rem" }}>
           {sectionHeader}
           <div
@@ -211,7 +221,12 @@ export default function Marketplace({ user, openAuth }) {
   }
 
   return (
-    <section className="marketplace" id="marketplace" style={{ padding: "5rem 0" }}>
+    <section
+      className="marketplace"
+      id="marketplace"
+      data-glass="true"
+      style={{ padding: "5rem 0" }}
+    >
       <div className="container" style={{ display: "grid", gap: "2.5rem" }}>
         {sectionHeader}
 
