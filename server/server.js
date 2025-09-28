@@ -56,11 +56,16 @@ async function createDevServer() {
               console.warn(`⚠️ SSR failed for ${requestUrl}, falling back to client-only:`, ssrError.message);
               
               // Fallback to client-only rendering
-              const clientOnlyTemplate = template.replace(
-                '<!--app-html-->',
-                '<div id="root"><div class="initial-loading"><div class="loading-spinner"></div><p>Loading Artifically...</p></div></div>'
-              );
-              
+              const clientOnlyTemplate = template
+                .replace(
+                  '<!--app-html-->',
+                  '<div class="initial-loading"><div class="loading-spinner"></div><p>Loading Artifically...</p></div>'
+                )
+                .replace(
+                  '<!--app-fallback-->',
+                  '<script>window.__SSR_DISABLED__ = true;</script>'
+                );
+                
               res.statusCode = 200;
               res.setHeader("Content-Type", "text/html; charset=utf-8");
               res.setHeader("X-SSR-Fallback", "true");

@@ -82,22 +82,10 @@
   </head>
   <body>
     <div id="root">
-      <!-- Initial loading state to prevent FOUC -->
-      <div class="initial-loading">
-        <div class="loading-spinner"></div>
-        <p>Loading Artifically...</p>
-      </div>
+      <!--app-html-->
     </div>
-    <!--app-html-->
     <script type="module" src="/src/entry-client.jsx"></script>
-    
-    <!-- Hide loading spinner once JS loads -->
-    <script>
-      document.addEventListener('DOMContentLoaded', () => {
-        setTimeout(() => {
-          document.body.classList.add('react-loaded');
-        }, 100);
-      });
-    </script>
+
+    <!--app-fallback-->
   </body>
 </html>

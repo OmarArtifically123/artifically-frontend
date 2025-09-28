@@ -127,7 +127,8 @@ export async function render({ req, res, template, manifest, isProd }) {
     let errorDetails = null;
     const stream = new PassThrough();
 
-    const [head = "", tail = ""] = template.split("<!--app-html-->");
+    const [head = "", tailWithFallback = ""] = template.split("<!--app-html-->");
+    const tail = tailWithFallback.replace("<!--app-fallback-->", "");
 
     // Enhanced bootstrap script with SSR detection
     const bootstrapScriptContent = `
