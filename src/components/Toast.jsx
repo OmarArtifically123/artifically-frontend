@@ -67,7 +67,19 @@ export function toast(message, opts = {}) {
 // ---------------------------
 export function ToastHost() {
   const [toasts, _setToasts] = useState([]);
-  setToasts = _setToasts;
+  
+  useEffect(() => {
+    setToasts = _setToasts;
+    return () => {
+      if (setToasts === _setToasts) {
+        setToasts = undefined;
+      }
+    };
+  }, [_setToasts]);
+
+  if (typeof document === "undefined") {
+    return null;
+  }
 
   return createPortal(
     <div style={{ position: "fixed", top: 20, right: 20, zIndex: 1200 }}>
