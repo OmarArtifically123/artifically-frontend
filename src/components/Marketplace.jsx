@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { fetchAutomations } from "../data/automations";
 import AutomationCard from "./AutomationCard";
 import DemoModal from "./DemoModal";
@@ -8,6 +8,121 @@ import ThemeToggle from "./ThemeToggle";
 import { useTheme } from "../context/ThemeContext";
 import { warmupWasm, wasmAverage } from "../lib/wasmMath";
 
+function normalize(text) {
+  return (text || "").toString().toLowerCase();
+}
+
+function titleCase(value = "") {
+  return value
+    .toString()
+    .replace(/[_-]/g, " ")
+    .split(" ")
+    .filter(Boolean)
+    .map((part) => part.charAt(0).toUpperCase() + part.slice(1).toLowerCase())
+    .join(" ");
+}
+
+function detectNeeds(user, items) {
+  const signals = [];
+  const addSignal = (raw) => {
+    if (!raw) return;
+    const label = titleCase(raw);
+    const isDuplicate = signals.some((entry) => normalize(entry) === normalize(label));
+    if (!isDuplicate) {
+      signals.push(label);
+    }
+  };
+
+  if (user?.industry) addSignal(`${user.industry}`);
+  if (user?.department) addSignal(`${user.department} workflows`);
+  if (user?.role) addSignal(`${user.role} enablement`);
+  if (user?.teamSize) {
+    const size = Number(user.teamSize);
+    if (!Number.isNaN(size)) {
+      if (size > 500) addSignal("Enterprise scale");
+      else if (size > 120) addSignal("Team productivity");
+      else addSignal("Startup velocity");
+    }
+  }
+
+  const painPoints = Array.isArray(user?.painPoints)
+    ? user?.painPoints
+    : typeof user?.painPoints === "string"
+      ? user.painPoints.split(/,|;/)
+      : [];
+  painPoints.forEach((point) => addSignal(point));
+
+  const tagFrequency = new Map();
+  (items || []).forEach((item) => {
+    (item?.tags || []).forEach((tag) => {
+      const key = normalize(tag);
+      if (!key) return;
+      tagFrequency.set(key, (tagFrequency.get(key) || 0) + 1);
+    });
+  });
+
+  const trending = Array.from(tagFrequency.entries())
+    .sort((a, b) => b[1] - a[1])
+    .map(([tag]) => titleCase(tag));
+
+  trending.forEach((tag) => addSignal(tag));
+
+  return signals.slice(0, 4);
+}
+
+function computeMatchScore(item, detectedNeeds, activeNeed) {
+  const tags = (item?.tags || []).map((tag) => normalize(tag));
+  const description = normalize(item?.description);
+  const category = normalize(item?.category || item?.vertical);
+  let score = 1;
+
+  if (activeNeed) {
+    const target = normalize(activeNeed);
+    if (tags.some((tag) => tag.includes(target))) score += 7;
+    if (category.includes(target)) score += 5;
+    if (description.includes(target)) score += 4;
+  }
+
+  detectedNeeds.forEach((need, index) => {
+    const normalizedNeed = normalize(need);
+    const weight = detectedNeeds.length - index;
+    if (tags.some((tag) => tag.includes(normalizedNeed))) score += weight * 1.5;
+    if (description.includes(normalizedNeed)) score += weight;
+  });
+
+  if (typeof item?.roi === "number") score += item.roi;
+  if (typeof item?.popularity === "number") score += item.popularity * 0.5;
+
+  return score;
+}
+
+function computeClusterLabel(item, activeNeed) {
+  if (activeNeed) {
+    const normalizedNeed = normalize(activeNeed);
+    const hasNeedTag = (item?.tags || []).some((tag) => normalize(tag).includes(normalizedNeed));
+    if (hasNeedTag || normalize(item?.category).includes(normalizedNeed)) {
+      return `Tailored for ${titleCase(activeNeed)}`;
+    }
+  }
+
+  const baseLabel = item?.category || item?.vertical || (item?.tags?.[0] ?? "Universal");
+  return `Cluster: ${titleCase(baseLabel)}`;
+}
+
+function createClusterDescription(label, activeNeed) {
+  const lower = normalize(label);
+  if (lower.startsWith("tailored")) {
+    return activeNeed
+      ? `Automations tuned to your ${titleCase(activeNeed)} focus with synchronized data flows.`
+      : "Automations tuned to your current signals with synchronized data flows.";
+  }
+
+  const topic = label.split(":").slice(1).join(":").trim();
+  return topic
+    ? `${topic} specialists linked by glowing workflow connections.`
+    : "Related automations collaborating through live workflow connections.";
+}
+
 export default function Marketplace({ user, openAuth }) {
   const { darkMode } = useTheme();
   const [demo, setDemo] = useState(null);
@@ -15,6 +130,9 @@ export default function Marketplace({ user, openAuth }) {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [averageROI, setAverageROI] = useState(null);
+  const [detectedNeeds, setDetectedNeeds] = useState([]);
+  const [activeNeed, setActiveNeed] = useState(null);
+  const [layoutKey, setLayoutKey] = useState(0);
 
   useEffect(() => {
     warmupWasm();
@@ -45,6 +163,71 @@ export default function Marketplace({ user, openAuth }) {
 
     loadAutomations();
   }, []);
+
+  useEffect(() => {
+    if (!automations.length) {
+      setDetectedNeeds([]);
+      setActiveNeed(null);
+      return;
+    }
+
+    const needs = detectNeeds(user, automations);
+    setDetectedNeeds(needs);
+
+    if (!needs.length) {
+      setActiveNeed(null);
+      return;
+    }
+
+    setActiveNeed((prev) => {
+      if (prev && needs.some((need) => normalize(need) === normalize(prev))) {
+        return prev;
+      }
+      return needs[0];
+    });
+  }, [automations, user]);
+
+  useEffect(() => {
+    setLayoutKey((prev) => prev + 1);
+  }, [activeNeed]);
+
+  const scoredAutomations = useMemo(() => {
+    if (!automations.length) return [];
+
+    const entries = automations.map((item) => {
+      const score = computeMatchScore(item, detectedNeeds, activeNeed);
+      return { item, score };
+    });
+
+    const maxScore = entries.reduce((max, entry) => Math.max(max, entry.score), 1);
+
+    return entries
+      .map((entry) => ({
+        ...entry,
+        matchStrength: maxScore ? entry.score / maxScore : 0,
+      }))
+      .sort((a, b) => b.score - a.score);
+  }, [automations, detectedNeeds, activeNeed]);
+
+  const automationClusters = useMemo(() => {
+    if (!scoredAutomations.length) return [];
+
+    const groups = new Map();
+    scoredAutomations.forEach(({ item, matchStrength }) => {
+      const label = computeClusterLabel(item, activeNeed);
+      if (!groups.has(label)) {
+        groups.set(label, []);
+      }
+      groups.get(label).push({ item, matchStrength });
+    });
+
+    return Array.from(groups.entries()).map(([label, items], index) => ({
+      id: `${label}-${index}`,
+      label,
+      description: createClusterDescription(label, activeNeed),
+      items,
+    }));
+  }, [scoredAutomations, activeNeed]);
 
   const buy = async (item) => {
     if (!item || !item.id) {
@@ -152,6 +335,34 @@ export default function Marketplace({ user, openAuth }) {
           </span>
           ))}
       </div>
+      {detectedNeeds.length > 0 && (
+        <div className="marketplace-needs" role="group" aria-label="Dynamic automation filters">
+          <div className="marketplace-needs__meta">
+            <span>We think you're optimizing for</span>
+            <strong>{activeNeed ? titleCase(activeNeed) : "blended impact"}</strong>
+          </div>
+          <div className="marketplace-needs__chips">
+            {detectedNeeds.map((need) => {
+              const isActive = normalize(need) === normalize(activeNeed);
+              return (
+                <button
+                  type="button"
+                  key={need}
+                  className="marketplace-needs__chip"
+                  data-active={isActive}
+                  onClick={() => setActiveNeed(need)}
+                >
+                  <span>{need}</span>
+                  <span className="marketplace-needs__glow" aria-hidden="true" />
+                </button>
+              );
+            })}
+          </div>
+          <p className="marketplace-needs__hint">
+            Automations reorganize themselves in real-time based on the signal you select.
+          </p>
+        </div>
+      )}
     </div>
   );
 
@@ -231,7 +442,17 @@ export default function Marketplace({ user, openAuth }) {
           </div>
         )}
 
-        {automations.length === 0 ? (
+        <div className="marketplace-detected-message">
+          {activeNeed ? (
+            <span>
+              <strong>{titleCase(activeNeed)}</strong> automations surge to the front with live clustering.
+            </span>
+          ) : (
+            <span>Showing the full automation constellation with live previews.</span>
+          )}
+        </div>
+
+        {automationClusters.length === 0 ? (
           <div
             style={{
               textAlign: "center",
@@ -247,16 +468,36 @@ export default function Marketplace({ user, openAuth }) {
             </p>
           </div>
         ) : (
-          <div
-            className="automation-grid"
-            style={{
-              display: "grid",
-              gridTemplateColumns: "repeat(auto-fit, minmax(280px, 1fr))",
-              gap: "1.5rem",
-            }}
-          >
-            {automations.map((item) => (
-              <AutomationCard key={item.id} item={item} onDemo={handleDemo} onBuy={buy} />
+          <div className="automation-clusters">
+            {automationClusters.map((cluster) => (
+              <div
+                key={`${cluster.id}-${layoutKey}`}
+                className="automation-cluster"
+                data-highlight={normalize(cluster.label).startsWith("tailored")}
+              >
+                <div className="automation-cluster__halo" aria-hidden="true" />
+                <div className="automation-cluster__links" aria-hidden="true">
+                  <span />
+                  <span />
+                  <span />
+                </div>
+                <header>
+                  <h3>{cluster.label}</h3>
+                  <p>{cluster.description}</p>
+                </header>
+                <div className="automation-cluster__grid">
+                  {cluster.items.map(({ item, matchStrength }) => (
+                    <AutomationCard
+                      key={item.id}
+                      item={item}
+                      onDemo={handleDemo}
+                      onBuy={buy}
+                      activeNeed={activeNeed}
+                      matchStrength={matchStrength}
+                    />
+                  ))}
+                </div>
+              </div>
             ))}
           </div>
         )}
