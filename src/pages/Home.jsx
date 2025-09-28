@@ -4,7 +4,6 @@ import Hero from "../components/Hero";
 import RouteShell from "../components/skeletons/RouteShell";
 
 const Features = lazy(() => import("../components/Features"));
-const SmartSearchDiscovery = lazy(() => import("../components/SmartSearchDiscovery"));
 const Marketplace = lazy(() => import("../components/Marketplace"));
 
 export default function Home({ user, scrollTo, openAuth }) {
@@ -40,11 +39,6 @@ export default function Home({ user, scrollTo, openAuth }) {
       <section aria-label="Platform capabilities">
         <Suspense fallback={<RouteShell rows={4} />}>
           {contentReady ? <Features /> : <RouteShell rows={4} />}
-        </Suspense>
-      </section>
-      <section aria-label="Smart discovery">
-        <Suspense fallback={<RouteShell rows={3} />}>
-          {contentReady ? <SmartSearchDiscovery /> : <RouteShell rows={3} />}
         </Suspense>
       </section>
       {/* Marketplace section with id to allow smooth scroll */}
