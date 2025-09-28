@@ -1,13 +1,14 @@
 {
   "version": 2,
-  "framework": "vite",
-  "buildCommand": "npm run build",
-  "outputDirectory": "dist",
+  "builds": [
+    { "src": "server/server.js", "use": "@vercel/node" },
+    { "src": "dist/client/**", "use": "@vercel/static" }
+  ],
+  "routes": [
+    { "src": "/(.*)", "dest": "server/server.js" }
+  ],
   "env": {
     "NODE_VERSION": "20",
     "VITE_API_URL": "https://api.artifically.com"
-  },
-  "rewrites": [
-    { "source": "/(.*)", "destination": "/" }
-  ]
+  }
 }

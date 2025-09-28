@@ -13,8 +13,9 @@
   ],
   "scripts": {
     "dev": "vite --host 0.0.0.0",
-    "build": "vite build",
-    "build:ssr": "npm run build && vite build --ssr server/entry-server.jsx --outDir dist/server",
+    "build:client": "vite build --outDir dist/client",
+    "build:server": "vite build --ssr server/entry-server.jsx --outDir dist/server",
+    "build": "npm run build:client && npm run build:server",
     "lint": "eslint . --ext js,jsx --report-unused-disable-directives --max-warnings 0",
     "preview": "vite preview --host 0.0.0.0",
     "type-check": "tsc --noEmit",
