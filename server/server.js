@@ -1,3 +1,4 @@
+// server/server.js - Modified to disable SSR in development
 import fs from "fs";
 import path from "path";
 import http from "http";
@@ -45,8 +46,18 @@ async function createDevServer() {
             const templatePath = path.resolve(__dirname, "../index.html");
             let template = fs.readFileSync(templatePath, "utf-8");
             template = await vite.transformIndexHtml(requestUrl, template);
-            const { render } = await vite.ssrLoadModule("/server/entry-server.jsx");
-            await render({ req, res, template, manifest: null, isProd: false });
+            
+            // 🔥 TEMPORARILY DISABLE SSR - Return empty HTML shell for client-side rendering
+            const clientOnlyTemplate = template.replace(
+              '<!--app-html-->',
+              '<div id="root"></div>'
+            );
+            
+            res.statusCode = 200;
+            res.setHeader("Content-Type", "text/html; charset=utf-8");
+            res.setHeader("X-SSR-Disabled", "true"); // Debug header
+            res.end(clientOnlyTemplate);
+            
             resolved = true;
             resolve();
           } catch (error) {
@@ -70,7 +81,8 @@ async function createDevServer() {
   return new Promise((resolve) => {
     const server = http.createServer(requestListener);
     server.listen(port, () => {
-      console.log(`SSR dev server listening on http://localhost:${port}`);
+      console.log(`🚀 Dev server (CLIENT-ONLY) listening on http://localhost:${port}`);
+      console.log("⚠️  SSR temporarily disabled for debugging");
       resolve(server);
     });
   });

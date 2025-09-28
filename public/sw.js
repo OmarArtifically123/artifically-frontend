@@ -9,15 +9,29 @@ const PRECACHE_URLS = [
   '/site.webmanifest',
   '/favicon-32x32.png',
   '/favicon-16x16.png',
+  '/android-chrome-192x192.png',
+  '/android-chrome-512x512.png',
 ];
 
 const IMMUTABLE_PATTERNS = [/\/assets\//, /\.(?:woff2?|ttf|otf)$/i];
+
+// Check if we're in development mode
+const isDevelopment = () => {
+  return self.location.hostname === 'localhost' || 
+         self.location.hostname === '127.0.0.1' ||
+         self.location.port === '3000' ||
+         self.location.port === '4173';
+};
 
 self.addEventListener('install', (event) => {
   event.waitUntil(
     (async () => {
       const cache = await caches.open(STATIC_CACHE);
-      await cache.addAll(PRECACHE_URLS);
+      try {
+        await cache.addAll(PRECACHE_URLS);
+      } catch (error) {
+        console.warn('SW: Failed to precache some resources:', error);
+      }
       await caches.open(IMMUTABLE_CACHE);
     })()
   );
@@ -27,8 +41,13 @@ self.addEventListener('install', (event) => {
 self.addEventListener('activate', (event) => {
   event.waitUntil(
     (async () => {
-      if (self.registration.navigationPreload) {
-        await self.registration.navigationPreload.enable();
+      // Only enable navigation preload in production or when SSR is active
+      if (self.registration.navigationPreload && !isDevelopment()) {
+        try {
+          await self.registration.navigationPreload.enable();
+        } catch (error) {
+          console.warn('SW: Navigation preload not available:', error);
+        }
       }
 
       const cacheNames = await caches.keys();
@@ -53,7 +72,10 @@ const networkFirst = async (request) => {
   const cache = await caches.open(DYNAMIC_CACHE);
   try {
     const response = await fetch(request);
-    cache.put(request, response.clone());
+    // Only cache successful responses
+    if (response.status === 200) {
+      cache.put(request, response.clone());
+    }
     return response;
   } catch (error) {
     const cached = await cache.match(request);
@@ -69,10 +91,15 @@ const staleWhileRevalidate = async (request, cacheName) => {
   const cached = await cache.match(request);
   const fetchPromise = fetch(request)
     .then((response) => {
-      cache.put(request, response.clone());
+      if (response.status === 200) {
+        cache.put(request, response.clone());
+      }
       return response;
     })
-    .catch(() => cached);
+    .catch((error) => {
+      console.warn('SW: Fetch failed, using cache:', error);
+      return cached;
+    });
 
   return cached || fetchPromise;
 };
@@ -85,28 +112,82 @@ self.addEventListener('fetch', (event) => {
   const { request } = event;
   const url = new URL(request.url);
 
+  // Skip cross-origin requests that we can't handle
+  if (url.origin !== self.location.origin) {
+    return;
+  }
+
   if (request.mode === 'navigate') {
     event.respondWith(
       (async () => {
-        try {
-          const preloadResponse = await event.preloadResponse;
-          if (preloadResponse) {
-            const cache = await caches.open(DYNAMIC_CACHE);
-            cache.put(request, preloadResponse.clone());
-            return preloadResponse;
+        // Only try to use preload response in production
+        if (!isDevelopment()) {
+          try {
+            const preloadResponse = await event.preloadResponse;
+            if (preloadResponse) {
+              const cache = await caches.open(DYNAMIC_CACHE);
+              cache.put(request, preloadResponse.clone());
+              return preloadResponse;
+            }
+          } catch (error) {
+            console.warn('SW: Navigation preload failed:', error);
           }
-        } catch (error) {
-          console.warn('Navigation preload failed', error);
         }
 
         try {
           return await networkFirst(request);
         } catch (error) {
+          console.warn('SW: Network failed for navigation, using fallback:', error);
           const cache = await caches.open(STATIC_CACHE);
-          return cache.match('/index.html');
+          const fallback = await cache.match('/index.html') || await cache.match('/');
+          
+          if (fallback) {
+            return fallback;
+          }
+          
+          // Create a basic offline fallback if no cache is available
+          return new Response(
+            `<!DOCTYPE html>
+            <html>
+              <head>
+                <title>Offline - Artifically</title>
+                <style>
+                  body { 
+                    font-family: system-ui, sans-serif; 
+                    display: flex; 
+                    align-items: center; 
+                    justify-content: center; 
+                    min-height: 100vh; 
+                    margin: 0; 
+                    background: #0f172a; 
+                    color: #f8fafc; 
+                  }
+                  .offline { text-align: center; }
+                  h1 { color: #6366f1; }
+                </style>
+              </head>
+              <body>
+                <div class="offline">
+                  <h1>You're offline</h1>
+                  <p>Please check your connection and try again.</p>
+                  <button onclick="location.reload()">Retry</button>
+                </div>
+              </body>
+            </html>`,
+            {
+              status: 200,
+              statusText: 'OK',
+              headers: { 'Content-Type': 'text/html' }
+            }
+          );
         }
       })()
     );
+    return;
+  }
+
+  // Skip API requests in development (let them go to network)
+  if (isDevelopment() && (url.pathname.startsWith('/api') || url.pathname.startsWith('/graphql'))) {
     return;
   }
 
@@ -126,4 +207,13 @@ self.addEventListener('fetch', (event) => {
   }
 
   event.respondWith(staleWhileRevalidate(request, DYNAMIC_CACHE));
+});
+
+// Handle errors globally
+self.addEventListener('error', (event) => {
+  console.error('SW: Global error:', event.error);
+});
+
+self.addEventListener('unhandledrejection', (event) => {
+  console.error('SW: Unhandled promise rejection:', event.reason);
 });
