@@ -218,7 +218,16 @@ function useIconPalette(icon) {
   return palette;
 }
 
-export default function AutomationCard({ item, onDemo, onBuy, activeNeed, matchStrength = 0 }) {
+export default function AutomationCard({
+  item,
+  onDemo,
+  onBuy,
+  activeNeed,
+  matchStrength = 0,
+  industryMatch = false,
+  industryLabel,
+  browsingMatch = false,
+}) {
   const { darkMode } = useTheme();
   const palette = useIconPalette(item.icon);
   const [hovered, setHovered] = useState(false);
@@ -328,6 +337,21 @@ export default function AutomationCard({ item, onDemo, onBuy, activeNeed, matchS
         </div>
       </div>
 
+      {(industryMatch || browsingMatch) && (
+        <div className="automation-card__badge-tray">
+          {industryMatch && industryLabel ? (
+            <span className="automation-card__badge automation-card__badge--industry">
+              Tailored for {industryLabel}
+            </span>
+          ) : null}
+          {browsingMatch ? (
+            <span className="automation-card__badge automation-card__badge--signal">
+              Personalized pick
+            </span>
+          ) : null}
+        </div>
+      )}
+      
       <div className="automation-card__title-group">
         <h3>{item.name}</h3>
         <p>{item.description}</p>

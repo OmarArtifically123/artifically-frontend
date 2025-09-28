@@ -8,6 +8,21 @@ import ThemeToggle from "./ThemeToggle";
 import { useTheme } from "../context/ThemeContext";
 import { warmupWasm, wasmAverage } from "../lib/wasmMath";
 
+const BROWSING_STORAGE_KEY = "automation-browsing-signals";
+
+const DOMAIN_INDUSTRY_MAP = [
+  { keywords: ["health", "med", "pharma", "clinic"], industry: "Healthcare" },
+  { keywords: ["fin", "bank", "capital", "credit"], industry: "Financial Services" },
+  { keywords: ["retail", "commerce", "shop", "store"], industry: "Ecommerce" },
+  { keywords: ["edu", "school", "academy", "college"], industry: "Education" },
+  { keywords: ["logistics", "supply", "shipping", "freight"], industry: "Logistics" },
+  { keywords: ["manufact", "factory", "industrial"], industry: "Manufacturing" },
+  { keywords: ["travel", "hospitality", "hotel"], industry: "Hospitality" },
+  { keywords: ["media", "marketing", "agency"], industry: "Media & Marketing" },
+  { keywords: ["gov", "public", "civic"], industry: "Public Sector" },
+  { keywords: ["tech", "cloud", "software", "saas"], industry: "Software" },
+];
+
 function normalize(text) {
   return (text || "").toString().toLowerCase();
 }
@@ -20,6 +35,35 @@ function titleCase(value = "") {
     .filter(Boolean)
     .map((part) => part.charAt(0).toUpperCase() + part.slice(1).toLowerCase())
     .join(" ");
+}
+
+function extractDomain(email = "") {
+  const [, domain] = String(email).split("@");
+  return domain ? domain.toLowerCase() : "";
+}
+
+function detectIndustryFromDomain(email, fallback) {
+  const domain = extractDomain(email);
+  if (!domain) return fallback || null;
+
+  const sanitized = domain.replace(/^www\./, "");
+  const segments = sanitized.split(".");
+  const base = segments.slice(0, -1).join(".") || sanitized;
+
+  for (const entry of DOMAIN_INDUSTRY_MAP) {
+    if (entry.keywords.some((keyword) => base.includes(keyword))) {
+      return entry.industry;
+    }
+  }
+
+  return fallback || null;
+}
+
+function matchesIndustry(item, industry) {
+  if (!industry) return false;
+  const target = normalize(industry);
+  const pool = [item?.category, item?.vertical, ...(item?.tags || [])].filter(Boolean);
+  return pool.some((value) => normalize(value).includes(target));
 }
 
 function detectNeeds(user, items) {
@@ -70,7 +114,7 @@ function detectNeeds(user, items) {
   return signals.slice(0, 4);
 }
 
-function computeMatchScore(item, detectedNeeds, activeNeed) {
+function computeMatchScore(item, detectedNeeds, activeNeed, browsingSignals, industry) {
   const tags = (item?.tags || []).map((tag) => normalize(tag));
   const description = normalize(item?.description);
   const category = normalize(item?.category || item?.vertical);
@@ -92,6 +136,18 @@ function computeMatchScore(item, detectedNeeds, activeNeed) {
 
   if (typeof item?.roi === "number") score += item.roi;
   if (typeof item?.popularity === "number") score += item.popularity * 0.5;
+
+  if (industry && matchesIndustry(item, industry)) {
+    score += 6;
+  }
+
+  (browsingSignals || []).forEach((signal, index) => {
+    const normalizedSignal = normalize(signal.label);
+    const weight = signal.weight || Math.max(1, (browsingSignals.length - index) * 0.9);
+    if (tags.some((tag) => tag.includes(normalizedSignal))) score += weight * 1.4;
+    if (description.includes(normalizedSignal)) score += weight;
+    if (category.includes(normalizedSignal)) score += weight * 1.1;
+  });
 
   return score;
 }
@@ -133,6 +189,8 @@ export default function Marketplace({ user, openAuth }) {
   const [detectedNeeds, setDetectedNeeds] = useState([]);
   const [activeNeed, setActiveNeed] = useState(null);
   const [layoutKey, setLayoutKey] = useState(0);
+  const [detectedIndustry, setDetectedIndustry] = useState(null);
+  const [browsingSignals, setBrowsingSignals] = useState([]);
 
   useEffect(() => {
     warmupWasm();
@@ -165,6 +223,41 @@ export default function Marketplace({ user, openAuth }) {
   }, []);
 
   useEffect(() => {
+    const fallbackIndustry = user?.industry ? titleCase(user.industry) : null;
+    const emailIndustry = detectIndustryFromDomain(
+      user?.businessEmail || user?.email || "",
+      fallbackIndustry,
+    );
+    setDetectedIndustry(emailIndustry);
+  }, [user]);
+
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    try {
+      const raw = window.localStorage.getItem(BROWSING_STORAGE_KEY);
+      if (!raw) return;
+      const stored = JSON.parse(raw);
+      if (!stored || typeof stored !== "object") return;
+      const ranked = Object.values(stored)
+        .filter((entry) => entry && entry.label)
+        .sort((a, b) => {
+          if (b.count === a.count) {
+            return (b.lastSeen || 0) - (a.lastSeen || 0);
+          }
+          return b.count - a.count;
+        })
+        .slice(0, 6)
+        .map((entry, index) => ({
+          ...entry,
+          weight: Math.max(1, 5 - index) + Math.min(entry.count, 5) * 0.3,
+        }));
+      setBrowsingSignals(ranked);
+    } catch (err) {
+      console.warn("Failed to load browsing signals", err);
+    }
+  }, []);
+
+  useEffect(() => {
     if (!automations.length) {
       setDetectedNeeds([]);
       setActiveNeed(null);
@@ -188,6 +281,17 @@ export default function Marketplace({ user, openAuth }) {
   }, [automations, user]);
 
   useEffect(() => {
+    if (!detectedIndustry || !detectedNeeds.length) return;
+    setActiveNeed((prev) => {
+      if (prev) return prev;
+      const match = detectedNeeds.find((need) =>
+        normalize(need).includes(normalize(detectedIndustry)),
+      );
+      return match || prev;
+    });
+  }, [detectedIndustry, detectedNeeds]);
+
+  useEffect(() => {
     setLayoutKey((prev) => prev + 1);
   }, [activeNeed]);
 
@@ -195,8 +299,21 @@ export default function Marketplace({ user, openAuth }) {
     if (!automations.length) return [];
 
     const entries = automations.map((item) => {
-      const score = computeMatchScore(item, detectedNeeds, activeNeed);
-      return { item, score };
+      const score = computeMatchScore(
+        item,
+        detectedNeeds,
+        activeNeed,
+        browsingSignals,
+        detectedIndustry,
+      );
+      return {
+        item,
+        score,
+        industryMatch: matchesIndustry(item, detectedIndustry),
+        browsingMatch: (browsingSignals || []).some((signal) =>
+          matchesIndustry(item, signal.label),
+        ),
+      };
     });
 
     const maxScore = entries.reduce((max, entry) => Math.max(max, entry.score), 1);
@@ -207,18 +324,24 @@ export default function Marketplace({ user, openAuth }) {
         matchStrength: maxScore ? entry.score / maxScore : 0,
       }))
       .sort((a, b) => b.score - a.score);
-  }, [automations, detectedNeeds, activeNeed]);
+  }, [
+    automations,
+    detectedNeeds,
+    activeNeed,
+    browsingSignals,
+    detectedIndustry,
+  ]);
 
   const automationClusters = useMemo(() => {
     if (!scoredAutomations.length) return [];
 
     const groups = new Map();
-    scoredAutomations.forEach(({ item, matchStrength }) => {
+    scoredAutomations.forEach(({ item, matchStrength, industryMatch, browsingMatch }) => {
       const label = computeClusterLabel(item, activeNeed);
       if (!groups.has(label)) {
         groups.set(label, []);
       }
-      groups.get(label).push({ item, matchStrength });
+      groups.get(label).push({ item, matchStrength, industryMatch, browsingMatch });
     });
 
     return Array.from(groups.entries()).map(([label, items], index) => ({
@@ -228,6 +351,75 @@ export default function Marketplace({ user, openAuth }) {
       items,
     }));
   }, [scoredAutomations, activeNeed]);
+
+  const recommendedAutomations = useMemo(
+    () =>
+      scoredAutomations.slice(0, 3).map((entry, index) => ({
+        ...entry,
+        rank: index + 1,
+        confidence: Math.round((entry.matchStrength || 0) * 100),
+      })),
+    [scoredAutomations],
+  );
+
+  const combinationHighlight = useMemo(() => {
+    if (!automationClusters.length) return null;
+    const [topCluster] = automationClusters;
+    return {
+      title: topCluster.label,
+      description: topCluster.description,
+      items: topCluster.items.slice(0, 3).map(({ item }) => item.name),
+    };
+  }, [automationClusters]);
+
+  const successMessage = useMemo(() => {
+    const roi = Number(averageROI || 4.2).toFixed(1);
+    if (detectedIndustry) {
+      return `Teams similar to yours in ${detectedIndustry} see ${roi}x ROI with this combination.`;
+    }
+    if (activeNeed) {
+      return `Teams optimizing for ${titleCase(activeNeed)} see ${roi}x ROI with this combination.`;
+    }
+    return `Teams similar to yours see ${roi}x ROI with this combination.`;
+  }, [averageROI, detectedIndustry, activeNeed]);
+
+  const recordBrowsingSignal = (item, updateState) => {
+    if (typeof window === "undefined" || !item) return;
+    try {
+      const raw = window.localStorage.getItem(BROWSING_STORAGE_KEY);
+      const stored = raw ? JSON.parse(raw) : {};
+      const buckets = stored && typeof stored === "object" ? { ...stored } : {};
+      const descriptors = [item.category, item.vertical, ...(item.tags || [])].filter(Boolean);
+      descriptors.forEach((descriptor) => {
+        const key = normalize(descriptor);
+        if (!key) return;
+        const existing = buckets[key] || { label: titleCase(descriptor), count: 0 };
+        buckets[key] = {
+          ...existing,
+          label: titleCase(descriptor),
+          count: (existing.count || 0) + 1,
+          lastSeen: Date.now(),
+        };
+      });
+      window.localStorage.setItem(BROWSING_STORAGE_KEY, JSON.stringify(buckets));
+      const ranked = Object.values(buckets)
+        .filter((entry) => entry && entry.label)
+        .sort((a, b) => {
+          if (b.count === a.count) {
+            return (b.lastSeen || 0) - (a.lastSeen || 0);
+          }
+          return b.count - a.count;
+        })
+        .slice(0, 6)
+        .map((entry, index) => ({
+          ...entry,
+          weight: Math.max(1, 5 - index) + Math.min(entry.count, 5) * 0.3,
+        }));
+      updateState(ranked);
+    } catch (err) {
+      console.warn("Failed to persist browsing signals", err);
+    }
+  };
 
   const buy = async (item) => {
     if (!item || !item.id) {
@@ -257,6 +449,7 @@ export default function Marketplace({ user, openAuth }) {
       };
 
       await api.post("/deployments", deploymentData);
+      recordBrowsingSignal(item, setBrowsingSignals);
       toast(`Successfully deployed ${item.name || "automation"}`, { type: "success" });
     } catch (err) {
       console.error("Deployment error:", err);
@@ -275,6 +468,7 @@ export default function Marketplace({ user, openAuth }) {
       toast("Invalid automation selected", { type: "error" });
       return;
     }
+    recordBrowsingSignal(item, setBrowsingSignals);
     setDemo(item);
   };
 
@@ -425,6 +619,85 @@ export default function Marketplace({ user, openAuth }) {
     <section className="marketplace" data-glass="true" style={{ padding: "5rem 0" }}>
       <div className="container" style={{ display: "grid", gap: "2.5rem" }}>
         {sectionHeader}
+        
+        <div className="marketplace-smart" role="region" aria-label="Smart marketplace insights">
+          <div className="marketplace-smart__column">
+            <header className="marketplace-smart__header">
+              <span className="marketplace-smart__eyebrow">Smart recommendations</span>
+              <h3>Companies like yours typically start with these 3</h3>
+              {detectedIndustry && (
+                <p>
+                  We detected <strong>{detectedIndustry}</strong> signals from your profile and email
+                  domain.
+                </p>
+              )}
+            </header>
+            <div className="marketplace-smart__recommendations">
+              {recommendedAutomations.length === 0 ? (
+                <p>No recommendations available yet.</p>
+              ) : (
+                recommendedAutomations.map(({ item, rank, confidence }) => (
+                  <article key={item.id} className="marketplace-smart__card">
+                    <div className="marketplace-smart__card-rank">#{rank}</div>
+                    <div className="marketplace-smart__card-body">
+                      <h4>{item.name}</h4>
+                      <p>{item.description}</p>
+                      <div className="marketplace-smart__card-meta">
+                        <span>{confidence}% relevance match</span>
+                        {item.tags?.length ? <span>{item.tags.slice(0, 2).join(" · ")}</span> : null}
+                      </div>
+                    </div>
+                    <button
+                      type="button"
+                      className="marketplace-smart__card-action"
+                      onClick={() => handleDemo(item)}
+                    >
+                      Preview
+                    </button>
+                  </article>
+                ))
+              )}
+            </div>
+            <div className="marketplace-smart__success" role="status">
+              <strong>Success pattern matching</strong>
+              <span>{successMessage}</span>
+            </div>
+          </div>
+
+          <div className="marketplace-smart__column marketplace-smart__column--meta">
+            <h4>Smart Features</h4>
+            <ul>
+              <li>
+                <strong>Industry-aware filtering</strong>
+                <span>
+                  Automatically highlights automations for {detectedIndustry || "your business"} and
+                  reshapes scoring as you explore.
+                </span>
+              </li>
+              <li>
+                <strong>Adaptive marketplace</strong>
+                <span>Detects your industry from email domain and adapts recommendations instantly.</span>
+              </li>
+              <li>
+                <strong>Behavioral learning</strong>
+                <span>Learns from your browsing patterns and rearranges the marketplace in real time.</span>
+              </li>
+              <li>
+                <strong>Peer success signals</strong>
+                <span>Shows peer success stories and ROI uplift for teams similar to yours.</span>
+              </li>
+              {combinationHighlight && (
+                <li>
+                  <strong>Combination spotlight</strong>
+                  <span>
+                    Highlights automation combinations like <em>{combinationHighlight.title}</em> that
+                    work well together: {combinationHighlight.items.join(", ")}
+                  </span>
+                </li>
+              )}
+            </ul>
+          </div>
+        </div>
 
         {error && automations.length > 0 && (
           <div
@@ -486,7 +759,7 @@ export default function Marketplace({ user, openAuth }) {
                   <p>{cluster.description}</p>
                 </header>
                 <div className="automation-cluster__grid">
-                  {cluster.items.map(({ item, matchStrength }) => (
+                  {cluster.items.map(({ item, matchStrength, industryMatch, browsingMatch }) => (
                     <AutomationCard
                       key={item.id}
                       item={item}
@@ -494,6 +767,9 @@ export default function Marketplace({ user, openAuth }) {
                       onBuy={buy}
                       activeNeed={activeNeed}
                       matchStrength={matchStrength}
+                      industryMatch={industryMatch}
+                      industryLabel={detectedIndustry}
+                      browsingMatch={browsingMatch}
                     />
                   ))}
                 </div>
