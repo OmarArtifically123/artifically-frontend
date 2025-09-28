@@ -44,7 +44,7 @@ export default function App() {
   const [authOpen, setAuthOpen] = useState(false);
   const [authMode, setAuthMode] = useState("signin");
   const [user, setUser] = useState(null);
-  const [booted, setBooted] = useState(false);
+  const [authChecking, setAuthChecking] = useState(false);
 
   const navigate = useNavigate();
   const { pathname } = useLocation();
@@ -80,21 +80,42 @@ export default function App() {
   usePredictivePrefetch(routeLoaders, pathname);
 
   useEffect(() => {
-    const token = localStorage.getItem("token");
-    if (!token) {
-      setBooted(true);
+    if (typeof window === "undefined") {
       return;
     }
+
+    let mounted = true;
+    const token = window.localStorage.getItem("token");
+
+    if (!token) {
+      return;
+    }
+
+    setAuthChecking(true);
 
     api
       .get("/auth/me")
       .then(pick("user"))
-      .then((u) => setUser(u))
-      .catch(() => {
-        localStorage.removeItem("token");
-        setUser(null);
+      .then((u) => {
+        if (mounted) {
+          setUser(u);
+        }
       })
-      .finally(() => setBooted(true));
+      .catch(() => {
+        window.localStorage.removeItem("token");
+        if (mounted) {
+          setUser(null);
+        }
+      })
+      .finally(() => {
+        if (mounted) {
+          setAuthChecking(false);
+        }
+      });
+
+    return () => {
+      mounted = false;
+    };
   }, []);
 
   useEffect(() => {
@@ -113,8 +134,11 @@ export default function App() {
   };
 
   const signOut = () => {
-    localStorage.removeItem("token");
+    if (typeof window !== "undefined") {
+      window.localStorage.removeItem("token");
+    }
     setUser(null);
+    setAuthChecking(false);
     toast("Successfully signed out", { type: "info" });
     if (pathname.startsWith("/dashboard")) {
       navigate("/");
@@ -123,7 +147,9 @@ export default function App() {
 
   const onAuthenticated = ({ token, user: u, notice }) => {
     if (token) {
-      localStorage.setItem("token", token);
+      if (typeof window !== "undefined") {
+        window.localStorage.setItem("token", token);
+      }
     }
     if (u) {
       setUser(u);
@@ -131,6 +157,7 @@ export default function App() {
     if (notice) {
       toast(notice, { type: u?.verified ? "success" : "info" });
     }
+    setAuthChecking(false);
     setAuthOpen(false);
   };
 
@@ -139,22 +166,6 @@ export default function App() {
       window.scrollTo({ top: 0, behavior: "smooth" });
     });
   }, [pathname]);
-
-  if (!booted) {
-    return (
-      <div
-        style={{
-          display: "flex",
-          alignItems: "center",
-          justifyContent: "center",
-          height: "100vh",
-          background: "var(--bg-primary)",
-        }}
-      >
-        <div className="loading" style={{ width: "40px", height: "40px" }} />
-      </div>
-    );
-  }
 
   return (
     <>
@@ -357,7 +368,9 @@ export default function App() {
             path="/dashboard"
             element={
               <SuspenseBoundary rows={6}>
-                {user ? (
+                {authChecking ? (
+                  <RouteShell rows={6} />
+                ) : user ? (
                   <Dashboard user={user} openAuth={openAuth} />
                 ) : (
                   <Home openAuth={openAuth} user={null} />
