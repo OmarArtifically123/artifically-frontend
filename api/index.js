@@ -9,17 +9,22 @@ export default async function handler(req, res) {
     const clientDist = path.resolve(__dirname, "../dist/client");
     const serverDist = path.resolve(__dirname, "../dist/server");
 
+    // Load index.html
     const templatePath = path.join(clientDist, "index.html");
     const template = fs.readFileSync(templatePath, "utf-8");
 
+    // Load SSR entry
     const { render } = await import(path.join(serverDist, "entry-server.js"));
-    const manifest = JSON.parse(
-      fs.readFileSync(path.join(clientDist, "ssr-manifest.json"), "utf-8")
-    );
 
+    // Load manifest
+    const manifestPath = path.join(clientDist, "ssr-manifest.json");
+    const manifest = JSON.parse(fs.readFileSync(manifestPath, "utf-8"));
+
+    // Run SSR
     await render({ req, res, template, manifest, isProd: true });
   } catch (error) {
-    console.error("SSR error:", error);
-    res.status(500).end("Internal Server Error");
+    console.error("❌ SSR error:", error);
+    res.statusCode = 500;
+    res.end("Internal Server Error");
   }
 }
