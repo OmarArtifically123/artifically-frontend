@@ -1,4 +1,3 @@
-
 import React, { StrictMode, startTransition } from "react";
 import { hydrateRoot, createRoot } from "react-dom/client";
 import { BrowserRouter } from "react-router-dom";
@@ -154,7 +153,9 @@ const cancelIdle =
 
 // Warmup WASM in idle time
 const warmupHandle = requestIdle(() => {
-  warmupWasm().catch(console.warn);
+  if (warmupWasm && typeof warmupWasm === 'function') {
+    warmupWasm().catch?.(console.warn) || Promise.resolve();
+  }
 });
 
 // Service Worker registration

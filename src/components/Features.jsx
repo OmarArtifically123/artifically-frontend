@@ -1,13 +1,15 @@
+// src/components/Features.jsx - Remove Million.js block optimization
 import { Suspense } from "react";
 import { useSuspenseQuery } from "@apollo/client";
-import { block } from "million/react";
+// Remove this import: import { block } from "million/react";
 import ThemeToggle from "./ThemeToggle";
 import ServerFeatureHighlights from "./ServerFeatureHighlights";
 import { useTheme } from "../context/ThemeContext";
 import FeatureSkeletonGrid from "./skeletons/FeatureSkeleton";
 import { FEATURE_HIGHLIGHTS_QUERY } from "../lib/graphqlClient";
 
-const FeatureCard = block(function FeatureCard({ feature, darkMode }) {
+// ✅ Regular React component instead of Million.js block
+function FeatureCard({ feature, darkMode }) {
   return (
     <article
       style={{
@@ -112,7 +114,7 @@ const FeatureCard = block(function FeatureCard({ feature, darkMode }) {
       </div>
     </article>
   );
-});
+}
 
 function FeaturesContent() {
   const { darkMode } = useTheme();
