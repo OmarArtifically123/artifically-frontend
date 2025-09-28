@@ -152,6 +152,14 @@ function useDynamicTheme() {
       root.style.setProperty("--dynamic-secondary", palette.secondary);
       root.style.setProperty("--dynamic-accent", palette.accent);
       root.style.setProperty("--dynamic-gradient", palette.gradient);
+      if (palette.sparkleHue !== undefined) {
+        root.style.setProperty("--sparkle-hue", String(palette.sparkleHue));
+      }
+      if (palette.sparkleAlpha !== undefined) {
+        root.style.setProperty("--sparkle-alpha", String(palette.sparkleAlpha));
+      } else {
+        root.style.setProperty("--sparkle-alpha", darkMode ? "0.34" : "0.26");
+      }
     };
 
     const deriveFromTime = (weatherCode) => {
@@ -168,7 +176,8 @@ function useDynamicTheme() {
       const gradient = `linear-gradient(135deg, hsla(${skyHue.toFixed(1)}, 92%, ${
         darkMode ? 16 : 88
       }%, 0.92), hsla(${accentHue.toFixed(1)}, 85%, ${darkMode ? 30 : 70}%, 0.88))`;
-      applyPalette({ primary, secondary, accent, gradient });
+      const sparkleAlpha = darkMode ? 0.36 : 0.26;
+      applyPalette({ primary, secondary, accent, gradient, sparkleHue: skyHue.toFixed(2), sparkleAlpha });
       if (typeof document !== "undefined") {
         const themeBucket = hours < 6 ? "midnight" : hours < 12 ? "sunrise" : hours < 18 ? "daylight" : "midnight";
         document.body.dataset.timeTheme = themeBucket;
@@ -228,6 +237,7 @@ function useDynamicTheme() {
     };
   }, [darkMode]);
 }
+
 
 const DEFAULT_DYNAMIC_PALETTE = {
   primary: "#6366f1",
