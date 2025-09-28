@@ -11,7 +11,9 @@ import "./styles/global.css";
 
 // Enhanced fallback UI
 function ErrorFallback({ error, resetErrorBoundary }) {
-  console.error("App Error:", error);
+  if (import.meta.env.DEV) {
+    console.error("App Error:", error);
+  }
   
   return (
     <BrowserRouter>
@@ -36,7 +38,7 @@ function ErrorFallback({ error, resetErrorBoundary }) {
             {error?.message || "An unexpected error occurred. Please try refreshing the page."}
           </p>
           <div style={{ display: "flex", gap: "1rem" }}>
-            <button 
+            <button
               onClick={() => window.location.reload()}
               style={{
                 padding: "0.75rem 1.5rem",
@@ -81,6 +83,18 @@ let hydrationRoot = null;
 let clientRoot = null;
 let hasForcedClientRender = false;
 
+const markReactLoaded = () => {
+  const body = document.body;
+  if (body && !body.classList.contains("react-loaded")) {
+    body.classList.add("react-loaded");
+  }
+
+  const loading = document.querySelector(".initial-loading");
+  if (loading?.parentNode) {
+    loading.parentNode.removeChild(loading);
+  }
+};
+
 function isHydrationError(error) {
   if (!error) {
     return false;
@@ -117,7 +131,9 @@ const AppWrapper = () => (
     <ErrorBoundary
       FallbackComponent={ErrorFallback}
       onError={(error, errorInfo) => {
-        console.error("React Error Boundary caught an error:", error, errorInfo);
+        if (import.meta.env.DEV) {
+          console.error("React Error Boundary caught an error:", error, errorInfo);
+        }
       }}
       onReset={() => {
         // Clear any problematic cached state
@@ -125,7 +141,9 @@ const AppWrapper = () => (
           try {
             localStorage.removeItem("route-history");
           } catch (e) {
-            console.warn("Could not clear localStorage:", e);
+            if (import.meta.env.DEV) {
+              console.warn("Could not clear localStorage:", e);
+            }
           }
         }
       }}
@@ -149,25 +167,36 @@ function initializeApp() {
   const { shouldHydrate, hasExistingContent } = detectRenderingMode();
 
   if (shouldHydrate) {
-    console.log("🔄 Attempting SSR hydration...");
+    if (import.meta.env.DEV) {
+      console.log("🔄 Attempting SSR hydration...");
+    }
 
     try {
       hydrationRoot = hydrateRoot(rootElement, <AppWrapper />, {
         onRecoverableError(error, errorInfo) {
-          console.warn("⚠️ Recoverable hydration error detected:", error, errorInfo);
+          if (import.meta.env.DEV) {
+            console.warn("⚠️ Recoverable hydration error detected:", error, errorInfo);
+          }
 
           if (isHydrationError(error)) {
             fallbackToClientRender(error);
           }
         }
       });
-      console.log("✅ SSR hydration initiated");
+      markReactLoaded();
+      if (import.meta.env.DEV) {
+        console.log("✅ SSR hydration initiated");
+      }
     } catch (error) {
-      console.warn("⚠️ SSR hydration failed, falling back to client render:", error);
+      if (import.meta.env.DEV) {
+        console.warn("⚠️ SSR hydration failed, falling back to client render:", error);
+      }
       fallbackToClientRender(error);
     }
   } else {
-    console.log("🚀 Using client-only rendering...");
+    if (import.meta.env.DEV) {
+      console.log("🚀 Using client-only rendering...");
+    }
 
     if (typeof window !== "undefined") {
       window.__SSR_SUCCESS__ = false;
@@ -197,13 +226,15 @@ function fallbackToClientRender(reason) {
     try {
       hydrationRoot.unmount();
     } catch (unmountError) {
-      console.warn("⚠️ Failed to unmount hydration root:", unmountError);
+      if (import.meta.env.DEV) {
+        console.warn("⚠️ Failed to unmount hydration root:", unmountError);
+      }
     }
 
     hydrationRoot = null;
   }
 
-  if (reason) {
+  if (reason && import.meta.env.DEV) {
     console.warn("🔄 Falling back to client render due to hydration issue:", reason);
   }
 
@@ -224,7 +255,11 @@ function createClientRoot() {
     clientRoot.render(<AppWrapper />);
   });
 
-  console.log("✅ Client-only rendering successful");
+  markReactLoaded();
+
+  if (import.meta.env.DEV) {
+    console.log("✅ Client-only rendering successful");
+  }
 }
 
 // Enhanced error handling for hydration issues
@@ -232,7 +267,9 @@ if (typeof window !== 'undefined') {
   // Catch hydration errors specifically
   window.addEventListener('error', (e) => {
     if (isHydrationError(e.error)) {
-      console.warn('🔄 Hydration error detected, attempting recovery...');
+      if (import.meta.env.DEV) {
+        console.warn('🔄 Hydration error detected, attempting recovery...');
+      }
       e.preventDefault();
       fallbackToClientRender(e.error);
     }
@@ -240,7 +277,9 @@ if (typeof window !== 'undefined') {
 
   window.addEventListener('unhandledrejection', (e) => {
     if (isHydrationError(e.reason)) {
-      console.warn('🔄 Hydration promise rejection:', e.reason);
+      if (import.meta.env.DEV) {
+        console.warn('🔄 Hydration promise rejection:', e.reason);
+      }
       e.preventDefault();
       fallbackToClientRender(e.reason);
     }
@@ -267,13 +306,25 @@ if (typeof warmupWasm === 'function') {
       const result = warmupWasm();
       if (result && typeof result.then === 'function') {
         result
-          .then(() => console.log("⚡ WASM warmed up successfully"))
-          .catch((error) => console.warn("⚠️ WASM warmup failed:", error));
+          .then(() => {
+            if (import.meta.env.DEV) {
+              console.log("⚡ WASM warmed up successfully");
+            }
+          })
+          .catch((error) => {
+            if (import.meta.env.DEV) {
+              console.warn("⚠️ WASM warmup failed:", error);
+            }
+          });
       } else {
-        console.log("⚡ WASM warmed up successfully (sync)");
+        if (import.meta.env.DEV) {
+          console.log("⚡ WASM warmed up successfully (sync)");
+        }
       }
     } catch (error) {
-      console.warn("⚠️ WASM warmup failed:", error);
+      if (import.meta.env.DEV) {
+        console.warn("⚠️ WASM warmup failed:", error);
+      }
     }
   });
 }
@@ -284,9 +335,13 @@ if (typeof window !== "undefined" && "serviceWorker" in navigator && import.meta
     const idleId = requestIdle(async () => {
       try {
         await navigator.serviceWorker.register("/sw.js", { scope: "/" });
-        console.log("📦 Service worker registered successfully");
+        if (import.meta.env.DEV) {
+          console.log("📦 Service worker registered successfully");
+        }
       } catch (error) {
-        console.warn("⚠️ Service worker registration failed:", error);
+        if (import.meta.env.DEV) {
+          console.warn("⚠️ Service worker registration failed:", error);
+        }
       }
     });
 
@@ -301,7 +356,7 @@ if (typeof window !== "undefined" && "serviceWorker" in navigator && import.meta
 }
 
 // Debug information
-if (typeof window !== "undefined") {
+if (typeof window !== "undefined" && import.meta.env.DEV) {
   const debugInfo = {
     renderMode: detectRenderingMode().shouldHydrate ? 'SSR' : 'Client-only',
     hasSSRContent: rootElement.hasChildNodes(),

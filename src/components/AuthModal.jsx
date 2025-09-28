@@ -247,8 +247,10 @@ const AuthModal = ({ onClose, onAuthenticated, initialMode = "signin" }) => {
     setLoading(true);
     
     try {
+      const normalizedEmail = form.email.trim().toLowerCase();
       const sanitizedData = {
-        email: form.email.trim().toLowerCase(),
+        identifier: normalizedEmail,
+        email: normalizedEmail,
         password: form.password,
         ...(csrfToken && { _csrf: csrfToken })
       };
@@ -283,7 +285,9 @@ const AuthModal = ({ onClose, onAuthenticated, initialMode = "signin" }) => {
       }
 
     } catch (err) {
-      console.error("Authentication error:", err);
+      if (import.meta.env.DEV) {
+        console.warn("Authentication error:", err);
+      }
       
       // Enhanced error handling
       let errorMessage = "An unexpected error occurred. Please try again.";

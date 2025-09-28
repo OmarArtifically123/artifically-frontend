@@ -21,7 +21,9 @@ const getBaseURL = () => {
 const baseURL = getBaseURL();
 const isBrowser = typeof window !== "undefined" && typeof window.document !== "undefined";
 
-console.log("API Base URL:", baseURL); // Debug log
+if (import.meta.env.DEV) {
+  console.log("API Base URL:", baseURL);
+}
 
 const getCrypto = () => {
   if (typeof globalThis !== "undefined" && globalThis.crypto) {

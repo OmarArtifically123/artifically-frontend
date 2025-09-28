@@ -1,5 +1,5 @@
 import { Link } from "react-router-dom";
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useState, useId } from "react";
 import LogoLight from "../assets/logos/1_Primary.svg";
 import LogoDark from "../assets/logos/3_Dark_Mode.svg";
 import ThemeToggle from "./ThemeToggle";
@@ -15,6 +15,7 @@ export default function Footer() {
   });
   const [newsletterEmail, setNewsletterEmail] = useState("");
   const [newsletterStatus, setNewsletterStatus] = useState("");
+  const newsletterId = useId();
 
   useEffect(() => {
     const finalStats = {
@@ -324,11 +325,11 @@ export default function Footer() {
                   alignItems: "center",
                 }}
               >
-                <label htmlFor="newsletter-email" className="sr-only">
+                <label htmlFor={newsletterId} className="sr-only">
                   Email address
                 </label>
                 <input
-                  id="newsletter-email"
+                  id={newsletterId}
                   type="email"
                   value={newsletterEmail}
                   onChange={(event) => setNewsletterEmail(event.target.value)}

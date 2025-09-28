@@ -1,7 +1,6 @@
 import { lazy, Suspense, useEffect, useState } from "react";
 import { useLocation } from "react-router-dom";
 import Hero from "../components/Hero";
-import useIntersectionLazy from "../hooks/useIntersectionLazy";
 import RouteShell from "../components/skeletons/RouteShell";
 
 const Features = lazy(() => import("../components/Features"));
@@ -9,11 +8,7 @@ const Marketplace = lazy(() => import("../components/Marketplace"));
 
 export default function Home({ user, scrollTo, openAuth }) {
   const location = useLocation();
-  const [shouldRenderFeatures, setShouldRenderFeatures] = useState(false);
-  const [shouldRenderMarketplace, setShouldRenderMarketplace] = useState(false);
-
-  const featureIntersection = useIntersectionLazy();
-  const marketplaceIntersection = useIntersectionLazy();
+  const [contentReady, setContentReady] = useState(typeof window === "undefined");
 
   useEffect(() => {
     let target = scrollTo;
@@ -33,41 +28,31 @@ export default function Home({ user, scrollTo, openAuth }) {
   }, [scrollTo, location]);
 
   useEffect(() => {
-    if (featureIntersection.isIntersecting) {
-      setShouldRenderFeatures(true);
+    if (!contentReady) {
+      setContentReady(true);
     }
-  }, [featureIntersection.isIntersecting]);
-
-  useEffect(() => {
-    if (marketplaceIntersection.isIntersecting) {
-      setShouldRenderMarketplace(true);
-    }
-  }, [marketplaceIntersection.isIntersecting]);
+  }, [contentReady]);
 
   return (
     <main>
       <Hero />
-      <section ref={featureIntersection.ref} aria-label="Platform capabilities">
-        {shouldRenderFeatures ? (
-          <Suspense fallback={<RouteShell rows={4} />}>
-            <Features />
-          </Suspense>
-        ) : (
-          <RouteShell rows={4} />
-        )}
+      <section aria-label="Platform capabilities">
+        <Suspense fallback={<RouteShell rows={4} />}>
+          {contentReady ? <Features /> : <RouteShell rows={4} />}
+        </Suspense>
       </section>
       {/* Marketplace section with id to allow smooth scroll */}
-      <div id="marketplace" ref={marketplaceIntersection.ref}>
-        {shouldRenderMarketplace ? (
-          <Suspense fallback={<RouteShell rows={5} />}>
+      <div id="marketplace">
+        <Suspense fallback={<RouteShell rows={5} />}>
+          {contentReady ? (
             <Marketplace
               user={user}
               openAuth={openAuth}
             />
-          </Suspense>
-        ) : (
-          <RouteShell rows={5} />
-        )}
+          ) : (
+            <RouteShell rows={5} />
+          )}
+        </Suspense>
       </div>
     </main>
   );

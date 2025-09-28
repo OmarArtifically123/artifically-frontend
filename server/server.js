@@ -7,6 +7,22 @@ import { fileURLToPath, pathToFileURL } from "url";
 const isProd = process.env.NODE_ENV === "production";
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
+const mimeTypes = {
+  ".js": "application/javascript",
+  ".mjs": "application/javascript",
+  ".css": "text/css",
+  ".json": "application/json",
+  ".webmanifest": "application/manifest+json",
+  ".svg": "image/svg+xml",
+  ".png": "image/png",
+  ".jpg": "image/jpeg",
+  ".jpeg": "image/jpeg",
+  ".ico": "image/x-icon",
+  ".woff": "font/woff",
+  ".woff2": "font/woff2",
+  ".txt": "text/plain",
+};
+
 const setDefaultHeaders = (res) => {
   res.setHeader("X-Frame-Options", "DENY");
   res.setHeader("X-Content-Type-Options", "nosniff");
@@ -106,6 +122,14 @@ const serveStaticFile = (filePath, res) => {
     return false;
   }
 
+  if (!res.headersSent) {
+    const ext = path.extname(filePath).toLowerCase();
+    const type = mimeTypes[ext];
+    if (type) {
+      res.setHeader("Content-Type", type);
+    }
+  }
+  
   const stream = fs.createReadStream(filePath);
   stream.on("error", (error) => {
     console.error("Static file error", error);

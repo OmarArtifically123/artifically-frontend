@@ -220,6 +220,7 @@ export default function Header({ user, onSignIn, onSignUp, onSignOut }) {
               }}
             >
               <button
+                type="button"
                 className="btn btn-ghost"
                 data-prefetch-route="/dashboard"
                 onClick={() => navigate("/dashboard")}
@@ -237,6 +238,7 @@ export default function Header({ user, onSignIn, onSignUp, onSignOut }) {
                 Dashboard
               </button>
               <button
+                type="button"
                 className="btn btn-primary"
                 data-prefetch-route="/signout"
                 onClick={onSignOut}
@@ -260,6 +262,7 @@ export default function Header({ user, onSignIn, onSignUp, onSignOut }) {
               }}
             >
               <button
+                type="button"
                 className="btn btn-ghost"
                 data-prefetch-route="/signin"
                 onClick={onSignIn}
@@ -277,6 +280,7 @@ export default function Header({ user, onSignIn, onSignUp, onSignOut }) {
                 Sign in
               </button>
               <button
+                type="button"
                 className="btn btn-primary"
                 data-prefetch-route="/signup"
                 onClick={onSignUp}

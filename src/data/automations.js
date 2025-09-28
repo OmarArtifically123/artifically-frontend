@@ -62,24 +62,32 @@ export async function fetchAutomations() {
     return validAutomations;
     
   } catch (error) {
-    console.error("Failed to fetch automations:", error);
+    if (import.meta.env.DEV) {
+      console.error("Failed to fetch automations:", error);
+    }
     
     // If it's a network error or API is down, return empty array
     // This prevents the UI from breaking
     if (error.status === 0 || error.code === 'NETWORK_ERROR') {
-      console.warn("Network error - returning empty automations array");
+      if (import.meta.env.DEV) {
+        console.warn("Network error - returning empty automations array");
+      }
       return [];
     }
     
     // If it's a server error (5xx), return empty array
     if (error.status >= 500) {
-      console.warn("Server error - returning empty automations array");
+      if (import.meta.env.DEV) {
+        console.warn("Server error - returning empty automations array");
+      }
       return [];
     }
     
     // If it's a client error (4xx), we might want to handle it differently
     if (error.status >= 400 && error.status < 500) {
-      console.error("Client error when fetching automations:", error.message);
+      if (import.meta.env.DEV) {
+        console.error("Client error when fetching automations:", error.message);
+      }
       // Still return empty array to prevent UI breakage
       return [];
     }
