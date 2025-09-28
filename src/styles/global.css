@@ -53,8 +53,10 @@
   --ambient-level: 0.6;
   --ambient-shadow-strength: 0.4;
   --glass-blur: 18px;
-  --sparkle-hue: 220;
-  --sparkle-alpha: 0.28;
+  --experience-surface: rgba(15, 23, 42, 0.82);
+  --experience-gradient: linear-gradient(135deg, rgba(15, 23, 42, 0.95), rgba(30, 41, 59, 0.75));
+  --experience-glow: 0 60px 140px rgba(15, 23, 42, 0.55);
+  --experience-noise: 0.08;
 
 
   /* Borders */
@@ -196,75 +198,44 @@ main :where(section, div)[id] {
   scroll-margin-top: calc(var(--header-offset) + var(--space-4));
 }
 
-/* Animated Background */
-body::before {
-  content: '';
-  position: fixed;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-  background:
-    var(--dynamic-gradient),
-    radial-gradient(circle at 20% 50%, rgba(120, 119, 198, 0.22) 0%, transparent 55%),
-    radial-gradient(circle at 80% 20%, rgba(99, 102, 241, 0.18) 0%, transparent 55%),
-    radial-gradient(circle at 40% 80%, rgba(6, 182, 212, 0.22) 0%, transparent 50%);
-  z-index: -1;
-  animation: backgroundShift 20s ease-in-out infinite;
-}
-
 .experience-shell {
   position: relative;
   min-height: 100vh;
   overflow: hidden;
-  background: rgba(15, 23, 42, 0.55);
+  background: var(--experience-surface);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.05),
+    var(--experience-glow);
   transition: background 240ms ease, box-shadow 240ms ease;
+  isolation: isolate;
 }
 
 .experience-content {
   position: relative;
-  z-index: 10;
-  isolation: isolate;
+  z-index: 2;
 }
 
-.particle-field,
-.liquid-morphing-layer,
-.parallax-layer,
-.particlejs-layer {
+.experience-backdrop {
   position: absolute;
   inset: 0;
   pointer-events: none;
   z-index: 1;
+  background: var(--experience-gradient);
+  filter: saturate(1.05);
+  opacity: 0.95;
+  transform: translateZ(0);
 }
 
-.liquid-morphing-layer {
-  opacity: 0.85;
-  mix-blend-mode: screen;
-}
-
-.particle-field {
-  mix-blend-mode: lighten;
-  opacity: 0.55;
-}
-
-.particlejs-layer {
-  opacity: 0.65;
-  mix-blend-mode: color-dodge;
-}
-
-.parallax-layer {
-  background: paint(sparkle);
-  opacity: 0.15;
-  transform: translate3d(0, 0, 0);
-  transition: transform 220ms ease-out;
-}
-
-.parallax-layer:nth-of-type(3) {
-  opacity: 0.22;
-}
-
-.parallax-layer:nth-of-type(4) {
-  opacity: 0.28;
+.experience-backdrop::after {
+  content: '';
+  position: absolute;
+  inset: -10%;
+  background-image:
+    repeating-linear-gradient(135deg, rgba(255, 255, 255, 0.04) 0, rgba(255, 255, 255, 0.04) 1px, transparent 1px, transparent 12px),
+    repeating-linear-gradient(45deg, rgba(15, 23, 42, 0.08) 0, rgba(15, 23, 42, 0.08) 1px, transparent 1px, transparent 12px);
+  background-size: 12px 12px;
+  opacity: var(--experience-noise);
+  mix-blend-mode: soft-light;
 }
 
 .theme-toggle {
