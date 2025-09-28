@@ -77,6 +77,19 @@ if (!rootElement) {
   throw new Error("Root element not found");
 }
 
+let hydrationRoot = null;
+let clientRoot = null;
+let hasForcedClientRender = false;
+
+function isHydrationError(error) {
+  if (!error) {
+    return false;
+  }
+
+  const message = error.message || String(error);
+  return /hydration/i.test(message) || /\b418\b/.test(message) || /\b423\b/.test(message) || /\b425\b/.test(message);
+}
+
 // Detect if we have SSR content or need client-only rendering
 function detectRenderingMode() {
   const hasSSRContent = rootElement.hasChildNodes() && 
@@ -101,7 +114,7 @@ if (typeof window !== "undefined" && window.__APOLLO_STATE__) {
 
 const AppWrapper = () => (
   <StrictMode>
-    <ErrorBoundary 
+    <ErrorBoundary
       FallbackComponent={ErrorFallback}
       onError={(error, errorInfo) => {
         console.error("React Error Boundary caught an error:", error, errorInfo);
@@ -134,42 +147,83 @@ const AppWrapper = () => (
 // Hybrid rendering strategy
 function initializeApp() {
   const { shouldHydrate, hasExistingContent } = detectRenderingMode();
-  
+
   if (shouldHydrate) {
     console.log("🔄 Attempting SSR hydration...");
-    
+
     try {
-      startTransition(() => {
-        hydrateRoot(rootElement, <AppWrapper />);
+      hydrationRoot = hydrateRoot(rootElement, <AppWrapper />, {
+        onRecoverableError(error, errorInfo) {
+          console.warn("⚠️ Recoverable hydration error detected:", error, errorInfo);
+
+          if (isHydrationError(error)) {
+            fallbackToClientRender(error);
+          }
+        }
       });
-      console.log("✅ SSR hydration successful");
+      console.log("✅ SSR hydration initiated");
     } catch (error) {
       console.warn("⚠️ SSR hydration failed, falling back to client render:", error);
-      fallbackToClientRender();
+      fallbackToClientRender(error);
     }
   } else {
     console.log("🚀 Using client-only rendering...");
-    
+
+    if (typeof window !== "undefined") {
+      window.__SSR_SUCCESS__ = false;
+    }
+
     if (hasExistingContent) {
       // Clear any existing content before client render
       rootElement.innerHTML = '';
     }
-    
+
     createClientRoot();
   }
 }
 
-function fallbackToClientRender() {
+function fallbackToClientRender(reason) {
+  if (hasForcedClientRender) {
+    return;
+  }
+
+  hasForcedClientRender = true;
+
+  if (typeof window !== "undefined") {
+    window.__SSR_SUCCESS__ = false;
+  }
+
+  if (hydrationRoot) {
+    try {
+      hydrationRoot.unmount();
+    } catch (unmountError) {
+      console.warn("⚠️ Failed to unmount hydration root:", unmountError);
+    }
+
+    hydrationRoot = null;
+  }
+
+  if (reason) {
+    console.warn("🔄 Falling back to client render due to hydration issue:", reason);
+  }
+
   // Clear existing content and create fresh root
-  rootElement.innerHTML = '';
+  if (rootElement.hasChildNodes()) {
+    rootElement.innerHTML = '';
+  }
+
   createClientRoot();
 }
 
 function createClientRoot() {
-  const root = createRoot(rootElement);
+  if (!clientRoot) {
+    clientRoot = createRoot(rootElement);
+  }
+
   startTransition(() => {
-    root.render(<AppWrapper />);
+    clientRoot.render(<AppWrapper />);
   });
+
   console.log("✅ Client-only rendering successful");
 }
 
@@ -177,26 +231,18 @@ function createClientRoot() {
 if (typeof window !== 'undefined') {
   // Catch hydration errors specifically
   window.addEventListener('error', (e) => {
-    if (e.error?.message?.includes('Hydration') || 
-        e.error?.message?.includes('hydrateRoot')) {
+    if (isHydrationError(e.error)) {
       console.warn('🔄 Hydration error detected, attempting recovery...');
       e.preventDefault();
-      
-      // Give React a chance to recover, then fallback if needed
-      setTimeout(() => {
-        if (document.querySelector('.react-error') || 
-            !document.querySelector('[data-reactroot]')) {
-          console.warn('🔄 React recovery failed, forcing client render...');
-          fallbackToClientRender();
-        }
-      }, 1000);
+      fallbackToClientRender(e.error);
     }
   });
-  
+
   window.addEventListener('unhandledrejection', (e) => {
-    if (e.reason?.message?.includes('Hydration')) {
+    if (isHydrationError(e.reason)) {
       console.warn('🔄 Hydration promise rejection:', e.reason);
       e.preventDefault();
+      fallbackToClientRender(e.reason);
     }
   });
 }
