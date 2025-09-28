@@ -610,5 +610,5 @@ setLoading(false);
     </div>
   );
 };
-
+// TEMP
 export default AuthModal;
