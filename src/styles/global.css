@@ -225,7 +225,8 @@ body::before {
 
 .particle-field,
 .liquid-morphing-layer,
-.parallax-layer {
+.parallax-layer,
+.particlejs-layer {
   position: fixed;
   inset: 0;
   pointer-events: none;
@@ -240,6 +241,11 @@ body::before {
 .particle-field {
   mix-blend-mode: lighten;
   opacity: 0.55;
+}
+
+.particlejs-layer {
+  opacity: 0.65;
+  mix-blend-mode: color-dodge;
 }
 
 .parallax-layer {

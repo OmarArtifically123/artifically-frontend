@@ -173,6 +173,275 @@ function useDynamicTheme() {
   }, [darkMode]);
 }
 
+const DEFAULT_DYNAMIC_PALETTE = {
+  primary: "#6366f1",
+  secondary: "#38bdf8",
+  accent: "#f472b6",
+};
+
+function readDynamicPalette() {
+  if (typeof window === "undefined") return DEFAULT_DYNAMIC_PALETTE;
+  const root = getComputedStyle(document.documentElement);
+  const read = (token, fallback) => root.getPropertyValue(token).trim() || fallback;
+  return {
+    primary: read("--dynamic-primary", DEFAULT_DYNAMIC_PALETTE.primary),
+    secondary: read("--dynamic-secondary", DEFAULT_DYNAMIC_PALETTE.secondary),
+    accent: read("--dynamic-accent", DEFAULT_DYNAMIC_PALETTE.accent),
+  };
+}
+
+function useRootDynamicPalette() {
+  const [palette, setPalette] = useState(() => readDynamicPalette());
+
+  useEffect(() => {
+    if (typeof window === "undefined") return undefined;
+
+    const update = () => setPalette(readDynamicPalette());
+    update();
+
+    const observer = new MutationObserver(update);
+    observer.observe(document.documentElement, {
+      attributes: true,
+      attributeFilter: ["style", "data-theme"],
+    });
+
+    if (document.body) {
+      observer.observe(document.body, {
+        attributes: true,
+        attributeFilter: ["data-time-theme"],
+      });
+    }
+
+    const interval = window.setInterval(update, 60 * 1000);
+    window.addEventListener("resize", update);
+
+    return () => {
+      observer.disconnect();
+      window.clearInterval(interval);
+      window.removeEventListener("resize", update);
+    };
+  }, []);
+
+  return palette;
+}
+
+let tsParticlesLoader;
+
+function ensureTsParticles() {
+  if (typeof window === "undefined") return Promise.resolve(null);
+  if (window.tsParticles) return Promise.resolve(window.tsParticles);
+  if (tsParticlesLoader) return tsParticlesLoader;
+
+  tsParticlesLoader = new Promise((resolve, reject) => {
+    const existing = document.querySelector("script[data-tsparticles]");
+    if (existing) {
+      existing.addEventListener("load", () => resolve(window.tsParticles));
+      existing.addEventListener("error", reject);
+      return;
+    }
+
+    const script = document.createElement("script");
+    script.src = "https://cdn.jsdelivr.net/npm/tsparticles@3.0.3/tsparticles.bundle.min.js";
+    script.async = true;
+    script.crossOrigin = "anonymous";
+    script.dataset.tsparticles = "true";
+    script.addEventListener("load", () => resolve(window.tsParticles));
+    script.addEventListener("error", (error) => reject(error));
+    document.head.appendChild(script);
+  });
+
+  return tsParticlesLoader;
+}
+
+function buildParticleOptions(palette, darkMode) {
+  return {
+    background: { color: { value: "transparent" } },
+    detectRetina: true,
+    fpsLimit: 90,
+    particles: {
+      number: {
+        value: 80,
+        density: { enable: true, area: 900 },
+      },
+      color: {
+        value: [palette.primary, palette.secondary, palette.accent],
+      },
+      shape: {
+        type: ["circle", "polygon", "square"],
+        options: {
+          polygon: { sides: 6 },
+        },
+      },
+      opacity: {
+        value: { min: 0.08, max: darkMode ? 0.35 : 0.28 },
+        animation: {
+          enable: true,
+          speed: 0.6,
+          minimumValue: 0.05,
+          sync: false,
+        },
+      },
+      size: {
+        value: { min: 1, max: 3.6 },
+        animation: {
+          enable: true,
+          speed: 3.2,
+          minimumValue: 0.3,
+          sync: false,
+        },
+      },
+      move: {
+        enable: true,
+        speed: 1.4,
+        direction: "none",
+        outModes: { default: "out" },
+        trail: {
+          enable: true,
+          length: 12,
+          fill: {
+            color: { value: darkMode ? "#0f172a" : "#ffffff" },
+          },
+        },
+      },
+      links: {
+        enable: true,
+        distance: 130,
+        color: palette.primary,
+        opacity: darkMode ? 0.36 : 0.28,
+        width: 1.1,
+        triangles: {
+          enable: true,
+          color: palette.accent,
+          opacity: 0.05,
+        },
+      },
+      wobble: {
+        enable: true,
+        distance: 3,
+        speed: { min: 0.2, max: 1.4 },
+      },
+      rotate: {
+        value: { min: 0, max: 360 },
+        direction: "random",
+        animation: {
+          enable: true,
+          speed: 15,
+        },
+      },
+      twinkle: {
+        particles: {
+          enable: true,
+          color: palette.accent,
+          frequency: 0.045,
+          opacity: 0.6,
+        },
+        lines: {
+          enable: true,
+          frequency: 0.08,
+          opacity: 0.35,
+        },
+      },
+      life: {
+        duration: {
+          sync: false,
+          value: {
+            min: 4,
+            max: 9,
+          },
+        },
+        delay: {
+          value: {
+            min: 0.2,
+            max: 1.2,
+          },
+        },
+      },
+    },
+    interactivity: {
+      detectsOn: "window",
+      events: {
+        onHover: {
+          enable: true,
+          mode: ["bubble", "attract"],
+          parallax: { enable: true, force: 60, smooth: 14 },
+        },
+        onClick: {
+          enable: true,
+          mode: ["push", "repulse"],
+        },
+        resize: true,
+      },
+      modes: {
+        attract: {
+          distance: 180,
+          duration: 0.4,
+          speed: 1,
+        },
+        bubble: {
+          distance: 150,
+          duration: 2,
+          size: 6,
+          opacity: 0.4,
+          color: {
+            value: palette.accent,
+          },
+        },
+        push: {
+          quantity: 4,
+        },
+        repulse: {
+          distance: 160,
+          duration: 0.5,
+        },
+      },
+    },
+  };
+}
+
+function TsParticlesLayer() {
+  const containerRef = useRef(null);
+  const [elementId] = useState(() => `ts-particles-${Math.random().toString(36).slice(2)}`);
+  const palette = useRootDynamicPalette();
+  const { darkMode } = useTheme();
+
+  useEffect(() => {
+    if (typeof window === "undefined") return undefined;
+    let destroyed = false;
+    let instance;
+
+    ensureTsParticles()
+      .then((tsParticles) => {
+        if (!tsParticles || destroyed || !containerRef.current) return null;
+        const options = buildParticleOptions(palette, darkMode);
+        return tsParticles
+          .load({ id: elementId, options })
+          .then((loaded) => {
+            instance = loaded;
+            return loaded;
+          })
+          .catch((error) => {
+            console.warn("tsParticles load failed", error);
+            return null;
+          });
+      })
+      .catch((error) => console.warn("tsParticles failed to initialise", error));
+
+    return () => {
+      destroyed = true;
+      if (instance && typeof instance.destroy === "function") {
+        instance.destroy();
+      } else if (window.tsParticles?.dom) {
+        window.tsParticles
+          .dom()
+          .filter((item) => item.id === elementId)
+          .forEach((item) => item.destroy());
+      }
+    };
+  }, [palette.primary, palette.secondary, palette.accent, darkMode, elementId]);
+
+  return <div ref={containerRef} id={elementId} className="particlejs-layer" aria-hidden="true" />;
+}
+
 function LiquidShaderCanvas() {
   const canvasRef = useRef(null);
   const [devicePixelRatio, setDevicePixelRatio] = useState(1);
@@ -484,6 +753,7 @@ export default function ExperienceLayer({ children }) {
     <div className="experience-shell" ref={containerRef}>
       <LiquidShaderCanvas />
       <ParticleField />
+      <TsParticlesLayer />
       <div className="parallax-layer" data-depth="0.25" aria-hidden="true" />
       <div className="parallax-layer" data-depth="0.45" aria-hidden="true" />
       <div className="parallax-layer" data-depth="0.65" aria-hidden="true" />
