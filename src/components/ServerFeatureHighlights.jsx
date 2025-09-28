@@ -72,17 +72,17 @@ function FeatureHighlightFallback({
 }
 
 export default function ServerFeatureHighlights() {
-  const [hydrated, setHydrated] = useState(false);
+  const [isMounted, setIsMounted] = useState(false);
   const [state, setState] = useState({ status: "idle", markup: "", error: null });
   const hasRequestedRef = useRef(false);
   const intersection = useIntersectionLazy({ rootMargin: "400px" });
 
   useEffect(() => {
-    setHydrated(true);
+    setIsMounted(true);
   }, []);
 
   useEffect(() => {
-    if (!hydrated || !intersection.isIntersecting || hasRequestedRef.current) {
+    if (!isMounted || !intersection.isIntersecting || hasRequestedRef.current) {
       return;
     }
 
@@ -118,17 +118,13 @@ export default function ServerFeatureHighlights() {
     return () => {
       controller.abort();
     };
-  }, [hydrated, intersection.isIntersecting]);
+  }, [isMounted, intersection.isIntersecting]);
 
   const sectionProps = {
     className: "rsc-feature-shell",
-    "aria-hidden": hydrated ? undefined : true,
-    "aria-label": hydrated ? "Feature insights" : undefined,
+    "aria-label": "Feature insights",
+    ref: intersection.ref,
   };
-
-  if (hydrated) {
-    sectionProps.ref = intersection.ref;
-  }
 
   let content = <FeatureSkeletonGrid cards={4} />;
 

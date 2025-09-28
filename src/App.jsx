@@ -26,6 +26,7 @@ const Dashboard = lazy(() => import("./components/Dashboard"));
 const AuthModal = lazy(() => import("./components/AuthModal"));
 const Verify = lazy(() => import("./components/Verify"));
 
+// Utility functions - moved outside component to prevent recreation
 const requestIdle =
   typeof window !== "undefined" && typeof window.requestIdleCallback === "function"
     ? (cb) => window.requestIdleCallback(cb)
@@ -45,10 +46,12 @@ export default function App() {
   const [authMode, setAuthMode] = useState("signin");
   const [user, setUser] = useState(null);
   const [authChecking, setAuthChecking] = useState(false);
+  const [isHydrated, setIsHydrated] = useState(false);
 
   const navigate = useNavigate();
   const { pathname } = useLocation();
 
+  // Static route loaders - memoized to prevent recreation
   const routeLoaders = useMemo(
     () => ({
       "/": () => import("./pages/Home"),
@@ -79,8 +82,19 @@ export default function App() {
 
   usePredictivePrefetch(routeLoaders, pathname);
 
+  // Mark as hydrated after initial mount
   useEffect(() => {
-    if (typeof window === "undefined") {
+    setIsHydrated(true);
+    
+    // Log debugging info if available
+    if (typeof window !== "undefined" && window.__SSR_DEBUG__) {
+      console.log("SSR Debug Info:", window.__SSR_DEBUG__);
+    }
+  }, []);
+
+  // Auth check effect - only runs on client
+  useEffect(() => {
+    if (typeof window === "undefined" || !isHydrated) {
       return;
     }
 
@@ -102,7 +116,9 @@ export default function App() {
         }
       })
       .catch(() => {
-        window.localStorage.removeItem("token");
+        if (typeof window !== "undefined") {
+          window.localStorage.removeItem("token");
+        }
         if (mounted) {
           setUser(null);
         }
@@ -116,17 +132,41 @@ export default function App() {
     return () => {
       mounted = false;
     };
-  }, []);
+  }, [isHydrated]);
 
+  // Route history effect - only runs on client after hydration
   useEffect(() => {
+    if (!isHydrated || typeof window === "undefined") {
+      return;
+    }
+
     const idleId = requestIdle(() => {
-      const history = JSON.parse(localStorage.getItem("route-history") || "[]");
-      history.unshift({ path: pathname, ts: Date.now() });
-      localStorage.setItem("route-history", JSON.stringify(history.slice(0, 10)));
+      try {
+        const history = JSON.parse(localStorage.getItem("route-history") || "[]");
+        history.unshift({ path: pathname, ts: Date.now() });
+        localStorage.setItem("route-history", JSON.stringify(history.slice(0, 10)));
+      } catch (error) {
+        console.warn("Failed to update route history:", error);
+      }
     });
 
     return () => cancelIdle(idleId);
-  }, [pathname]);
+  }, [pathname, isHydrated]);
+
+  // Scroll behavior - only on client after hydration
+  useEffect(() => {
+    if (!isHydrated || typeof window === "undefined") {
+      return;
+    }
+
+    const timeoutId = setTimeout(() => {
+      window.requestAnimationFrame(() => {
+        window.scrollTo({ top: 0, behavior: "smooth" });
+      });
+    }, 100); // Small delay to ensure page is ready
+
+    return () => clearTimeout(timeoutId);
+  }, [pathname, isHydrated]);
 
   const openAuth = (mode = "signin") => {
     setAuthMode(mode);
@@ -146,10 +186,8 @@ export default function App() {
   };
 
   const onAuthenticated = ({ token, user: u, notice }) => {
-    if (token) {
-      if (typeof window !== "undefined") {
-        window.localStorage.setItem("token", token);
-      }
+    if (token && typeof window !== "undefined") {
+      window.localStorage.setItem("token", token);
     }
     if (u) {
       setUser(u);
@@ -160,12 +198,6 @@ export default function App() {
     setAuthChecking(false);
     setAuthOpen(false);
   };
-
-  useEffect(() => {
-    window.requestAnimationFrame(() => {
-      window.scrollTo({ top: 0, behavior: "smooth" });
-    });
-  }, [pathname]);
 
   return (
     <>

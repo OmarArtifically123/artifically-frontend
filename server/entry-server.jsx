@@ -125,6 +125,27 @@ export async function render({ req, res, template, manifest, isProd }) {
 
     const [head = "", tail = ""] = template.split("<!--app-html-->");
 
+    // Enhanced bootstrap script with better error handling
+    const bootstrapScriptContent = `
+      window.__APOLLO_STATE__=${safeSerialize(apolloState)};
+      
+      // Add hydration debugging
+      window.__SSR_DEBUG__ = ${JSON.stringify({
+        url,
+        timestamp: new Date().toISOString(),
+        apolloStateKeys: Object.keys(apolloState || {})
+      })};
+      
+      // Catch any early errors
+      window.addEventListener('error', function(e) {
+        console.warn('Early error:', e.error?.message || e.message);
+      });
+      
+      window.addEventListener('unhandledrejection', function(e) {
+        console.warn('Early rejection:', e.reason);
+      });
+    `;
+
     const { pipe, abort } = renderToPipeableStream(
       <ApolloProvider client={client}>
         <StaticRouter location={url}>
@@ -135,22 +156,40 @@ export async function render({ req, res, template, manifest, isProd }) {
       </ApolloProvider>,
       {
         bootstrapScripts,
-        bootstrapScriptContent: `window.__APOLLO_STATE__=${safeSerialize(apolloState)};`,
+        bootstrapScriptContent,
         onShellReady() {
           res.statusCode = didError ? 500 : 200;
           res.setHeader("Content-Type", "text/html; charset=utf-8");
+          res.setHeader("Cache-Control", isProd ? "public, max-age=3600" : "no-cache");
+          
+          // Add debugging headers in development
+          if (!isProd) {
+            res.setHeader("X-SSR-Render-Time", new Date().toISOString());
+            res.setHeader("X-SSR-URL", url);
+          }
+          
           res.write(head);
           pipe(stream);
           stream.pipe(res, { end: false });
         },
         onShellError(error) {
+          console.error("SSR Shell Error:", error);
           reject(error);
         },
         onError(error) {
           didError = true;
-          console.error(error);
+          console.error("SSR Render Error:", error);
+          
+          // In development, be more aggressive about failing
+          if (!isProd) {
+            console.error("Full error stack:", error.stack);
+          }
         },
-        onAllReady() {},
+        onAllReady() {
+          if (!isProd) {
+            console.log("SSR render complete for:", url);
+          }
+        },
       }
     );
 
@@ -165,10 +204,12 @@ export async function render({ req, res, template, manifest, isProd }) {
       reject(error);
     });
 
+    // More aggressive timeout in development for debugging
+    const timeout = isProd ? ABORT_DELAY : 5000;
     setTimeout(() => {
-      console.warn("SSR render aborted due to timeout");
+      console.warn(`SSR render aborted due to timeout (${timeout}ms) for:`, url);
       abort();
-    }, ABORT_DELAY).unref?.();
+    }, timeout).unref?.();
   });
 }
 
@@ -199,6 +240,7 @@ export async function renderFeatureHighlightsRSC(res) {
           stream.pipe(res);
         },
         onShellError(error) {
+          console.error("RSC Shell Error:", error);
           reject(error);
         },
         onError(error) {
@@ -214,7 +256,10 @@ export async function renderFeatureHighlightsRSC(res) {
       reject(error);
     });
 
-    setTimeout(() => abort(), ABORT_DELAY).unref?.();
+    setTimeout(() => {
+      console.warn("RSC render timeout");
+      abort();
+    }, ABORT_DELAY).unref?.();
   });
 }
 
