@@ -11,6 +11,35 @@ const DEFAULT_PROFILE = {
 
 const COMPANY_SIZE_OPTIONS = ["Startup", "Mid-market", "Enterprise"];
 const INDUSTRY_OPTIONS = ["SaaS", "B2B Services", "E-commerce", "Financial Services", "Manufacturing", "DevTools", "Fintech"];
+const DISCOVERY_HIGHLIGHTS = [
+  {
+    id: "recommendations",
+    label: "Smart recommendations",
+    description: "\"Companies like yours typically start with these 3\"",
+  },
+  {
+    id: "filtering",
+    label: "Industry-aware filtering",
+    description: "Automatically highlight automations for your business type",
+  },
+  {
+    id: "pattern-matching",
+    label: "Success pattern matching",
+    description: "\"Teams similar to yours see 4.2x ROI with this combination\"",
+  },
+  {
+    id: "sorting",
+    label: "Intelligent sorting",
+    description: "Most relevant automations float to the top automatically",
+  },
+];
+
+const MARKETPLACE_INTELLIGENCE = [
+  "Detects your industry from email domain and adapts",
+  "Learns from your browsing patterns and rearranges",
+  "Shows peer success stories from similar companies",
+  "Highlights automation combinations that work well together",
+];
 
 function buildComboIndex() {
   const map = new Map();
@@ -354,7 +383,7 @@ export default function SmartSearchDiscovery() {
               textTransform: "uppercase",
             }}
           >
-            Smart Search & Discovery
+            Contextual Intelligence Discovery
           </span>
           <h2
             style={{
@@ -363,7 +392,7 @@ export default function SmartSearchDiscovery() {
               letterSpacing: "-0.02em",
             }}
           >
-            Contextual automation search that learns with every click
+            Replace generic browsing with adaptive automation paths
           </h2>
           <p
             style={{
@@ -373,10 +402,83 @@ export default function SmartSearchDiscovery() {
               maxWidth: "700px",
             }}
           >
-            Discover integrations, auto-complete proven automation pairings, and surface shortcuts that reflect how your teams
-            actually work. We keep everything local with smart caching so your patterns power your next best action without
-            external ML overhead.
+            Every search learns from your context—industry signals, team behavior, and ROI wins—to suggest the right
+            automations before you ask. The result is a discovery experience that feels curated for your business instead of a
+            static catalog.
           </p>
+          <div
+            style={{
+              display: "grid",
+              gap: "1.5rem",
+              padding: "1.5rem",
+              background: "rgba(255,255,255,0.72)",
+              borderRadius: "1.25rem",
+              border: "1px solid rgba(99,102,241,0.15)",
+              boxShadow: "0 18px 35px rgba(99,102,241,0.12)",
+            }}
+          >
+            <div style={{ display: "grid", gap: "0.75rem" }}>
+              <span style={{ fontSize: "0.85rem", fontWeight: 700, color: "#312e81", textTransform: "uppercase" }}>
+                Replace generic browsing with:
+              </span>
+              <div
+                style={{
+                  display: "grid",
+                  gap: "0.75rem",
+                }}
+              >
+                {DISCOVERY_HIGHLIGHTS.map(item => (
+                  <div
+                    key={item.id}
+                    style={{
+                      display: "grid",
+                      gap: "0.25rem",
+                      padding: "0.75rem 1rem",
+                      borderRadius: "0.95rem",
+                      border: "1px solid rgba(79,70,229,0.18)",
+                      background: "rgba(79,70,229,0.08)",
+                    }}
+                  >
+                    <span style={{ fontWeight: 700, color: "#1e1b4b", fontSize: "0.95rem" }}>{item.label}</span>
+                    <span style={{ color: "#4338ca", fontSize: "0.9rem", lineHeight: 1.5 }}>{item.description}</span>
+                  </div>
+                ))}
+              </div>
+            </div>
+            <div style={{ display: "grid", gap: "0.75rem" }}>
+              <span style={{ fontSize: "0.85rem", fontWeight: 700, color: "#0f172a", textTransform: "uppercase" }}>
+                Smart features:
+              </span>
+              <ul
+                style={{
+                  listStyle: "none",
+                  padding: 0,
+                  margin: 0,
+                  display: "grid",
+                  gap: "0.65rem",
+                }}
+              >
+                {MARKETPLACE_INTELLIGENCE.map(item => (
+                  <li
+                    key={item}
+                    style={{
+                      display: "flex",
+                      alignItems: "flex-start",
+                      gap: "0.6rem",
+                      fontSize: "0.9rem",
+                      color: "#1e293b",
+                      lineHeight: 1.6,
+                    }}
+                  >
+                    <span aria-hidden="true" style={{ color: "#6366f1", fontWeight: 700 }}>
+                      →
+                    </span>
+                    <span>{item}</span>
+                  </li>
+                ))}
+              </ul>
+            </div>
+          </div>
         </header>
 
         <div
