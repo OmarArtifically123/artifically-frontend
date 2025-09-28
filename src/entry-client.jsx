@@ -279,7 +279,7 @@ if (typeof warmupWasm === 'function') {
 }
 
 // Service Worker registration
-if (typeof window !== "undefined" && "serviceWorker" in navigator) {
+if (typeof window !== "undefined" && "serviceWorker" in navigator && import.meta.env.PROD) {
   const registerServiceWorker = () => {
     const idleId = requestIdle(async () => {
       try {

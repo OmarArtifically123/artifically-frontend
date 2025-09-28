@@ -5,26 +5,71 @@ import { fileURLToPath } from "url";
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
 export default async function handler(req, res) {
-  try {
-    const clientDist = path.resolve(__dirname, "../dist/client");
-    const serverDist = path.resolve(__dirname, "../dist/server");
+  const clientDist = path.resolve(__dirname, "../dist/client");
+  const serverDist = path.resolve(__dirname, "../dist/server");
+  const templatePath = path.join(clientDist, "index.html");
 
-    // Load index.html
-    const templatePath = path.join(clientDist, "index.html");
-    const template = fs.readFileSync(templatePath, "utf-8");
+  let template = null;
+  let clientOnlyTemplate = null;
+
+  try {
+    template = fs.readFileSync(templatePath, "utf-8");
+    clientOnlyTemplate = template
+      .replace(
+        "<!--app-html-->",
+        '<div class="initial-loading"><div class="loading-spinner"></div><p>Loading Artifically...</p></div>'
+      )
+      .replace(
+        "<!--app-fallback-->",
+        '<script>window.__SSR_DISABLED__ = true;</script>'
+      );
 
     // Load SSR entry
     const { render } = await import(path.join(serverDist, "entry-server.js"));
 
-    // Load manifest
-    const manifestPath = path.join(clientDist, "ssr-manifest.json");
-    const manifest = JSON.parse(fs.readFileSync(manifestPath, "utf-8"));
+    // Load manifest with fallbacks
+    const manifestCandidates = [
+      path.join(clientDist, "ssr-manifest.json"),
+      path.join(clientDist, ".vite/ssr-manifest.json")
+    ];
+    let manifest = null;
+
+    for (const manifestPath of manifestCandidates) {
+      if (!fs.existsSync(manifestPath)) {
+        continue;
+      }
+
+      try {
+        manifest = JSON.parse(fs.readFileSync(manifestPath, "utf-8"));
+        break;
+      } catch (manifestError) {
+        console.warn("⚠️ Failed to parse manifest", manifestError);
+      }
+    }
+
+    if (!manifest) {
+      console.warn("⚠️ ssr-manifest.json not found. Falling back to client rendering.");
+      res.statusCode = 200;
+      res.setHeader("Content-Type", "text/html; charset=utf-8");
+      res.setHeader("X-SSR-Fallback", "true");
+      res.end(clientOnlyTemplate);
+      return;
+    }
 
     // Run SSR
     await render({ req, res, template, manifest, isProd: true });
   } catch (error) {
     console.error("❌ SSR error:", error);
-    res.statusCode = 500;
-    res.end("Internal Server Error");
+    if (!res.headersSent) {
+      if (clientOnlyTemplate) {
+        res.statusCode = 200;
+        res.setHeader("Content-Type", "text/html; charset=utf-8");
+        res.setHeader("X-SSR-Fallback", "true");
+        res.end(clientOnlyTemplate);
+      } else {
+        res.statusCode = 500;
+        res.end("Internal Server Error");
+      }
+    }
   }
 }

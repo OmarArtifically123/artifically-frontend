@@ -5,6 +5,8 @@ import million from 'million/compiler'
 // https://vitejs.dev/config/
 export default defineConfig((configEnv) => {
   const ssrBuild = configEnv.isSsrBuild
+  const enableMillion = process.env.ENABLE_MILLION === 'true'
+
   const build = {
     rollupOptions: {}
   }
@@ -21,20 +23,24 @@ export default defineConfig((configEnv) => {
     }
   }
 
-  return {
-    plugins: [
-      // Re-enable Million.js with SSR-safe settings
+  const plugins = [react()]
+
+  if (enableMillion) {
+    plugins.unshift(
       million.vite({
         auto: {
-          threshold: 0.05, // More conservative threshold
-          skip: ['App', 'Router', 'BrowserRouter', 'Routes', 'Route'], // Skip routing components
-          rsc: false // Disable React Server Components optimizations for now
+          threshold: 0.05,
+          skip: ['App', 'Router', 'BrowserRouter', 'Routes', 'Route'],
+          rsc: false
         },
-        ssr: true, // Enable SSR support
-        optimize: false // Disable aggressive optimizations that can cause hydration issues
-      }),
-      react()
-    ],
+        ssr: true,
+        optimize: false
+      })
+    )
+  }
+
+  return {
+    plugins,
     build,
     ssr: {
       noExternal: ['@apollo/client']
