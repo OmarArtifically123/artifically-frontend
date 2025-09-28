@@ -1,46 +1,34 @@
-import { useEffect, useState } from "react";
+import { useMemo, useState } from "react";
 import { Link } from "react-router-dom";
 import ThemeToggle from "./ThemeToggle";
 import { useTheme } from "../context/ThemeContext";
 import { motion } from "../lib/motion";
 
-const MORPH_VALUES = [
-  "M24 6c6.627 0 12 5.373 12 12s-5.373 12-12 12-12-5.373-12-12S17.373 6 24 6z",
-  "M12 12c4-6 20-6 24 0s4 20-4 24-20 4-24-4-4-20 4-24z",
-  "M24 6l14 8v16l-14 8-14-8V14l14-8z",
-].join("; ");
-
-function MorphingIcon() {
-  const [hue, setHue] = useState(210);
-
-  useEffect(() => {
-    let rafId;
-    const update = () => {
-      setHue((current) => (current + 0.35) % 360);
-      rafId = requestAnimationFrame(update);
-    };
-    rafId = requestAnimationFrame(update);
-    return () => cancelAnimationFrame(rafId);
-  }, []);
-
-  return (
-    <svg width="56" height="56" viewBox="0 0 48 48" aria-hidden="true">
-      <defs>
-        <linearGradient id="heroMorphGradient" x1="0%" y1="0%" x2="100%" y2="100%">
-          <stop offset="0%" stopColor={`hsla(${hue}, 92%, 65%, 0.95)`} />
-          <stop offset="100%" stopColor={`hsla(${(hue + 60) % 360}, 92%, 55%, 0.85)`} />
-        </linearGradient>
-      </defs>
-      <path fill="url(#heroMorphGradient)" d="M24 6c6.627 0 12 5.373 12 12s-5.373 12-12 12-12-5.373-12-12S17.373 6 24 6z">
-        <animate attributeName="d" dur="12s" repeatCount="indefinite" values={MORPH_VALUES} keyTimes="0;0.5;1" />
-      </path>
-    </svg>
-  );
-}
+const BADGES = [
+  { icon: "⚡", label: "Deploy in minutes" },
+  { icon: "🔒", label: "Enterprise security" },
+  { icon: "📊", label: "Transparent pricing" },
+  { icon: "🚀", label: "Scale infinitely" },
+];
 
 export default function Hero() {
   const { darkMode } = useTheme();
   const [magneticStrength] = useState(1.2);
+
+  const badgeGradients = useMemo(() => {
+    return BADGES.map((_, idx) => {
+      const baseHue = (210 + idx * 36) % 360;
+      const secondaryHue = (baseHue + 60) % 360;
+      return {
+        background: `linear-gradient(135deg, hsla(${baseHue.toFixed(1)}, 90%, ${darkMode ? 62 : 68}%, ${darkMode ? 0.38 : 0.5}), hsla(${secondaryHue.toFixed(
+          1
+        )}, 90%, ${darkMode ? 50 : 58}%, ${darkMode ? 0.32 : 0.45}))`,
+        boxShadow: darkMode
+          ? "0 18px 32px rgba(30, 64, 175, 0.35)"
+          : "0 18px 36px rgba(99, 102, 241, 0.24)",
+      };
+    });
+  }, [darkMode]);
 
   const scrollToMarketplace = () => {
     const el = document.getElementById("marketplace");
@@ -250,9 +238,9 @@ export default function Hero() {
               gap: "1rem",
             }}
           >
-            {["⚡ Deploy in minutes", "🔒 Enterprise security", "📊 Transparent pricing", "🚀 Scale infinitely"].map((label, idx) => (
+            {BADGES.map((badge, idx) => (
               <motion.span
-                key={label}
+                key={badge.label}
                 initial={{ opacity: 0, y: 24 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: 0.42 + idx * 0.08, stiffness: 210, damping: 22 }}
@@ -266,8 +254,23 @@ export default function Hero() {
                   color: darkMode ? "#cbd5e1" : "#1f2937",
                 }}
               >
-                <MorphingIcon />
-                {label}
+                <span
+                  aria-hidden="true"
+                  style={{
+                    width: "2.75rem",
+                    height: "2.75rem",
+                    borderRadius: "0.85rem",
+                    display: "grid",
+                    placeItems: "center",
+                    fontSize: "1.35rem",
+                    color: "#fff",
+                    transition: "background 220ms ease, box-shadow 220ms ease",
+                    ...badgeGradients[idx],
+                  }}
+                >
+                  {badge.icon}
+                </span>
+                <span style={{ fontWeight: 600 }}>{badge.label}</span>
               </motion.span>
             ))}
           </div>

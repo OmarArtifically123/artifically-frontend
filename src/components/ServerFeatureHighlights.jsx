@@ -105,7 +105,11 @@ export default function ServerFeatureHighlights() {
         return response.text();
       })
       .then((html) => {
-        setState({ status: "success", markup: html, error: null });
+        const trimmed = html.trim();
+        if (!trimmed || /<html[^>]*>/i.test(trimmed) || /<body[^>]*>/i.test(trimmed)) {
+          throw new Error("Received invalid server markup");
+        }
+        setState({ status: "success", markup: trimmed, error: null })
       })
       .catch((error) => {
         if (controller.signal.aborted) {

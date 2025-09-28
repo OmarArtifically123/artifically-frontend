@@ -2,8 +2,62 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import { useTheme } from "../context/ThemeContext";
 import useInteractiveEffects from "../hooks/useInteractiveEffects";
 
-const PARTICLE_COUNT = 180;
+const PARTICLE_COUNT = 120;
 const GYRO_SMOOTHING = 0.08;
+const COLOR_SAMPLE_INTERVAL = 320; // milliseconds
+
+function withAlphaChannel(color, alpha = 0.2) {
+  const trimmed = color.trim();
+
+  if (!trimmed) {
+    return `rgba(56, 189, 248, ${alpha})`;
+  }
+
+  if (trimmed.startsWith("#")) {
+    const hex = trimmed.slice(1);
+    const expand = (value) => value.split("").map((ch) => `${ch}${ch}`).join("");
+    let normalized = hex;
+    if (hex.length === 3 || hex.length === 4) {
+      normalized = expand(hex.slice(0, 3));
+    }
+    if (normalized.length === 6) {
+      return `#${normalized}${Math.round(alpha * 255)
+        .toString(16)
+        .padStart(2, "0")}`;
+    }
+    if (normalized.length === 8) {
+      return `#${normalized.slice(0, 6)}${Math.round(alpha * 255)
+        .toString(16)
+        .padStart(2, "0")}`;
+    }
+  }
+
+  const hslMatch = trimmed.match(/^hsla?\(([^)]+)\)$/i);
+  if (hslMatch) {
+    const parts = hslMatch[1]
+      .split(",")
+      .map((part) => part.trim())
+      .slice(0, 3);
+    while (parts.length < 3) {
+      parts.push("0%");
+    }
+    return `hsla(${parts.join(", ")}, ${alpha})`;
+  }
+
+  const rgbMatch = trimmed.match(/^rgba?\(([^)]+)\)$/i);
+  if (rgbMatch) {
+    const parts = rgbMatch[1]
+      .split(",")
+      .map((part) => part.trim())
+      .slice(0, 3);
+    while (parts.length < 3) {
+      parts.push("0");
+    }
+    return `rgba(${parts.join(", ")}, ${alpha})`;
+  }
+
+  return `rgba(56, 189, 248, ${alpha})`;
+}
 
 function useCssHoudini() {
   useEffect(() => {
@@ -149,7 +203,7 @@ function useDynamicTheme() {
         });
     };
 
-    if (navigator.geolocation) {
+    if (navigator.geolocation && typeof navigator.geolocation.getCurrentPosition === "function") {
       navigator.geolocation.getCurrentPosition(
         (position) => {
           requestWeather(position.coords.latitude, position.coords.longitude);
@@ -160,6 +214,8 @@ function useDynamicTheme() {
     } else {
       fallback();
     }
+
+    deriveFromTime(null);
 
     const interval = window.setInterval(() => {
       if (!resolved) return;
@@ -448,7 +504,7 @@ function LiquidShaderCanvas() {
 
   useEffect(() => {
     if (typeof window === "undefined") return;
-    const dprListener = () => setDevicePixelRatio(window.devicePixelRatio || 1);
+    const dprListener = () => setDevicePixelRatio(Math.min(1.75, window.devicePixelRatio || 1));
     dprListener();
     window.addEventListener("resize", dprListener);
     return () => window.removeEventListener("resize", dprListener);
@@ -561,8 +617,43 @@ function LiquidShaderCanvas() {
     colorCanvas.height = 1;
     const colorCtx = colorCanvas.getContext("2d");
 
+    let lastSampleTime = -Infinity;
+    let cachedColorA = "";
+    let cachedColorB = "";
+    let cachedRGB1 = [0.3, 0.4, 0.9];
+    let cachedRGB2 = [0.1, 0.7, 0.8];
+
+    const toRGB = (color) => {
+      if (!colorCtx) return [0.3, 0.4, 0.9];
+      colorCtx.fillStyle = color;
+      const computed = colorCtx.fillStyle;
+      const match = computed.match(/rgb[a]?\((\d+),\s*(\d+),\s*(\d+)/i);
+      if (!match) return [0.3, 0.4, 0.9];
+      return [Number(match[1]) / 255, Number(match[2]) / 255, Number(match[3]) / 255];
+    };
+
+    const sampleColors = () => {
+      const root = getComputedStyle(document.documentElement);
+      const nextColorA = root.getPropertyValue("--dynamic-primary").trim() || "#6366f1";
+      const nextColorB = root.getPropertyValue("--dynamic-accent").trim() || "#06b6d4";
+      if (nextColorA !== cachedColorA) {
+        cachedColorA = nextColorA;
+        cachedRGB1 = toRGB(nextColorA);
+      }
+      if (nextColorB !== cachedColorB) {
+        cachedColorB = nextColorB;
+        cachedRGB2 = toRGB(nextColorB);
+      }
+    };
+
+    sampleColors();
+
     const render = (time) => {
       if (!canvas.parentElement) return;
+      if (typeof document !== "undefined" && document.hidden) {
+        frameId = requestAnimationFrame(render);
+        return;
+      }
       const { clientWidth, clientHeight } = canvas.parentElement;
       const width = clientWidth * devicePixelRatio;
       const height = clientHeight * devicePixelRatio;
@@ -575,22 +666,17 @@ function LiquidShaderCanvas() {
       gl.uniform1f(timeLocation, time * 0.001);
       gl.uniform2f(resolutionLocation, width, height);
 
-      const root = getComputedStyle(document.documentElement);
-      const colorA = root.getPropertyValue("--dynamic-primary").trim() || "#6366f1";
-      const colorB = root.getPropertyValue("--dynamic-accent").trim() || "#06b6d4";
-      const toRGB = (color) => {
-        if (!colorCtx) return [0.3, 0.4, 0.9];
-        colorCtx.fillStyle = color;
-        const computed = colorCtx.fillStyle;
-        const m = /rgb[a]?\((\d+),\s*(\d+),\s*(\d+)/.exec(computed);
-        if (!m) return [0.3, 0.4, 0.9];
-        return [Number(m[1]) / 255, Number(m[2]) / 255, Number(m[3]) / 255];
+      if (time - lastSampleTime > COLOR_SAMPLE_INTERVAL) {
+        lastSampleTime = time;
+        sampleColors();
+      }
+
+      const setUniforms = (rgb, location) => {
+        gl.uniform3f(location, rgb[0], rgb[1], rgb[2]);
       };
 
-      const [r1, g1, b1] = toRGB(colorA);
-      const [r2, g2, b2] = toRGB(colorB);
-      gl.uniform3f(colorALocation, r1, g1, b1);
-      gl.uniform3f(colorBLocation, r2, g2, b2);
+      setUniforms(cachedRGB1, colorALocation);
+      setUniforms(cachedRGB2, colorBLocation);
 
       gl.drawArrays(gl.TRIANGLES, 0, 6);
       frameId = requestAnimationFrame(render);
@@ -631,10 +717,18 @@ function ParticleField() {
     if (!ctx) return;
 
     let frameId;
-    const render = () => {
+    let cachedAccent = "";
+    let cachedAccentWithAlpha = "rgba(56, 189, 248, 0.2)";
+    let lastSampleTime = -Infinity;
+
+    const render = (time) => {
       if (!canvas.parentElement) return;
+      if (typeof document !== "undefined" && document.hidden) {
+        frameId = requestAnimationFrame(render);
+        return;
+      }
       const { clientWidth, clientHeight } = canvas.parentElement;
-      const dpr = window.devicePixelRatio || 1;
+      const dpr = Math.min(1.75, window.devicePixelRatio || 1);
       if (canvas.width !== clientWidth * dpr || canvas.height !== clientHeight * dpr) {
         canvas.width = clientWidth * dpr;
         canvas.height = clientHeight * dpr;
@@ -643,10 +737,19 @@ function ParticleField() {
       ctx.scale(dpr, dpr);
       ctx.clearRect(0, 0, clientWidth, clientHeight);
       const gradient = ctx.createLinearGradient(0, 0, clientWidth, clientHeight);
-      const root = getComputedStyle(document.documentElement);
-      const accent = root.getPropertyValue("--dynamic-accent").trim() || "#38bdf8";
+
+      if (time - lastSampleTime > COLOR_SAMPLE_INTERVAL) {
+        lastSampleTime = time;
+        const root = getComputedStyle(document.documentElement);
+        const accent = root.getPropertyValue("--dynamic-accent").trim() || "#38bdf8";
+        if (accent !== cachedAccent) {
+          cachedAccent = accent;
+          cachedAccentWithAlpha = withAlphaChannel(accent, 0.2);
+        }
+      }
+
       gradient.addColorStop(0, "rgba(15, 23, 42, 0.35)");
-      gradient.addColorStop(1, `${accent}33`);
+      gradient.addColorStop(1, cachedAccentWithAlpha);
       ctx.fillStyle = gradient;
       ctx.fillRect(0, 0, clientWidth, clientHeight);
 

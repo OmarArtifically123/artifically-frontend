@@ -215,6 +215,7 @@ body::before {
   min-height: 100vh;
   overflow: hidden;
   background: rgba(15, 23, 42, 0.55);
+  transition: background 240ms ease, box-shadow 240ms ease;
 }
 
 .experience-content {
@@ -227,7 +228,7 @@ body::before {
 .liquid-morphing-layer,
 .parallax-layer,
 .particlejs-layer {
-  position: fixed;
+  position: absolute;
   inset: 0;
   pointer-events: none;
   z-index: 1;
