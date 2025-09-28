@@ -51,6 +51,17 @@ export default function App() {
   const navigate = useNavigate();
   const { pathname } = useLocation();
 
+  // Mark as hydrated after initial mount
+  useEffect(() => {
+    setIsHydrated(true);
+    
+    // Log SSR status in development
+    if (process.env.NODE_ENV === 'development') {
+      const ssrSuccess = typeof window !== 'undefined' && window.__SSR_SUCCESS__;
+      console.log(`App mounted with ${ssrSuccess ? 'SSR' : 'client-only'} rendering`);
+    }
+  }, []);
+
   // Static route loaders - memoized to prevent recreation
   const routeLoaders = useMemo(
     () => ({
@@ -82,17 +93,7 @@ export default function App() {
 
   usePredictivePrefetch(routeLoaders, pathname);
 
-  // Mark as hydrated after initial mount
-  useEffect(() => {
-    setIsHydrated(true);
-    
-    // Log debugging info if available
-    if (typeof window !== "undefined" && window.__SSR_DEBUG__) {
-      console.log("SSR Debug Info:", window.__SSR_DEBUG__);
-    }
-  }, []);
-
-  // Auth check effect - only runs on client
+  // Auth check effect - only runs on client after hydration
   useEffect(() => {
     if (typeof window === "undefined" || !isHydrated) {
       return;
@@ -163,7 +164,7 @@ export default function App() {
       window.requestAnimationFrame(() => {
         window.scrollTo({ top: 0, behavior: "smooth" });
       });
-    }, 100); // Small delay to ensure page is ready
+    }, 100);
 
     return () => clearTimeout(timeoutId);
   }, [pathname, isHydrated]);

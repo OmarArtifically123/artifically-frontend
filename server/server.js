@@ -1,4 +1,4 @@
-// server/server.js - Modified to disable SSR in development
+// server/server.js - Re-enabling SSR with better error handling
 import fs from "fs";
 import path from "path";
 import http from "http";
@@ -47,16 +47,25 @@ async function createDevServer() {
             let template = fs.readFileSync(templatePath, "utf-8");
             template = await vite.transformIndexHtml(requestUrl, template);
             
-            // 🔥 TEMPORARILY DISABLE SSR - Return empty HTML shell for client-side rendering
-            const clientOnlyTemplate = template.replace(
-              '<!--app-html-->',
-              '<div id="root"></div>'
-            );
-            
-            res.statusCode = 200;
-            res.setHeader("Content-Type", "text/html; charset=utf-8");
-            res.setHeader("X-SSR-Disabled", "true"); // Debug header
-            res.end(clientOnlyTemplate);
+            // Re-enable SSR with fallback to client-only on error
+            try {
+              const { render } = await vite.ssrLoadModule("/server/entry-server.jsx");
+              await render({ req, res, template, manifest: null, isProd: false });
+              console.log(`✅ SSR successful for: ${requestUrl}`);
+            } catch (ssrError) {
+              console.warn(`⚠️ SSR failed for ${requestUrl}, falling back to client-only:`, ssrError.message);
+              
+              // Fallback to client-only rendering
+              const clientOnlyTemplate = template.replace(
+                '<!--app-html-->',
+                '<div id="root"><div class="initial-loading"><div class="loading-spinner"></div><p>Loading Artifically...</p></div></div>'
+              );
+              
+              res.statusCode = 200;
+              res.setHeader("Content-Type", "text/html; charset=utf-8");
+              res.setHeader("X-SSR-Fallback", "true");
+              res.end(clientOnlyTemplate);
+            }
             
             resolved = true;
             resolve();
@@ -81,8 +90,7 @@ async function createDevServer() {
   return new Promise((resolve) => {
     const server = http.createServer(requestListener);
     server.listen(port, () => {
-      console.log(`🚀 Dev server (CLIENT-ONLY) listening on http://localhost:${port}`);
-      console.log("⚠️  SSR temporarily disabled for debugging");
+      console.log(`🚀 Dev server (SSR enabled with fallback) listening on http://localhost:${port}`);
       resolve(server);
     });
   });

@@ -1,5 +1,5 @@
 import React, { StrictMode, startTransition } from "react";
-import { createRoot } from "react-dom/client";
+import { hydrateRoot, createRoot } from "react-dom/client";
 import { BrowserRouter } from "react-router-dom";
 import { ErrorBoundary } from "react-error-boundary";
 import { ApolloProvider } from "@apollo/client";
@@ -77,10 +77,24 @@ if (!rootElement) {
   throw new Error("Root element not found");
 }
 
-// Create Apollo client (no SSR state in dev mode)
-const apolloClient = createApolloClient();
+// Detect if we have SSR content or need client-only rendering
+function detectRenderingMode() {
+  const hasSSRContent = rootElement.hasChildNodes() && 
+                       !rootElement.querySelector('.initial-loading');
+  const hasSSRFallback = document.querySelector('meta[name="x-ssr-fallback"]') || 
+                        typeof window !== 'undefined' && window.__SSR_DISABLED__;
+  
+  return {
+    shouldHydrate: hasSSRContent && !hasSSRFallback,
+    hasExistingContent: rootElement.hasChildNodes()
+  };
+}
 
-// Clear any existing SSR state
+// Create Apollo client with proper state handling
+const apolloState = typeof window !== "undefined" ? window.__APOLLO_STATE__ : null;
+const apolloClient = createApolloClient(apolloState);
+
+// Clear Apollo state from window
 if (typeof window !== "undefined" && window.__APOLLO_STATE__) {
   delete window.__APOLLO_STATE__;
 }
@@ -117,16 +131,78 @@ const AppWrapper = () => (
   </StrictMode>
 );
 
-// Client-only rendering (no hydration)
-console.log("🚀 Initializing client-only React app...");
+// Hybrid rendering strategy
+function initializeApp() {
+  const { shouldHydrate, hasExistingContent } = detectRenderingMode();
+  
+  if (shouldHydrate) {
+    console.log("🔄 Attempting SSR hydration...");
+    
+    try {
+      startTransition(() => {
+        hydrateRoot(rootElement, <AppWrapper />);
+      });
+      console.log("✅ SSR hydration successful");
+    } catch (error) {
+      console.warn("⚠️ SSR hydration failed, falling back to client render:", error);
+      fallbackToClientRender();
+    }
+  } else {
+    console.log("🚀 Using client-only rendering...");
+    
+    if (hasExistingContent) {
+      // Clear any existing content before client render
+      rootElement.innerHTML = '';
+    }
+    
+    createClientRoot();
+  }
+}
 
-const root = createRoot(rootElement);
+function fallbackToClientRender() {
+  // Clear existing content and create fresh root
+  rootElement.innerHTML = '';
+  createClientRoot();
+}
 
-startTransition(() => {
-  root.render(<AppWrapper />);
-});
+function createClientRoot() {
+  const root = createRoot(rootElement);
+  startTransition(() => {
+    root.render(<AppWrapper />);
+  });
+  console.log("✅ Client-only rendering successful");
+}
 
-console.log("✅ React app mounted successfully");
+// Enhanced error handling for hydration issues
+if (typeof window !== 'undefined') {
+  // Catch hydration errors specifically
+  window.addEventListener('error', (e) => {
+    if (e.error?.message?.includes('Hydration') || 
+        e.error?.message?.includes('hydrateRoot')) {
+      console.warn('🔄 Hydration error detected, attempting recovery...');
+      e.preventDefault();
+      
+      // Give React a chance to recover, then fallback if needed
+      setTimeout(() => {
+        if (document.querySelector('.react-error') || 
+            !document.querySelector('[data-reactroot]')) {
+          console.warn('🔄 React recovery failed, forcing client render...');
+          fallbackToClientRender();
+        }
+      }, 1000);
+    }
+  });
+  
+  window.addEventListener('unhandledrejection', (e) => {
+    if (e.reason?.message?.includes('Hydration')) {
+      console.warn('🔄 Hydration promise rejection:', e.reason);
+      e.preventDefault();
+    }
+  });
+}
+
+// Initialize the app
+initializeApp();
 
 // Utility functions for performance
 const requestIdle =
@@ -137,7 +213,7 @@ const cancelIdle =
   (typeof window !== "undefined" && window.cancelIdleCallback) || 
   clearTimeout;
 
-// Warmup WASM in idle time with safe error handling
+// Warmup WASM with better error handling
 let warmupHandle;
 if (typeof warmupWasm === 'function') {
   warmupHandle = requestIdle(() => {
@@ -145,13 +221,13 @@ if (typeof warmupWasm === 'function') {
       const result = warmupWasm();
       if (result && typeof result.then === 'function') {
         result
-          .then(() => console.log("WASM warmed up successfully"))
-          .catch((error) => console.warn("WASM warmup failed:", error));
+          .then(() => console.log("⚡ WASM warmed up successfully"))
+          .catch((error) => console.warn("⚠️ WASM warmup failed:", error));
       } else {
-        console.log("WASM warmed up successfully (sync)");
+        console.log("⚡ WASM warmed up successfully (sync)");
       }
     } catch (error) {
-      console.warn("WASM warmup failed:", error);
+      console.warn("⚠️ WASM warmup failed:", error);
     }
   });
 }
@@ -162,9 +238,9 @@ if ("serviceWorker" in navigator) {
     const idleId = requestIdle(async () => {
       try {
         await navigator.serviceWorker.register("/sw.js", { scope: "/" });
-        console.log("Service worker registered successfully");
+        console.log("📦 Service worker registered successfully");
       } catch (error) {
-        console.warn("Service worker registration failed:", error);
+        console.warn("⚠️ Service worker registration failed:", error);
       }
     });
 
@@ -178,14 +254,17 @@ if ("serviceWorker" in navigator) {
   }
 }
 
-// Debug info
+// Debug information
 if (typeof window !== "undefined") {
-  console.log("🔧 Debug Info:", {
-    hasSSR: !!document.querySelector('[data-reactroot]'),
+  const debugInfo = {
+    renderMode: detectRenderingMode().shouldHydrate ? 'SSR' : 'Client-only',
+    hasSSRContent: rootElement.hasChildNodes(),
     userAgent: navigator.userAgent,
     location: window.location.href,
     timestamp: new Date().toISOString()
-  });
+  };
+  
+  console.log("🔧 Debug Info:", debugInfo);
 }
 
 // Cleanup on page unload

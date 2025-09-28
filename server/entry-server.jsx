@@ -64,7 +64,7 @@ function FeatureInsightsStream({ data }) {
   );
 }
 
-const ABORT_DELAY = 10000;
+const ABORT_DELAY = 8000; // Reduced timeout for faster fallback
 
 const safeSerialize = (data) =>
   JSON.stringify(data).replace(/</g, "\\u003c").replace(/\\u2028/g, "\\u2028").replace(/\\u2029/g, "\\u2029");
@@ -76,7 +76,10 @@ export async function render({ req, res, template, manifest, isProd }) {
   const client = createApolloClient();
 
   try {
-    await client.query({ query: FEATURE_HIGHLIGHTS_QUERY });
+    await client.query({ 
+      query: FEATURE_HIGHLIGHTS_QUERY,
+      errorPolicy: 'all' // Continue even if query fails
+    });
   } catch (error) {
     console.warn("SSR prefetch failed", error);
   }
@@ -121,28 +124,31 @@ export async function render({ req, res, template, manifest, isProd }) {
 
   return new Promise((resolve, reject) => {
     let didError = false;
+    let errorDetails = null;
     const stream = new PassThrough();
 
     const [head = "", tail = ""] = template.split("<!--app-html-->");
 
-    // Enhanced bootstrap script with better error handling
+    // Enhanced bootstrap script with SSR detection
     const bootstrapScriptContent = `
       window.__APOLLO_STATE__=${safeSerialize(apolloState)};
       
-      // Add hydration debugging
+      // SSR success marker
+      window.__SSR_SUCCESS__ = true;
+      
+      // Debug info for hybrid rendering
       window.__SSR_DEBUG__ = ${JSON.stringify({
         url,
         timestamp: new Date().toISOString(),
-        apolloStateKeys: Object.keys(apolloState || {})
+        apolloStateKeys: Object.keys(apolloState || {}),
+        mode: 'ssr'
       })};
       
-      // Catch any early errors
+      // Enhanced error handling
       window.addEventListener('error', function(e) {
-        console.warn('Early error:', e.error?.message || e.message);
-      });
-      
-      window.addEventListener('unhandledrejection', function(e) {
-        console.warn('Early rejection:', e.reason);
+        if (e.error?.message?.includes('Hydration')) {
+          console.warn('SSR->Client: Hydration error detected, client will handle fallback');
+        }
       });
     `;
 
@@ -160,9 +166,10 @@ export async function render({ req, res, template, manifest, isProd }) {
         onShellReady() {
           res.statusCode = didError ? 500 : 200;
           res.setHeader("Content-Type", "text/html; charset=utf-8");
-          res.setHeader("Cache-Control", isProd ? "public, max-age=3600" : "no-cache");
+          res.setHeader("Cache-Control", isProd ? "public, max-age=60" : "no-cache");
           
-          // Add debugging headers in development
+          // Add SSR success headers
+          res.setHeader("X-SSR-Mode", "success");
           if (!isProd) {
             res.setHeader("X-SSR-Render-Time", new Date().toISOString());
             res.setHeader("X-SSR-URL", url);
@@ -174,20 +181,23 @@ export async function render({ req, res, template, manifest, isProd }) {
         },
         onShellError(error) {
           console.error("SSR Shell Error:", error);
+          errorDetails = error;
           reject(error);
         },
         onError(error) {
           didError = true;
+          errorDetails = error;
           console.error("SSR Render Error:", error);
           
-          // In development, be more aggressive about failing
+          // In development, log more details for debugging
           if (!isProd) {
-            console.error("Full error stack:", error.stack);
+            console.error("Component stack:", error.componentStack || 'N/A');
+            console.error("Error stack:", error.stack);
           }
         },
         onAllReady() {
           if (!isProd) {
-            console.log("SSR render complete for:", url);
+            console.log(`SSR render ${didError ? 'completed with errors' : 'successful'} for: ${url}`);
           }
         },
       }
@@ -200,16 +210,22 @@ export async function render({ req, res, template, manifest, isProd }) {
     });
 
     stream.on("error", (error) => {
-      console.error("Stream error", error);
+      console.error("SSR Stream error:", error);
       reject(error);
     });
 
-    // More aggressive timeout in development for debugging
-    const timeout = isProd ? ABORT_DELAY : 5000;
-    setTimeout(() => {
-      console.warn(`SSR render aborted due to timeout (${timeout}ms) for:`, url);
+    // Timeout handler with better error information
+    const timeoutId = setTimeout(() => {
+      console.warn(`SSR render timeout (${ABORT_DELAY}ms) for: ${url}`);
+      if (errorDetails) {
+        console.warn("Last error before timeout:", errorDetails.message);
+      }
       abort();
-    }, timeout).unref?.();
+    }, ABORT_DELAY);
+
+    // Clear timeout if we finish successfully
+    stream.on("end", () => clearTimeout(timeoutId));
+    stream.on("error", () => clearTimeout(timeoutId));
   });
 }
 
@@ -218,7 +234,10 @@ export async function renderFeatureHighlightsRSC(res) {
   let data = { featureHighlights: [], marketplaceStats: null };
 
   try {
-    const result = await client.query({ query: FEATURE_HIGHLIGHTS_QUERY });
+    const result = await client.query({ 
+      query: FEATURE_HIGHLIGHTS_QUERY,
+      errorPolicy: 'all'
+    });
     data = result.data || data;
   } catch (error) {
     console.warn("RSC prefetch failed", error);
@@ -236,6 +255,7 @@ export async function renderFeatureHighlightsRSC(res) {
           res.statusCode = 200;
           res.setHeader("Content-Type", "text/html; charset=utf-8");
           res.setHeader("Cache-Control", "public, max-age=30, stale-while-revalidate=60");
+          res.setHeader("X-Component-Type", "rsc");
           pipe(stream);
           stream.pipe(res);
         },

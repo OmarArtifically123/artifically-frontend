@@ -1,13 +1,20 @@
 import { defineConfig } from 'vite'
 import react from '@vitejs/plugin-react'
-// Temporarily comment out Million.js to fix hydration issues
-// import million from 'million/compiler'
+import million from 'million/compiler'
 
 // https://vitejs.dev/config/
 export default defineConfig({
   plugins: [
-    // Temporarily disable Million.js optimizations
-    // million.vite({ auto: true }),
+    // Re-enable Million.js with SSR-safe settings
+    million.vite({ 
+      auto: {
+        threshold: 0.05, // More conservative threshold
+        skip: ['App', 'Router', 'BrowserRouter', 'Routes', 'Route'], // Skip routing components
+        rsc: false // Disable React Server Components optimizations for now
+      },
+      ssr: true, // Enable SSR support
+      optimize: false // Disable aggressive optimizations that can cause hydration issues
+    }),
     react()
   ],
   build: {
