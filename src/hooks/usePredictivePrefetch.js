@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useRef } from "react";
 
 const STORAGE_KEY = "__artifically_route_model_v1";
+const HISTORY_KEY = "route-history";
 
 const requestIdle =
   typeof window !== "undefined" && typeof window.requestIdleCallback === "function"
@@ -11,6 +12,40 @@ const cancelIdle =
   typeof window !== "undefined" && typeof window.cancelIdleCallback === "function"
     ? (id) => window.cancelIdleCallback(id)
     : (id) => clearTimeout(id);
+
+    const loadHistory = () => {
+  if (typeof window === "undefined") return [];
+  try {
+    const stored = window.localStorage.getItem(HISTORY_KEY);
+    if (!stored) return [];
+    const parsed = JSON.parse(stored);
+    return Array.isArray(parsed) ? parsed : [];
+  } catch (error) {
+    console.warn("Failed to load route history", error);
+    return [];
+  }
+};
+
+const calculateHistoryWeights = (history, currentPathname) => {
+  if (!Array.isArray(history) || !history.length) return {};
+
+  const now = Date.now();
+  const weights = history.reduce((acc, entry, index) => {
+    if (!entry || typeof entry.path !== "string" || entry.path === currentPathname) {
+      return acc;
+    }
+
+    const age = Math.max(now - (entry.ts || 0), 0);
+    const recency = Math.exp(-age / (1000 * 60 * 10)); // decay over ~10 minutes
+    const positionWeight = 1 / Math.pow(index + 1, 1.2);
+    const weight = recency * positionWeight;
+
+    acc[entry.path] = (acc[entry.path] || 0) + weight;
+    return acc;
+  }, {});
+
+  return normalise(weights);
+};
 
 const loadModel = () => {
   if (typeof window === "undefined") return { transitions: {}, visits: {} };
@@ -93,22 +128,36 @@ export default function usePredictivePrefetch(routeLoaders, currentPathname) {
     counts.set(currentPathname, currentCount + 0.5);
 
     const probabilityMap = normalise(model.transitions[currentPathname] || {});
+    const history = loadHistory();
+    const historyMap = calculateHistoryWeights(history, currentPathname);
+
+    const candidatePaths = new Set(
+      Object.keys(probabilityMap).filter((path) => loaders[path])
+    );
+    Object.keys(historyMap)
+      .filter((path) => loaders[path])
+      .forEach((path) => candidatePaths.add(path));
 
     if (idleHandle.current) {
       cancelIdle(idleHandle.current);
     }
 
     idleHandle.current = requestIdle(() => {
-      const entries = Object.entries(probabilityMap).filter(([path]) => loaders[path]);
-
-      const scoredEntries = entries
-        .map(([path, probability]) => {
+      const scoredEntries = Array.from(candidatePaths)
+        .map((path) => {
+          const probability = probabilityMap[path] || 0;
           const interactionBoost = interactionCounts.current.get(path) || 0;
+          const historyBoost = historyMap[path] || 0;
           const visitCount = model.visits[path] || 0;
           const decay = Math.exp(-Math.max(visitCount - 1, 0) * 0.05);
-          const score = probability * 0.7 + interactionBoost * 0.2 + decay * 0.1;
+          const score =
+            probability * 0.55 +
+            interactionBoost * 0.2 +
+            historyBoost * 0.2 +
+            decay * 0.05;
           return { path, score };
         })
+        .filter(({ score }) => score > 0)
         .sort((a, b) => b.score - a.score)
         .slice(0, 4);
 
@@ -119,10 +168,26 @@ export default function usePredictivePrefetch(routeLoaders, currentPathname) {
           .sort((a, b) => b.score - a.score)
           .slice(0, 3);
 
-        scoredEntries.push(...fallbackEntries);
+        const historyFallback = Object.entries(historyMap)
+          .filter(([path]) => loaders[path] && path !== currentPathname)
+          .map(([path, score]) => ({ path, score }))
+          .sort((a, b) => b.score - a.score)
+          .slice(0, 2);
+
+        const seen = new Set();
+        const combined = [...fallbackEntries, ...historyFallback].filter(({ path }) => {
+          if (seen.has(path)) return false;
+          seen.add(path);
+          return true;
+        });
+
+        scoredEntries.push(...combined);
       }
 
+      const prefetched = new Set();
       scoredEntries.forEach(({ path }) => {
+        if (prefetched.has(path)) return;
+        prefetched.add(path);
         try {
           loaders[path]?.();
         } catch (error) {
