@@ -5,7 +5,8 @@
     { "src": "dist/client/**", "use": "@vercel/static" }
   ],
   "routes": [
-    { "src": "/(.*)", "dest": "server/server.js" }
+    { "src": "/rsc/features", "dest": "server/server.js" },
+    { "src": "/.*", "dest": "server/server.js" }
   ],
   "env": {
     "NODE_VERSION": "20",

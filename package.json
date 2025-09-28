@@ -9,25 +9,27 @@
     "automation",
     "enterprise",
     "react",
-    "vite"
+    "vite",
+    "ssr"
   ],
   "scripts": {
     "dev": "vite --host 0.0.0.0",
     "build:client": "vite build --outDir dist/client",
     "build:server": "vite build --ssr server/entry-server.jsx --outDir dist/server",
     "build": "npm run build:client && npm run build:server",
+    "start": "NODE_ENV=production node server/server.js",
+    "ssr:dev": "NODE_ENV=development node server/server.js",
+    "ssr:start": "NODE_ENV=production node server/server.js",
     "lint": "eslint . --ext js,jsx --report-unused-disable-directives --max-warnings 0",
     "preview": "vite preview --host 0.0.0.0",
     "type-check": "tsc --noEmit",
-    "ssr:dev": "NODE_ENV=development node server/server.js",
-    "ssr:start": "NODE_ENV=production node server/server.js",
     "postinstall": "partytown copylib public/~partytown"
   },
   "dependencies": {
-    "@stripe/react-stripe-js": "^2.4.0",
-    "@stripe/stripe-js": "^2.4.0",
     "@apollo/client": "^3.9.7",
     "@builder.io/partytown": "^0.8.1",
+    "@stripe/react-stripe-js": "^2.4.0",
+    "@stripe/stripe-js": "^2.4.0",
     "axios": "^1.6.0",
     "graphql": "^16.8.1",
     "lodash": "^4.17.21",
