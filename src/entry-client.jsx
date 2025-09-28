@@ -233,7 +233,7 @@ if (typeof warmupWasm === 'function') {
 }
 
 // Service Worker registration
-if ("serviceWorker" in navigator) {
+if (typeof window !== "undefined" && "serviceWorker" in navigator) {
   const registerServiceWorker = () => {
     const idleId = requestIdle(async () => {
       try {
@@ -268,8 +268,10 @@ if (typeof window !== "undefined") {
 }
 
 // Cleanup on page unload
-window.addEventListener("beforeunload", () => {
-  if (warmupHandle) {
-    cancelIdle(warmupHandle);
-  }
-});
+if (typeof window !== "undefined") {
+  window.addEventListener("beforeunload", () => {
+    if (warmupHandle) {
+      cancelIdle(warmupHandle);
+    }
+  });
+}

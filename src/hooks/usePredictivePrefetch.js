@@ -3,14 +3,14 @@ import { useEffect, useMemo, useRef } from "react";
 const STORAGE_KEY = "__artifically_route_model_v1";
 
 const requestIdle =
-  typeof window !== "undefined" && window.requestIdleCallback
-    ? window.requestIdleCallback
-    : (cb) => window.setTimeout(() => cb({ didTimeout: false, timeRemaining: () => 0 }), 1);
+  typeof window !== "undefined" && typeof window.requestIdleCallback === "function"
+    ? (cb) => window.requestIdleCallback(cb)
+    : (cb) => setTimeout(() => cb({ didTimeout: false, timeRemaining: () => 0 }), 1);
 
 const cancelIdle =
-  typeof window !== "undefined" && window.cancelIdleCallback
-    ? window.cancelIdleCallback
-    : window.clearTimeout;
+  typeof window !== "undefined" && typeof window.cancelIdleCallback === "function"
+    ? (id) => window.cancelIdleCallback(id)
+    : (id) => clearTimeout(id);
 
 const loadModel = () => {
   if (typeof window === "undefined") return { transitions: {}, visits: {} };

@@ -302,12 +302,14 @@ if (typeof window !== 'undefined') {
 
 // Utility functions and WASM warmup (unchanged)
 const requestIdle =
-  (typeof window !== "undefined" && window.requestIdleCallback) ||
-  ((cb) => setTimeout(() => cb({ didTimeout: false, timeRemaining: () => 0 }), 1));
+  typeof window !== "undefined" && typeof window.requestIdleCallback === "function"
+    ? (cb) => window.requestIdleCallback(cb)
+    : (cb) => setTimeout(() => cb({ didTimeout: false, timeRemaining: () => 0 }), 1);
 
-const cancelIdle = 
-  (typeof window !== "undefined" && window.cancelIdleCallback) || 
-  clearTimeout;
+const cancelIdle =
+  typeof window !== "undefined" && typeof window.cancelIdleCallback === "function"
+    ? (id) => window.cancelIdleCallback(id)
+    : (id) => clearTimeout(id);
 
 let warmupHandle;
 if (typeof warmupWasm === 'function') {
@@ -328,7 +330,7 @@ if (typeof warmupWasm === 'function') {
 }
 
 // Service Worker registration
-if ("serviceWorker" in navigator) {
+if (typeof window !== "undefined" && "serviceWorker" in navigator) {
   const registerServiceWorker = () => {
     const idleId = requestIdle(async () => {
       try {
@@ -350,8 +352,10 @@ if ("serviceWorker" in navigator) {
 }
 
 // Cleanup on page unload
-window.addEventListener("beforeunload", () => {
-  if (warmupHandle) {
-    cancelIdle(warmupHandle);
-  }
-});
+if (typeof window !== "undefined") {
+  window.addEventListener("beforeunload", () => {
+    if (warmupHandle) {
+      cancelIdle(warmupHandle);
+    }
+  });
+}

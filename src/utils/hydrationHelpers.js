@@ -235,13 +235,14 @@ performHydration();
 
 // Utility functions for performance
 const requestIdle =
-  (typeof window !== "undefined" && window.requestIdleCallback) ||
-  ((cb) =>
-    window.setTimeout(() => cb({ didTimeout: false, timeRemaining: () => 0 }), 1));
+  typeof window !== "undefined" && typeof window.requestIdleCallback === "function"
+    ? (cb) => window.requestIdleCallback(cb)
+    : (cb) => setTimeout(() => cb({ didTimeout: false, timeRemaining: () => 0 }), 1);
 
-const cancelIdle = 
-  (typeof window !== "undefined" && window.cancelIdleCallback) || 
-  window.clearTimeout;
+const cancelIdle =
+  typeof window !== "undefined" && typeof window.cancelIdleCallback === "function"
+    ? (id) => window.cancelIdleCallback(id)
+    : (id) => clearTimeout(id);
 
 // Warmup WASM in idle time with better error handling
 const warmupHandle = requestIdle(() => {
@@ -273,8 +274,10 @@ if ("serviceWorker" in navigator && typeof window !== "undefined") {
 }
 
 // Cleanup on page unload
-window.addEventListener("beforeunload", () => {
-  if (warmupHandle) {
-    cancelIdle(warmupHandle);
-  }
-});
+if (typeof window !== "undefined") {
+  window.addEventListener("beforeunload", () => {
+    if (warmupHandle) {
+      cancelIdle(warmupHandle);
+    }
+  });
+}
