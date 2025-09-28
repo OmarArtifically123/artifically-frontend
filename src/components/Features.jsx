@@ -1,14 +1,13 @@
-import { Suspense } from "react";
+import { Suspense, memo } from "react";
 import { useSuspenseQuery } from "@apollo/client";
-import { block } from "million/react";
 import ThemeToggle from "./ThemeToggle";
 import ServerFeatureHighlights from "./ServerFeatureHighlights";
 import { useTheme } from "../context/ThemeContext";
 import FeatureSkeletonGrid from "./skeletons/FeatureSkeleton";
 import { FEATURE_HIGHLIGHTS_QUERY } from "../lib/graphqlClient";
 
-// Use Million.js block optimization with SSR-safe props
-const FeatureCard = block(
+// Memoize the feature card to avoid unnecessary re-renders while keeping SSR markup stable
+const FeatureCard = memo(
   function FeatureCard({ feature, darkMode }) {
     return (
       <article
@@ -115,16 +114,9 @@ const FeatureCard = block(
       </article>
     );
   },
-  {
-    // Million.js options for SSR compatibility
-    shouldUpdate: (oldProps, newProps) => {
-      // Only update if feature or darkMode actually changed
-      return (
-        oldProps.feature.id !== newProps.feature.id ||
-        oldProps.darkMode !== newProps.darkMode
-      );
-    }
-  }
+  (prevProps, nextProps) =>
+    prevProps.feature.id === nextProps.feature.id &&
+    prevProps.darkMode === nextProps.darkMode
 );
 
 function FeaturesContent() {

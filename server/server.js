@@ -65,7 +65,7 @@ async function createDevServer() {
                   '<!--app-fallback-->',
                   '<script>window.__SSR_DISABLED__ = true;</script>'
                 );
-                
+
               res.statusCode = 200;
               res.setHeader("Content-Type", "text/html; charset=utf-8");
               res.setHeader("X-SSR-Fallback", "true");
@@ -121,24 +121,73 @@ const serveStaticFile = (filePath, res) => {
 async function createProdServer() {
   const clientDist = path.resolve(__dirname, "../dist/client");
   const serverDist = path.resolve(__dirname, "../dist/server");
-  const template = fs.readFileSync(path.join(clientDist, "index.html"), "utf-8");
-  const manifest = JSON.parse(
-    fs.readFileSync(path.join(clientDist, "ssr-manifest.json"), "utf-8")
-  );
+  const templatePath = path.join(clientDist, "index.html");
+  const template = fs.readFileSync(templatePath, "utf-8");
+  const clientOnlyTemplate = template
+    .replace(
+      "<!--app-html-->",
+      '<div class="initial-loading"><div class="loading-spinner"></div><p>Loading Artifically...</p></div>'
+    )
+    .replace(
+      "<!--app-fallback-->",
+      '<script>window.__SSR_DISABLED__ = true;</script>'
+    );
+
+  const manifestCandidates = [
+    path.join(clientDist, "ssr-manifest.json"),
+    path.join(clientDist, ".vite/ssr-manifest.json")
+  ];
+  let manifest = null;
+  for (const manifestPath of manifestCandidates) {
+    if (!fs.existsSync(manifestPath)) {
+      continue;
+    }
+    try {
+      manifest = JSON.parse(fs.readFileSync(manifestPath, "utf-8"));
+      break;
+    } catch (error) {
+      console.warn("⚠️ Unable to parse ssr-manifest.json, continuing to look for alternatives", error);
+    }
+  }
+  if (!manifest) {
+    console.warn("⚠️ ssr-manifest.json not found, falling back to client-only rendering.");
+  }
 
   const entryUrl = pathToFileURL(path.join(serverDist, "entry-server.js")).href;
-  const { render, renderFeatureHighlightsRSC } = await import(entryUrl);
+  let render = null;
+  let renderFeatureHighlightsRSC = null;
+  try {
+    ({ render, renderFeatureHighlightsRSC } = await import(entryUrl));
+  } catch (error) {
+    console.error("⚠️ Failed to load SSR entry module, falling back to client-only", error);
+  }
+
+  const sendClientOnly = (res) => {
+    if (res.headersSent) {
+      return;
+    }
+    res.statusCode = 200;
+    res.setHeader("Content-Type", "text/html; charset=utf-8");
+    res.setHeader("X-SSR-Fallback", "true");
+    res.end(clientOnlyTemplate);
+  };
 
   const requestListener = async (req, res) => {
     setDefaultHeaders(res);
     const url = (req.url || "/").split("?")[0];
     if (url.startsWith("/rsc/features")) {
-      try {
-        await renderFeatureHighlightsRSC(res);
-      } catch (error) {
-        console.error("RSC prod render failed", error);
-        res.statusCode = 500;
-        res.end("RSC render failed");
+      if (renderFeatureHighlightsRSC) {
+        try {
+          await renderFeatureHighlightsRSC(res);
+        } catch (error) {
+          console.error("RSC prod render failed", error);
+          res.statusCode = 500;
+          res.end("RSC render failed");
+        }
+      } else {
+        console.warn("RSC renderer unavailable, returning empty response");
+        res.statusCode = 204;
+        res.end();
       }
       return;
     }
@@ -148,12 +197,16 @@ async function createProdServer() {
       return;
     }
 
+    if (!render || !manifest) {
+      sendClientOnly(res);
+      return;
+    }
+
     try {
       await render({ req, res, template, manifest, isProd: true });
     } catch (error) {
-      console.error(error);
-      res.statusCode = 500;
-      res.end(error.stack);
+      console.error("SSR render failed in production, falling back to client-only", error);
+      sendClientOnly(res);
     }
   };
 
