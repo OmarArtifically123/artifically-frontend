@@ -2981,67 +2981,6 @@ overflow: auto;
   background: linear-gradient(135deg, rgba(56, 189, 248, 0.2), rgba(96, 165, 250, 0.08));
 }
 
-.automation-ecosystem {
-  display: grid;
-  gap: 1rem;
-  padding: 1.75rem;
-  border-radius: 1.5rem;
-  border: 1px solid rgba(59, 130, 246, 0.25);
-  background: linear-gradient(135deg, rgba(15, 23, 42, 0.85), rgba(30, 41, 59, 0.9));
-  color: #e2e8f0;
-}
-
-.automation-ecosystem header span {
-  display: inline-block;
-  font-size: 0.75rem;
-  text-transform: uppercase;
-  letter-spacing: 0.08em;
-  color: rgba(129, 140, 248, 0.85);
-}
-
-.automation-ecosystem header h3 {
-  font-size: 1.45rem;
-  font-weight: 700;
-}
-
-.automation-ecosystem__canvas {
-  position: relative;
-  border-radius: 1.25rem;
-  overflow: hidden;
-  background: radial-gradient(circle at top left, rgba(56, 189, 248, 0.18), transparent 58%),
-    radial-gradient(circle at bottom right, rgba(79, 70, 229, 0.16), transparent 55%),
-    rgba(15, 23, 42, 0.9);
-  border: 1px solid rgba(148, 163, 184, 0.28);
-}
-
-.automation-ecosystem__canvas canvas {
-  display: block;
-  width: 100%;
-  height: auto;
-}
-
-.automation-ecosystem__active {
-  position: absolute;
-  bottom: 1rem;
-  left: 1rem;
-  padding: 0.75rem 1rem;
-  border-radius: 1rem;
-  background: rgba(15, 23, 42, 0.82);
-  border: 1px solid rgba(59, 130, 246, 0.35);
-  box-shadow: 0 18px 30px rgba(15, 23, 42, 0.45);
-  display: grid;
-  gap: 0.25rem;
-}
-
-.automation-ecosystem__active strong {
-  font-size: 1.05rem;
-}
-
-.automation-ecosystem__active span {
-  color: rgba(148, 163, 184, 0.88);
-  font-size: 0.85rem;
-}
-
 .automation-card__psychic {
   display: flex;
   align-items: center;

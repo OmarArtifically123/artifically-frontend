@@ -9,7 +9,6 @@ import ThemeToggle from "./ThemeToggle";
 import { useTheme } from "../context/ThemeContext";
 import { warmupWasm, wasmAverage } from "../lib/wasmMath";
 import LivingSuccessMetrics from "./LivingSuccessMetrics";
-import AutomationEcosystem from "./AutomationEcosystem";
 import MarketplaceCollaborationLayer from "./MarketplaceCollaborationLayer";
 import {
   FALLBACK_MARKETPLACE_STATS,
@@ -704,17 +703,6 @@ export default function Marketplace({ user, openAuth }) {
     });
   };
 
-  const handleEcosystemCombine = ({ source, targets }) => {
-    if (source?.id) {
-      castVote(source.id, 1);
-    }
-    (targets || []).forEach((target) => {
-      if (target?.id) {
-        castVote(target.id, 1);
-      }
-    });
-  };
-
   const recordBrowsingSignal = (item, updateState) => {
     if (typeof window === "undefined" || !item) return;
     try {
@@ -1140,12 +1128,6 @@ export default function Marketplace({ user, openAuth }) {
           industry={detectedIndustry}
           focus={activeNeed ? titleCase(activeNeed) : null}
           activeCombo={activeCombination}
-        />
-
-        <AutomationEcosystem
-          automations={automations}
-          focus={activeNeed}
-          onCombine={handleEcosystemCombine}
         />
 
         {error && automations.length > 0 && (
