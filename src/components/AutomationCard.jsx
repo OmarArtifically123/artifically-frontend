@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useTheme } from "../context/ThemeContext";
 
 const SAMPLE_COMPANIES = [
@@ -31,6 +31,30 @@ const SAMPLE_FEATURES = [
   "Compliance audit trail",
 ];
 
+const compactCurrencyFormatters = new Map();
+const TAU = Math.PI * 2;
+
+function formatCompactCurrency(value, currency = "USD") {
+  if (!Number.isFinite(value)) return "$0";
+  const key = currency || "USD";
+  let formatter = compactCurrencyFormatters.get(key);
+  if (!formatter) {
+    formatter = new Intl.NumberFormat("en-US", {
+      style: "currency",
+      currency: key,
+      notation: "compact",
+      maximumFractionDigits: 1,
+    });
+    compactCurrencyFormatters.set(key, formatter);
+  }
+  return formatter.format(value);
+}
+
+function formatNumber(value) {
+  if (!Number.isFinite(value)) return "—";
+  return Math.round(value).toLocaleString();
+}
+
 function hashCode(value) {
   const str = String(value ?? "automation");
   let hash = 0;
@@ -39,6 +63,14 @@ function hashCode(value) {
     hash |= 0;
   }
   return Math.abs(hash);
+}
+
+function createSeededRandom(seed = Date.now()) {
+  let state = Math.max(1, Math.floor(seed) % 2147483647);
+  return () => {
+    state = (state * 48271) % 2147483647;
+    return state / 2147483647;
+  };
 }
 
 function pickFromSeed(seed, list, offset = 0) {
@@ -137,6 +169,236 @@ function createFeatureHighlights(item, activeNeed) {
   }
 
   return deduped.slice(0, 4);
+}
+
+function createPreviewGraph(item, activeNeed) {
+  const seed = hashCode(item.id || item.name);
+  const tagSources = Array.isArray(item?.integrations?.sources)
+    ? item.integrations.sources.filter(Boolean)
+    : SAMPLE_SOURCES;
+  const tagDestinations = Array.isArray(item?.integrations?.destinations)
+    ? item.integrations.destinations.filter(Boolean)
+    : SAMPLE_DESTINATIONS;
+
+  const sources = [
+    titleCase(pickFromSeed(seed + 17, tagSources, 4)),
+    titleCase(pickFromSeed(seed + 29, tagSources, 6)),
+  ].filter(Boolean);
+
+  const destinations = [
+    titleCase(pickFromSeed(seed + 43, tagDestinations, 3)),
+    titleCase(pickFromSeed(seed + 61, tagDestinations, 7)),
+  ].filter(Boolean);
+
+  const focusLabel = activeNeed
+    ? `${titleCase(activeNeed)} intelligence`
+    : titleCase(item.category || item.tags?.[0] || "Adaptive automation");
+
+  const nodes = [
+    ...sources.map((label, index) => ({
+      id: `source-${index}`,
+      label,
+      role: "source",
+    })),
+    {
+      id: "core",
+      label: focusLabel,
+      role: "core",
+    },
+    ...destinations.map((label, index) => ({
+      id: `destination-${index}`,
+      label,
+      role: "destination",
+    })),
+  ];
+
+  const edges = [
+    ...sources.map((_, index) => ({
+      id: `edge-source-${index}`,
+      from: `source-${index}`,
+      to: "core",
+    })),
+    ...destinations.map((_, index) => ({
+      id: `edge-core-${index}`,
+      from: "core",
+      to: `destination-${index}`,
+    })),
+  ];
+
+  const roiMultiple = Number(item?.roi) && Number.isFinite(Number(item.roi)) ? Number(item.roi) : 3.4;
+  const deployments = Number(item?.deploymentsPerWeek) && Number.isFinite(Number(item.deploymentsPerWeek))
+    ? Number(item.deploymentsPerWeek)
+    : 18 + (seed % 14);
+  const hoursSaved = Number(item?.hoursSavedWeekly) && Number.isFinite(Number(item.hoursSavedWeekly))
+    ? Number(item.hoursSavedWeekly)
+    : 240 + (seed % 80) * 3;
+
+  const baselineSavings = Math.max(3500, (deployments * roiMultiple * 180) + hoursSaved * 45);
+  const roiVelocity = Math.max(950, baselineSavings * 0.18);
+  const eventsPerMinute = Math.max(90, 40 + (seed % 110));
+
+  return {
+    seed,
+    nodes,
+    edges,
+    metrics: {
+      baselineSavings,
+      roiVelocity,
+      eventsPerMinute,
+    },
+    summary: {
+      sources,
+      destinations,
+      focus: focusLabel,
+    },
+  };
+}
+
+function groupByRole(nodes = []) {
+  return nodes.reduce((acc, node) => {
+    const role = node.role || "other";
+    if (!acc[role]) acc[role] = [];
+    acc[role].push(node);
+    return acc;
+  }, {});
+}
+
+function computeGraphLayout(nodes = [], width, height) {
+  const grouped = groupByRole(nodes);
+  const layout = new Map();
+  const columns = [
+    { role: "source", x: Math.max(24, width * 0.14) },
+    { role: "core", x: width * 0.5 },
+    { role: "destination", x: Math.min(width - 24, width * 0.86) },
+  ];
+
+  columns.forEach(({ role, x }) => {
+    const list = grouped[role] || [];
+    const spacing = height / (list.length + 1);
+    list.forEach((node, index) => {
+      layout.set(node.id, {
+        x,
+        y: spacing * (index + 1),
+      });
+    });
+  });
+
+  nodes.forEach((node, index) => {
+    if (!layout.has(node.id)) {
+      layout.set(node.id, {
+        x: width * ((index + 1) / (nodes.length + 1)),
+        y: height * 0.5,
+      });
+    }
+  });
+
+  return layout;
+}
+
+function cubicBezierPoint(t, p0, p1, p2, p3) {
+  const mt = 1 - t;
+  const mt2 = mt * mt;
+  const t2 = t * t;
+  const a = mt2 * mt;
+  const b = 3 * mt2 * t;
+  const c = 3 * mt * t2;
+  const d = t * t2;
+  return {
+    x: a * p0.x + b * p1.x + c * p2.x + d * p3.x,
+    y: a * p0.y + b * p1.y + c * p2.y + d * p3.y,
+  };
+}
+
+function drawLivePreview(canvas, container, graph, frame, darkMode) {
+  if (!canvas || !container) return;
+  const width = Math.max(10, container.clientWidth || 0);
+  const height = Math.max(10, container.clientHeight || 0);
+  const ratio = typeof window !== "undefined" ? window.devicePixelRatio || 1 : 1;
+
+  if (canvas.width !== Math.floor(width * ratio) || canvas.height !== Math.floor(height * ratio)) {
+    canvas.width = Math.floor(width * ratio);
+    canvas.height = Math.floor(height * ratio);
+  }
+
+  const ctx = canvas.getContext("2d");
+  if (!ctx) return;
+
+  ctx.save();
+  ctx.scale(ratio, ratio);
+  ctx.clearRect(0, 0, width, height);
+
+  const layout = computeGraphLayout(graph.nodes, width, height);
+  const flowMap = new Map((frame?.flows || []).map((flow) => [flow.id, flow]));
+  const nodeMap = new Map((frame?.nodes || []).map((node) => [node.id, node]));
+
+  graph.edges.forEach((edge, index) => {
+    const from = layout.get(edge.from);
+    const to = layout.get(edge.to);
+    if (!from || !to) return;
+
+    const offset = (index % 2 === 0 ? -1 : 1) * 20;
+    const ctrl1 = { x: from.x + (to.x - from.x) * 0.4, y: from.y + offset };
+    const ctrl2 = { x: from.x + (to.x - from.x) * 0.6, y: to.y - offset };
+    const flow = flowMap.get(edge.id);
+    const intensity = flow ? flow.intensity : 0.3;
+    const active = flow ? flow.active : false;
+
+    ctx.beginPath();
+    ctx.moveTo(from.x, from.y);
+    ctx.bezierCurveTo(ctrl1.x, ctrl1.y, ctrl2.x, ctrl2.y, to.x, to.y);
+    ctx.lineWidth = active ? 3 + intensity * 2 : 2 + intensity * 1.2;
+    ctx.strokeStyle = active
+      ? darkMode
+        ? `rgba(165, 180, 252, ${0.7 + intensity * 0.2})`
+        : `rgba(99, 102, 241, ${0.65 + intensity * 0.25})`
+      : darkMode
+        ? `rgba(148, 163, 184, ${0.25 + intensity * 0.2})`
+        : `rgba(79, 70, 229, ${0.25 + intensity * 0.18})`;
+    ctx.stroke();
+
+    if (flow) {
+      const point = cubicBezierPoint(flow.progress, from, ctrl1, ctrl2, to);
+      const sparkRadius = active ? 5.5 : 4;
+      const gradient = ctx.createRadialGradient(point.x, point.y, 0, point.x, point.y, sparkRadius * 2.5);
+      const sparkColor = darkMode ? "rgba(165, 180, 252, 0.9)" : "rgba(99, 102, 241, 0.95)";
+      gradient.addColorStop(0, sparkColor);
+      gradient.addColorStop(1, "rgba(15, 23, 42, 0)");
+      ctx.fillStyle = gradient;
+      ctx.beginPath();
+      ctx.arc(point.x, point.y, sparkRadius * 1.4, 0, Math.PI * 2);
+      ctx.fill();
+    }
+  });
+
+  graph.nodes.forEach((node) => {
+    const pos = layout.get(node.id);
+    if (!pos) return;
+    const state = nodeMap.get(node.id);
+    const baseRadius = node.role === "core" ? 18 : 12;
+    const pulse = state ? state.pulse : 1;
+    const radius = baseRadius + (pulse - 1) * (node.role === "core" ? 24 : 16);
+
+    const gradient = ctx.createRadialGradient(pos.x, pos.y, radius * 0.25, pos.x, pos.y, radius);
+    if (darkMode) {
+      gradient.addColorStop(0, "rgba(180, 198, 252, 0.95)");
+      gradient.addColorStop(1, "rgba(30, 41, 59, 0.05)");
+    } else {
+      gradient.addColorStop(0, "rgba(99, 102, 241, 0.92)");
+      gradient.addColorStop(1, "rgba(226, 232, 240, 0.05)");
+    }
+    ctx.fillStyle = gradient;
+    ctx.beginPath();
+    ctx.arc(pos.x, pos.y, radius, 0, Math.PI * 2);
+    ctx.fill();
+
+    ctx.lineWidth = node.role === "core" ? 2.4 : 1.5;
+    ctx.strokeStyle = darkMode ? "rgba(165, 180, 252, 0.55)" : "rgba(79, 70, 229, 0.45)";
+    ctx.beginPath();
+    ctx.arc(pos.x, pos.y, radius, 0, Math.PI * 2);
+    ctx.stroke();
+  });
+
+  ctx.restore();
 }
 
 function createMetrics(item) {
@@ -259,6 +521,346 @@ export default function AutomationCard({
   const simulationSteps = useMemo(() => createFlowSteps(item, activeNeed), [item, activeNeed]);
   const featureHighlights = useMemo(() => createFeatureHighlights(item, activeNeed), [item, activeNeed]);
   const sampleDataset = useMemo(() => createSampleDataset(item, activeNeed), [item, activeNeed]);
+  const previewGraph = useMemo(() => createPreviewGraph(item, activeNeed), [item, activeNeed]);
+  const previewSummary = useMemo(() => {
+    const summary = previewGraph.summary || {};
+    return {
+      sources: Array.isArray(summary.sources) ? summary.sources.filter(Boolean) : [],
+      destinations: Array.isArray(summary.destinations) ? summary.destinations.filter(Boolean) : [],
+      focus: summary.focus || "Automation intelligence",
+    };
+  }, [previewGraph]);
+  const cardCurrency = item.currency || "USD";
+
+  const [roiCounter, setRoiCounter] = useState(() =>
+    Math.round(previewGraph.metrics?.baselineSavings || 0),
+  );
+  const [telemetry, setTelemetry] = useState(() => ({
+    perMinute: previewGraph.metrics?.eventsPerMinute || 0,
+    activeConnections: 0,
+  }));
+  const latestFrameRef = useRef({ flows: [], nodes: [] });
+  const graphRef = useRef(previewGraph);
+  const animationFrameRef = useRef(null);
+  const canvasRef = useRef(null);
+  const previewContainerRef = useRef(null);
+  const cardRef = useRef(null);
+  const workerRef = useRef(null);
+  const lastRoiUpdateRef = useRef(0);
+  const lastTelemetryUpdateRef = useRef(0);
+  const inlineLoopRef = useRef(null);
+  const inlineStateRef = useRef(null);
+
+  useEffect(() => {
+    graphRef.current = previewGraph;
+    latestFrameRef.current = {
+      flows: [],
+      nodes: previewGraph.nodes?.map((node) => ({ id: node.id, pulse: 1, activity: 0.5 })) || [],
+    };
+    setRoiCounter(Math.round(previewGraph.metrics?.baselineSavings || 0));
+    setTelemetry({
+      perMinute: previewGraph.metrics?.eventsPerMinute || 0,
+      activeConnections: 0,
+    });
+    lastRoiUpdateRef.current = 0;
+    lastTelemetryUpdateRef.current = 0;
+  }, [previewGraph]);
+
+  const renderLiveDiagram = useCallback(() => {
+    if (typeof window === "undefined") return;
+    const canvas = canvasRef.current;
+    const container = previewContainerRef.current;
+    const graph = graphRef.current;
+    if (!canvas || !container || !graph) return;
+    drawLivePreview(canvas, container, graph, latestFrameRef.current, darkMode);
+  }, [darkMode]);
+
+  const scheduleRender = useCallback(() => {
+    if (typeof window === "undefined") return;
+    if (animationFrameRef.current != null) return;
+    animationFrameRef.current = window.requestAnimationFrame(() => {
+      animationFrameRef.current = null;
+      renderLiveDiagram();
+    });
+  }, [renderLiveDiagram]);
+
+  const stopInlinePreview = useCallback(() => {
+    if (
+      typeof window !== "undefined" &&
+      inlineLoopRef.current != null &&
+      window.cancelAnimationFrame
+    ) {
+      window.cancelAnimationFrame(inlineLoopRef.current);
+    }
+    inlineLoopRef.current = null;
+    inlineStateRef.current = null;
+  }, []);
+
+  const beginInlinePreview = useCallback(
+    (graph) => {
+      if (typeof window === "undefined" || !graph) return undefined;
+
+      stopInlinePreview();
+
+      const seededRandom = createSeededRandom((graph.seed || 0) + 1729);
+      const now =
+        typeof performance !== "undefined" && performance.now
+          ? performance.now()
+          : Date.now();
+
+      inlineStateRef.current = {
+        lastTime: now,
+        basePulse: seededRandom() * TAU,
+        roi: Number(graph.metrics?.baselineSavings) || 0,
+        roiRate: graph.metrics?.roiVelocity
+          ? Number(graph.metrics.roiVelocity) / 1000
+          : 0.24,
+        throughputBase: Number(graph.metrics?.eventsPerMinute) || 120,
+        nodes: (graph.nodes || []).map((node, index) => ({
+          id: node.id,
+          phase: seededRandom() * TAU,
+          pulse: 1,
+          activity: 0.5,
+          wobble: 0.9 + (index % 3) * 0.12 + seededRandom() * 0.08,
+        })),
+        flows: (graph.edges || []).map((edge, index) => ({
+          id: edge.id,
+          progress: seededRandom(),
+          speed: 0.00055 + (index % 3) * 0.00018 + seededRandom() * 0.00025,
+          intensity: 0.4,
+          active: false,
+        })),
+      };
+
+      const step = () => {
+        const state = inlineStateRef.current;
+        if (!state) return;
+
+        const time =
+          typeof performance !== "undefined" && performance.now
+            ? performance.now()
+            : Date.now();
+        const rawDelta = time - state.lastTime;
+        const delta = Math.max(8, Math.min(32, rawDelta));
+        state.lastTime = time;
+
+        state.basePulse = (state.basePulse + delta * 0.0012) % TAU;
+
+        state.nodes = state.nodes.map((nodeState, index) => {
+          const speed = 0.0015 + (index % 3) * 0.00045 + nodeState.wobble * 0.00015;
+          const nextPhase = (nodeState.phase + delta * speed) % TAU;
+          const pulse = 0.93 + 0.09 * ((Math.sin(nextPhase) + 1) / 2);
+          const activity = 0.35 + 0.65 * Math.pow(Math.sin(nextPhase * 0.75 + index), 2);
+          return {
+            ...nodeState,
+            phase: nextPhase,
+            pulse,
+            activity,
+          };
+        });
+
+        let activeConnections = 0;
+        state.flows = state.flows.map((flowState) => {
+          let progress = flowState.progress + delta * flowState.speed;
+          if (progress > 1) {
+            progress -= Math.floor(progress);
+          }
+          const intensity = 0.38 + 0.62 * Math.sin(progress * Math.PI);
+          const active = progress < 0.22;
+          if (active) activeConnections += 1;
+          return {
+            ...flowState,
+            progress,
+            intensity,
+            active,
+          };
+        });
+
+        state.roi += state.roiRate * delta;
+        const roiTotal = state.roi;
+
+        const throughputPerMinute =
+          state.throughputBase + Math.sin(time / 1400) * (state.throughputBase * 0.08);
+
+        latestFrameRef.current = {
+          flows: state.flows.map(({ id, progress, intensity, active }) => ({
+            id,
+            progress,
+            intensity,
+            active,
+          })),
+          nodes: state.nodes.map(({ id, pulse, activity }) => ({
+            id,
+            pulse,
+            activity,
+          })),
+        };
+
+        if (cardRef.current) {
+          const pulse = 0.96 + 0.04 * Math.sin(state.basePulse);
+          cardRef.current.style.setProperty("--live-pulse", pulse.toFixed(3));
+        }
+
+        if (!lastRoiUpdateRef.current || time - lastRoiUpdateRef.current > 120) {
+          lastRoiUpdateRef.current = time;
+          const rounded = Math.round(roiTotal);
+          setRoiCounter((prev) => (prev === rounded ? prev : rounded));
+        }
+
+        if (!lastTelemetryUpdateRef.current || time - lastTelemetryUpdateRef.current > 180) {
+          lastTelemetryUpdateRef.current = time;
+          const nextTelemetry = {
+            perMinute: throughputPerMinute,
+            activeConnections: Math.max(0, Math.round(activeConnections)),
+          };
+          setTelemetry((prev) => {
+            if (
+              Math.round(prev.perMinute) === Math.round(nextTelemetry.perMinute) &&
+              prev.activeConnections === nextTelemetry.activeConnections
+            ) {
+              return prev;
+            }
+            return nextTelemetry;
+          });
+        }
+
+        scheduleRender();
+        inlineLoopRef.current = window.requestAnimationFrame(step);
+      };
+
+      inlineLoopRef.current = window.requestAnimationFrame(step);
+
+      return () => {
+        stopInlinePreview();
+      };
+    },
+    [scheduleRender, stopInlinePreview, setTelemetry, setRoiCounter],
+  );
+
+  useEffect(() => {
+    if (typeof window === "undefined") return undefined;
+    const cleanup = () => {
+      if (animationFrameRef.current != null && window.cancelAnimationFrame) {
+        window.cancelAnimationFrame(animationFrameRef.current);
+        animationFrameRef.current = null;
+      }
+    };
+    return cleanup;
+  }, []);
+
+  useEffect(() => {
+    if (cardRef.current) {
+      cardRef.current.style.setProperty("--live-pulse", "1");
+    }
+  }, []);
+
+  useEffect(() => {
+    scheduleRender();
+  }, [scheduleRender, darkMode]);
+
+  useEffect(() => {
+    scheduleRender();
+  }, [scheduleRender, previewGraph]);
+
+  useEffect(() => {
+    if (typeof ResizeObserver === "undefined") return undefined;
+    const container = previewContainerRef.current;
+    if (!container) return undefined;
+    const observer = new ResizeObserver(() => scheduleRender());
+    observer.observe(container);
+    return () => observer.disconnect();
+  }, [scheduleRender]);
+
+  useEffect(() => {
+    if (typeof window === "undefined") return undefined;
+
+    const runFallback = () => beginInlinePreview(previewGraph);
+
+    if (typeof Worker === "undefined") {
+      return runFallback();
+    }
+
+    try {
+      const worker = new Worker(new URL("../workers/automationPreviewWorker.js", import.meta.url), {
+        type: "module",
+      });
+      workerRef.current = worker;
+      const handleMessage = (event) => {
+        const data = event?.data;
+        if (!data || typeof data !== "object" || data.type !== "frame") return;
+        latestFrameRef.current = {
+          flows: Array.isArray(data.flows) ? data.flows : [],
+          nodes: Array.isArray(data.nodes) ? data.nodes : [],
+        };
+
+        const now = typeof performance !== "undefined" && performance.now ? performance.now() : Date.now();
+        if (cardRef.current && typeof data.pulse === "number" && Number.isFinite(data.pulse)) {
+          cardRef.current.style.setProperty("--live-pulse", data.pulse.toFixed(3));
+        }
+
+        if (typeof data.roi === "number" && Number.isFinite(data.roi)) {
+          if (!lastRoiUpdateRef.current || now - lastRoiUpdateRef.current > 120) {
+            lastRoiUpdateRef.current = now;
+            const rounded = Math.round(data.roi);
+            setRoiCounter((prev) => {
+              if (prev === rounded) return prev;
+              return rounded;
+            });
+          }
+        }
+
+        if (data.throughput && typeof data.throughput === "object") {
+          const perMinute = Number(data.throughput.perMinute);
+          const activeConnections = Number(data.throughput.activeConnections);
+          if (!lastTelemetryUpdateRef.current || now - lastTelemetryUpdateRef.current > 180) {
+            lastTelemetryUpdateRef.current = now;
+            setTelemetry((prev) => {
+              const next = {
+                perMinute: Number.isFinite(perMinute) ? perMinute : 0,
+                activeConnections: Number.isFinite(activeConnections)
+                  ? Math.max(0, Math.round(activeConnections))
+                  : 0,
+              };
+              if (
+                Math.round(prev.perMinute) === Math.round(next.perMinute) &&
+                prev.activeConnections === next.activeConnections
+              ) {
+                return prev;
+              }
+              return next;
+            });
+          }
+        }
+
+        scheduleRender();
+      };
+
+      worker.addEventListener("message", handleMessage);
+      worker.postMessage({
+        type: "init",
+        payload: {
+          graph: previewGraph,
+          metrics: previewGraph.metrics,
+          seed: previewGraph.seed,
+        },
+      });
+
+      return () => {
+        worker.removeEventListener("message", handleMessage);
+        try {
+          worker.postMessage({ type: "stop" });
+        } catch (err) {
+          // ignore post termination errors
+        }
+        worker.terminate();
+        workerRef.current = null;
+      };
+    } catch (err) {
+      console.warn("Automation preview worker unavailable", err);
+      workerRef.current = null;
+      return runFallback();
+    }
+  }, [previewGraph, scheduleRender, beginInlinePreview]);
 
   useEffect(() => {
     if (typeof window === "undefined" || simulationSteps.length === 0) return undefined;
@@ -321,6 +923,9 @@ export default function AutomationCard({
   const progressPercent = Math.round(progress * 100);
   const intensity = Math.min(1, Math.max(0, matchStrength));
   const attentionIntensity = Math.min(1, Math.max(0, attentionScore / 4));
+  const activeLinksLabel = telemetry.activeConnections === 1 ? "link" : "links";
+  const formattedPerMinute = formatNumber(telemetry.perMinute);
+  const formattedSavings = formatCompactCurrency(roiCounter, cardCurrency);
 
   const computedShadow = useMemo(() => {
     const base = spotlighted
@@ -418,6 +1023,7 @@ export default function AutomationCard({
       data-predicted={predicted}
       data-attention-level={attentionIntensity.toFixed(3)}
       data-spotlight={spotlighted}
+      data-live="true"
       id={item?.id ? `automation-${item.id}` : undefined}
       style={{
         position: "relative",
@@ -429,9 +1035,12 @@ export default function AutomationCard({
         background: `linear-gradient(145deg, ${palette.secondary}, rgba(15,23,42,0.85))`,
         boxShadow: computedShadow,
         color: darkMode ? "#e2e8f0" : "#1f2937",
-        transform: computedTransform,
+        transform: computedTransform
+          ? `${computedTransform} scale(var(--live-pulse, 1))`
+          : `scale(var(--live-pulse, 1))`,
         "--attention-level": attentionIntensity,
       }}
+      ref={cardRef}
       onMouseEnter={handlePointerEnter}
       onMouseLeave={handlePointerLeave}
       onFocus={handlePointerEnter}
@@ -452,6 +1061,49 @@ export default function AutomationCard({
         <div className="automation-card__price">
           {formatPrice(item.priceMonthly, item.currency)}/mo
         </div>
+      </div>
+
+      <div
+        className="automation-card__live-preview"
+        ref={previewContainerRef}
+        role="img"
+        aria-label={`Live automation data flow for ${item.name}`}
+      >
+        <canvas ref={canvasRef} aria-hidden="true" />
+        <div className="automation-card__live-hud" aria-live="polite">
+          <div className="automation-card__live-metric">
+            <strong>{formattedPerMinute}</strong>
+            <span>
+              events/min · {telemetry.activeConnections} {activeLinksLabel} live
+            </span>
+          </div>
+          <div className="automation-card__live-metric">
+            <strong>{formattedSavings}</strong>
+            <span>Savings across customers</span>
+          </div>
+        </div>
+      </div>
+
+      <div className="automation-card__live-summary">
+        <span className="automation-card__live-summary-segment" data-role="sources">
+          {previewSummary.sources.length
+            ? previewSummary.sources.join(" • ")
+            : "Live data sources"}
+        </span>
+        <span className="automation-card__live-summary-separator" aria-hidden="true">
+          →
+        </span>
+        <span className="automation-card__live-summary-segment" data-role="core">
+          {previewSummary.focus}
+        </span>
+        <span className="automation-card__live-summary-separator" aria-hidden="true">
+          →
+        </span>
+        <span className="automation-card__live-summary-segment" data-role="destinations">
+          {previewSummary.destinations.length
+            ? previewSummary.destinations.join(" • ")
+            : "Active destinations"}
+        </span>
       </div>
 
       {(industryMatch || browsingMatch) && (
