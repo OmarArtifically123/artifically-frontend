@@ -137,6 +137,14 @@ export const FEATURE_HIGHLIGHTS_QUERY = gql`
   }
 `;
 
+export const MARKETPLACE_STATS_QUERY = gql`
+  query MarketplaceStatsOnly {
+    marketplaceStats {
+      averageROI
+    }
+  }
+`;
+
 const createCache = (initialState) => {
   const cache = new InMemoryCache({
     typePolicies: {

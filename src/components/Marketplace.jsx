@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
+import { useQuery } from "@apollo/client";
 import { fetchAutomations } from "../data/automations";
 import AutomationCard from "./AutomationCard";
 import DemoModal from "./DemoModal";
@@ -7,6 +8,10 @@ import api from "../api";
 import ThemeToggle from "./ThemeToggle";
 import { useTheme } from "../context/ThemeContext";
 import { warmupWasm, wasmAverage } from "../lib/wasmMath";
+import {
+  FALLBACK_MARKETPLACE_STATS,
+  MARKETPLACE_STATS_QUERY,
+} from "../lib/graphqlClient";
 
 const BROWSING_STORAGE_KEY = "automation-browsing-signals";
 
@@ -191,6 +196,41 @@ export default function Marketplace({ user, openAuth }) {
   const [layoutKey, setLayoutKey] = useState(0);
   const [detectedIndustry, setDetectedIndustry] = useState(null);
   const [browsingSignals, setBrowsingSignals] = useState([]);
+  const {
+    data: statsData,
+    error: statsError,
+  } = useQuery(MARKETPLACE_STATS_QUERY, {
+    fetchPolicy: "cache-first",
+  });
+
+  const resolvedStatsROI = useMemo(() => {
+    const roi = statsData?.marketplaceStats?.averageROI;
+    if (typeof roi === "number" && Number.isFinite(roi)) {
+      return roi;
+    }
+    const fallbackROI = FALLBACK_MARKETPLACE_STATS?.averageROI;
+    if (typeof fallbackROI === "number" && Number.isFinite(fallbackROI)) {
+      return fallbackROI;
+    }
+    return null;
+  }, [statsData]);
+
+  useEffect(() => {
+    if (statsError) {
+      console.warn("Failed to fetch marketplace stats", statsError);
+    }
+  }, [statsError]);
+
+  useEffect(() => {
+    if (resolvedStatsROI == null) return;
+    setAverageROI((current) => {
+      const next = Number(resolvedStatsROI.toFixed(2));
+      if (typeof current === "number" && Math.abs(current - next) < 0.005) {
+        return current;
+      }
+      return next;
+    });
+  }, [resolvedStatsROI]);
 
   useEffect(() => {
     warmupWasm();
@@ -205,10 +245,15 @@ export default function Marketplace({ user, openAuth }) {
         }
         setAutomations(list);
 
-        const roiValues = list.map((item) => Math.round((item.roi || 4.2) * 100));
-        wasmAverage(roiValues)
-          .then((avg) => setAverageROI(Number((avg / 100).toFixed(2))))
-          .catch((err) => console.warn("Failed to compute ROI average", err));
+        const roiValues = list
+          .map((item) => item?.roi)
+          .filter((value) => typeof value === "number" && Number.isFinite(value))
+          .map((value) => Math.round(value * 100));
+        if (roiValues.length) {
+          wasmAverage(roiValues)
+            .then((avg) => setAverageROI(Number((avg / 100).toFixed(2))))
+            .catch((err) => console.warn("Failed to compute ROI average", err));
+        }
       } catch (err) {
         console.error("Error loading automations:", err);
         setAutomations([]);
@@ -373,7 +418,15 @@ export default function Marketplace({ user, openAuth }) {
   }, [automationClusters]);
 
   const successMessage = useMemo(() => {
-    const roi = Number(averageROI || 4.2).toFixed(1);
+    const roiSource =
+      typeof averageROI === "number" && Number.isFinite(averageROI)
+        ? averageROI
+        : resolvedStatsROI;
+    const roiValue =
+      typeof roiSource === "number" && Number.isFinite(roiSource)
+        ? roiSource
+        : FALLBACK_MARKETPLACE_STATS?.averageROI || 0;
+    const roi = Number(roiValue).toFixed(1);
     if (detectedIndustry) {
       return `Teams similar to yours in ${detectedIndustry} see ${roi}x ROI with this combination.`;
     }
@@ -381,7 +434,7 @@ export default function Marketplace({ user, openAuth }) {
       return `Teams optimizing for ${titleCase(activeNeed)} see ${roi}x ROI with this combination.`;
     }
     return `Teams similar to yours see ${roi}x ROI with this combination.`;
-  }, [averageROI, detectedIndustry, activeNeed]);
+  }, [averageROI, resolvedStatsROI, detectedIndustry, activeNeed]);
 
   const recordBrowsingSignal = (item, updateState) => {
     if (typeof window === "undefined" || !item) return;
