@@ -1152,7 +1152,7 @@ export default function Marketplace({ user, openAuth }) {
               <strong>{titleCase(activeNeed)}</strong> automations surge to the front with live clustering.
             </span>
           ) : (
-            <span>Showing the full automation constellation with live previews.</span>
+            <span></span>
           )}
         </div>
 
