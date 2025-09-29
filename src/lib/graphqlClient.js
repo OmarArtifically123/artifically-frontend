@@ -26,52 +26,46 @@ const schema = buildSchema(`
 
 const featureHighlights = [
   {
-    id: "marketplace",
-    icon: "🛒",
-    title: "Marketplace, Not a Builder",
-    description:
-      "Choose from battle-tested automations built by experts. No complex flow building or configuration nightmares.",
-    status: "Available now",
-  },
-  {
-    id: "integrations",
-    icon: "🔗",
-    title: "Enterprise Integrations",
-    description:
-      "Seamlessly connects with Stripe, HubSpot, Shopify, Slack, WhatsApp, and 50+ business tools out of the box.",
-    status: "Integrations expanding",
-  },
-  {
-    id: "security",
-    icon: "🛡️",
-    title: "Military-Grade Security",
-    description:
-      "SOC 2 compliant with zero-trust architecture, end-to-end encryption, and granular permission controls.",
-    status: "SOC 2 Type II",
-  },
-  {
-    id: "deployment",
+    id: "live-demos",
     icon: "⚡",
-    title: "Lightning Deployment",
-    description:
-      "From selection to production in under 10 minutes. No coding, no complex setup, just results.",
-    status: "<10 min rollout",
+    title: "One-click live demos",
+    description: "See automation running with your actual data (simulated)",
+    status: "Immersive preview",
   },
   {
-    id: "analytics",
+    id: "roi-calculator",
+    icon: "📈",
+    title: "Interactive ROI calculator",
+    description: "Drag sliders to see cost/benefit in real-time",
+    status: "Dynamic projections",
+  },
+  {
+    id: "workflow-visualization",
+    icon: "🧠",
+    title: "3D workflow visualization",
+    description: "See exactly how data flows through each step",
+    status: "Spatial insight",
+  },
+  {
+    id: "before-after",
+    icon: "🔄",
+    title: "Before/after scenarios",
+    description: "Visual comparison of manual vs automated process",
+    status: "Clarity mode",
+  },
+  {
+    id: "demo-metrics",
     icon: "📊",
-    title: "Real-Time Analytics",
-    description:
-      "Monitor performance, track ROI, and optimize operations with comprehensive dashboards and insights.",
-    status: "Live dashboards",
+    title: "Realistic projections",
+    description: "Every demo surfaces live-looking KPIs tailored to your inputs",
+    status: "Insightful",
   },
   {
-    id: "scale",
-    icon: "🚀",
-    title: "Infinite Scale",
-    description:
-      "Built on cloud-native infrastructure that scales from startup to enterprise without breaking stride.",
-    status: "Multi-region",
+    id: "safe-interaction",
+    icon: "🛡️",
+    title: "Safe sandbox interaction",
+    description: "Experiment confidently with isolated, no-risk data streams",
+    status: "Sandboxed",
   },
 ];
 

@@ -566,21 +566,37 @@ export default function Marketplace({ user, openAuth }) {
         ]
           .filter(Boolean)
           .map((tag) => (
-          <span
-            key={tag}
-            style={{
-              padding: "0.4rem 0.75rem",
-              borderRadius: "0.8rem",
-              background: darkMode ? "rgba(148,163,184,0.18)" : "rgba(99,102,241,0.12)",
-              border: `1px solid ${darkMode ? "rgba(148,163,184,0.32)" : "rgba(99,102,241,0.25)"}`,
-              fontSize: "0.85rem",
-              fontWeight: 600,
-              color: darkMode ? "#cbd5e1" : "#1f2937",
-            }}
-          >
-            {tag}
-          </span>
+            <span
+              key={tag}
+              style={{
+                padding: "0.4rem 0.75rem",
+                borderRadius: "0.8rem",
+                background: darkMode ? "rgba(148,163,184,0.18)" : "rgba(99,102,241,0.12)",
+                border: `1px solid ${darkMode ? "rgba(148,163,184,0.32)" : "rgba(99,102,241,0.25)"}`,
+                fontSize: "0.85rem",
+                fontWeight: 600,
+                color: darkMode ? "#cbd5e1" : "#1f2937",
+              }}
+            >
+              {tag}
+            </span>
           ))}
+      </div>
+      <div
+        className="marketplace-demo-experience"
+        role="note"
+        aria-label="Immersive demo experience details"
+      >
+        <div className="marketplace-demo-experience__header">
+          <span className="marketplace-demo-experience__eyebrow">Demo Experience</span>
+          <p>Click any automation:</p>
+        </div>
+        <ul>
+          <li>→ Card expands into full-screen immersive preview</li>
+          <li>→ Shows your company name/logo in the demo interface</li>
+          <li>→ Displays realistic metrics and projections</li>
+          <li>→ Lets you interact with the automation safely</li>
+        </ul>
       </div>
       {detectedNeeds.length > 0 && (
         <div className="marketplace-needs" role="group" aria-label="Dynamic automation filters">
@@ -832,7 +848,9 @@ export default function Marketplace({ user, openAuth }) {
         )}
       </div>
 
-      {demo && <DemoModal automation={demo} onClose={() => setDemo(null)} />}
+      {demo && (
+        <DemoModal automation={demo} user={user} onClose={() => setDemo(null)} />
+      )}
     </section>
   );
 }
