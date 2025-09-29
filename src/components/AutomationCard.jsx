@@ -227,6 +227,9 @@ export default function AutomationCard({
   industryMatch = false,
   industryLabel,
   browsingMatch = false,
+  onVote,
+  voteCount = 0,
+  predicted = false,
 }) {
   const { darkMode } = useTheme();
   const palette = useIconPalette(item.icon);
@@ -287,6 +290,17 @@ export default function AutomationCard({
     setProgress(0);
   }, [simulationStep]);
 
+  useEffect(() => {
+    if (typeof window === "undefined") return undefined;
+    if (!predicted) return undefined;
+    if (hovered) return undefined;
+    setHovered(true);
+    const timeout = window.setTimeout(() => {
+      setHovered(false);
+    }, 1400);
+    return () => window.clearTimeout(timeout);
+  }, [predicted, hovered]);
+
   const activeStream = useMemo(() => {
     if (!sampleDataset.length) return [];
     const list = [];
@@ -305,8 +319,9 @@ export default function AutomationCard({
     <div
       className={`automation-card glass-panel${hovered ? " is-hovered" : ""}${
         intensity > 0.45 ? " is-priority" : ""
-      }`}
+      }${predicted ? " is-psychic" : ""}`}
       data-glass="true"
+      data-predicted={predicted}
       style={{
         position: "relative",
         display: "grid",
@@ -362,6 +377,11 @@ export default function AutomationCard({
           ⚡
         </span>
         <span className="automation-card__stat-copy">{metrics.statement}</span>
+      </div>
+
+      <div className="automation-card__psychic" data-visible={predicted}>
+        <span aria-hidden="true">🔮</span>
+        <span>Marketplace senses you're about to open this.</span>
       </div>
 
       <div className="automation-card__flow" aria-label="Automation data flow visualization">
@@ -468,6 +488,20 @@ export default function AutomationCard({
         >
           Buy & Deploy
         </button>
+      </div>
+
+      <div className="automation-card__collab">
+        <button
+          type="button"
+          className="automation-card__vote"
+          onClick={() => {
+            if (onVote) onVote(item);
+          }}
+        >
+          <span aria-hidden="true">🗳️</span>
+          <span>Vote to deploy</span>
+        </button>
+        <span className="automation-card__vote-count">{voteCount} team votes</span>
       </div>
     </div>
   );

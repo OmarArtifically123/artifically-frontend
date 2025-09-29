@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { useQuery } from "@apollo/client";
 import { fetchAutomations } from "../data/automations";
 import AutomationCard from "./AutomationCard";
@@ -8,6 +8,9 @@ import api from "../api";
 import ThemeToggle from "./ThemeToggle";
 import { useTheme } from "../context/ThemeContext";
 import { warmupWasm, wasmAverage } from "../lib/wasmMath";
+import LivingSuccessMetrics from "./LivingSuccessMetrics";
+import AutomationEcosystem from "./AutomationEcosystem";
+import MarketplaceCollaborationLayer from "./MarketplaceCollaborationLayer";
 import {
   FALLBACK_MARKETPLACE_STATS,
   MARKETPLACE_STATS_QUERY,
@@ -83,6 +86,74 @@ const MARKETPLACE_JOURNEY = [
     ],
   },
 ];
+
+function deriveROIMetrics(automations = [], signals = [], focus) {
+  const roiValues = [];
+  const categoryMap = new Map();
+  const comboScores = [];
+
+  automations.forEach((automation) => {
+    if (!automation || typeof automation !== "object") return;
+    const roi = Number(automation?.roi);
+    if (Number.isFinite(roi)) {
+      roiValues.push(roi);
+    }
+
+    const category = automation?.category || automation?.vertical || "General";
+    const entry = categoryMap.get(category) || { count: 0, roi: 0 };
+    entry.count += 1;
+    if (Number.isFinite(roi)) {
+      entry.roi += roi;
+    }
+    categoryMap.set(category, entry);
+
+    const tags = Array.isArray(automation?.tags) ? automation.tags : [];
+    const overlap = signals.filter((signal) => {
+      const normalized = String(signal || "").toLowerCase();
+      return (
+        normalized &&
+        (String(category).toLowerCase().includes(normalized) ||
+          tags.some((tag) => String(tag).toLowerCase().includes(normalized)))
+      );
+    });
+    if (overlap.length >= 2) {
+      comboScores.push({
+        id: automation.id,
+        name: automation.name,
+        overlap,
+        roi: Number.isFinite(roi) ? roi : 0,
+      });
+    }
+  });
+
+  const averageROI =
+    roiValues.length > 0
+      ? roiValues.reduce((total, value) => total + value, 0) / roiValues.length
+      : null;
+
+  const topCategory = Array.from(categoryMap.entries())
+    .map(([category, { count, roi }]) => ({
+      category,
+      count,
+      roiAverage: count > 0 ? roi / count : 0,
+    }))
+    .sort((a, b) => {
+      if (b.roiAverage === a.roiAverage) {
+        return b.count - a.count;
+      }
+      return b.roiAverage - a.roiAverage;
+    })[0] || null;
+
+  const combo = comboScores
+    .map((entry) => ({
+      ...entry,
+      score: entry.roi + entry.overlap.length * 1.75 + (focus ? 2.5 : 0),
+    }))
+    .sort((a, b) => b.score - a.score)
+    .slice(0, 3);
+
+  return { averageROI, topCategory, combo };
+}
 
 const DOMAIN_INDUSTRY_MAP = [
   { keywords: ["health", "med", "pharma", "clinic"], industry: "Healthcare" },
@@ -265,6 +336,17 @@ export default function Marketplace({ user, openAuth }) {
   const [layoutKey, setLayoutKey] = useState(0);
   const [detectedIndustry, setDetectedIndustry] = useState(null);
   const [browsingSignals, setBrowsingSignals] = useState([]);
+  const [workerMetrics, setWorkerMetrics] = useState({
+    averageROI: null,
+    topCategory: null,
+    combo: [],
+  });
+  const [psychicId, setPsychicId] = useState(null);
+  const [teamVotes, setTeamVotes] = useState({});
+  const workerRef = useRef(null);
+  const collaborationChannelRef = useRef(null);
+  const [collaborationReady, setCollaborationReady] = useState(false);
+  const sessionId = useMemo(() => `mp-${Math.random().toString(36).slice(2, 8)}`, []);
   const {
     data: statsData,
     error: statsError,
@@ -334,6 +416,36 @@ export default function Marketplace({ user, openAuth }) {
     };
 
     loadAutomations();
+  }, []);
+
+  useEffect(() => {
+    if (typeof window === "undefined" || typeof Worker === "undefined") return undefined;
+    try {
+      const worker = new Worker(new URL("../workers/roiWorker.js", import.meta.url), {
+        type: "module",
+      });
+      workerRef.current = worker;
+      const handleMessage = (event) => {
+        if (event.data?.type === "metrics") {
+          setWorkerMetrics({
+            averageROI: event.data.averageROI,
+            topCategory: event.data.topCategory,
+            combo: event.data.combo || [],
+          });
+        }
+      };
+      worker.addEventListener("message", handleMessage);
+
+      return () => {
+        worker.removeEventListener("message", handleMessage);
+        worker.terminate();
+        workerRef.current = null;
+      };
+    } catch (err) {
+      console.warn("ROI worker unavailable", err);
+      workerRef.current = null;
+      return undefined;
+    }
   }, []);
 
   useEffect(() => {
@@ -409,6 +521,47 @@ export default function Marketplace({ user, openAuth }) {
     setLayoutKey((prev) => prev + 1);
   }, [activeNeed]);
 
+  useEffect(() => {
+    if (!automations.length) return;
+    const signals = [
+      ...detectedNeeds,
+      ...(browsingSignals || []).map((signal) => signal.label).filter(Boolean),
+    ];
+
+    if (workerRef.current) {
+      workerRef.current.postMessage({ automations, signals, focus: activeNeed });
+      return;
+    }
+
+    setWorkerMetrics(deriveROIMetrics(automations, signals, activeNeed));
+  }, [automations, detectedNeeds, browsingSignals, activeNeed]);
+
+  useEffect(() => {
+    if (typeof window === "undefined" || typeof BroadcastChannel === "undefined") {
+      return undefined;
+    }
+    const channel = new BroadcastChannel("marketplace-collaboration");
+    collaborationChannelRef.current = channel;
+    setCollaborationReady(true);
+    const handleMessage = (event) => {
+      const payload = event.data;
+      if (!payload || payload.sessionId === sessionId) return;
+      if (payload.type === "vote" && payload.automationId) {
+        setTeamVotes((prev) => ({
+          ...prev,
+          [payload.automationId]: (prev[payload.automationId] || 0) + (payload.delta || 1),
+        }));
+      }
+    };
+    channel.addEventListener("message", handleMessage);
+    return () => {
+      channel.removeEventListener("message", handleMessage);
+      channel.close();
+      collaborationChannelRef.current = null;
+      setCollaborationReady(false);
+    };
+  }, [sessionId]);
+
   const scoredAutomations = useMemo(() => {
     if (!automations.length) return [];
 
@@ -446,6 +599,10 @@ export default function Marketplace({ user, openAuth }) {
     detectedIndustry,
   ]);
 
+  const automationMap = useMemo(() => {
+    return new Map(automations.map((item) => [item.id, item]));
+  }, [automations]);
+
   const automationClusters = useMemo(() => {
     if (!scoredAutomations.length) return [];
 
@@ -476,6 +633,15 @@ export default function Marketplace({ user, openAuth }) {
     [scoredAutomations],
   );
 
+  useEffect(() => {
+    if (typeof window === "undefined" || !recommendedAutomations.length) return;
+    const [top] = recommendedAutomations;
+    const timer = window.setTimeout(() => {
+      setPsychicId(top.item.id);
+    }, 950);
+    return () => window.clearTimeout(timer);
+  }, [recommendedAutomations]);
+
   const combinationHighlight = useMemo(() => {
     if (!automationClusters.length) return null;
     const [topCluster] = automationClusters;
@@ -486,11 +652,30 @@ export default function Marketplace({ user, openAuth }) {
     };
   }, [automationClusters]);
 
+  const workerComboHighlight = useMemo(() => {
+    if (!workerMetrics.combo?.length) return null;
+    const [primary] = workerMetrics.combo;
+    const source = automationMap.get(primary.id);
+    const title = primary?.name || source?.name || "High-impact automation stack";
+    return {
+      title,
+      description: primary?.overlap?.length
+        ? `Signals in common: ${primary.overlap.join(", ")}`
+        : "This stack surges ahead for teams matching your signals.",
+      items: [title, ...(primary?.overlap || []).slice(0, 2)],
+      roi: primary?.roi,
+    };
+  }, [workerMetrics.combo, automationMap]);
+
+  const activeCombination = workerComboHighlight || combinationHighlight;
+
   const successMessage = useMemo(() => {
     const roiSource =
-      typeof averageROI === "number" && Number.isFinite(averageROI)
-        ? averageROI
-        : resolvedStatsROI;
+      typeof workerMetrics.averageROI === "number" && Number.isFinite(workerMetrics.averageROI)
+        ? workerMetrics.averageROI
+        : typeof averageROI === "number" && Number.isFinite(averageROI)
+          ? averageROI
+          : resolvedStatsROI;
     const roiValue =
       typeof roiSource === "number" && Number.isFinite(roiSource)
         ? roiSource
@@ -503,7 +688,32 @@ export default function Marketplace({ user, openAuth }) {
       return `Teams optimizing for ${titleCase(activeNeed)} see ${roi}x ROI with this combination.`;
     }
     return `Teams similar to yours see ${roi}x ROI with this combination.`;
-  }, [averageROI, resolvedStatsROI, detectedIndustry, activeNeed]);
+  }, [averageROI, resolvedStatsROI, detectedIndustry, activeNeed, workerMetrics.averageROI]);
+
+  const castVote = (automationId, delta = 1) => {
+    if (!automationId) return;
+    setTeamVotes((prev) => ({
+      ...prev,
+      [automationId]: (prev[automationId] || 0) + delta,
+    }));
+    collaborationChannelRef.current?.postMessage({
+      type: "vote",
+      sessionId,
+      automationId,
+      delta,
+    });
+  };
+
+  const handleEcosystemCombine = ({ source, targets }) => {
+    if (source?.id) {
+      castVote(source.id, 1);
+    }
+    (targets || []).forEach((target) => {
+      if (target?.id) {
+        castVote(target.id, 1);
+      }
+    });
+  };
 
   const recordBrowsingSignal = (item, updateState) => {
     if (typeof window === "undefined" || !item) return;
@@ -612,12 +822,38 @@ export default function Marketplace({ user, openAuth }) {
           flexWrap: "wrap",
         }}
       >
-        <div>
-          <h2 style={{ fontSize: "2.4rem", fontWeight: 800 }}>Automation Marketplace</h2>
+        <div className="marketplace-entry__intro">
+          <h2 style={{ fontSize: "2.4rem", fontWeight: 800 }}>
+            Marketplace reimagined for {detectedIndustry || "your industry"}
+          </h2>
           <p style={{ color: darkMode ? "#94a3b8" : "#475569" }}>
-            Meet your team inside the marketplace—track shared exploration, glowing favorites, and
-            ready-to-deploy automations together.
+            Automations reshuffle themselves around your profile. Categories pulse to guide attention
+            and success metrics fade in as if the marketplace already knows what you'll ask next.
           </p>
+          <div className="marketplace-entry__meta">
+            <div>
+              <span>Top live cluster</span>
+              <strong>{workerMetrics.topCategory?.category || "Adaptive orchestration"}</strong>
+            </div>
+            <div>
+              <span>Psychic highlight</span>
+              <strong>
+                {psychicId
+                  ? automationMap.get(psychicId)?.name || "Discovering"
+                  : "Scanning"}
+              </strong>
+            </div>
+            <div>
+              <span>Active combination ROI</span>
+              <strong>
+                {activeCombination?.roi
+                  ? `${Number(activeCombination.roi).toFixed(2)}x`
+                  : workerMetrics.averageROI
+                    ? `${workerMetrics.averageROI.toFixed(2)}x`
+                    : "Modeling"}
+              </strong>
+            </div>
+          </div>
         </div>
         <ThemeToggle />
       </div>
@@ -629,10 +865,11 @@ export default function Marketplace({ user, openAuth }) {
         }}
       >
         {[
-          "Instant deployments",
-          "Security reviews",
-          "Theme-aware demos",
-          averageROI ? `Avg ROI ${averageROI}x` : null,
+          "Psychic glow predictions",
+          "Canvas ecosystem map",
+          "Collaborative decisions",
+          workerMetrics.averageROI ? `Live ROI ${workerMetrics.averageROI.toFixed(2)}x` : null,
+          detectedIndustry ? `${detectedIndustry} focus` : null,
         ]
           .filter(Boolean)
           .map((tag) => (
@@ -797,7 +1034,15 @@ export default function Marketplace({ user, openAuth }) {
     <section className="marketplace" data-glass="true" style={{ padding: "5rem 0" }}>
       <div className="container" style={{ display: "grid", gap: "2.5rem" }}>
         {sectionHeader}
-        
+
+        {collaborationReady && (
+          <MarketplaceCollaborationLayer
+            focus={activeNeed ? titleCase(activeNeed) : null}
+            channel={collaborationChannelRef.current}
+            sessionId={sessionId}
+          />
+        )}
+
         <div className="marketplace-smart" role="region" aria-label="Smart marketplace insights">
           <div className="marketplace-smart__column">
             <header className="marketplace-smart__header">
@@ -815,7 +1060,11 @@ export default function Marketplace({ user, openAuth }) {
                 <p>No recommendations available yet.</p>
               ) : (
                 recommendedAutomations.map(({ item, rank, confidence }) => (
-                  <article key={item.id} className="marketplace-smart__card">
+                  <article
+                    key={item.id}
+                    className="marketplace-smart__card"
+                    data-predicted={psychicId === item.id}
+                  >
                     <div className="marketplace-smart__card-rank">#{rank}</div>
                     <div className="marketplace-smart__card-body">
                       <h4>{item.name}</h4>
@@ -823,6 +1072,16 @@ export default function Marketplace({ user, openAuth }) {
                       <div className="marketplace-smart__card-meta">
                         <span>{confidence}% relevance match</span>
                         {item.tags?.length ? <span>{item.tags.slice(0, 2).join(" · ")}</span> : null}
+                        {typeof workerMetrics.averageROI === "number" ? (
+                          <span>{workerMetrics.averageROI.toFixed(2)}x live ROI</span>
+                        ) : null}
+                      </div>
+                      <div className="marketplace-smart__card-collab">
+                        <button type="button" onClick={() => castVote(item.id)}>
+                          <span aria-hidden="true">🗳️</span>
+                          <span>Team vote</span>
+                        </button>
+                        <span>{teamVotes[item.id] || 0} votes</span>
                       </div>
                     </div>
                     <button
@@ -864,18 +1123,30 @@ export default function Marketplace({ user, openAuth }) {
                 <strong>Peer success signals</strong>
                 <span>Shows peer success stories and ROI uplift for teams similar to yours.</span>
               </li>
-              {combinationHighlight && (
+              {activeCombination && (
                 <li>
                   <strong>Combination spotlight</strong>
                   <span>
-                    Highlights automation combinations like <em>{combinationHighlight.title}</em> that
-                    work well together: {combinationHighlight.items.join(", ")}
+                    Highlights automation combinations like <em>{activeCombination.title}</em> that
+                    work well together: {activeCombination.items.join(", ")}
                   </span>
                 </li>
               )}
             </ul>
           </div>
         </div>
+
+        <LivingSuccessMetrics
+          industry={detectedIndustry}
+          focus={activeNeed ? titleCase(activeNeed) : null}
+          activeCombo={activeCombination}
+        />
+
+        <AutomationEcosystem
+          automations={automations}
+          focus={activeNeed}
+          onCombine={handleEcosystemCombine}
+        />
 
         {error && automations.length > 0 && (
           <div
@@ -948,6 +1219,9 @@ export default function Marketplace({ user, openAuth }) {
                       industryMatch={industryMatch}
                       industryLabel={detectedIndustry}
                       browsingMatch={browsingMatch}
+                      onVote={(automation) => castVote(automation.id)}
+                      voteCount={teamVotes[item.id] || 0}
+                      predicted={psychicId === item.id}
                     />
                   ))}
                 </div>
