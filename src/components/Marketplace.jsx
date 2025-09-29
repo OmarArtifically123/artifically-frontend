@@ -23,32 +23,6 @@ const MAX_SEARCH_HISTORY = 8;
 const ATTENTION_DECAY_FACTOR = 0.94;
 const ATTENTION_DECAY_INTERVAL_MINUTES = 18;
 
-const COLLABORATION_FEATURES = [
-  {
-    title: "Team exploration mode",
-    description: "See where colleagues are looking in real-time.",
-  },
-  {
-    title: "Shared favorites",
-    description: "Automations teammates bookmarked glow softly.",
-  },
-  {
-    title: "Collaborative filtering",
-    description: '"3 team members viewed this automation" moments surface instantly.',
-  },
-  {
-    title: "Quick sharing",
-    description: "One-click to share automation preview with the team.",
-  },
-];
-
-const SOCIAL_FEATURES = [
-  "Teammate cursors appear as they explore",
-  "Popular automations among your industry peers are highlighted",
-  "Team annotations appear on relevant automations",
-  "Shared deployment planning workspace",
-];
-
 const MARKETPLACE_JOURNEY = [
   {
     title: "Entry Experience",
@@ -1343,38 +1317,7 @@ export default function Marketplace({ user, openAuth }) {
             </span>
           ))}
       </div>
-      <div
-        className="marketplace-demo-experience"
-        role="note"
-        aria-label="Collaborative marketplace experience details"
-      >
-        <div className="marketplace-demo-experience__header">
-          <span className="marketplace-demo-experience__eyebrow">Team Exploration</span>
-          <p>Marketplace is now multiplayer-ready:</p>
-        </div>
-        <ul className="marketplace-demo-experience__list">
-          {COLLABORATION_FEATURES.map(({ title, description }) => (
-            <li key={title}>
-              <strong>{title}</strong>
-              <span>{description}</span>
-            </li>
-          ))}
-        </ul>
-        <div className="marketplace-collaboration__social">
-          <header>
-            <span aria-hidden="true">🤝</span>
-            <div>
-              <h4>Social Features</h4>
-              <p>Multiplayer marketplace where:</p>
-            </div>
-          </header>
-          <ul className="marketplace-collaboration__social-list">
-            {SOCIAL_FEATURES.map((detail) => (
-              <li key={detail}>{detail}</li>
-            ))}
-          </ul>
-        </div>
-      </div>
+      
       <div className="marketplace-journey" aria-label="Marketplace journey highlights">
         <header>
           <span className="marketplace-journey__eyebrow">🎨 Marketplace Reimagined</span>
