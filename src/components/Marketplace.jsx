@@ -15,6 +15,75 @@ import {
 
 const BROWSING_STORAGE_KEY = "automation-browsing-signals";
 
+const COLLABORATION_FEATURES = [
+  {
+    title: "Team exploration mode",
+    description: "See where colleagues are looking in real-time.",
+  },
+  {
+    title: "Shared favorites",
+    description: "Automations teammates bookmarked glow softly.",
+  },
+  {
+    title: "Collaborative filtering",
+    description: '"3 team members viewed this automation" moments surface instantly.',
+  },
+  {
+    title: "Quick sharing",
+    description: "One-click to share automation preview with the team.",
+  },
+];
+
+const SOCIAL_FEATURES = [
+  "Teammate cursors appear as they explore",
+  "Popular automations among your industry peers are highlighted",
+  "Team annotations appear on relevant automations",
+  "Shared deployment planning workspace",
+];
+
+const MARKETPLACE_JOURNEY = [
+  {
+    title: "Entry Experience",
+    icon: "🚪",
+    steps: [
+      "Automations arrange themselves based on detected company profile",
+      "Gentle animations guide attention to highest-value options",
+      "Success metrics from similar companies fade in gracefully",
+      "Most relevant categories pulse softly with welcoming energy",
+    ],
+  },
+  {
+    title: "Browse & Filter",
+    icon: "🧭",
+    steps: [
+      "Intelligent filters appear based on browsing behavior",
+      "Automations reorganize fluidly when filters change",
+      "Related automations connect with animated lines",
+      "ROI indicators update in real-time as they browse",
+    ],
+  },
+  {
+    title: "Deep Dive Preview",
+    icon: "🔍",
+    steps: [
+      "Card morphs into immersive full-screen experience",
+      "Shows automation running with user's industry data",
+      "Interactive elements let them \"test drive\" features",
+      "Real deployment timeline appears with effort estimates",
+    ],
+  },
+  {
+    title: "Team Collaboration",
+    icon: "🤝",
+    steps: [
+      "Their cursor appears with elegant fade-in animation",
+      "Shared discoveries synchronize across all viewers",
+      "Live discussion appears as contextual chat bubbles",
+      "Collaborative decision-making with voting/rating system",
+    ],
+  },
+];
+
 const DOMAIN_INDUSTRY_MAP = [
   { keywords: ["health", "med", "pharma", "clinic"], industry: "Healthcare" },
   { keywords: ["fin", "bank", "capital", "credit"], industry: "Financial Services" },
@@ -546,7 +615,8 @@ export default function Marketplace({ user, openAuth }) {
         <div>
           <h2 style={{ fontSize: "2.4rem", fontWeight: 800 }}>Automation Marketplace</h2>
           <p style={{ color: darkMode ? "#94a3b8" : "#475569" }}>
-            Pick an automation, preview the workflow, and deploy with glassmorphism-rich previews.
+            Meet your team inside the marketplace—track shared exploration, glowing favorites, and
+            ready-to-deploy automations together.
           </p>
         </div>
         <ThemeToggle />
@@ -585,18 +655,57 @@ export default function Marketplace({ user, openAuth }) {
       <div
         className="marketplace-demo-experience"
         role="note"
-        aria-label="Immersive demo experience details"
+        aria-label="Collaborative marketplace experience details"
       >
         <div className="marketplace-demo-experience__header">
-          <span className="marketplace-demo-experience__eyebrow">Demo Experience</span>
-          <p>Click any automation:</p>
+          <span className="marketplace-demo-experience__eyebrow">Team Exploration</span>
+          <p>Marketplace is now multiplayer-ready:</p>
         </div>
-        <ul>
-          <li>→ Card expands into full-screen immersive preview</li>
-          <li>→ Shows your company name/logo in the demo interface</li>
-          <li>→ Displays realistic metrics and projections</li>
-          <li>→ Lets you interact with the automation safely</li>
+        <ul className="marketplace-demo-experience__list">
+          {COLLABORATION_FEATURES.map(({ title, description }) => (
+            <li key={title}>
+              <strong>{title}</strong>
+              <span>{description}</span>
+            </li>
+          ))}
         </ul>
+        <div className="marketplace-collaboration__social">
+          <header>
+            <span aria-hidden="true">🤝</span>
+            <div>
+              <h4>Social Features</h4>
+              <p>Multiplayer marketplace where:</p>
+            </div>
+          </header>
+          <ul className="marketplace-collaboration__social-list">
+            {SOCIAL_FEATURES.map((detail) => (
+              <li key={detail}>{detail}</li>
+            ))}
+          </ul>
+        </div>
+      </div>
+      <div className="marketplace-journey" aria-label="Marketplace journey highlights">
+        <header>
+          <span className="marketplace-journey__eyebrow">🎨 Marketplace Reimagined</span>
+          <p>Follow the shared exploration flow from welcome moment to decision.</p>
+        </header>
+        <div className="marketplace-journey__grid">
+          {MARKETPLACE_JOURNEY.map(({ title, icon, steps }) => (
+            <article key={title} className="marketplace-journey__card">
+              <div className="marketplace-journey__card-header">
+                <span aria-hidden="true" className="marketplace-journey__icon">
+                  {icon}
+                </span>
+                <h4>{title}</h4>
+              </div>
+              <ol>
+                {steps.map((step) => (
+                  <li key={step}>{step}</li>
+                ))}
+              </ol>
+            </article>
+          ))}
+        </div>
       </div>
       {detectedNeeds.length > 0 && (
         <div className="marketplace-needs" role="group" aria-label="Dynamic automation filters">
