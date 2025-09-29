@@ -36,13 +36,17 @@ export default function Home({ user, scrollTo, openAuth }) {
   return (
     <main>
       <Hero />
-      <section aria-label="Platform capabilities">
+      <section aria-label="Platform capabilities" data-intent-route="/marketplace" data-intent-threshold="0.45">
         <Suspense fallback={<RouteShell rows={4} />}>
           {contentReady ? <Features /> : <RouteShell rows={4} />}
         </Suspense>
       </section>
       {/* Marketplace section with id to allow smooth scroll */}
-      <div id="marketplace">
+      <div
+        id="marketplace"
+        data-intent-route="/pricing"
+        data-intent-threshold="0.3"
+      >
         <Suspense fallback={<RouteShell rows={5} />}>
           {contentReady ? (
             <Marketplace

@@ -55,10 +55,120 @@ const shouldOpenAdvanced = (state) =>
   state.timeline !== FORM_DEFAULTS.timeline ||
   state.shareMetrics !== FORM_DEFAULTS.shareMetrics;
 
+  const decodeParam = (value) => {
+  if (!value && value !== 0) return "";
+  try {
+    return decodeURIComponent(String(value).replace(/\+/g, " "));
+  } catch (error) {
+    return String(value);
+  }
+};
+
+const toTitleCase = (input = "") =>
+  input
+    .split(/\s+/)
+    .filter(Boolean)
+    .map((part) => part.charAt(0).toUpperCase() + part.slice(1).toLowerCase())
+    .join(" ");
+
+function getSmartPrefill(stored = {}) {
+  if (typeof window === "undefined") return {};
+
+  const guesses = {};
+  const params = new URLSearchParams(window.location.search);
+  const ref = (document.referrer || "").toLowerCase();
+
+  const maybeSet = (key, value) => {
+    if (value == null || value === "") return;
+    if (stored[key] && String(stored[key]).trim()) return;
+    guesses[key] = value;
+  };
+
+  const paramName = decodeParam(
+    params.get("name") || params.get("full_name") || params.get("contact"),
+  );
+  maybeSet("name", paramName);
+
+  const paramEmail = decodeParam(params.get("email") || params.get("user_email"));
+  maybeSet("email", paramEmail);
+
+  const paramTopic =
+    decodeParam(params.get("topic")) ||
+    decodeParam(params.get("use_case")) ||
+    decodeParam(params.get("campaign"));
+  if (paramTopic) {
+    maybeSet("topic", toTitleCase(paramTopic));
+  }
+
+  const focusParam = decodeParam(params.get("focus") || params.get("need"));
+  if (focusParam && !guesses.topic) {
+    maybeSet("topic", toTitleCase(focusParam));
+  }
+
+  if (!guesses.topic) {
+    if (ref.includes("pricing") || params.get("from") === "pricing") {
+      maybeSet("topic", "Pricing and packaging");
+    } else if (ref.includes("docs") || ref.includes("api")) {
+      maybeSet("topic", "API integration support");
+    } else if (ref.includes("case-studies") || ref.includes("customers")) {
+      maybeSet("topic", "Customer success automation");
+    }
+  }
+
+  const campaign = decodeParam(params.get("utm_campaign"));
+  const company = decodeParam(params.get("company") || params.get("org"));
+  const inferredCompany = company || decodeParam(params.get("account"));
+
+  if (!stored.message || !stored.message.trim()) {
+    if (campaign && campaign.toLowerCase().includes("migration")) {
+      guesses.message = `Planning a migration for ${inferredCompany || "our team"} and want to understand integration requirements and support windows.`;
+    } else if (ref.includes("pricing")) {
+      guesses.message = `Reviewing pricing and packaging for ${inferredCompany || "our organization"}. We'd like a quick walkthrough of deployment effort and ROI benchmarks.`;
+    } else if (paramTopic) {
+      guesses.message = `Exploring ${paramTopic} automation for ${inferredCompany || "our team"}. Looking for setup guidance and recommended playbooks.`;
+    }
+  }
+
+  const paramTimeline = decodeParam(params.get("timeline"));
+  const now = new Date();
+  const hour = now.getHours();
+  const weekend = now.getDay() === 0 || now.getDay() === 6;
+  if (!stored.timeline || stored.timeline === FORM_DEFAULTS.timeline) {
+    if (paramTimeline) {
+      maybeSet("timeline", paramTimeline);
+    } else if (weekend || hour >= 18) {
+      maybeSet("timeline", "next-quarter");
+    } else if (hour < 10) {
+      maybeSet("timeline", "immediate");
+    } else {
+      maybeSet("timeline", "this-quarter");
+    }
+  }
+
+  const paramContact = decodeParam(params.get("contact_method") || params.get("channel"));
+  if (!stored.contactMethod || stored.contactMethod === FORM_DEFAULTS.contactMethod) {
+    if (paramContact.includes("slack")) {
+      maybeSet("contactMethod", "slack");
+    } else if (paramContact.includes("video") || paramContact.includes("call")) {
+      maybeSet("contactMethod", "video-call");
+    } else if (ref.includes("demo")) {
+      maybeSet("contactMethod", "video-call");
+    }
+  }
+
+  if (params.get("share_metrics") === "false") {
+    maybeSet("shareMetrics", false);
+  }
+
+  return guesses;
+}
+
 export default function Contact() {
+  const storedPreferences = useMemo(() => getStoredPreferences(), []);
+  const smartDefaults = useMemo(() => getSmartPrefill(storedPreferences), [storedPreferences]);
   const initialFormState = useMemo(
-    () => ({ ...FORM_DEFAULTS, ...getStoredPreferences() }),
-    []
+    () => ({ ...FORM_DEFAULTS, ...smartDefaults, ...storedPreferences }),
+    [smartDefaults, storedPreferences],
   );
 
   const [formState, setFormState] = useState(initialFormState);

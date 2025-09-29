@@ -1,5 +1,5 @@
 import { Link, useNavigate, useLocation } from "react-router-dom";
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import LogoLight from "../assets/logos/1_Primary.svg";
 import LogoDark from "../assets/logos/3_Dark_Mode.svg";
 import ThemeToggle from "./ThemeToggle";
@@ -10,19 +10,127 @@ export default function Header({ user, onSignIn, onSignUp, onSignOut }) {
   const { pathname } = useLocation();
   const { darkMode } = useTheme();
   const [scrolled, setScrolled] = useState(false);
+  const [predictedNav, setPredictedNav] = useState(null);
+  const predictionTimerRef = useRef(null);
+  const scrollIntentRef = useRef({
+    y: typeof window !== "undefined" ? window.scrollY : 0,
+    time: typeof performance !== "undefined" ? performance.now() : Date.now(),
+  });
+  const observerRef = useRef(null);
 
   const syncHeaderOffset = useCallback(() => {
     const header = document.querySelector(".site-header");
     if (!header) return;
     const height = Math.round(header.getBoundingClientRect().height);
     document.documentElement.style.setProperty("--header-offset", `${height}px`);
-    }, []);
+  }, []);
 
   useEffect(() => {
     const handleScroll = () => setScrolled(window.scrollY > 20);
     window.addEventListener("scroll", handleScroll, { passive: true });
     return () => window.removeEventListener("scroll", handleScroll);
   }, []);
+
+  const commitPrediction = useCallback(
+    (path, ttl = 1600) => {
+      if (!path || path === pathname) {
+        setPredictedNav(null);
+        return;
+      }
+      setPredictedNav(path);
+      if (predictionTimerRef.current && typeof window !== "undefined") {
+        window.clearTimeout(predictionTimerRef.current);
+      }
+      if (typeof window !== "undefined") {
+        predictionTimerRef.current = window.setTimeout(() => {
+          setPredictedNav((current) => (current === path ? null : current));
+        }, ttl);
+      }
+    },
+    [pathname],
+  );
+
+  useEffect(() => {
+    if (typeof window === "undefined") return undefined;
+    const handleScroll = () => {
+      const doc = document.documentElement;
+      const maxScroll = doc.scrollHeight - doc.clientHeight;
+      if (maxScroll <= 0) return;
+
+      const position = window.scrollY;
+      const ratio = Math.min(1, Math.max(0, position / maxScroll));
+      const now = typeof performance !== "undefined" ? performance.now() : Date.now();
+      const { y, time } = scrollIntentRef.current;
+      const deltaY = position - y;
+      const deltaTime = Math.max(now - time, 16);
+      const velocity = deltaY / deltaTime;
+      scrollIntentRef.current = { y: position, time: now };
+
+      let target = null;
+      if (velocity > 0.3 && ratio > 0.55) {
+        target = "/pricing";
+      } else if (velocity > 0.18 && ratio > 0.25) {
+        target = "/marketplace";
+      } else if (velocity < -0.25 && ratio < 0.12) {
+        target = "/docs";
+      } else if (ratio > 0.85) {
+        target = "/docs";
+      }
+
+      if (target && target !== pathname) {
+        commitPrediction(target, 1400);
+      }
+    };
+
+    window.addEventListener("scroll", handleScroll, { passive: true });
+    return () => window.removeEventListener("scroll", handleScroll);
+  }, [pathname, commitPrediction]);
+
+  useEffect(() => {
+    if (
+      typeof window === "undefined" ||
+      typeof IntersectionObserver === "undefined"
+    ) {
+      return undefined;
+    }
+    const elements = Array.from(document.querySelectorAll("[data-intent-route]"));
+    if (!elements.length) return undefined;
+
+    const observer = new IntersectionObserver(
+      (entries) => {
+        entries.forEach((entry) => {
+          const route = entry.target.dataset.intentRoute;
+          if (!route || route === pathname) return;
+          const threshold = Number(entry.target.dataset.intentThreshold || 0.4);
+          if (entry.isIntersecting && entry.intersectionRatio >= threshold) {
+            commitPrediction(route, 1800);
+          }
+        });
+      },
+      { threshold: [0.25, 0.4, 0.6] },
+    );
+
+    elements.forEach((element) => observer.observe(element));
+    observerRef.current = observer;
+
+    return () => {
+      observer.disconnect();
+      observerRef.current = null;
+    };
+  }, [pathname, commitPrediction]);
+
+  useEffect(() => {
+    return () => {
+      if (predictionTimerRef.current && typeof window !== "undefined") {
+        window.clearTimeout(predictionTimerRef.current);
+      }
+      observerRef.current?.disconnect();
+    };
+  }, []);
+
+  useEffect(() => {
+    setPredictedNav(null);
+  }, [pathname]);
 
   useEffect(() => {
     syncHeaderOffset();
@@ -31,9 +139,9 @@ export default function Header({ user, onSignIn, onSignUp, onSignOut }) {
     }, [syncHeaderOffset]);
 
     useEffect(() => {
-      const frame = window.requestAnimationFrame(syncHeaderOffset);
-      return () => window.cancelAnimationFrame(frame);
-      }, [scrolled, syncHeaderOffset]);
+    const frame = window.requestAnimationFrame(syncHeaderOffset);
+    return () => window.cancelAnimationFrame(frame);
+  }, [scrolled, syncHeaderOffset]);
 
   const navItems = useMemo(
     () => [
@@ -152,12 +260,14 @@ export default function Header({ user, onSignIn, onSignUp, onSignOut }) {
         >
           {navItems.map(({ path, label }) => {
             const isActive = pathname === path;
+            const isPredicted = !isActive && predictedNav === path;
             return (
               <Link
                 key={path}
                 to={path}
                 data-prefetch-route={path}
                 className="nav-item"
+                data-predicted={isPredicted}
                 style={{
                   position: "relative",
                   padding: "0.55rem 1.15rem",
@@ -169,6 +279,10 @@ export default function Header({ user, onSignIn, onSignUp, onSignOut }) {
                     ? darkMode
                       ? "#ffffff"
                       : "#0f172a"
+                      : isPredicted
+                    ? darkMode
+                      ? "#f8fafc"
+                      : "#0f172a"
                     : darkMode
                     ? "#cbd5e1"
                     : "#475569",
@@ -176,7 +290,15 @@ export default function Header({ user, onSignIn, onSignUp, onSignOut }) {
                     ? darkMode
                       ? "rgba(148, 163, 184, 0.16)"
                       : "rgba(99, 102, 241, 0.15)"
+                      : isPredicted
+                      ? darkMode
+                        ? "rgba(99, 102, 241, 0.18)"
+                        : "rgba(99, 102, 241, 0.12)"
                     : "transparent",
+                    boxShadow: isPredicted
+                      ? "0 12px 28px rgba(99, 102, 241, 0.35)"
+                      : "none",
+                    transform: isPredicted ? "translateY(-2px)" : "none",
                   transition: "all var(--transition-fast)",
                 }}
               >
@@ -190,6 +312,8 @@ export default function Header({ user, onSignIn, onSignUp, onSignOut }) {
                     borderRadius: "999px",
                     background: isActive
                       ? "linear-gradient(90deg, #6366f1 0%, #06b6d4 100%)"
+                      : isPredicted
+                        ? "linear-gradient(90deg, rgba(99, 102, 241, 0.8) 0%, rgba(14, 165, 233, 0.6) 100%)"
                       : "transparent",
                     transition: "opacity var(--transition-fast)",
                   }}

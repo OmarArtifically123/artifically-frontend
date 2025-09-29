@@ -230,6 +230,9 @@ export default function AutomationCard({
   onVote,
   voteCount = 0,
   predicted = false,
+  attentionScore = 0,
+  spotlighted = false,
+  onDwell,
 }) {
   const { darkMode } = useTheme();
   const palette = useIconPalette(item.icon);
@@ -237,6 +240,9 @@ export default function AutomationCard({
   const [simulationStep, setSimulationStep] = useState(0);
   const [progress, setProgress] = useState(0);
   const [streamIndex, setStreamIndex] = useState(0);
+  const dwellStartRef = useRef(null);
+  const dwellTickRef = useRef(null);
+  const lastDispatchRef = useRef(null);
 
   const formatPrice = useMemo(
     () =>
@@ -314,6 +320,94 @@ export default function AutomationCard({
   const currentStep = simulationSteps[simulationStep] || simulationSteps[0];
   const progressPercent = Math.round(progress * 100);
   const intensity = Math.min(1, Math.max(0, matchStrength));
+  const attentionIntensity = Math.min(1, Math.max(0, attentionScore / 4));
+
+  const computedShadow = useMemo(() => {
+    const base = spotlighted
+      ? "0 38px 80px rgba(99, 102, 241, 0.45)"
+      : `0 25px 45px ${palette.shadow}`;
+    if (attentionIntensity <= 0.05 || spotlighted) {
+      return base;
+    }
+    const radius = Math.round(35 + attentionIntensity * 55);
+    const opacity = Math.min(0.55, 0.2 + attentionIntensity * 0.45).toFixed(3);
+    return `${base}, 0 0 ${radius}px rgba(99, 102, 241, ${opacity})`;
+  }, [palette.shadow, attentionIntensity, spotlighted]);
+
+  const computedTransform = useMemo(() => {
+    if (spotlighted && !hovered) {
+      return "translateY(-4px) scale(1.015)";
+    }
+    if (!hovered && attentionIntensity > 0.08) {
+      const lift = -(attentionIntensity * 6).toFixed(2);
+      const scale = (1 + attentionIntensity * 0.012).toFixed(3);
+      return `translateY(${lift}px) scale(${scale})`;
+    }
+    return undefined;
+  }, [spotlighted, attentionIntensity, hovered]);
+
+  useEffect(() => {
+    return () => {
+      if (dwellTickRef.current && typeof window !== "undefined" && window.cancelAnimationFrame) {
+        window.cancelAnimationFrame(dwellTickRef.current);
+      }
+      dwellTickRef.current = null;
+    };
+  }, []);
+
+  const dispatchDwellDelta = (force = false) => {
+    if (typeof onDwell !== "function" || !item?.id) return;
+    const lastDispatch = lastDispatchRef.current || dwellStartRef.current;
+    if (lastDispatch == null) return;
+    const now = typeof window !== "undefined" ? performance.now() : Date.now();
+    const delta = now - lastDispatch;
+    if (!force && delta < 180) return;
+    lastDispatchRef.current = now;
+    if (delta > 16) {
+      onDwell(item.id, delta);
+    }
+  };
+
+  const stopDwellTracking = (force = false) => {
+    if (dwellTickRef.current && typeof window !== "undefined" && window.cancelAnimationFrame) {
+      window.cancelAnimationFrame(dwellTickRef.current);
+      dwellTickRef.current = null;
+    }
+    dispatchDwellDelta(force);
+    dwellStartRef.current = null;
+    lastDispatchRef.current = null;
+  };
+
+  const trackDwell = () => {
+    if (dwellStartRef.current == null) {
+      dwellStartRef.current = typeof window !== "undefined" ? performance.now() : Date.now();
+      lastDispatchRef.current = dwellStartRef.current;
+    }
+    dispatchDwellDelta();
+    if (typeof window !== "undefined" && window.requestAnimationFrame) {
+      dwellTickRef.current = window.requestAnimationFrame(trackDwell);
+    }
+  };
+
+  const handlePointerEnter = () => {
+    setHovered(true);
+    if (typeof window === "undefined" || !window.requestAnimationFrame) {
+      return;
+    }
+    if (typeof onDwell === "function") {
+      if (dwellTickRef.current && window.cancelAnimationFrame) {
+        window.cancelAnimationFrame(dwellTickRef.current);
+      }
+      dwellStartRef.current = performance.now();
+      lastDispatchRef.current = dwellStartRef.current;
+      dwellTickRef.current = window.requestAnimationFrame(trackDwell);
+    }
+  };
+
+  const handlePointerLeave = () => {
+    setHovered(false);
+    stopDwellTracking(true);
+  };
 
   return (
     <div
@@ -322,6 +416,9 @@ export default function AutomationCard({
       }${predicted ? " is-psychic" : ""}`}
       data-glass="true"
       data-predicted={predicted}
+      data-attention-level={attentionIntensity.toFixed(3)}
+      data-spotlight={spotlighted}
+      id={item?.id ? `automation-${item.id}` : undefined}
       style={{
         position: "relative",
         display: "grid",
@@ -330,11 +427,16 @@ export default function AutomationCard({
         borderRadius: "1.35rem",
         border: `1px solid ${darkMode ? "rgba(148,163,184,0.22)" : "rgba(148,163,184,0.32)"}`,
         background: `linear-gradient(145deg, ${palette.secondary}, rgba(15,23,42,0.85))`,
-        boxShadow: `0 25px 45px ${palette.shadow}`,
+        boxShadow: computedShadow,
         color: darkMode ? "#e2e8f0" : "#1f2937",
+        transform: computedTransform,
+        "--attention-level": attentionIntensity,
       }}
-      onMouseEnter={() => setHovered(true)}
-      onMouseLeave={() => setHovered(false)}
+      onMouseEnter={handlePointerEnter}
+      onMouseLeave={handlePointerLeave}
+      onFocus={handlePointerEnter}
+      onBlur={handlePointerLeave}
+      tabIndex={0}
     >
       <div className="automation-card__pulse-ring" aria-hidden="true" />
       <div className="automation-card__header">

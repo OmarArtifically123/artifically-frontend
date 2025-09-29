@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useQuery } from "@apollo/client";
 import { fetchAutomations } from "../data/automations";
 import AutomationCard from "./AutomationCard";
@@ -16,6 +16,12 @@ import {
 } from "../lib/graphqlClient";
 
 const BROWSING_STORAGE_KEY = "automation-browsing-signals";
+const ATTENTION_STORAGE_KEY = "automation-attention-scores";
+const SEARCH_HISTORY_KEY = "automation-search-history";
+const MAX_ATTENTION_ENTRIES = 32;
+const MAX_SEARCH_HISTORY = 8;
+const ATTENTION_DECAY_FACTOR = 0.94;
+const ATTENTION_DECAY_INTERVAL_MINUTES = 18;
 
 const COLLABORATION_FEATURES = [
   {
@@ -85,6 +91,60 @@ const MARKETPLACE_JOURNEY = [
     ],
   },
 ];
+
+function loadAttentionScores() {
+  if (typeof window === "undefined") return {};
+  try {
+    const stored = window.localStorage.getItem(ATTENTION_STORAGE_KEY);
+    if (!stored) return {};
+    const parsed = JSON.parse(stored);
+    if (!parsed || typeof parsed !== "object") return {};
+
+    const now = Date.now();
+    const entries = {};
+
+    Object.entries(parsed).forEach(([id, value]) => {
+      if (!id || !value || typeof value !== "object") return;
+      const rawScore = Number(value.score) || 0;
+      const interactions = Number(value.interactions) || 0;
+      const lastViewed = Number(value.lastViewed) || 0;
+      if (rawScore <= 0 && interactions <= 0) return;
+
+      const ageMinutes = lastViewed ? Math.max(0, (now - lastViewed) / 60000) : 0;
+      const decaySteps = ageMinutes / ATTENTION_DECAY_INTERVAL_MINUTES;
+      const decayMultiplier = decaySteps ? Math.pow(ATTENTION_DECAY_FACTOR, decaySteps) : 1;
+      const score = Math.max(0, rawScore * decayMultiplier);
+      if (score <= 0.01 && interactions <= 0) return;
+
+      entries[id] = {
+        score,
+        interactions,
+        lastViewed,
+      };
+    });
+
+    return entries;
+  } catch (error) {
+    console.warn("Failed to parse attention scores", error);
+    return {};
+  }
+}
+
+function loadSearchHistory() {
+  if (typeof window === "undefined") return [];
+  try {
+    const stored = window.localStorage.getItem(SEARCH_HISTORY_KEY);
+    if (!stored) return [];
+    const parsed = JSON.parse(stored);
+    if (!Array.isArray(parsed)) return [];
+    return parsed
+      .filter((entry) => entry && typeof entry.query === "string")
+      .slice(0, MAX_SEARCH_HISTORY);
+  } catch (error) {
+    console.warn("Failed to parse search history", error);
+    return [];
+  }
+}
 
 function deriveROIMetrics(automations = [], signals = [], focus) {
   const roiValues = [];
@@ -342,6 +402,14 @@ export default function Marketplace({ user, openAuth }) {
   });
   const [psychicId, setPsychicId] = useState(null);
   const [teamVotes, setTeamVotes] = useState({});
+  const [attentionScores, setAttentionScores] = useState(() => loadAttentionScores());
+  const attentionQueueRef = useRef(new Map());
+  const attentionRafRef = useRef(null);
+  const [spotlightId, setSpotlightId] = useState(null);
+  const [searchTerm, setSearchTerm] = useState("");
+  const [searchFocused, setSearchFocused] = useState(false);
+  const [searchHistory, setSearchHistory] = useState(() => loadSearchHistory());
+  const searchBlurTimerRef = useRef(null);
   const workerRef = useRef(null);
   const collaborationChannelRef = useRef(null);
   const [collaborationReady, setCollaborationReady] = useState(false);
@@ -370,6 +438,57 @@ export default function Marketplace({ user, openAuth }) {
       console.warn("Failed to fetch marketplace stats", statsError);
     }
   }, [statsError]);
+
+  useEffect(() => {
+    return () => {
+      if (searchBlurTimerRef.current) {
+        clearTimeout(searchBlurTimerRef.current);
+      }
+      if (attentionRafRef.current && typeof window !== "undefined" && window.cancelAnimationFrame) {
+        window.cancelAnimationFrame(attentionRafRef.current);
+      }
+    };
+  }, []);
+
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    try {
+      const entries = Object.entries(attentionScores || {});
+      if (!entries.length) {
+        window.localStorage.removeItem(ATTENTION_STORAGE_KEY);
+        return;
+      }
+      const trimmed = entries
+        .sort((a, b) => (b[1]?.score || 0) - (a[1]?.score || 0))
+        .slice(0, MAX_ATTENTION_ENTRIES)
+        .reduce((acc, [id, value]) => {
+          if (!id || !value) return acc;
+          acc[id] = {
+            score: Number(value.score) || 0,
+            interactions: Number(value.interactions) || 0,
+            lastViewed: Number(value.lastViewed) || Date.now(),
+          };
+          return acc;
+        }, {});
+      window.localStorage.setItem(ATTENTION_STORAGE_KEY, JSON.stringify(trimmed));
+    } catch (error) {
+      console.warn("Failed to persist attention scores", error);
+    }
+  }, [attentionScores]);
+
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    try {
+      if (!searchHistory.length) {
+        window.localStorage.removeItem(SEARCH_HISTORY_KEY);
+        return;
+      }
+      const trimmed = searchHistory.slice(0, MAX_SEARCH_HISTORY);
+      window.localStorage.setItem(SEARCH_HISTORY_KEY, JSON.stringify(trimmed));
+    } catch (error) {
+      console.warn("Failed to persist search history", error);
+    }
+  }, [searchHistory]);
 
   useEffect(() => {
     if (resolvedStatsROI == null) return;
@@ -416,6 +535,72 @@ export default function Marketplace({ user, openAuth }) {
 
     loadAutomations();
   }, []);
+
+  const registerAttention = useCallback(
+    (automationId, deltaMs) => {
+      if (!automationId) return;
+      if (typeof deltaMs !== "number" || Number.isNaN(deltaMs) || deltaMs <= 0) {
+        return;
+      }
+      if (typeof window === "undefined") return;
+
+      const queue = attentionQueueRef.current;
+      const seconds = deltaMs / 1000;
+      queue.set(automationId, (queue.get(automationId) || 0) + seconds);
+
+      if (attentionRafRef.current && window.requestAnimationFrame) {
+        return;
+      }
+
+      if (!window.requestAnimationFrame) {
+        setAttentionScores((prev) => {
+          const next = { ...(prev || {}) };
+          const existing = next[automationId] || { score: 0, interactions: 0, lastViewed: 0 };
+          next[automationId] = {
+            score: Math.max(0, existing.score * 0.985 + seconds),
+            interactions: (existing.interactions || 0) + 1,
+            lastViewed: Date.now(),
+          };
+          return next;
+        });
+        queue.delete(automationId);
+        return;
+      }
+
+      attentionRafRef.current = window.requestAnimationFrame(() => {
+        attentionRafRef.current = null;
+        const updates = new Map(queue);
+        queue.clear();
+        const now = Date.now();
+        setAttentionScores((prev) => {
+          const next = { ...(prev || {}) };
+          updates.forEach((gain, id) => {
+            const existing = next[id] || { score: 0, interactions: 0, lastViewed: 0 };
+            next[id] = {
+              score: Math.max(0, (existing.score || 0) * 0.985 + gain),
+              interactions: (existing.interactions || 0) + 1,
+              lastViewed: now,
+            };
+          });
+          return next;
+        });
+      });
+    },
+    [],
+  );
+
+  const handleAttentionDwell = useCallback(
+    (automationId, deltaMs) => {
+      registerAttention(automationId, deltaMs);
+    },
+    [registerAttention],
+  );
+
+  useEffect(() => {
+    if (!spotlightId) return undefined;
+    const timer = setTimeout(() => setSpotlightId(null), 2400);
+    return () => clearTimeout(timer);
+  }, [spotlightId]);
 
   useEffect(() => {
     if (typeof window === "undefined" || typeof Worker === "undefined") return undefined;
@@ -564,17 +749,33 @@ export default function Marketplace({ user, openAuth }) {
   const scoredAutomations = useMemo(() => {
     if (!automations.length) return [];
 
+    const now = Date.now();
     const entries = automations.map((item) => {
-      const score = computeMatchScore(
+      const baseScore = computeMatchScore(
         item,
         detectedNeeds,
         activeNeed,
         browsingSignals,
         detectedIndustry,
       );
+      const attention = attentionScores?.[item.id];
+      let attentionBonus = 0;
+      if (attention) {
+        const recencyMinutes = attention.lastViewed
+          ? Math.max(0, (now - attention.lastViewed) / 60000)
+          : 0;
+        const recencyBoost = Math.max(0, 1.35 - recencyMinutes / 8);
+        attentionBonus += Math.min(attention.score || 0, 12) * 1.6;
+        attentionBonus += Math.min(attention.interactions || 0, 6) * 0.3;
+        attentionBonus += recencyBoost;
+      }
+
+      const score = baseScore + attentionBonus;
       return {
         item,
         score,
+        baseScore,
+        attentionBonus,
         industryMatch: matchesIndustry(item, detectedIndustry),
         browsingMatch: (browsingSignals || []).some((signal) =>
           matchesIndustry(item, signal.label),
@@ -596,6 +797,7 @@ export default function Marketplace({ user, openAuth }) {
     activeNeed,
     browsingSignals,
     detectedIndustry,
+    attentionScores,
   ]);
 
   const automationMap = useMemo(() => {
@@ -606,12 +808,19 @@ export default function Marketplace({ user, openAuth }) {
     if (!scoredAutomations.length) return [];
 
     const groups = new Map();
-    scoredAutomations.forEach(({ item, matchStrength, industryMatch, browsingMatch }) => {
+    scoredAutomations.forEach(({ item, matchStrength, industryMatch, browsingMatch, attentionBonus }) => {
       const label = computeClusterLabel(item, activeNeed);
       if (!groups.has(label)) {
         groups.set(label, []);
       }
-      groups.get(label).push({ item, matchStrength, industryMatch, browsingMatch });
+      groups.get(label).push({
+        item,
+        matchStrength,
+        industryMatch,
+        browsingMatch,
+        attentionBonus,
+        attentionScore: attentionScores?.[item.id]?.score || 0,
+      });
     });
 
     return Array.from(groups.entries()).map(([label, items], index) => ({
@@ -688,6 +897,263 @@ export default function Marketplace({ user, openAuth }) {
     }
     return `Teams similar to yours see ${roi}x ROI with this combination.`;
   }, [averageROI, resolvedStatsROI, detectedIndustry, activeNeed, workerMetrics.averageROI]);
+
+  const searchIndex = useMemo(() => {
+    if (!automations.length) return [];
+    return automations.map((item) => {
+      const keywords = new Set();
+      const pushTokens = (value) => {
+        const normalizedValue = normalize(value);
+        if (!normalizedValue) return;
+        normalizedValue
+          .split(/[^a-z0-9]+/)
+          .map((token) => token.trim())
+          .filter(Boolean)
+          .forEach((token) => keywords.add(token));
+      };
+      pushTokens(item.name);
+      pushTokens(item.description);
+      pushTokens(item.category);
+      pushTokens(item.vertical);
+      (item.tags || []).forEach(pushTokens);
+
+      const normalizedName = normalize(item.name);
+      return {
+        item,
+        normalizedName,
+        nameFragments: normalizedName.split(/\s+/).filter(Boolean),
+        keywords,
+      };
+    });
+  }, [automations]);
+
+  const scoredMap = useMemo(() => {
+    const map = new Map();
+    scoredAutomations.forEach((entry) => {
+      map.set(entry.item.id, {
+        score: entry.score,
+        matchStrength: entry.matchStrength,
+        attentionBonus: entry.attentionBonus,
+      });
+    });
+    return map;
+  }, [scoredAutomations]);
+
+  const historyWeights = useMemo(() => {
+    const weights = new Map();
+    searchHistory.forEach((entry, index) => {
+      const key = normalize(entry?.query);
+      if (!key) return;
+      weights.set(key, Math.max(1, MAX_SEARCH_HISTORY - index));
+    });
+    return weights;
+  }, [searchHistory]);
+
+  const searchSuggestions = useMemo(() => {
+    const suggestions = [];
+    if (activeNeed) {
+      suggestions.push(titleCase(activeNeed));
+    }
+    if (detectedIndustry) {
+      suggestions.push(`${titleCase(detectedIndustry)} automations`);
+    }
+    searchHistory.forEach((entry) => {
+      if (entry?.query) {
+        suggestions.push(entry.query);
+      }
+    });
+    return Array.from(new Set(suggestions)).slice(0, 5);
+  }, [activeNeed, detectedIndustry, searchHistory]);
+
+  const searchResults = useMemo(() => {
+    if ((!searchFocused && !searchTerm) || !searchIndex.length) return [];
+
+    const rawInput = searchTerm.trim();
+    const normalizedInput = normalize(rawInput);
+    const tokens = normalizedInput.split(/\s+/).filter(Boolean);
+    const partialToken = tokens.length ? tokens[tokens.length - 1] : normalizedInput;
+    const results = [];
+    const used = new Set();
+
+    const addResult = (item, score, reason) => {
+      if (!item || used.has(item.id)) return;
+      used.add(item.id);
+      results.push({ item, score, reason });
+    };
+
+    searchIndex.forEach(({ item, normalizedName, nameFragments, keywords }) => {
+      let score = (scoredMap.get(item.id)?.score || 0) * 0.92;
+      let matches = 0;
+
+      tokens.forEach((token, index) => {
+        if (!token) return;
+        if (normalizedName.startsWith(token)) {
+          score += 8 - index * 0.45;
+          matches += 1;
+        } else if (nameFragments.some((fragment) => fragment.startsWith(token))) {
+          score += 6.75 - index * 0.4;
+          matches += 1;
+        } else if (normalizedName.includes(token)) {
+          score += 3.5 - index * 0.35;
+          matches += 1;
+        }
+        if (keywords.has(token)) {
+          score += 3.1 - index * 0.25;
+          matches += 1;
+        }
+      });
+
+      if (partialToken && partialToken.length > 0 && partialToken.length < 3) {
+        if (nameFragments.some((fragment) => fragment.startsWith(partialToken))) {
+          score += 4.5;
+          matches += 1;
+        }
+      }
+
+      if (!tokens.length) {
+        const focusMatches = [activeNeed, detectedIndustry]
+          .map((value) => normalize(value))
+          .filter(Boolean)
+          .some((value) => keywords.has(value));
+        if (focusMatches) {
+          score += 5.4;
+          matches += 1;
+        }
+      }
+
+      const attention = attentionScores?.[item.id];
+      if (attention) {
+        score += Math.min(attention.score || 0, 10) * 0.85;
+        score += Math.min(attention.interactions || 0, 5) * 0.25;
+      }
+
+      historyWeights.forEach((weight, query) => {
+        if (!query) return;
+        if (normalizedInput && query.startsWith(normalizedInput)) {
+          score += weight * 1.25;
+        } else if (normalizedName.includes(query)) {
+          score += weight * 0.6;
+        }
+      });
+
+      if (matches > 0 || (!tokens.length && results.length < 6)) {
+        addResult(item, score, matches > 0 ? "match" : "prefetch");
+      }
+    });
+
+    if (!tokens.length) {
+      recommendedAutomations.forEach((entry, index) => {
+        addResult(entry.item, (entry.score || 0) + 12 - index * 1.5, "recommended");
+      });
+    }
+
+    results.sort((a, b) => b.score - a.score);
+    return results.slice(0, 6);
+  }, [
+    searchFocused,
+    searchTerm,
+    searchIndex,
+    scoredMap,
+    attentionScores,
+    activeNeed,
+    detectedIndustry,
+    historyWeights,
+    recommendedAutomations,
+  ]);
+
+  const topSearchResult = searchResults[0];
+
+  const handleSearchFocus = useCallback(() => {
+    if (searchBlurTimerRef.current) {
+      clearTimeout(searchBlurTimerRef.current);
+      searchBlurTimerRef.current = null;
+    }
+    setSearchFocused(true);
+  }, []);
+
+  const handleSearchBlur = useCallback(() => {
+    if (searchBlurTimerRef.current) {
+      clearTimeout(searchBlurTimerRef.current);
+    }
+    searchBlurTimerRef.current = setTimeout(() => {
+      setSearchFocused(false);
+    }, 120);
+  }, []);
+
+  const handleSearchChange = useCallback((event) => {
+    setSearchTerm(event.target.value);
+  }, []);
+
+  const handleSearchSelect = useCallback(
+    (automation, queryOverride) => {
+      if (!automation) return;
+      if (searchBlurTimerRef.current) {
+        clearTimeout(searchBlurTimerRef.current);
+        searchBlurTimerRef.current = null;
+      }
+
+      const query = (queryOverride ?? searchTerm).trim();
+      setSpotlightId(automation.id);
+
+      if (typeof window !== "undefined") {
+        const element = document.getElementById(`automation-${automation.id}`);
+        if (element) {
+          window.requestAnimationFrame(() => {
+            element.scrollIntoView({ behavior: "smooth", block: "center" });
+          });
+        }
+      }
+
+      if (query) {
+        setSearchHistory((prev = []) => {
+          const filtered = prev.filter((entry) => entry?.query !== query);
+          const next = [{ query, ts: Date.now() }, ...filtered];
+          return next.slice(0, MAX_SEARCH_HISTORY);
+        });
+      }
+
+      setSearchFocused(false);
+      setSearchTerm("");
+      registerAttention(automation.id, 900);
+    },
+    [registerAttention, searchTerm],
+  );
+
+  const handleSearchKeyDown = useCallback(
+    (event) => {
+      if (event.key === "Enter") {
+        event.preventDefault();
+        if (topSearchResult) {
+          handleSearchSelect(topSearchResult.item, searchTerm);
+        }
+      } else if (event.key === "Escape") {
+        setSearchTerm("");
+        setSearchFocused(false);
+      }
+    },
+    [handleSearchSelect, searchTerm, topSearchResult],
+  );
+
+  const handleSuggestionClick = useCallback(
+    (suggestion) => {
+      if (!suggestion) return;
+      setSearchTerm(suggestion);
+      handleSearchFocus();
+      if (typeof window !== "undefined") {
+        window.requestAnimationFrame(() => {
+          const input = document.getElementById("marketplace-search-input");
+          if (input) {
+            input.focus();
+            if (typeof input.setSelectionRange === "function") {
+              const length = suggestion.length;
+              input.setSelectionRange(length, length);
+            }
+          }
+        });
+      }
+    },
+    [handleSearchFocus],
+  );
 
   const castVote = (automationId, delta = 1) => {
     if (!automationId) return;
@@ -1146,6 +1612,82 @@ export default function Marketplace({ user, openAuth }) {
           </div>
         )}
 
+        <div className="marketplace-search" role="search">
+          <label htmlFor="marketplace-search-input">
+            <span className="marketplace-search__label">Search automations</span>
+            <div className="marketplace-search__field">
+              <span aria-hidden="true" className="marketplace-search__icon">
+                🔍
+              </span>
+              <input
+                id="marketplace-search-input"
+                type="search"
+                value={searchTerm}
+                onChange={handleSearchChange}
+                onFocus={handleSearchFocus}
+                onBlur={handleSearchBlur}
+                onKeyDown={handleSearchKeyDown}
+                placeholder="Predictive search that responds before you finish typing"
+                autoComplete="off"
+              />
+            </div>
+            <p className="marketplace-search__hint">
+              Results pre-populate using browsing signals, time-of-day patterns, and previous searches.
+            </p>
+          </label>
+
+          {searchSuggestions.length > 0 && (
+            <div className="marketplace-search__suggestions" role="list">
+              {searchSuggestions.map((suggestion) => (
+                <button
+                  key={suggestion}
+                  type="button"
+                  className="marketplace-search__suggestion"
+                  onMouseDown={(event) => {
+                    event.preventDefault();
+                    handleSuggestionClick(suggestion);
+                  }}
+                >
+                  {suggestion}
+                </button>
+              ))}
+            </div>
+          )}
+
+          {(searchFocused || searchTerm) && (
+            <div className="marketplace-search__results" role="listbox">
+              {searchResults.length === 0 ? (
+                <div className="marketplace-search__empty">Preloading likely matches… keep typing if you like.</div>
+              ) : (
+                searchResults.map(({ item, reason }) => {
+                  const detail = item.tags?.slice(0, 2).join(" · ") || item.category;
+                  return (
+                    <button
+                      key={item.id}
+                      type="button"
+                      role="option"
+                      className="marketplace-search__result"
+                      data-reason={reason}
+                      onMouseDown={(event) => {
+                        event.preventDefault();
+                        handleSearchSelect(item, searchTerm);
+                      }}
+                    >
+                      <div className="marketplace-search__result-main">
+                        <strong>{item.name}</strong>
+                        {detail ? <span>{detail}</span> : null}
+                      </div>
+                      <span className="marketplace-search__result-reason">
+                        {reason === "match" ? "Instant match" : "Predicted fit"}
+                      </span>
+                    </button>
+                  );
+                })
+              )}
+            </div>
+          )}
+        </div>
+
         <div className="marketplace-detected-message">
           {activeNeed ? (
             <span>
@@ -1190,7 +1732,7 @@ export default function Marketplace({ user, openAuth }) {
                   <p>{cluster.description}</p>
                 </header>
                 <div className="automation-cluster__grid">
-                  {cluster.items.map(({ item, matchStrength, industryMatch, browsingMatch }) => (
+                  {cluster.items.map(({ item, matchStrength, industryMatch, browsingMatch, attentionScore }) => (
                     <AutomationCard
                       key={item.id}
                       item={item}
@@ -1204,6 +1746,9 @@ export default function Marketplace({ user, openAuth }) {
                       onVote={(automation) => castVote(automation.id)}
                       voteCount={teamVotes[item.id] || 0}
                       predicted={psychicId === item.id}
+                      attentionScore={attentionScore}
+                      spotlighted={spotlightId === item.id}
+                      onDwell={handleAttentionDwell}
                     />
                   ))}
                 </div>
