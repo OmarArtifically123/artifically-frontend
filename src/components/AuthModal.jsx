@@ -90,8 +90,32 @@ const AuthModal = ({ onClose, onAuthenticated, initialMode = "signin" }) => {
   const [error, setError] = useState("");
   const [fieldErrors, setFieldErrors] = useState({});
   const [csrfToken, setCsrfToken] = useState("");
+  const [step, setStep] = useState(0);
   const modalRef = useRef(null);
   const submitRef = useRef(false);
+
+  const stepGroups = useMemo(
+    () =>
+      mode === "signup"
+        ? [
+            ["email", "password"],
+            ["businessName", "businessPhone", "businessEmail", "websiteUrl"],
+          ]
+        : [["email", "password"]],
+    [mode]
+  );
+
+  const stepLabels = useMemo(
+    () =>
+      mode === "signup"
+        ? ["Account", "Business Profile"]
+        : ["Secure Sign In"],
+    [mode]
+  );
+
+  const totalSteps = stepGroups.length;
+  const isFinalStep = step >= totalSteps - 1;
+  const stepProgress = Math.round(((step + 1) / totalSteps) * 100);
 
   // Get CSRF token on mount
   useEffect(() => {
@@ -106,75 +130,162 @@ const AuthModal = ({ onClose, onAuthenticated, initialMode = "signin" }) => {
     getCsrfToken();
   }, []);
 
-  // Debounced validation to reduce lag
-  const debouncedValidation = useMemo(
-    () => debounce((field, value) => {
-      validateField(field, value);
-    }, 300),
-    []
-  );
-
-  // Real-time field validation
-  const validateField = useCallback((field, value) => {
-    const errors = {};
-
-    switch (field) {
-      case 'email':
-        const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-        if (value && !emailRegex.test(value)) {
-          errors.email = 'Invalid email format';
-        }
-        break;
-      
-      case 'password':
-        if (mode === 'signup') {
-          if (value.length < 12) {
-            errors.password = 'Password must be at least 12 characters';
-          } else if (!/(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[!@#$%^&*])/.test(value)) {
-            errors.password = 'Password must include uppercase, lowercase, number, and special character';
-          }
-        }
-        break;
-      
-      case 'businessName':
-        if (mode === 'signup' && (!value || value.trim().length < 2)) {
-          errors.businessName = 'Business name is required';
-        }
-        break;
-      
-      case 'businessPhone':
-        if (value && !/^\+?[\d\s\-()]+$/.test(value)) {
-          errors.businessPhone = 'Invalid phone number format';
-        }
-        break;
-      
-      case 'websiteUrl':
-        if (value && !/^https?:\/\/.+\..+/.test(value)) {
-          errors.websiteUrl = 'URL must include protocol (https://)';
-        }
-        break;
-    }
-
-    setFieldErrors(prev => ({
-      ...prev,
-      [field]: errors[field] || null
-    }));
+  useEffect(() => {
+    setStep(0);
+    setError("");
+    setFieldErrors({});
   }, [mode]);
 
-  // Optimized input handler
-  const handleInputChange = useCallback((field, value) => {
-    setForm(prev => ({ ...prev, [field]: value }));
-    setError(""); // Clear global error
-    
-    // Debounced validation for better performance
-    debouncedValidation(field, value);
-  }, [debouncedValidation]);
+  const validators = useMemo(
+    () => ({
+      email: (value) => {
+        const trimmed = value?.trim?.() || "";
+        if (!trimmed) {
+          return "Email is required";
+        }
+        if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(trimmed)) {
+          return "Invalid email format";
+        }
+        return null;
+      },
+      password: (value) => {
+        if (!value) {
+          return "Password is required";
+        }
+
+        if (mode === "signup") {
+          if (value.length < 12) {
+            return "Password must be at least 12 characters";
+          }
+          if (!/(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[!@#$%^&*])/.test(value)) {
+            return "Password must include uppercase, lowercase, number, and special character";
+          }
+        }
+
+        return null;
+      },
+      businessName: (value) => {
+        if (mode !== "signup") {
+          return null;
+        }
+
+        const trimmed = value?.trim?.() || "";
+        if (!trimmed) {
+          return "Business name is required";
+        }
+        if (trimmed.length < 2) {
+          return "Business name is required";
+        }
+        return null;
+      },
+      businessPhone: (value) => {
+        if (!value) {
+          return null;
+        }
+        if (!/^\+?[\d\s\-()]+$/.test(value)) {
+          return "Invalid phone number format";
+        }
+        return null;
+      },
+      businessEmail: (value) => {
+        if (!value) {
+          return null;
+        }
+        if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value)) {
+          return "Invalid business email format";
+        }
+        return null;
+      },
+      websiteUrl: (value) => {
+        if (!value) {
+          return null;
+        }
+        if (!/^https?:\/\/.+\..+/.test(value)) {
+          return "Website URL must include protocol (https://)";
+        }
+        return null;
+      },
+    }),
+    [mode]
+  );
+
+  const validateField = useCallback(
+    (field, value = form[field]) => {
+      const validator = validators[field];
+      if (!validator) {
+        return true;
+      }
+
+      const result = validator(value);
+      setFieldErrors((prev) => ({
+        ...prev,
+        [field]: result,
+      }));
+
+      return !result;
+    },
+    [form, validators]
+  );
+
+  const debouncedValidation = useMemo(
+    () =>
+      debounce((field, value) => {
+        validateField(field, value);
+      }, 250),
+    [validateField]
+  );
+
+  useEffect(() => () => debouncedValidation.cancel(), [debouncedValidation]);
+
+  const handleInputChange = useCallback(
+    (field, value) => {
+      setForm((prev) => ({ ...prev, [field]: value }));
+      setError("");
+      debouncedValidation(field, value);
+    },
+    [debouncedValidation]
+  );
+
+  const validateFields = useCallback(
+    (fields) => {
+      const targets = fields && fields.length ? fields : Object.keys(validators);
+      const results = {};
+
+      targets.forEach((field) => {
+        const validator = validators[field];
+        if (!validator) {
+          return;
+        }
+        results[field] = validator(form[field]) || null;
+      });
+
+      if (Object.keys(results).length) {
+        setFieldErrors((prev) => ({
+          ...prev,
+          ...Object.fromEntries(
+            Object.entries(results).map(([key, value]) => [key, value])
+          ),
+        }));
+      }
+
+      return Object.values(results).every((value) => !value);
+    },
+    [form, validators]
+  );
+
+  const validateForm = useCallback(() => validateFields(), [validateFields]);
+
+  const validateCurrentStep = useCallback(
+    () => validateFields(stepGroups[step] || []),
+    [stepGroups, step, validateFields]
+  );
 
   // Mode switcher with form reset
   const swap = useCallback(() => {
     setMode(prev => prev === "signin" ? "signup" : "signin");
     setError("");
     setFieldErrors({});
+    setStep(0);
     setForm({
       email: form.email, // Keep email when switching
       password: "",
@@ -185,67 +296,20 @@ const AuthModal = ({ onClose, onAuthenticated, initialMode = "signin" }) => {
     });
   }, [form.email]);
 
-  // Comprehensive form validation
-  const validateForm = useCallback(() => {
-    const errors = {};
-
-    // Required fields validation
-    if (!form.email?.trim()) {
-      errors.email = "Email is required";
-    } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(form.email)) {
-      errors.email = "Invalid email format";
-    }
-
-    if (!form.password) {
-      errors.password = "Password is required";
-    } else if (mode === "signup") {
-      if (form.password.length < 12) {
-        errors.password = "Password must be at least 12 characters";
-      } else if (!/(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[!@#$%^&*])/.test(form.password)) {
-        errors.password = "Password must include uppercase, lowercase, number, and special character";
-      }
-    }
-
-    if (mode === "signup") {
-      if (!form.businessName?.trim()) {
-        errors.businessName = "Business name is required";
-      }
-
-      // Optional field validations
-      if (form.businessPhone && !/^\+?[\d\s\-()]+$/.test(form.businessPhone)) {
-        errors.businessPhone = "Invalid phone number format";
-      }
-
-      if (form.businessEmail && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(form.businessEmail)) {
-        errors.businessEmail = "Invalid business email format";
-      }
-
-      if (form.websiteUrl && !/^https?:\/\/.+\..+/.test(form.websiteUrl)) {
-        errors.websiteUrl = "Website URL must include protocol (https://)";
-      }
-    }
-
-    setFieldErrors(errors);
-    return Object.keys(errors).length === 0;
-  }, [form, mode]);
-
   // Form submission with anti-spam protection
-  const submit = useCallback(async (e) => {
-    e.preventDefault();
-    
-    // Prevent double submission
+  const submit = useCallback(async () => {
     if (submitRef.current || loading) return;
     submitRef.current = true;
-    
+
     setError("");
-    
+
     if (!validateForm()) {
       submitRef.current = false;
       return;
     }
 
     setLoading(true);
-    
+
     try {
       const normalizedEmail = form.email.trim().toLowerCase();
       const sanitizedData = {
@@ -271,13 +335,12 @@ const AuthModal = ({ onClose, onAuthenticated, initialMode = "signin" }) => {
       const endpoint = mode === "signup" ? "/auth/signup" : "/auth/signin";
       const response = await api.post(endpoint, sanitizedData);
 
-      // Handle different response formats
       if (response.data.success !== false) {
         onAuthenticated({
           token: response.data.token || null,
           user: response.data.user || null,
-          notice: response.data.message || (mode === "signup" 
-            ? "Account created! Please check your email to verify." 
+          notice: response.data.message || (mode === "signup"
+            ? "Account created! Please check your email to verify."
             : "Welcome back!")
         });
       } else {
@@ -288,10 +351,9 @@ const AuthModal = ({ onClose, onAuthenticated, initialMode = "signin" }) => {
       if (import.meta.env.DEV) {
         console.warn("Authentication error:", err);
       }
-      
-      // Enhanced error handling
+
       let errorMessage = "An unexpected error occurred. Please try again.";
-      
+
       if (err.message) {
         errorMessage = err.message;
       } else if (err.response?.data) {
@@ -302,13 +364,141 @@ const AuthModal = ({ onClose, onAuthenticated, initialMode = "signin" }) => {
           errorMessage = data.message;
         }
       }
-      
+
       setError(errorMessage);
     } finally {
-setLoading(false);
+      setLoading(false);
       submitRef.current = false;
     }
   }, [form, mode, validateForm, onAuthenticated, loading, csrfToken]);
+
+  const handleFormSubmit = useCallback(
+    (event) => {
+      event.preventDefault();
+
+      if (mode === "signup" && !isFinalStep) {
+        if (validateCurrentStep()) {
+          setStep((prev) => Math.min(prev + 1, totalSteps - 1));
+        }
+        return;
+      }
+
+      if (!validateForm()) {
+        return;
+      }
+
+      submit();
+    },
+    [mode, isFinalStep, validateCurrentStep, totalSteps, validateForm, submit]
+  );
+
+  const handleStepBack = useCallback(() => {
+    setStep((prev) => Math.max(0, prev - 1));
+  }, []);
+
+  const accountFields = (
+    <>
+      <InputField
+        label="Email Address"
+        type="email"
+        field="email"
+        placeholder="you@example.com"
+        required
+        autoComplete="email"
+        form={form}
+        fieldErrors={fieldErrors}
+        handleInputChange={handleInputChange}
+        loading={loading}
+        darkMode={darkMode}
+      />
+
+      <InputField
+        label="Password"
+        type="password"
+        field="password"
+        placeholder="Enter your password"
+        required
+        hint={mode === "signup"
+          ? "Must be 12+ characters with uppercase, lowercase, number, and special character"
+          : undefined}
+        autoComplete={mode === "signin" ? "current-password" : "new-password"}
+        form={form}
+        fieldErrors={fieldErrors}
+        handleInputChange={handleInputChange}
+        loading={loading}
+        darkMode={darkMode}
+      />
+    </>
+  );
+
+  const businessFields = (
+    <>
+      <InputField
+        label="Business Name"
+        field="businessName"
+        placeholder="Enter your business name"
+        required
+        autoComplete="organization"
+        form={form}
+        fieldErrors={fieldErrors}
+        handleInputChange={handleInputChange}
+        loading={loading}
+        darkMode={darkMode}
+      />
+
+      <InputField
+        label="Business Phone"
+        field="businessPhone"
+        placeholder="+971 50 123 4567"
+        hint="International format preferred"
+        autoComplete="tel"
+        form={form}
+        fieldErrors={fieldErrors}
+        handleInputChange={handleInputChange}
+        loading={loading}
+        darkMode={darkMode}
+      />
+
+      <InputField
+        label="Business Email"
+        type="email"
+        field="businessEmail"
+        placeholder="support@yourbusiness.com"
+        hint="Different from your login email"
+        autoComplete="email"
+        form={form}
+        fieldErrors={fieldErrors}
+        handleInputChange={handleInputChange}
+        loading={loading}
+        darkMode={darkMode}
+      />
+
+      <InputField
+        label="Website URL"
+        type="url"
+        field="websiteUrl"
+        placeholder="https://yourbusiness.com"
+        autoComplete="url"
+        form={form}
+        fieldErrors={fieldErrors}
+        handleInputChange={handleInputChange}
+        loading={loading}
+        darkMode={darkMode}
+      />
+    </>
+  );
+
+  const showAccountFields = mode !== "signup" || step === 0;
+  const showBusinessFields = mode === "signup" && step >= 1;
+  const primaryActionLabel = loading
+    ? mode === "signin"
+      ? "Signing in..."
+      : "Creating account..."
+    : mode === "signup"
+      ? isFinalStep
+        ? "Create Account"
+        : "Continue"
+      : "Sign In";
 
   // Handle backdrop click
   const handleOverlayClick = useCallback((e) => {
@@ -434,139 +624,159 @@ setLoading(false);
         )}
 
         {/* Form */}
-        <form onSubmit={submit} noValidate>
-          {/* Signup-only fields */}
-          {mode === "signup" && (
-            <>
-              <InputField
-                label="Business Name"
-                field="businessName"
-                placeholder="Enter your business name"
-                required
-                autoComplete="organization"
-                form={form}
-                fieldErrors={fieldErrors}
-                handleInputChange={handleInputChange}
-                loading={loading}
-                darkMode={darkMode}
-              />
-
-              <InputField
-                label="Business Phone"
-                field="businessPhone"
-                placeholder="+971 50 123 4567"
-                hint="International format preferred"
-                autoComplete="tel"
-                form={form}
-                fieldErrors={fieldErrors}
-                handleInputChange={handleInputChange}
-                loading={loading}
-                darkMode={darkMode}
-              />
-
-              <InputField
-                label="Business Email"
-                type="email"
-                field="businessEmail"
-                placeholder="support@yourbusiness.com"
-                hint="Different from your login email"
-                autoComplete="email"
-                form={form}
-                fieldErrors={fieldErrors}
-                handleInputChange={handleInputChange}
-                loading={loading}
-                darkMode={darkMode}
-              />
-
-              <InputField
-                label="Website URL"
-                type="url"
-                field="websiteUrl"
-                placeholder="https://yourbusiness.com"
-                autoComplete="url"
-                form={form}
-                fieldErrors={fieldErrors}
-                handleInputChange={handleInputChange}
-                loading={loading}
-                darkMode={darkMode}
-              />
-            </>
-          )}
-
-          {/* Universal fields */}
-          <InputField
-            label="Email Address"
-            type="email"
-            field="email"
-            placeholder="you@example.com"
-            required
-            autoComplete="email"
-            form={form}
-            fieldErrors={fieldErrors}
-            handleInputChange={handleInputChange}
-            loading={loading}
-            darkMode={darkMode}
-          />
-
-          <InputField
-            label="Password"
-            type="password"
-            field="password"
-            placeholder="Enter your password"
-            required
-            hint={mode === "signup" 
-              ? "Must be 12+ characters with uppercase, lowercase, number, and special character"
-              : undefined
-            }
-            autoComplete={mode === "signin" ? "current-password" : "new-password"}
-            form={form}
-            fieldErrors={fieldErrors}
-            handleInputChange={handleInputChange}
-            loading={loading}
-            darkMode={darkMode}
-          />
-
-          {/* Submit Button */}
-          <button
-            className="btn btn-primary"
-            type="submit"
-            disabled={loading}
-            style={{
-              width: '100%',
-              marginTop: 'var(--space-4)',
-              padding: 'var(--space-4)',
-              fontSize: '1rem',
-              fontWeight: '600',
-              opacity: loading ? 0.7 : 1,
-              cursor: loading ? 'not-allowed' : 'pointer',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              gap: '8px',
-              boxShadow: darkMode
-                ? '0 20px 35px rgba(99, 102, 241, 0.35)'
-                : '0 20px 35px rgba(99, 102, 241, 0.25)'
-            }}
-          >
-            {loading && (
+        <form onSubmit={handleFormSubmit} noValidate style={{ display: 'grid', gap: '1.5rem' }}>
+          <div style={{ display: 'grid', gap: '0.75rem' }}>
+            <div
+              style={{
+                display: 'flex',
+                justifyContent: 'space-between',
+                alignItems: 'center',
+                flexWrap: 'wrap',
+                gap: '0.75rem',
+              }}
+            >
+              <span style={{ fontWeight: 600, color: darkMode ? '#f8fafc' : '#0f172a' }}>
+                Step {Math.min(step + 1, totalSteps)} of {totalSteps}
+              </span>
+              <div style={{ display: 'flex', gap: '0.5rem', flexWrap: 'wrap' }}>
+                {stepLabels.map((label, index) => {
+                  const active = index === step;
+                  return (
+                    <span
+                      key={label}
+                      style={{
+                        padding: '0.35rem 0.75rem',
+                        borderRadius: '999px',
+                        fontSize: '0.8rem',
+                        fontWeight: 600,
+                        background: active
+                          ? (darkMode ? 'rgba(99,102,241,0.25)' : 'rgba(79,70,229,0.15)')
+                          : (darkMode ? 'rgba(148,163,184,0.12)' : 'rgba(148,163,184,0.18)'),
+                        color: active
+                          ? (darkMode ? '#c7d2fe' : '#4338ca')
+                          : (darkMode ? '#94a3b8' : '#475569'),
+                        transition: 'all 0.2s ease',
+                      }}
+                    >
+                      {index + 1}. {label}
+                    </span>
+                  );
+                })}
+              </div>
+            </div>
+            <div
+              style={{
+                width: '100%',
+                height: '6px',
+                borderRadius: '999px',
+                background: darkMode ? 'rgba(148,163,184,0.18)' : 'rgba(148,163,184,0.25)',
+                overflow: 'hidden',
+              }}
+            >
               <div
                 style={{
-                  width: '16px',
-                  height: '16px',
-                  border: '2px solid rgba(255, 255, 255, 0.3)',
-                  borderTopColor: 'white',
-                  borderRadius: '50%',
-                  animation: 'spin 1s linear infinite'
+                  width: `${stepProgress}%`,
+                  height: '100%',
+                  background: 'linear-gradient(90deg, #6366f1, #22d3ee)',
+                  borderRadius: 'inherit',
+                  transition: 'width 0.35s ease',
                 }}
               />
+            </div>
+          </div>
+
+          {mode === 'signup' && step > 0 && (
+            <div
+              style={{
+                padding: '1rem 1.1rem',
+                borderRadius: '1rem',
+                background: darkMode ? 'rgba(99,102,241,0.12)' : 'rgba(79,70,229,0.08)',
+                color: darkMode ? '#c7d2fe' : '#3730a3',
+                display: 'grid',
+                gap: '0.35rem',
+                fontSize: '0.9rem',
+              }}
+            >
+              <strong style={{ fontSize: '0.95rem' }}>Account ready</strong>
+              <span>
+                We'll use {form.email || 'your email'} for secure sign in. Need to change it?
+                Just go back one step.
+              </span>
+            </div>
+          )}
+
+          {showAccountFields && (
+            <div style={{ display: 'grid', gap: '1rem' }}>{accountFields}</div>
+          )}
+
+          {showBusinessFields && (
+            <div style={{ display: 'grid', gap: '1rem' }}>{businessFields}</div>
+          )}
+
+          <div
+            style={{
+              display: 'flex',
+              justifyContent: mode === 'signup' && step > 0 ? 'space-between' : 'flex-end',
+              alignItems: 'center',
+              gap: '1rem',
+              marginTop: 'var(--space-2)',
+            }}
+          >
+            {mode === 'signup' && step > 0 && (
+              <button
+                type="button"
+                onClick={handleStepBack}
+                className="btn"
+                style={{
+                  padding: '0.85rem 1.5rem',
+                  borderRadius: '0.85rem',
+                  background: darkMode ? 'rgba(148,163,184,0.15)' : 'rgba(148,163,184,0.2)',
+                  color: darkMode ? '#e2e8f0' : '#1f2937',
+                  border: 'none',
+                  fontWeight: 600,
+                  cursor: 'pointer',
+                }}
+              >
+                ← Back
+              </button>
             )}
-            <span>
-              {loading 
-                ? (mode === "signin" ? "Signing in..." : "Creating account...")
-                : (mode === "signin" ? "Sign In" : "Create Account")
-              }
-            </span>
-          </button>
+
+            <button
+              className="btn btn-primary"
+              type="submit"
+              disabled={loading}
+              style={{
+                width: mode === 'signup' && step > 0 ? 'auto' : '100%',
+                minWidth: '160px',
+                padding: '0.9rem 1.5rem',
+                fontSize: '1rem',
+                fontWeight: '600',
+                opacity: loading ? 0.7 : 1,
+                cursor: loading ? 'not-allowed' : 'pointer',
+                display: 'inline-flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                gap: '8px',
+                boxShadow: darkMode
+                  ? '0 20px 35px rgba(99, 102, 241, 0.35)'
+                  : '0 20px 35px rgba(99, 102, 241, 0.25)',
+              }}
+            >
+              {loading && (
+                <div
+                  style={{
+                    width: '16px',
+                    height: '16px',
+                    border: '2px solid rgba(255, 255, 255, 0.3)',
+                    borderTopColor: 'white',
+                    borderRadius: '50%',
+                    animation: 'spin 1s linear infinite',
+                  }}
+                />
+              )}
+              <span>{primaryActionLabel}</span>
+            </button>
+          </div>
         </form>
 
         {/* Mode Switch */}
