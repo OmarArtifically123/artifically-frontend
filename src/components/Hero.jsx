@@ -1,5 +1,7 @@
+import { useCallback } from "react";
 import { Link } from "react-router-dom";
 import ThemeToggle from "./ThemeToggle";
+import useMicroInteractions from "../hooks/useMicroInteractions";
 
 const BADGES = [
   { icon: "⚡", label: "Deploy in minutes" },
@@ -32,19 +34,33 @@ const HERO_CHECKLIST = [
   "Schedule a guided launch when you're ready to go live",
 ];
 
-const scrollToMarketplace = () => {
-  const el = document.getElementById("marketplace");
-  if (!el) return;
+export default function Hero() {
+  const { dispatchInteraction } = useMicroInteractions();
+
+  const handleScrollToMarketplace = useCallback(
+    (event) => {
+      dispatchInteraction("cta-primary", { event });
+      if (typeof window === "undefined") return;
+      const el = document.getElementById("marketplace");
+      if (!el) return;
 
   const header = document.querySelector(".site-header");
-  const headerHeight = header ? header.offsetHeight : 80;
-  const elementPosition = el.getBoundingClientRect().top + window.pageYOffset;
-  const offsetPosition = elementPosition - headerHeight - 20;
+      const headerHeight = header ? header.offsetHeight : 80;
+      const elementPosition = el.getBoundingClientRect().top + window.pageYOffset;
+      const offsetPosition = elementPosition - headerHeight - 20;
 
-  window.scrollTo({ top: offsetPosition, behavior: "smooth" });
-};
+      window.scrollTo({ top: offsetPosition, behavior: "smooth" });
+    },
+    [dispatchInteraction],
+  );
 
-export default function Hero() {
+  const handleDocsClick = useCallback(
+    (event) => {
+      dispatchInteraction("cta-secondary", { event });
+    },
+    [dispatchInteraction],
+  );
+
   return (
     <section className="hero">
       <div className="hero-inner">
@@ -64,11 +80,25 @@ export default function Hero() {
               production-ready automations without wrestling with setup screens.
             </p>
             <div className="hero-ctas">
-              <button type="button" className="btn btn-primary" onClick={scrollToMarketplace}>
+              <button
+                type="button"
+                className="btn btn-primary"
+                data-magnetic="true"
+                data-ripple="true"
+                data-magnetic-strength="1.2"
+                onClick={handleScrollToMarketplace}
+              >
                 Explore Marketplace
                 <span aria-hidden="true">→</span>
               </button>
-              <Link to="/docs" className="btn btn-secondary">
+              <Link
+                to="/docs"
+                className="btn btn-secondary"
+                data-prefetch-route="/docs"
+                data-magnetic="true"
+                data-magnetic-strength="0.9"
+                onClick={handleDocsClick}
+              >
                 View Documentation
               </Link>
             </div>

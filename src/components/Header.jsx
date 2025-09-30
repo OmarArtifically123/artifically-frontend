@@ -4,6 +4,7 @@ import LogoLight from "../assets/logos/1_Primary.svg";
 import LogoDark from "../assets/logos/3_Dark_Mode.svg";
 import ThemeToggle from "./ThemeToggle";
 import { useTheme } from "../context/ThemeContext";
+import useMicroInteractions from "../hooks/useMicroInteractions";
 
 export default function Header({ user, onSignIn, onSignUp, onSignOut }) {
   const navigate = useNavigate();
@@ -17,6 +18,7 @@ export default function Header({ user, onSignIn, onSignUp, onSignOut }) {
     time: typeof performance !== "undefined" ? performance.now() : Date.now(),
   });
   const observerRef = useRef(null);
+  const { dispatchInteraction } = useMicroInteractions();
 
   const syncHeaderOffset = useCallback(() => {
     const header = document.querySelector(".site-header");
@@ -347,7 +349,12 @@ export default function Header({ user, onSignIn, onSignUp, onSignOut }) {
                 type="button"
                 className="btn btn-ghost"
                 data-prefetch-route="/dashboard"
-                onClick={() => navigate("/dashboard")}
+                data-magnetic="true"
+                data-magnetic-strength="0.75"
+                onClick={(event) => {
+                  dispatchInteraction("cta-secondary", { event });
+                  navigate("/dashboard");
+                }}
                 style={{
                   padding: "0.5rem 1.15rem",
                   borderRadius: "0.85rem",
@@ -365,7 +372,12 @@ export default function Header({ user, onSignIn, onSignUp, onSignOut }) {
                 type="button"
                 className="btn btn-primary"
                 data-prefetch-route="/signout"
-                onClick={onSignOut}
+                data-magnetic="true"
+                data-ripple="true"
+                onClick={(event) => {
+                  dispatchInteraction("cta-ghost", { event });
+                  onSignOut?.(event);
+                }}
                 style={{
                   padding: "0.5rem 1.25rem",
                   borderRadius: "0.85rem",
@@ -389,7 +401,12 @@ export default function Header({ user, onSignIn, onSignUp, onSignOut }) {
                 type="button"
                 className="btn btn-ghost"
                 data-prefetch-route="/signin"
-                onClick={onSignIn}
+                data-magnetic="true"
+                data-magnetic-strength="0.75"
+                onClick={(event) => {
+                  dispatchInteraction("cta-secondary", { event });
+                  onSignIn?.(event);
+                }}
                 style={{
                   padding: "0.5rem 1.1rem",
                   borderRadius: "0.85rem",
@@ -407,7 +424,12 @@ export default function Header({ user, onSignIn, onSignUp, onSignOut }) {
                 type="button"
                 className="btn btn-primary"
                 data-prefetch-route="/signup"
-                onClick={onSignUp}
+                data-magnetic="true"
+                data-ripple="true"
+                onClick={(event) => {
+                  dispatchInteraction("cta-primary", { event });
+                  onSignUp?.(event);
+                }}
                 style={{
                   padding: "0.5rem 1.25rem",
                   borderRadius: "0.85rem",

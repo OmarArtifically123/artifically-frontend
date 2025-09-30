@@ -1,5 +1,6 @@
-import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { memo, useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useTheme } from "../context/ThemeContext";
+import useMicroInteractions from "../hooks/useMicroInteractions";
 
 const SAMPLE_COMPANIES = [
   "TechCorp",
@@ -480,7 +481,7 @@ function useIconPalette(icon) {
   return palette;
 }
 
-export default function AutomationCard({
+function AutomationCardComponent({
   item,
   onDemo,
   onBuy,
@@ -497,6 +498,7 @@ export default function AutomationCard({
   onDwell,
 }) {
   const { darkMode } = useTheme();
+  const { dispatchInteraction } = useMicroInteractions();
   const palette = useIconPalette(item.icon);
   const [hovered, setHovered] = useState(false);
   const [simulationStep, setSimulationStep] = useState(0);
@@ -1014,6 +1016,30 @@ export default function AutomationCard({
     stopDwellTracking(true);
   };
 
+  const handleDemo = useCallback(
+    (event) => {
+      dispatchInteraction("cta-secondary", { event });
+      onDemo?.(item);
+    },
+    [dispatchInteraction, item, onDemo],
+  );
+
+  const handleBuy = useCallback(
+    (event) => {
+      dispatchInteraction("cta-primary", { event, particles: true });
+      onBuy?.(item);
+    },
+    [dispatchInteraction, item, onBuy],
+  );
+
+  const handleVote = useCallback(
+    (event) => {
+      dispatchInteraction("cta-ghost", { event, haptic: "pulse" });
+      onVote?.(item);
+    },
+    [dispatchInteraction, item, onVote],
+  );
+
   return (
     <div
       className={`automation-card glass-panel${hovered ? " is-hovered" : ""}${
@@ -1038,6 +1064,7 @@ export default function AutomationCard({
         transform: computedTransform
           ? `${computedTransform} scale(var(--live-pulse, 1))`
           : `scale(var(--live-pulse, 1))`,
+        contain: "layout style paint",
         "--attention-level": attentionIntensity,
       }}
       ref={cardRef}
@@ -1229,7 +1256,7 @@ export default function AutomationCard({
           data-magnetic="true"
           data-ripple="true"
           data-magnetic-strength="0.75"
-          onClick={() => onDemo(item)}
+          onClick={handleDemo}
         >
           Try Demo
         </button>
@@ -1238,7 +1265,7 @@ export default function AutomationCard({
           data-magnetic="true"
           data-ripple="true"
           data-magnetic-strength="1.1"
-          onClick={() => onBuy(item)}
+          onClick={handleBuy}
         >
           Buy & Deploy
         </button>
@@ -1249,9 +1276,9 @@ export default function AutomationCard({
           <button
             type="button"
             className="automation-card__vote"
-            onClick={() => {
-              onVote(item);
-            }}
+            data-magnetic="true"
+            data-magnetic-strength="0.65"
+            onClick={handleVote}
           >
             <span aria-hidden="true">🗳️</span>
             <span>Vote to deploy</span>
@@ -1262,3 +1289,5 @@ export default function AutomationCard({
     </div>
   );
 }
+
+export default memo(AutomationCardComponent);

@@ -1,5 +1,6 @@
 import { useEffect, useMemo } from "react";
 import { useTheme } from "../context/ThemeContext";
+import { MicroInteractionProvider } from "../context/MicroInteractionContext";
 import useInteractiveEffects from "../hooks/useInteractiveEffects";
 
 const THEME_PRESETS = {
@@ -76,9 +77,11 @@ export default function ExperienceLayer({ children }) {
   useInteractiveEffects();
 
   return (
-    <div className="experience-shell" data-theme-key={theme.themeKey}>
-      <div className="experience-backdrop" aria-hidden="true" />
-      <div className="experience-content">{children}</div>
-    </div>
+    <MicroInteractionProvider>
+      <div className="experience-shell" data-theme-key={theme.themeKey}>
+        <div className="experience-backdrop" aria-hidden="true" />
+        <div className="experience-content">{children}</div>
+      </div>
+    </MicroInteractionProvider>
   );
 }
