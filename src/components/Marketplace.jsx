@@ -26,40 +26,40 @@ const MARKETPLACE_JOURNEY = [
     title: "Entry Experience",
     icon: "🚪",
     steps: [
-      "Automations arrange themselves based on detected company profile",
-      "Gentle animations guide attention to highest-value options",
-      "Success metrics from similar companies fade in gracefully",
-      "Most relevant categories pulse softly with welcoming energy",
+      "Marketplace welcome adapts to your company profile in one glance",
+      "Live ROI summary highlights the outcomes your team cares about",
+      "Clean layout keeps the focus on evaluating automations, not fighting UI",
+      "Quick links surface documentation, pricing, and support right away",
     ],
   },
   {
-    title: "Browse & Filter",
+    title: "Browse & Evaluate",
     icon: "🧭",
     steps: [
-      "Intelligent filters appear based on browsing behavior",
-      "Automations reorganize fluidly when filters change",
-      "Related automations connect with animated lines",
-      "ROI indicators update in real-time as they browse",
+      "Clusters group automations by outcome so you scan less",
+      "Match strength indicators compare every option instantly",
+      "Preview modals launch without taking you away from the grid",
+      "Saved browsing signals nudge relevant categories back to the top",
     ],
   },
   {
     title: "Deep Dive Preview",
     icon: "🔍",
     steps: [
-      "Card morphs into immersive full-screen experience",
-      "Shows automation running with user's industry data",
-      "Interactive elements let them \"test drive\" features",
-      "Real deployment timeline appears with effort estimates",
+      "Interactive previews stream sample data based on your needs",
+      "Feature highlights explain how the automation actually works",
+      "Deployment actions stay one click away with clear CTAs",
+      "Telemetry hints show which metrics will populate once live",
     ],
   },
   {
     title: "Team Collaboration",
     icon: "🤝",
     steps: [
-      "Their cursor appears with elegant fade-in animation",
-      "Shared discoveries synchronize across all viewers",
-      "Live discussion appears as contextual chat bubbles",
-      "Collaborative decision-making with voting/rating system",
+      "Shared cursors broadcast teammate focus in real time",
+      "Lightweight discussion feed captures quick takeaways",
+      "Signals sync so everyone evaluates the same cluster layout",
+      "Optional demos help stakeholders experience the automation together",
     ],
   },
 ];
@@ -356,8 +356,6 @@ export default function Marketplace({ user, openAuth }) {
     topCategory: null,
     combo: [],
   });
-  const [psychicId, setPsychicId] = useState(null);
-  const [teamVotes, setTeamVotes] = useState({});
   const [attentionScores, setAttentionScores] = useState(() => loadAttentionScores());
   const attentionQueueRef = useRef(new Map());
   const attentionRafRef = useRef(null);
@@ -655,16 +653,7 @@ export default function Marketplace({ user, openAuth }) {
     const channel = new BroadcastChannel("marketplace-collaboration");
     collaborationChannelRef.current = channel;
     setCollaborationReady(true);
-    const handleMessage = (event) => {
-      const payload = event.data;
-      if (!payload || payload.sessionId === sessionId) return;
-      if (payload.type === "vote" && payload.automationId) {
-        setTeamVotes((prev) => ({
-          ...prev,
-          [payload.automationId]: (prev[payload.automationId] || 0) + (payload.delta || 1),
-        }));
-      }
-    };
+    const handleMessage = () => {};
     channel.addEventListener("message", handleMessage);
     return () => {
       channel.removeEventListener("message", handleMessage);
@@ -759,25 +748,6 @@ export default function Marketplace({ user, openAuth }) {
     }));
   }, [scoredAutomations, activeNeed]);
 
-  const recommendedAutomations = useMemo(
-    () =>
-      scoredAutomations.slice(0, 3).map((entry, index) => ({
-        ...entry,
-        rank: index + 1,
-        confidence: Math.round((entry.matchStrength || 0) * 100),
-      })),
-    [scoredAutomations],
-  );
-
-  useEffect(() => {
-    if (typeof window === "undefined" || !recommendedAutomations.length) return;
-    const [top] = recommendedAutomations;
-    const timer = window.setTimeout(() => {
-      setPsychicId(top.item.id);
-    }, 950);
-    return () => window.clearTimeout(timer);
-  }, [recommendedAutomations]);
-
   const combinationHighlight = useMemo(() => {
     if (!automationClusters.length) return null;
     const [topCluster] = automationClusters;
@@ -804,41 +774,6 @@ export default function Marketplace({ user, openAuth }) {
   }, [workerMetrics.combo, automationMap]);
 
   const activeCombination = workerComboHighlight || combinationHighlight;
-
-  const successMessage = useMemo(() => {
-    const roiSource =
-      typeof workerMetrics.averageROI === "number" && Number.isFinite(workerMetrics.averageROI)
-        ? workerMetrics.averageROI
-        : typeof averageROI === "number" && Number.isFinite(averageROI)
-          ? averageROI
-          : resolvedStatsROI;
-    const roiValue =
-      typeof roiSource === "number" && Number.isFinite(roiSource)
-        ? roiSource
-        : FALLBACK_MARKETPLACE_STATS?.averageROI || 0;
-    const roi = Number(roiValue).toFixed(1);
-    if (detectedIndustry) {
-      return `Teams similar to yours in ${detectedIndustry} see ${roi}x ROI with this combination.`;
-    }
-    if (activeNeed) {
-      return `Teams optimizing for ${titleCase(activeNeed)} see ${roi}x ROI with this combination.`;
-    }
-    return `Teams similar to yours see ${roi}x ROI with this combination.`;
-  }, [averageROI, resolvedStatsROI, detectedIndustry, activeNeed, workerMetrics.averageROI]);
-
-  const castVote = (automationId, delta = 1) => {
-    if (!automationId) return;
-    setTeamVotes((prev) => ({
-      ...prev,
-      [automationId]: (prev[automationId] || 0) + delta,
-    }));
-    collaborationChannelRef.current?.postMessage({
-      type: "vote",
-      sessionId,
-      automationId,
-      delta,
-    });
-  };
 
   const recordBrowsingSignal = (item, updateState) => {
     if (typeof window === "undefined" || !item) return;
@@ -949,11 +884,11 @@ export default function Marketplace({ user, openAuth }) {
       >
         <div className="marketplace-entry__intro">
           <h2 style={{ fontSize: "2.4rem", fontWeight: 800 }}>
-            Marketplace reimagined for {detectedIndustry || "your industry"}
+            Marketplace built for {detectedIndustry || "teams like yours"}
           </h2>
           <p style={{ color: darkMode ? "#94a3b8" : "#475569" }}>
-            Automations reshuffle themselves around your profile. Categories pulse to guide attention
-            and success metrics fade in as if the marketplace already knows what you'll ask next.
+            Discover automations with narrative previews, outcome-focused clusters, and instant
+            calls-to-action so evaluating fit feels more like a guided tour than a scavenger hunt.
           </p>
           <div className="marketplace-entry__meta">
             <div>
@@ -961,12 +896,8 @@ export default function Marketplace({ user, openAuth }) {
               <strong>{workerMetrics.topCategory?.category || "Adaptive orchestration"}</strong>
             </div>
             <div>
-              <span>Psychic highlight</span>
-              <strong>
-                {psychicId
-                  ? automationMap.get(psychicId)?.name || "Discovering"
-                  : "Scanning"}
-              </strong>
+              <span>Spotlight stack</span>
+              <strong>{activeCombination?.title || "Scanning"}</strong>
             </div>
             <div>
               <span>Active combination ROI</span>
@@ -1017,8 +948,8 @@ export default function Marketplace({ user, openAuth }) {
 
       <div className="marketplace-journey" aria-label="Marketplace journey highlights">
         <header>
-          <span className="marketplace-journey__eyebrow">🎨 Marketplace Reimagined</span>
-          <p>Follow the shared exploration flow from welcome moment to decision.</p>
+          <span className="marketplace-journey__eyebrow">🎯 Marketplace Playbook</span>
+          <p>See how each phase of the marketplace keeps momentum from hello to handoff.</p>
         </header>
         <div className="marketplace-journey__grid">
           {MARKETPLACE_JOURNEY.map(({ title, icon, steps }) => (
@@ -1137,99 +1068,6 @@ export default function Marketplace({ user, openAuth }) {
           />
         )}
 
-        <div className="marketplace-smart" role="region" aria-label="Smart marketplace insights">
-          <div className="marketplace-smart__column">
-            <header className="marketplace-smart__header">
-              <span className="marketplace-smart__eyebrow">Smart recommendations</span>
-              <h3>Companies like yours typically start with these 3</h3>
-              {detectedIndustry && (
-                <p>
-                  We detected <strong>{detectedIndustry}</strong> signals from your profile and email
-                  domain.
-                </p>
-              )}
-            </header>
-            <div className="marketplace-smart__recommendations">
-              {recommendedAutomations.length === 0 ? (
-                <p>No recommendations available yet.</p>
-              ) : (
-                recommendedAutomations.map(({ item, rank, confidence }) => (
-                  <article
-                    key={item.id}
-                    className="marketplace-smart__card"
-                    data-predicted={psychicId === item.id}
-                  >
-                    <div className="marketplace-smart__card-rank">#{rank}</div>
-                    <div className="marketplace-smart__card-body">
-                      <h4>{item.name}</h4>
-                      <p>{item.description}</p>
-                      <div className="marketplace-smart__card-meta">
-                        <span>{confidence}% relevance match</span>
-                        {item.tags?.length ? <span>{item.tags.slice(0, 2).join(" · ")}</span> : null}
-                        {typeof workerMetrics.averageROI === "number" ? (
-                          <span>{workerMetrics.averageROI.toFixed(2)}x live ROI</span>
-                        ) : null}
-                      </div>
-                      <div className="marketplace-smart__card-collab">
-                        <button type="button" onClick={() => castVote(item.id)}>
-                          <span aria-hidden="true">🗳️</span>
-                          <span>Team vote</span>
-                        </button>
-                        <span>{teamVotes[item.id] || 0} votes</span>
-                      </div>
-                    </div>
-                    <button
-                      type="button"
-                      className="marketplace-smart__card-action"
-                      onClick={() => handleDemo(item)}
-                    >
-                      Preview
-                    </button>
-                  </article>
-                ))
-              )}
-            </div>
-            <div className="marketplace-smart__success" role="status">
-              <strong>Success pattern matching</strong>
-              <span>{successMessage}</span>
-            </div>
-          </div>
-
-          <div className="marketplace-smart__column marketplace-smart__column--meta">
-            <h4>Smart Features</h4>
-            <ul>
-              <li>
-                <strong>Industry-aware filtering</strong>
-                <span>
-                  Automatically highlights automations for {detectedIndustry || "your business"} and
-                  reshapes scoring as you explore.
-                </span>
-              </li>
-              <li>
-                <strong>Adaptive marketplace</strong>
-                <span>Detects your industry from email domain and adapts recommendations instantly.</span>
-              </li>
-              <li>
-                <strong>Behavioral learning</strong>
-                <span>Learns from your browsing patterns and rearranges the marketplace in real time.</span>
-              </li>
-              <li>
-                <strong>Peer success signals</strong>
-                <span>Shows peer success stories and ROI uplift for teams similar to yours.</span>
-              </li>
-              {activeCombination && (
-                <li>
-                  <strong>Combination spotlight</strong>
-                  <span>
-                    Highlights automation combinations like <em>{activeCombination.title}</em> that
-                    work well together: {activeCombination.items.join(", ")}
-                  </span>
-                </li>
-              )}
-            </ul>
-          </div>
-        </div>
-
         <LivingSuccessMetrics
           industry={detectedIndustry}
           focus={activeNeed ? titleCase(activeNeed) : null}
@@ -1307,9 +1145,6 @@ export default function Marketplace({ user, openAuth }) {
                       industryMatch={industryMatch}
                       industryLabel={detectedIndustry}
                       browsingMatch={browsingMatch}
-                      onVote={(automation) => castVote(automation.id)}
-                      voteCount={teamVotes[item.id] || 0}
-                      predicted={psychicId === item.id}
                       attentionScore={attentionScore}
                       onDwell={handleAttentionDwell}
                     />

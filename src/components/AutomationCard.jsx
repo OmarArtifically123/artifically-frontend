@@ -1244,19 +1244,21 @@ export default function AutomationCard({
         </button>
       </div>
 
-      <div className="automation-card__collab">
-        <button
-          type="button"
-          className="automation-card__vote"
-          onClick={() => {
-            if (onVote) onVote(item);
-          }}
-        >
-          <span aria-hidden="true">🗳️</span>
-          <span>Vote to deploy</span>
-        </button>
-        <span className="automation-card__vote-count">{voteCount} team votes</span>
-      </div>
+      {onVote && (
+        <div className="automation-card__collab">
+          <button
+            type="button"
+            className="automation-card__vote"
+            onClick={() => {
+              onVote(item);
+            }}
+          >
+            <span aria-hidden="true">🗳️</span>
+            <span>Vote to deploy</span>
+          </button>
+          <span className="automation-card__vote-count">{voteCount} team votes</span>
+        </div>
+      )}
     </div>
   );
 }
