@@ -1,7 +1,6 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useQuery } from "@apollo/client";
 import { fetchAutomations } from "../data/automations";
-import AutomationCard from "./AutomationCard";
 import DemoModal from "./DemoModal";
 import { toast } from "./Toast";
 import api from "../api";
@@ -1034,7 +1033,7 @@ export default function Marketplace({ user, openAuth }) {
             Some automations may not be displayed due to a connection issue.
           </div>
         )}
-        
+
         <div className="marketplace-detected-message">
           {activeNeed ? (
             <span>
@@ -1045,43 +1044,7 @@ export default function Marketplace({ user, openAuth }) {
             <span>Automations adapt in real time to match your browsing signals.</span>
           )}
         </div>
-
-        {scoredAutomations.length === 0 ? (
-          <div
-            style={{
-              textAlign: "center",
-              padding: "4rem 0",
-              borderRadius: "1.5rem",
-              border: `1px solid ${darkMode ? "rgba(148,163,184,0.25)" : "rgba(148,163,184,0.35)"}`,
-            }}
-          >
-            <div style={{ fontSize: "3rem", marginBottom: "1rem" }}>🤔</div>
-            <h3 style={{ fontSize: "1.4rem", marginBottom: "0.75rem" }}>No automations found</h3>
-            <p style={{ color: darkMode ? "#94a3b8" : "#475569" }}>
-              Check back soon—new automations are added every week.
-            </p>
-          </div>
-        ) : (
-          <div className="automation-grid">
-            {scoredAutomations.map(
-              ({ item, matchStrength, industryMatch, browsingMatch, attentionScore }) => (
-                <AutomationCard
-                  key={item.id}
-                  item={item}
-                  onDemo={handleDemo}
-                  onBuy={buy}
-                  activeNeed={activeNeed}
-                  matchStrength={matchStrength}
-                  industryMatch={industryMatch}
-                  industryLabel={detectedIndustry}
-                  browsingMatch={browsingMatch}
-                  attentionScore={attentionScore}
-                  onDwell={handleAttentionDwell}
-                />
-              ),
-            )}
-          </div>
-        )}
+        
       </div>
 
       {demo && (
