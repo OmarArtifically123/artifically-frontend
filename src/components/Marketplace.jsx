@@ -58,7 +58,7 @@ const MARKETPLACE_JOURNEY = [
     steps: [
       "Shared cursors broadcast teammate focus in real time",
       "Lightweight discussion feed captures quick takeaways",
-      "Signals sync so everyone evaluates the same cluster layout",
+      "Signals sync so everyone evaluates the same prioritized layout",
       "Optional demos help stakeholders experience the automation together",
     ],
   },
@@ -312,33 +312,6 @@ function computeMatchScore(item, detectedNeeds, activeNeed, browsingSignals, ind
   return score;
 }
 
-function computeClusterLabel(item, activeNeed) {
-  if (activeNeed) {
-    const normalizedNeed = normalize(activeNeed);
-    const hasNeedTag = (item?.tags || []).some((tag) => normalize(tag).includes(normalizedNeed));
-    if (hasNeedTag || normalize(item?.category).includes(normalizedNeed)) {
-      return `Tailored for ${titleCase(activeNeed)}`;
-    }
-  }
-
-  const baseLabel = item?.category || item?.vertical || (item?.tags?.[0] ?? "Universal");
-  return `Cluster: ${titleCase(baseLabel)}`;
-}
-
-function createClusterDescription(label, activeNeed) {
-  const lower = normalize(label);
-  if (lower.startsWith("tailored")) {
-    return activeNeed
-      ? `Automations tuned to your ${titleCase(activeNeed)} focus with synchronized data flows.`
-      : "Automations tuned to your current signals with synchronized data flows.";
-  }
-
-  const topic = label.split(":").slice(1).join(":").trim();
-  return topic
-    ? `${topic} specialists linked by glowing workflow connections.`
-    : "Related automations collaborating through live workflow connections.";
-}
-
 export default function Marketplace({ user, openAuth }) {
   const { darkMode } = useTheme();
   const [demo, setDemo] = useState(null);
@@ -348,7 +321,6 @@ export default function Marketplace({ user, openAuth }) {
   const [averageROI, setAverageROI] = useState(null);
   const [detectedNeeds, setDetectedNeeds] = useState([]);
   const [activeNeed, setActiveNeed] = useState(null);
-  const [layoutKey, setLayoutKey] = useState(0);
   const [detectedIndustry, setDetectedIndustry] = useState(null);
   const [browsingSignals, setBrowsingSignals] = useState([]);
   const [workerMetrics, setWorkerMetrics] = useState({
@@ -628,10 +600,6 @@ export default function Marketplace({ user, openAuth }) {
   }, [detectedIndustry, detectedNeeds]);
 
   useEffect(() => {
-    setLayoutKey((prev) => prev + 1);
-  }, [activeNeed]);
-
-  useEffect(() => {
     if (!automations.length) return;
     const signals = [
       ...detectedNeeds,
@@ -693,6 +661,7 @@ export default function Marketplace({ user, openAuth }) {
         score,
         baseScore,
         attentionBonus,
+        attentionScore: attention?.score || 0,
         industryMatch: matchesIndustry(item, detectedIndustry),
         browsingMatch: (browsingSignals || []).some((signal) =>
           matchesIndustry(item, signal.label),
@@ -721,42 +690,18 @@ export default function Marketplace({ user, openAuth }) {
     return new Map(automations.map((item) => [item.id, item]));
   }, [automations]);
 
-  const automationClusters = useMemo(() => {
-    if (!scoredAutomations.length) return [];
-
-    const groups = new Map();
-    scoredAutomations.forEach(({ item, matchStrength, industryMatch, browsingMatch, attentionBonus }) => {
-      const label = computeClusterLabel(item, activeNeed);
-      if (!groups.has(label)) {
-        groups.set(label, []);
-      }
-      groups.get(label).push({
-        item,
-        matchStrength,
-        industryMatch,
-        browsingMatch,
-        attentionBonus,
-        attentionScore: attentionScores?.[item.id]?.score || 0,
-      });
-    });
-
-    return Array.from(groups.entries()).map(([label, items], index) => ({
-      id: `${label}-${index}`,
-      label,
-      description: createClusterDescription(label, activeNeed),
-      items,
-    }));
-  }, [scoredAutomations, activeNeed]);
-
   const combinationHighlight = useMemo(() => {
-    if (!automationClusters.length) return null;
-    const [topCluster] = automationClusters;
+    if (!scoredAutomations.length) return null;
+    const topEntries = scoredAutomations.slice(0, 3);
+    const label = activeNeed ? `${titleCase(activeNeed)} standouts` : "Top matching automations";
     return {
-      title: topCluster.label,
-      description: topCluster.description,
-      items: topCluster.items.slice(0, 3).map(({ item }) => item.name),
+      title: label,
+      description: activeNeed
+        ? `Automations that excel for ${titleCase(activeNeed)} teams right now.`
+        : "High-performing automations based on your live signals.",
+      items: topEntries.map(({ item }) => item.name),
     };
-  }, [automationClusters]);
+  }, [scoredAutomations, activeNeed]);
 
   const workerComboHighlight = useMemo(() => {
     if (!workerMetrics.combo?.length) return null;
@@ -887,12 +832,12 @@ export default function Marketplace({ user, openAuth }) {
             Marketplace built for {detectedIndustry || "teams like yours"}
           </h2>
           <p style={{ color: darkMode ? "#94a3b8" : "#475569" }}>
-            Discover automations with narrative previews, outcome-focused clusters, and instant
-            calls-to-action so evaluating fit feels more like a guided tour than a scavenger hunt.
+            Discover automations with narrative previews and instant calls-to-action so evaluating
+            fit feels more like a guided tour than a scavenger hunt.
           </p>
           <div className="marketplace-entry__meta">
             <div>
-              <span>Top live cluster</span>
+              <span>Top live match</span>
               <strong>{workerMetrics.topCategory?.category || "Adaptive orchestration"}</strong>
             </div>
             <div>
@@ -1093,14 +1038,15 @@ export default function Marketplace({ user, openAuth }) {
         <div className="marketplace-detected-message">
           {activeNeed ? (
             <span>
-              <strong>{titleCase(activeNeed)}</strong> automations surge to the front with live clustering.
+              <strong>{titleCase(activeNeed)}</strong> automations surge to the front based on live
+              signals.
             </span>
           ) : (
-            <span></span>
+            <span>Automations adapt in real time to match your browsing signals.</span>
           )}
         </div>
 
-        {automationClusters.length === 0 ? (
+        {scoredAutomations.length === 0 ? (
           <div
             style={{
               textAlign: "center",
@@ -1116,42 +1062,24 @@ export default function Marketplace({ user, openAuth }) {
             </p>
           </div>
         ) : (
-          <div className="automation-clusters">
-            {automationClusters.map((cluster) => (
-              <div
-                key={`${cluster.id}-${layoutKey}`}
-                className="automation-cluster"
-                data-highlight={normalize(cluster.label).startsWith("tailored")}
-              >
-                <div className="automation-cluster__halo" aria-hidden="true" />
-                <div className="automation-cluster__links" aria-hidden="true">
-                  <span />
-                  <span />
-                  <span />
-                </div>
-                <header>
-                  <h3>{cluster.label}</h3>
-                  <p>{cluster.description}</p>
-                </header>
-                <div className="automation-cluster__grid">
-                  {cluster.items.map(({ item, matchStrength, industryMatch, browsingMatch, attentionScore }) => (
-                    <AutomationCard
-                      key={item.id}
-                      item={item}
-                      onDemo={handleDemo}
-                      onBuy={buy}
-                      activeNeed={activeNeed}
-                      matchStrength={matchStrength}
-                      industryMatch={industryMatch}
-                      industryLabel={detectedIndustry}
-                      browsingMatch={browsingMatch}
-                      attentionScore={attentionScore}
-                      onDwell={handleAttentionDwell}
-                    />
-                  ))}
-                </div>
-              </div>
-            ))}
+          <div className="automation-grid">
+            {scoredAutomations.map(
+              ({ item, matchStrength, industryMatch, browsingMatch, attentionScore }) => (
+                <AutomationCard
+                  key={item.id}
+                  item={item}
+                  onDemo={handleDemo}
+                  onBuy={buy}
+                  activeNeed={activeNeed}
+                  matchStrength={matchStrength}
+                  industryMatch={industryMatch}
+                  industryLabel={detectedIndustry}
+                  browsingMatch={browsingMatch}
+                  attentionScore={attentionScore}
+                  onDwell={handleAttentionDwell}
+                />
+              ),
+            )}
           </div>
         )}
       </div>
