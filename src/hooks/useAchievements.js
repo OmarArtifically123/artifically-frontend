@@ -1,6 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
 import { achievementsCatalog, defaultAchievementsState } from "../data/achievements";
-import { celebrationAnimation } from "../data/achievementAnimations";
 import { toast } from "../components/Toast";
 
 const STORAGE_KEY = "artifically:achievements";
@@ -118,7 +117,6 @@ export const useAchievements = ({ deploymentsCount = 0, streak = 0 } = {}) => {
             title: `${achievement.title} unlocked!`,
             description: achievement.description,
             reward: achievement.reward,
-            animation: celebrationAnimation,
             duration: 6000,
           });
         }, index * 250);

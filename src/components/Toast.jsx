@@ -1,23 +1,55 @@
 // src/components/Toast.jsx
 import { useEffect, useMemo, useState } from "react";
 import { createPortal } from "react-dom";
-import Lottie from "lottie-react";
 import { useTheme } from "../context/ThemeContext";
+
+function CelebrationIcon({ darkMode }) {
+  const confettiPieces = useMemo(
+    () =>
+      Array.from({ length: 14 }).map((_, index) => ({
+        id: index,
+        delay: `${(index * 70) % 500}ms`,
+        duration: `${1400 + (index % 5) * 120}ms`,
+        offset: `${(index % 2 === 0 ? -1 : 1) * (6 + (index % 4) * 2)}px`,
+      })),
+    []
+  );
+
+  return (
+    <div
+      className="toast-celebration"
+      style={{
+        background: darkMode ? "rgba(14, 165, 233, 0.16)" : "rgba(129, 230, 217, 0.35)",
+        borderRadius: "1rem",
+        inset: 0,
+      }}
+    >
+      <span className="toast-celebration__burst" aria-hidden="true" />
+      {confettiPieces.map((piece) => (
+        <span
+          key={piece.id}
+          className="toast-confetti"
+          style={{
+            animationDelay: piece.delay,
+            animationDuration: piece.duration,
+            transform: `translateX(${piece.offset})`,
+          }}
+          aria-hidden="true"
+        />
+      ))}
+      <span className="toast-celebration__icon" role="img" aria-hidden="true">
+        🎉
+      </span>
+    </div>
+  );
+}
 
 // ---------------------------
 // Toast component
 // ---------------------------
 export function ToastItem({ data, onClose }) {
   const { darkMode } = useTheme();
-  const {
-    message,
-    type = "success",
-    title,
-    description,
-    animation,
-    reward,
-    duration,
-  } = data;
+  const { message, type = "success", title, description, reward, duration } = data;
 
   const displayTitle = title || message;
   const displayDescription = description || (title ? message : "");
@@ -86,14 +118,12 @@ export function ToastItem({ data, onClose }) {
           background: darkMode ? "rgba(15,23,42,0.35)" : "rgba(255,255,255,0.55)",
           borderRadius: "1rem",
           flexShrink: 0,
+          position: "relative",
+          overflow: "hidden",
         }}
       >
-        {animation ? (
-          <Lottie
-            animationData={animation}
-            loop={false}
-            style={{ width: 60, height: 60 }}
-          />
+        {type === "celebration" ? (
+          <CelebrationIcon darkMode={darkMode} />
         ) : (
           <span style={{ fontSize: "1.75rem" }}>{icons[type] || icons.success}</span>
         )}
@@ -161,7 +191,6 @@ export function toast(message, opts = {}) {
         type: opts.type || "success",
         title: opts.title,
         description: opts.description,
-        animation: opts.animation,
         reward: opts.reward,
         duration: opts.duration,
       },
@@ -208,4 +237,4 @@ export function ToastHost() {
   );
 }
 
-export default Toast;
+export default ToastHost;
