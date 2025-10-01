@@ -2,6 +2,7 @@ import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { Link } from "react-router-dom";
 import * as THREE from "three";
 import { gsap } from "gsap";
+import { ScrollTrigger } from "gsap/ScrollTrigger";
 import ThemeToggle from "./ThemeToggle";
 import useMicroInteractions from "../hooks/useMicroInteractions";
 
@@ -113,6 +114,10 @@ const HEADLINE_LINES = [
   ["engineered", "with"],
   ["AI", "choreography."]
 ];
+
+if (typeof window !== "undefined") {
+  gsap.registerPlugin(ScrollTrigger);
+}
 
 function useCinematicBackground(canvasRef) {
   useEffect(() => {
@@ -262,22 +267,64 @@ function useCinematicBackground(canvasRef) {
 function useKineticHeadline(containerRef) {
   useEffect(() => {
     if (!containerRef.current || typeof window === "undefined") return undefined;
-    const words = containerRef.current.querySelectorAll("[data-kinetic-word]");
-    if (!words.length) return undefined;
+    const container = containerRef.current;
+    container.setAttribute("data-scroll-story", "ready");
 
-    gsap.set(words, { yPercent: 120, opacity: 0 });
     const ctx = gsap.context(() => {
+      const words = gsap.utils.toArray(container.querySelectorAll("[data-kinetic-word]"));
+      if (!words.length) return;
+
+      gsap.set(words, { yPercent: 120, opacity: 0 });
+
       gsap.to(words, {
         yPercent: 0,
         opacity: 1,
         ease: "power3.out",
-        duration: 1.2,
+        duration: 1.1,
         stagger: 0.08,
-        delay: 0.3,
+        delay: 0.25,
       });
+
+      gsap
+        .timeline({
+          defaults: { ease: "power3.out" },
+          scrollTrigger: {
+            trigger: container,
+            start: "top center",
+            end: "bottom top",
+            scrub: true,
+            onEnter: () => container.setAttribute("data-scroll-story", "active"),
+            onEnterBack: () => container.setAttribute("data-scroll-story", "active"),
+            onLeave: () => container.setAttribute("data-scroll-story", "past"),
+            onLeaveBack: () => container.setAttribute("data-scroll-story", "ready"),
+          },
+        })
+        .to(
+          words,
+          {
+            yPercent: 0,
+            opacity: 1,
+            stagger: 0.12,
+            duration: 1,
+          },
+          0,
+        )
+        .to(
+          words,
+          {
+            yPercent: -80,
+            opacity: 0,
+            stagger: 0.12,
+            duration: 1,
+          },
+          0.55,
+        );
     }, containerRef);
 
-    return () => ctx.revert();
+    return () => {
+      ctx.revert();
+      container.setAttribute("data-scroll-story", "ready");
+    };
   }, [containerRef]);
 }
 
