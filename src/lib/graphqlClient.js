@@ -1,30 +1,4 @@
-import { ApolloClient, InMemoryCache, ApolloLink, gql } from "@apollo/client";
-import { Observable } from "@apollo/client/core";
-import { graphql, buildSchema } from "graphql";
-import { print } from "graphql/language/printer";
-
-const schema = buildSchema(`
-  type Feature {
-    id: ID!
-    icon: String!
-    title: String!
-    description: String!
-    status: String!
-  }
-
-  type MarketplaceStats {
-    totalAutomations: Int!
-    averageROI: Float!
-    partners: Int!
-  }
-
-  type Query {
-    featureHighlights: [Feature!]!
-    marketplaceStats: MarketplaceStats!
-  }
-`);
-
-const featureHighlights = [
+const FALLBACK_FEATURE_HIGHLIGHTS = [
   {
     id: "live-demos",
     icon: "⚡",
@@ -57,7 +31,8 @@ const featureHighlights = [
     id: "demo-metrics",
     icon: "📊",
     title: "Realistic projections",
-    description: "Every demo surfaces live-looking KPIs tailored to your inputs",
+    description:
+      "Every demo surfaces live-looking KPIs tailored to your inputs",
     status: "Insightful",
   },
   {
@@ -69,112 +44,183 @@ const featureHighlights = [
   },
 ];
 
-const automationSample = [
-  { id: "auto-1", partner: "Artifically Labs", roi: 4.8 },
-  { id: "auto-2", partner: "Quantum Ops", roi: 5.4 },
-  { id: "auto-3", partner: "Artifically Labs", roi: 4.5 },
-  { id: "auto-4", partner: "Global CX", roi: 5.1 },
-];
+const FALLBACK_MARKETPLACE_STATS = {
+  totalAutomations: 128,
+  averageROI: 5.12,
+  partners: 42,
+};
 
-const marketplaceStats = () => {
-  const totalAutomations = automationSample.length;
-  const partners = new Set(automationSample.map((item) => item.partner)).size;
-  const averageROI =
-    automationSample.reduce((acc, item) => acc + (item.roi || 4.2), 0) /
-    Math.max(totalAutomations || 1, 1);
+let cachedFeatureData = null;
+let cachedFeaturePromise = null;
+
+const sanitizeFeature = (feature, index) => {
+  if (!feature || typeof feature !== "object") {
+    return FALLBACK_FEATURE_HIGHLIGHTS[index] || FALLBACK_FEATURE_HIGHLIGHTS[0];
+  }
 
   return {
-    totalAutomations,
-    partners,
-    averageROI: Number(averageROI.toFixed(2)),
+    id: String(feature.id || `feature-${index}`),
+    icon: feature.icon || "✨",
+    title: feature.title || "Powerful automation",
+    description:
+      feature.description ||
+      "Unlock better ROI with guided automation workflows and smart insights.",
+    status: feature.status || "Available",
   };
 };
 
-const resolvers = {
-  featureHighlights: () => featureHighlights,
-  marketplaceStats,
+const sanitizeStats = (stats) => {
+  if (!stats || typeof stats !== "object") {
+    return { ...FALLBACK_MARKETPLACE_STATS };
+  }
+
+  const totalAutomations = Number(stats.totalAutomations);
+  const averageROI = Number(stats.averageROI);
+  const partners = Number(stats.partners);
+
+  return {
+    totalAutomations: Number.isFinite(totalAutomations)
+      ? totalAutomations
+      : FALLBACK_MARKETPLACE_STATS.totalAutomations,
+    averageROI: Number.isFinite(averageROI)
+      ? Number(averageROI.toFixed(2))
+      : FALLBACK_MARKETPLACE_STATS.averageROI,
+    partners: Number.isFinite(partners)
+      ? partners
+      : FALLBACK_MARKETPLACE_STATS.partners,
+  };
 };
 
-export const FALLBACK_FEATURE_HIGHLIGHTS = featureHighlights;
-export const FALLBACK_MARKETPLACE_STATS = marketplaceStats();
+const sanitizeFeatureData = (data) => {
+  const features = Array.isArray(data?.features)
+    ? data.features.map(sanitizeFeature)
+    : FALLBACK_FEATURE_HIGHLIGHTS.map(sanitizeFeature);
 
-const schemaLink = new ApolloLink((operation) => {
-  return new Observable((observer) => {
-    graphql({
-      schema,
-      source: print(operation.query),
-      rootValue: resolvers,
-      variableValues: operation.variables,
-    })
-      .then((result) => {
-        observer.next(result);
-        observer.complete();
-      })
-      .catch((error) => observer.error(error));
-  });
-});
+  const stats = sanitizeStats(data?.stats || data?.marketplaceStats);
 
-export const FEATURE_HIGHLIGHTS_QUERY = gql`
-  query FeatureHighlights {
-    featureHighlights {
-      id
-      icon
-      title
-      description
-      status
-    }
-    marketplaceStats {
-      totalAutomations
-      averageROI
-      partners
-    }
-  }
-`;
-
-export const MARKETPLACE_STATS_QUERY = gql`
-  query MarketplaceStatsOnly {
-    marketplaceStats {
-      averageROI
-    }
-  }
-`;
-
-const createCache = (initialState) => {
-  const cache = new InMemoryCache({
-    typePolicies: {
-      Query: {
-        fields: {
-          featureHighlights: {
-            merge(_, incoming) {
-              return incoming;
-            },
-          },
-          marketplaceStats: {
-            merge(_, incoming) {
-              return incoming;
-            },
-          },
-        },
-      },
-    },
-  });
-
-  if (initialState) {
-    cache.restore(initialState);
-  }
-
-  return cache;
+  return { features, stats };
 };
 
-export const createApolloClient = (initialState) =>
-  new ApolloClient({
-    link: schemaLink,
-    cache: createCache(initialState),
-    ssrMode: typeof window === "undefined",
+const readBootstrappedFeatureData = () => {
+  if (typeof window === "undefined") {
+    return null;
+  }
+
+  const payload = window.__FEATURE_DATA__;
+  if (!payload) {
+    return null;
+  }
+
+  try {
+    const normalized = sanitizeFeatureData(payload);
+    delete window.__FEATURE_DATA__;
+    return normalized;
+  } catch (error) {
+    if (import.meta.env?.DEV) {
+      console.warn("Failed to hydrate bootstrapped feature data", error);
+    }
+    delete window.__FEATURE_DATA__;
+    return null;
+  }
+};
+
+const simulateAsync = (factory, { signal, delay = 0 } = {}) =>
+  new Promise((resolve, reject) => {
+    if (signal?.aborted) {
+      reject(new Error("Aborted"));
+      return;
+    }
+
+    const complete = () => {
+      try {
+        resolve(factory());
+      } catch (error) {
+        reject(error);
+      }
+    };
+
+    if (delay > 0) {
+      const timeout = setTimeout(complete, delay);
+      signal?.addEventListener?.("abort", () => {
+        clearTimeout(timeout);
+        reject(new Error("Aborted"));
+      });
+      return;
+    }
+
+    if (typeof queueMicrotask === "function") {
+      queueMicrotask(complete);
+      return;
+    }
+
+    Promise.resolve().then(complete);
   });
 
-export const apolloClient = createApolloClient(
-  typeof window !== "undefined" ? window.__APOLLO_STATE__ : undefined
-);
+export const getFallbackFeatureData = () =>
+  sanitizeFeatureData({
+    features: FALLBACK_FEATURE_HIGHLIGHTS,
+    stats: FALLBACK_MARKETPLACE_STATS,
+  });
 
-export default apolloClient;
+export const loadFeatureData = (options = {}) => {
+  if (typeof window !== "undefined") {
+    if (!cachedFeatureData) {
+      cachedFeatureData = readBootstrappedFeatureData();
+    }
+
+    if (cachedFeatureData) {
+      return Promise.resolve(cachedFeatureData);
+    }
+  }
+
+  if (cachedFeatureData) {
+    return Promise.resolve(cachedFeatureData);
+  }
+
+  if (cachedFeaturePromise) {
+    return cachedFeaturePromise;
+  }
+
+  const factory = () => {
+    const resolved = sanitizeFeatureData({
+      features: FALLBACK_FEATURE_HIGHLIGHTS,
+      stats: FALLBACK_MARKETPLACE_STATS,
+    });
+
+    if (typeof window !== "undefined") {
+      cachedFeatureData = resolved;
+    }
+
+    return resolved;
+  };
+
+  if (typeof window === "undefined") {
+    return Promise.resolve(factory());
+  }
+
+  cachedFeaturePromise = simulateAsync(factory, {
+    signal: options.signal,
+    delay: options.delay ?? 120,
+  }).finally(() => {
+    cachedFeaturePromise = null;
+  });
+
+  return cachedFeaturePromise;
+};
+
+export const loadMarketplaceStats = (options = {}) =>
+  loadFeatureData(options).then((data) => data.stats);
+
+export const primeFeatureData = (data) => {
+  cachedFeatureData = sanitizeFeatureData(data);
+};
+
+export const resetFeatureDataCache = () => {
+  cachedFeatureData = null;
+  cachedFeaturePromise = null;
+};
+
+export {
+  FALLBACK_FEATURE_HIGHLIGHTS,
+  FALLBACK_MARKETPLACE_STATS,
+};

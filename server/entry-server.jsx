@@ -1,19 +1,26 @@
 import React from "react";
 import { renderToPipeableStream } from "react-dom/server";
 import { StaticRouter } from "react-router-dom/server";
-import { ApolloProvider } from "@apollo/client";
 import { PassThrough } from "stream";
 import App from "../src/App";
 import { ThemeProvider } from "../src/context/ThemeContext";
-import { createApolloClient, FEATURE_HIGHLIGHTS_QUERY } from "../src/lib/graphqlClient";
+import { getFallbackFeatureData } from "../src/lib/graphqlClient";
 
 function FeatureInsightsStream({ data }) {
-  const { featureHighlights = [], marketplaceStats } = data;
-  const stats = marketplaceStats || { totalAutomations: 0, averageROI: 0, partners: 0 };
+  const features = Array.isArray(data?.featureHighlights)
+    ? data.featureHighlights
+    : Array.isArray(data?.features)
+    ? data.features
+    : [];
+  const stats = data?.marketplaceStats || data?.stats || {
+    totalAutomations: 0,
+    averageROI: 0,
+    partners: 0,
+  };
 
   return (
     <div className="rsc-feature-grid">
-      {featureHighlights.slice(0, 4).map((feature) => (
+      {features.slice(0, 4).map((feature) => (
         <article key={feature.id} data-rsc-node="feature-card">
           <header style={{ display: "flex", alignItems: "center", gap: "0.75rem" }}>
             <span
@@ -73,18 +80,7 @@ const toPublicPath = (asset) => (asset.startsWith("/") ? asset : `/${asset}`);
 
 export async function render({ req, res, template, manifest, isProd }) {
   const url = req.originalUrl || req.url || "/";
-  const client = createApolloClient();
-
-  try {
-    await client.query({ 
-      query: FEATURE_HIGHLIGHTS_QUERY,
-      errorPolicy: 'all' // Continue even if query fails
-    });
-  } catch (error) {
-    console.warn("SSR prefetch failed", error);
-  }
-
-  const apolloState = client.extract();
+  const featureData = getFallbackFeatureData();
 
   const bootstrapScripts = (() => {
     if (!isProd) {
@@ -132,16 +128,16 @@ export async function render({ req, res, template, manifest, isProd }) {
 
     // Enhanced bootstrap script with SSR detection
     const bootstrapScriptContent = `
-      window.__APOLLO_STATE__=${safeSerialize(apolloState)};
-      
+      window.__FEATURE_DATA__=${safeSerialize(featureData)};
+
       // SSR success marker
       window.__SSR_SUCCESS__ = true;
-      
+
       // Debug info for hybrid rendering
       window.__SSR_DEBUG__ = ${JSON.stringify({
         url,
         timestamp: new Date().toISOString(),
-        apolloStateKeys: Object.keys(apolloState || {}),
+        featureCount: featureData.features?.length || 0,
         mode: 'ssr'
       })};
       
@@ -154,13 +150,11 @@ export async function render({ req, res, template, manifest, isProd }) {
     `;
 
     const { pipe, abort } = renderToPipeableStream(
-      <ApolloProvider client={client}>
-        <StaticRouter location={url}>
-          <ThemeProvider>
-            <App />
-          </ThemeProvider>
-        </StaticRouter>
-      </ApolloProvider>,
+      <StaticRouter location={url}>
+        <ThemeProvider>
+          <App />
+        </ThemeProvider>
+      </StaticRouter>,
       {
         bootstrapScripts,
         bootstrapScriptContent,
@@ -231,18 +225,7 @@ export async function render({ req, res, template, manifest, isProd }) {
 }
 
 export async function renderFeatureHighlightsRSC(res) {
-  const client = createApolloClient();
-  let data = { featureHighlights: [], marketplaceStats: null };
-
-  try {
-    const result = await client.query({ 
-      query: FEATURE_HIGHLIGHTS_QUERY,
-      errorPolicy: 'all'
-    });
-    data = result.data || data;
-  } catch (error) {
-    console.warn("RSC prefetch failed", error);
-  }
+  const data = getFallbackFeatureData();
 
   return new Promise((resolve, reject) => {
     const stream = new PassThrough();

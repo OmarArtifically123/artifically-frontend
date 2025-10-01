@@ -2,10 +2,8 @@ import React, { StrictMode, startTransition } from "react";
 import { hydrateRoot, createRoot } from "react-dom/client";
 import { BrowserRouter } from "react-router-dom";
 import { ErrorBoundary } from "react-error-boundary";
-import { ApolloProvider } from "@apollo/client";
 import App from "./App";
 import { ThemeProvider } from "./context/ThemeContext";
-import { createApolloClient } from "./lib/graphqlClient";
 import { warmupWasm } from "./lib/wasmMath";
 import "./styles/global.css";
 
@@ -117,15 +115,6 @@ function detectRenderingMode() {
   };
 }
 
-// Create Apollo client with proper state handling
-const apolloState = typeof window !== "undefined" ? window.__APOLLO_STATE__ : null;
-const apolloClient = createApolloClient(apolloState);
-
-// Clear Apollo state from window
-if (typeof window !== "undefined" && window.__APOLLO_STATE__) {
-  delete window.__APOLLO_STATE__;
-}
-
 const AppWrapper = () => (
   <StrictMode>
     <ErrorBoundary
@@ -148,16 +137,16 @@ const AppWrapper = () => (
         }
       }}
     >
-      <ApolloProvider client={apolloClient}>
-        <BrowserRouter future={{ 
+      <BrowserRouter
+        future={{
           v7_startTransition: true,
-          v7_relativeSplatPath: true 
-        }}>
-          <ThemeProvider>
-            <App />
-          </ThemeProvider>
-        </BrowserRouter>
-      </ApolloProvider>
+          v7_relativeSplatPath: true,
+        }}
+      >
+        <ThemeProvider>
+          <App />
+        </ThemeProvider>
+      </BrowserRouter>
     </ErrorBoundary>
   </StrictMode>
 );

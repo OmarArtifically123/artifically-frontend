@@ -26,12 +26,10 @@
     "postinstall": "partytown copylib public/~partytown"
   },
   "dependencies": {
-    "@apollo/client": "^3.9.7",
     "@builder.io/partytown": "^0.8.1",
     "@stripe/react-stripe-js": "^2.4.0",
     "@stripe/stripe-js": "^2.4.0",
     "axios": "^1.6.0",
-    "graphql": "^16.8.1",
     "lodash": "^4.17.21",
     "million": "^3.0.6",
     "react": "^18.2.0",

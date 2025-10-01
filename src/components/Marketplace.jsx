@@ -1,5 +1,4 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import { useQuery } from "@apollo/client";
 import { fetchAutomations } from "../data/automations";
 import DemoModal from "./DemoModal";
 import { toast } from "./Toast";
@@ -11,7 +10,7 @@ import LivingSuccessMetrics from "./LivingSuccessMetrics";
 import MarketplaceCollaborationLayer from "./MarketplaceCollaborationLayer";
 import {
   FALLBACK_MARKETPLACE_STATS,
-  MARKETPLACE_STATS_QUERY,
+  loadMarketplaceStats,
 } from "../lib/graphqlClient";
 
 const BROWSING_STORAGE_KEY = "automation-browsing-signals";
@@ -334,30 +333,37 @@ export default function Marketplace({ user, openAuth }) {
   const collaborationChannelRef = useRef(null);
   const [collaborationReady, setCollaborationReady] = useState(false);
   const sessionId = useMemo(() => `mp-${Math.random().toString(36).slice(2, 8)}`, []);
-  const {
-    data: statsData,
-    error: statsError,
-  } = useQuery(MARKETPLACE_STATS_QUERY, {
-    fetchPolicy: "cache-first",
+  const [resolvedStatsROI, setResolvedStatsROI] = useState(() => {
+    const fallbackROI = FALLBACK_MARKETPLACE_STATS?.averageROI;
+    return Number.isFinite(Number(fallbackROI)) ? Number(fallbackROI) : null;
   });
 
-  const resolvedStatsROI = useMemo(() => {
-    const roi = statsData?.marketplaceStats?.averageROI;
-    if (typeof roi === "number" && Number.isFinite(roi)) {
-      return roi;
-    }
-    const fallbackROI = FALLBACK_MARKETPLACE_STATS?.averageROI;
-    if (typeof fallbackROI === "number" && Number.isFinite(fallbackROI)) {
-      return fallbackROI;
-    }
-    return null;
-  }, [statsData]);
-
   useEffect(() => {
-    if (statsError) {
-      console.warn("Failed to fetch marketplace stats", statsError);
-    }
-  }, [statsError]);
+    let isMounted = true;
+    const controller = typeof AbortController !== "undefined" ? new AbortController() : null;
+
+    loadMarketplaceStats({ signal: controller?.signal })
+      .then((stats) => {
+        if (!isMounted) return;
+        const roi = Number(stats?.averageROI);
+        if (Number.isFinite(roi)) {
+          setResolvedStatsROI(roi);
+        }
+      })
+      .catch((error) => {
+        if (controller?.signal?.aborted || !isMounted) {
+          return;
+        }
+        if (import.meta.env.DEV) {
+          console.warn("Failed to fetch marketplace stats", error);
+        }
+      });
+
+    return () => {
+      isMounted = false;
+      controller?.abort?.();
+    };
+  }, []);
 
   useEffect(() => {
     return () => {

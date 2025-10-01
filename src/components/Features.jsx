@@ -1,10 +1,13 @@
-import { Suspense, memo } from "react";
-import { useSuspenseQuery } from "@apollo/client";
+import { Suspense, memo, useEffect, useState } from "react";
 import ThemeToggle from "./ThemeToggle";
 import ServerFeatureHighlights from "./ServerFeatureHighlights";
 import { useTheme } from "../context/ThemeContext";
 import FeatureSkeletonGrid from "./skeletons/FeatureSkeleton";
-import { FEATURE_HIGHLIGHTS_QUERY } from "../lib/graphqlClient";
+import {
+  FALLBACK_FEATURE_HIGHLIGHTS,
+  FALLBACK_MARKETPLACE_STATS,
+  loadFeatureData,
+} from "../lib/graphqlClient";
 
 // Memoize the feature card to avoid unnecessary re-renders while keeping SSR markup stable
 const FeatureCard = memo(
@@ -121,9 +124,46 @@ const FeatureCard = memo(
 
 function FeaturesContent() {
   const { darkMode } = useTheme();
-  const { data } = useSuspenseQuery(FEATURE_HIGHLIGHTS_QUERY, {
-    fetchPolicy: "cache-first",
-  });
+  const [state, setState] = useState(() => ({
+    loading: false,
+    features: FALLBACK_FEATURE_HIGHLIGHTS,
+    stats: FALLBACK_MARKETPLACE_STATS,
+  }));
+
+  useEffect(() => {
+    let isMounted = true;
+    const controller = typeof AbortController !== "undefined" ? new AbortController() : null;
+
+    loadFeatureData({ signal: controller?.signal })
+      .then((data) => {
+        if (!isMounted) return;
+        setState((prev) => ({
+          ...prev,
+          loading: false,
+          features: data.features || FALLBACK_FEATURE_HIGHLIGHTS,
+          stats: data.stats || FALLBACK_MARKETPLACE_STATS,
+        }));
+      })
+      .catch((error) => {
+        if (controller?.signal?.aborted || !isMounted) {
+          return;
+        }
+        if (import.meta.env.DEV) {
+          console.warn("Failed to load feature data", error);
+        }
+        setState((prev) => ({
+          ...prev,
+          loading: false,
+        }));
+      });
+
+    return () => {
+      isMounted = false;
+      controller?.abort?.();
+    };
+  }, []);
+
+  const { features, stats, loading } = state;
 
   return (
     <section
@@ -195,7 +235,7 @@ function FeaturesContent() {
               { label: "Accessibility first", color: "#10b981" },
               { label: "Glassmorphism UI", color: "#06b6d4" },
               {
-                label: `${data.marketplaceStats.totalAutomations}+ automations deployed`,
+                label: `${stats.totalAutomations}+ automations deployed`,
                 color: "#6366f1",
               },
             ].map((badge) => (
@@ -221,24 +261,28 @@ function FeaturesContent() {
           </div>
         </div>
 
-        <ServerFeatureHighlights />
+         <ServerFeatureHighlights defaultFeatures={features} defaultStats={stats} />
         
-        <div
-          className="features-grid"
-          style={{
-            display: "grid",
-            gridTemplateColumns: "repeat(auto-fit, minmax(260px, 1fr))",
-            gap: "1.5rem",
-          }}
-        >
-          {data.featureHighlights.map((feature) => (
-            <FeatureCard 
-              key={feature.id} 
-              feature={feature} 
-              darkMode={darkMode} 
-            />
-          ))}
-        </div>
+        {loading ? (
+          <FeatureSkeletonGrid cards={4} />
+        ) : (
+          <div
+            className="features-grid"
+            style={{
+              display: "grid",
+              gridTemplateColumns: "repeat(auto-fit, minmax(260px, 1fr))",
+              gap: "1.5rem",
+            }}
+          >
+            {features.map((feature) => (
+              <FeatureCard
+                key={feature.id}
+                feature={feature}
+                darkMode={darkMode}
+              />
+            ))}
+          </div>
+        )}
       </div>
     </section>
   );

@@ -71,7 +71,10 @@ function FeatureHighlightFallback({
   );
 }
 
-export default function ServerFeatureHighlights() {
+export default function ServerFeatureHighlights({
+  defaultFeatures = FALLBACK_FEATURE_HIGHLIGHTS,
+  defaultStats = FALLBACK_MARKETPLACE_STATS,
+} = {}) {
   const [isMounted, setIsMounted] = useState(false);
   const [state, setState] = useState({ status: "idle", markup: "", error: null });
   const hasRequestedRef = useRef(false);
@@ -140,7 +143,19 @@ export default function ServerFeatureHighlights() {
       />
     );
   } else if (state.status === "error") {
-    content = <FeatureHighlightFallback />;
+    content = (
+      <FeatureHighlightFallback
+        features={defaultFeatures}
+        stats={defaultStats}
+      />
+    );
+  } else if (state.status === "idle" && defaultFeatures && defaultFeatures.length) {
+    content = (
+      <FeatureHighlightFallback
+        features={defaultFeatures}
+        stats={defaultStats}
+      />
+    );
   }
 
   return <section {...sectionProps}>{content}</section>;

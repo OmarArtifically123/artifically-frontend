@@ -18,7 +18,6 @@ export default defineConfig((configEnv) => {
       manualChunks: {
         vendor: ['react', 'react-dom'],
         router: ['react-router-dom'],
-        apollo: ['@apollo/client']
       }
     }
   }
@@ -42,11 +41,8 @@ export default defineConfig((configEnv) => {
   return {
     plugins,
     build,
-    ssr: {
-      noExternal: ['@apollo/client']
-    },
     optimizeDeps: {
-      include: ['react', 'react-dom', 'react-router-dom', '@apollo/client']
+      include: ['react', 'react-dom', 'react-router-dom']
     }
   }
 })
