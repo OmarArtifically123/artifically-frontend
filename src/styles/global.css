@@ -800,7 +800,8 @@ main :where(section, div)[id] {
   position: relative;
   min-height: 100vh;
   width: 100%;
-  overflow: hidden;
+  overflow-x: hidden;
+  overflow-y: visible;
   isolation: isolate;
   display: flex;
   align-items: center;
