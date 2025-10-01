@@ -77,20 +77,27 @@ export default function useInteractiveEffects() {
 
     const controllers = new WeakMap();
     const cleanup = [];
+    const pointerQuery = window.matchMedia("(pointer: fine)");
+    const reduceMotionQuery = window.matchMedia("(prefers-reduced-motion: reduce)");
+    const enableMagnetism = pointerQuery.matches && !reduceMotionQuery.matches;
+    const enableRipple = !reduceMotionQuery.matches;
 
     const initButton = (button) => {
       if (controllers.has(button)) return;
-      const controller = createPhysicsController(button);
-      controllers.set(button, controller);
+      const controller = enableMagnetism ? createPhysicsController(button) : null;
+      controllers.set(button, controller || true);
 
       const state = { pending: null, raf: null };
-      button.style.willChange = "transform";
+
+      if (enableMagnetism) {
+        button.style.willChange = "transform";
+      }
 
       const schedule = () => {
-        if (state.raf != null) return;
+        if (!enableMagnetism || state.raf != null) return;
         state.raf = window.requestAnimationFrame(() => {
           state.raf = null;
-          if (!state.pending) return;
+          if (!state.pending || !controller) return;
           const { x, y } = state.pending;
           controller.setTarget(x, y);
           state.pending = null;
@@ -98,6 +105,7 @@ export default function useInteractiveEffects() {
       };
 
       const handleMove = (event) => {
+        if (!enableMagnetism || !controller) return;
         const rect = button.getBoundingClientRect();
         const strength = Number(button.dataset.magneticStrength || "1");
         const offsetX = (event.clientX - rect.left - rect.width / 2) / rect.width;
@@ -110,30 +118,38 @@ export default function useInteractiveEffects() {
       };
 
       const handleLeave = () => {
+        if (!enableMagnetism || !controller) return;
         state.pending = { x: 0, y: 0 };
         schedule();
         controller.reset();
       };
 
       const handleClick = (event) => {
+        if (!enableRipple) return;
         if (button.dataset.ripple === "true") {
           createRipple(event);
         }
       };
 
-      button.addEventListener("pointermove", handleMove);
-      button.addEventListener("pointerleave", handleLeave);
-      button.addEventListener("pointercancel", handleLeave);
-      button.addEventListener("blur", handleLeave);
-      button.addEventListener("click", handleClick);
+      
+      if (enableMagnetism) {
+        button.addEventListener("pointermove", handleMove);
+        button.addEventListener("pointerleave", handleLeave);
+        button.addEventListener("pointercancel", handleLeave);
+        button.addEventListener("blur", handleLeave);
+      }
 
       cleanup.push(() => {
-        controller.destroy();
-        button.style.removeProperty("will-change");
-        button.removeEventListener("pointermove", handleMove);
-        button.removeEventListener("pointerleave", handleLeave);
-        button.removeEventListener("pointercancel", handleLeave);
-        button.removeEventListener("blur", handleLeave);
+        if (controller) {
+          controller.destroy();
+        }
+        if (enableMagnetism) {
+          button.style.removeProperty("will-change");
+          button.removeEventListener("pointermove", handleMove);
+          button.removeEventListener("pointerleave", handleLeave);
+          button.removeEventListener("pointercancel", handleLeave);
+          button.removeEventListener("blur", handleLeave);
+        }
         button.removeEventListener("click", handleClick);
         if (state.raf != null) {
           window.cancelAnimationFrame(state.raf);

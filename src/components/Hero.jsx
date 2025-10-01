@@ -12,19 +12,19 @@ const BADGES = [
 
 const HERO_METRICS = [
   {
-    label: "Deployments queued",
+    label: "Teams launched",
     value: "0",
-    helper: "Your first launch lights up live telemetry.",
+    helper: "Enterprise workspaces onboarded with guided support.",
   },
   {
     label: "Automation templates",
-    value: "64",
+    value: "0",
     helper: "Curated playbooks across revenue, ops, and CX.",
   },
   {
-    label: "Preview coverage",
-    value: "100%",
-    helper: "Every automation ships with an interactive walkthrough.",
+    label: "Average go-live",
+    value: "12 days",
+    helper: "From kickoff to production using managed rollout plans.",
   },
 ];
 
@@ -34,12 +34,27 @@ const HERO_CHECKLIST = [
   "Schedule a guided launch when you're ready to go live",
 ];
 
-export default function Hero() {
+export default function Hero({ openAuth }) {
   const { dispatchInteraction } = useMicroInteractions();
+
+  const handleStartTrial = useCallback(
+    (event) => {
+      dispatchInteraction("cta-primary", { event });
+      if (typeof openAuth === "function") {
+        openAuth("signup");
+        return;
+      }
+
+      if (typeof window !== "undefined") {
+        window.location.hash = "marketplace";
+      }
+    },
+    [dispatchInteraction, openAuth],
+  );
 
   const handleScrollToMarketplace = useCallback(
     (event) => {
-      dispatchInteraction("cta-primary", { event });
+      dispatchInteraction("cta-secondary", { event });
       if (typeof window === "undefined") return;
       const el = document.getElementById("marketplace");
       if (!el) return;
@@ -56,7 +71,7 @@ export default function Hero() {
 
   const handleDocsClick = useCallback(
     (event) => {
-      dispatchInteraction("cta-secondary", { event });
+      dispatchInteraction("cta-tertiary", { event });
     },
     [dispatchInteraction],
   );
@@ -86,20 +101,27 @@ export default function Hero() {
                 data-magnetic="true"
                 data-ripple="true"
                 data-magnetic-strength="1.2"
+                onClick={handleStartTrial}
+              >
+                Start free trial
+                <span aria-hidden="true">→</span>
+              </button>
+              <button
+                type="button"
+                className="btn btn-secondary"
+                data-magnetic="true"
+                data-magnetic-strength="1"
                 onClick={handleScrollToMarketplace}
               >
-                Explore Marketplace
-                <span aria-hidden="true">→</span>
+                Explore marketplace
               </button>
               <Link
                 to="/docs"
-                className="btn btn-secondary"
+                className="hero-docs-link"
                 data-prefetch-route="/docs"
-                data-magnetic="true"
-                data-magnetic-strength="0.9"
                 onClick={handleDocsClick}
               >
-                View Documentation
+                Read product documentation
               </Link>
             </div>
 

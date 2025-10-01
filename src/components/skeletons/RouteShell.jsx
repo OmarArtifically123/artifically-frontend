@@ -1,24 +1,20 @@
-export default function RouteShell({ rows = 3 }) {
+export default function RouteShell({ rows = 3, label = "Loading content" }) {
   return (
-    <div
-      style={{
-        padding: "4rem 0",
-        display: "grid",
-        gap: "1.5rem",
-      }}
-    >
-      {Array.from({ length: rows }).map((_, index) => (
-        <div
-          key={index}
-          style={{
-            height: index === 0 ? "2.8rem" : "1.1rem",
-            width: index === 0 ? "60%" : `${90 - index * 8}%`,
-            borderRadius: "999px",
-            background: "linear-gradient(90deg, rgba(148,163,184,0.35), rgba(148,163,184,0.18))",
-            animation: "pulse 1.4s ease-in-out infinite",
-          }}
-        />
-      ))}
+    <div className="route-shell" role="status" aria-live="polite" aria-label={label}>
+      <span className="sr-only">{label}</span>
+      <div className="route-shell__surface skeleton-surface" aria-hidden="true">
+        {Array.from({ length: rows }).map((_, index) => {
+          const width = index === 0 ? 62 : Math.max(40, 92 - index * 9);
+          return (
+            <div
+              key={index}
+              className={`skeleton-line${index === 0 ? " skeleton-line--heading" : ""}`}
+              style={{ width: `${width}%` }}
+              aria-hidden="true"
+            />
+          );
+        })}
+      </div>
     </div>
   );
 }

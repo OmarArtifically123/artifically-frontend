@@ -1,5 +1,5 @@
 import { Link } from "react-router-dom";
-import { useEffect, useMemo, useState, useId } from "react";
+import { useEffect, useMemo, useState, useId, useRef } from "react";
 import LogoLight from "../assets/logos/1_Primary.svg";
 import LogoDark from "../assets/logos/3_Dark_Mode.svg";
 import ThemeToggle from "./ThemeToggle";
@@ -15,6 +15,8 @@ export default function Footer() {
   });
   const [newsletterEmail, setNewsletterEmail] = useState("");
   const [newsletterStatus, setNewsletterStatus] = useState("");
+  const [newsletterMessage, setNewsletterMessage] = useState("");
+  const messageTimeoutRef = useRef(null);
   const newsletterId = useId();
 
   useEffect(() => {
@@ -57,6 +59,12 @@ export default function Footer() {
     return () => observer.disconnect();
   }, []);
 
+  useEffect(() => () => {
+    if (messageTimeoutRef.current) {
+      clearTimeout(messageTimeoutRef.current);
+    }
+  }, []);
+
   const footerSections = useMemo(
     () => [
       {
@@ -97,22 +105,37 @@ export default function Footer() {
 
   const handleNewsletterSubmit = async (event) => {
     event.preventDefault();
-    if (!newsletterEmail || !newsletterEmail.includes("@")) {
+    const trimmedEmail = newsletterEmail.trim();
+    const emailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/i;
+
+    if (!emailPattern.test(trimmedEmail)) {
       setNewsletterStatus("error");
-      setTimeout(() => setNewsletterStatus(""), 2500);
+      setNewsletterMessage("Please use a valid work email so we can confirm updates.");
+      if (messageTimeoutRef.current) clearTimeout(messageTimeoutRef.current);
+      messageTimeoutRef.current = setTimeout(() => {
+        setNewsletterStatus("");
+        setNewsletterMessage("");
+      }, 3200);
       return;
     }
 
     setNewsletterStatus("loading");
+    setNewsletterMessage("Subscribing you to the release digest…");
     try {
       await new Promise((resolve) => setTimeout(resolve, 1200));
       setNewsletterStatus("success");
+      setNewsletterMessage("Thanks! Check your inbox for a confirmation email.");
       setNewsletterEmail("");
-      setTimeout(() => setNewsletterStatus(""), 3000);
     } catch (error) {
       console.error(error);
       setNewsletterStatus("error");
-      setTimeout(() => setNewsletterStatus(""), 2500);
+      setNewsletterMessage("We couldn't save your email. Please try again in a moment.");
+    } finally {
+      if (messageTimeoutRef.current) clearTimeout(messageTimeoutRef.current);
+      messageTimeoutRef.current = setTimeout(() => {
+        setNewsletterStatus("");
+        setNewsletterMessage("");
+      }, 4000);
     }
   };
 
@@ -318,6 +341,7 @@ export default function Footer() {
 
               <form
                 onSubmit={handleNewsletterSubmit}
+                noValidate
                 style={{
                   display: "flex",
                   flexWrap: "wrap",
@@ -335,11 +359,21 @@ export default function Footer() {
                   onChange={(event) => setNewsletterEmail(event.target.value)}
                   placeholder="you@company.com"
                   required
+                  aria-describedby={`${newsletterId}-status`}
+                  aria-invalid={newsletterStatus === "error"}
                   style={{
                     minWidth: "240px",
                     padding: "0.75rem 1rem",
                     borderRadius: "0.85rem",
-                    border: `1px solid ${darkMode ? "rgba(148,163,184,0.28)" : "rgba(148,163,184,0.45)"}`,
+                    border: `1px solid ${
+                      newsletterStatus === "error"
+                        ? darkMode
+                          ? "rgba(248, 113, 113, 0.65)"
+                          : "rgba(220, 38, 38, 0.65)"
+                        : darkMode
+                        ? "rgba(148,163,184,0.28)"
+                        : "rgba(148,163,184,0.45)"
+                    }`,
                     background: darkMode ? "rgba(15, 23, 42, 0.8)" : "rgba(255, 255, 255, 0.9)",
                     color: darkMode ? "#e2e8f0" : "#1e293b",
                     transition: "border var(--transition-fast)",
@@ -365,6 +399,7 @@ export default function Footer() {
             <div
               role="status"
               aria-live="polite"
+              id={`${newsletterId}-status`}
               style={{
                 minHeight: "1.25rem",
                 fontSize: "0.9rem",
@@ -378,8 +413,7 @@ export default function Footer() {
                     : "#64748b",
               }}
             >
-              {newsletterStatus === "success" && "Thanks! Check your inbox for a confirmation."}
-              {newsletterStatus === "error" && "Please enter a valid email address."}
+              {newsletterMessage}
             </div>
 
             <div

@@ -35,7 +35,7 @@ export default function Home({ user, scrollTo, openAuth }) {
 
   return (
     <main>
-      <Hero />
+      <Hero openAuth={openAuth} />
       <section aria-label="Platform capabilities" data-intent-route="/marketplace" data-intent-threshold="0.45">
         <Suspense fallback={<RouteShell rows={4} />}>
           {contentReady ? <Features /> : <RouteShell rows={4} />}
