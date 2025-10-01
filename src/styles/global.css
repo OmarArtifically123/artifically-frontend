@@ -75,6 +75,13 @@
   --experience-noise: 0.08;
   --content-max-width: min(1200px, calc(100vw - 3rem));
   --content-narrow-width: min(960px, calc(100vw - 3rem));
+  --hero-headline-color: #f8fafc;
+  --hero-headline-gradient: linear-gradient(
+    120deg,
+    rgba(245, 248, 255, 0.92) 10%,
+    rgba(183, 206, 255, 0.88) 45%,
+    rgba(62, 249, 197, 0.9) 85%
+  );
 
 
   /* Borders */
@@ -165,6 +172,13 @@
     135deg,
     rgba(255, 255, 255, 0.95) 0%,
     rgba(221, 231, 245, 0.8) 100%
+  );
+  --hero-headline-color: #061128;
+  --hero-headline-gradient: linear-gradient(
+    120deg,
+    rgba(6, 17, 40, 0.95) 12%,
+    rgba(36, 83, 204, 0.9) 46%,
+    rgba(12, 166, 118, 0.88) 88%
   );
 }
 
@@ -941,12 +955,18 @@ main :where(section, div)[id] {
   font-weight: 700;
   line-height: 1.04;
   letter-spacing: -0.045em;
-  color: #f8fafc;
+  color: var(--hero-headline-color);
   text-wrap: balance;
-  background: linear-gradient(120deg, rgba(245, 248, 255, 0.92) 10%, rgba(183, 206, 255, 0.88) 45%, rgba(62, 249, 197, 0.9) 85%);
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-  background-clip: text;
+}
+
+@supports ((-webkit-background-clip: text) or (background-clip: text)) {
+  .hero-text h1 {
+    background: var(--hero-headline-gradient);
+    -webkit-background-clip: text;
+    background-clip: text;
+    -webkit-text-fill-color: transparent;
+    color: transparent;
+  }
 }
 
 .hero-kinetic-line {
