@@ -817,6 +817,8 @@ export default function Marketplace({ user, openAuth }) {
   const sectionHeader = (
     <div
       className="section-header"
+      data-animate="fade-up"
+      data-animate-context="story"
       style={{
         display: "flex",
         flexDirection: "column",
@@ -832,7 +834,7 @@ export default function Marketplace({ user, openAuth }) {
           flexWrap: "wrap",
         }}
       >
-        <div className="marketplace-entry__intro">
+        <div className="marketplace-entry__intro" data-animate="fade-up" data-animate-order="1">
           <h2 style={{ fontSize: "2.4rem", fontWeight: 800 }}>
             Marketplace built for {detectedIndustry || "teams like yours"}
           </h2>
@@ -840,7 +842,13 @@ export default function Marketplace({ user, openAuth }) {
             Discover automations with narrative previews and instant calls-to-action so evaluating
             fit feels more like a guided tour than a scavenger hunt.
           </p>
-          <div className="marketplace-entry__meta">
+          <div
+            className="marketplace-entry__meta"
+            data-animate="fade-up"
+            data-animate-order="2"
+            data-animate-cascade="0.08"
+            data-animate-context="dashboard"
+          >
             <div>
               <span>Top live match</span>
               <strong>{workerMetrics.topCategory?.category || "Adaptive orchestration"}</strong>
@@ -861,7 +869,9 @@ export default function Marketplace({ user, openAuth }) {
             </div>
           </div>
         </div>
-        <ThemeToggle />
+        <div data-animate="scale-in" data-animate-order="3" data-animate-context="panel">
+          <ThemeToggle />
+        </div>
       </div>
       <div
         style={{
@@ -869,6 +879,9 @@ export default function Marketplace({ user, openAuth }) {
           flexWrap: "wrap",
           gap: "0.75rem",
         }}
+        data-animate="fade-up"
+        data-animate-order="4"
+        data-animate-cascade="0.05"
       >
         {[
           "Psychic glow predictions",
@@ -896,14 +909,27 @@ export default function Marketplace({ user, openAuth }) {
           ))}
       </div>
 
-      <div className="marketplace-journey" aria-label="Marketplace journey highlights">
-        <header>
+      <div
+        className="marketplace-journey"
+        aria-label="Marketplace journey highlights"
+        data-animate="fade-up"
+        data-animate-order="5"
+        data-animate-context="story"
+      >
+        <header data-animate="fade-up" data-animate-order="0">
           <span className="marketplace-journey__eyebrow">🎯 Marketplace Playbook</span>
           <p>See how each phase of the marketplace keeps momentum from hello to handoff.</p>
         </header>
         <div className="marketplace-journey__grid">
-          {MARKETPLACE_JOURNEY.map(({ title, icon, steps }) => (
-            <article key={title} className="marketplace-journey__card">
+          {MARKETPLACE_JOURNEY.map(({ title, icon, steps }, index) => (
+            <article
+              key={title}
+              className="marketplace-journey__card"
+              data-animate="scale-in"
+              data-animate-context="panel"
+              data-animate-order={index + 1}
+              data-animate-cascade="0.08"
+            >
               <div className="marketplace-journey__card-header">
                 <span aria-hidden="true" className="marketplace-journey__icon">
                   {icon}
@@ -920,12 +946,18 @@ export default function Marketplace({ user, openAuth }) {
         </div>
       </div>
       {detectedNeeds.length > 0 && (
-        <div className="marketplace-needs" role="group" aria-label="Dynamic automation filters">
-          <div className="marketplace-needs__meta">
+        <div
+          className="marketplace-needs"
+          role="group"
+          aria-label="Dynamic automation filters"
+          data-animate="fade-up"
+          data-animate-order="6"
+        >
+          <div className="marketplace-needs__meta" data-animate="fade-up" data-animate-order="0">
             <span>We think you're optimizing for</span>
             <strong>{activeNeed ? titleCase(activeNeed) : "blended impact"}</strong>
           </div>
-          <div className="marketplace-needs__chips">
+          <div className="marketplace-needs__chips" data-animate="fade-up" data-animate-order="1" data-animate-cascade="0.05">
             {detectedNeeds.map((need) => {
               const isActive = normalize(need) === normalize(activeNeed);
               return (
@@ -952,7 +984,7 @@ export default function Marketplace({ user, openAuth }) {
 
   if (loading) {
     return (
-      <section className="marketplace" data-glass="true" style={{ padding: "5rem 0" }}>
+      <section className="marketplace" data-glass="true" data-animate-root style={{ padding: "5rem 0" }}>
         <div className="container" style={{ display: "grid", gap: "2rem" }}>
           {sectionHeader}
           <div
@@ -976,7 +1008,7 @@ export default function Marketplace({ user, openAuth }) {
 
   if (error && automations.length === 0) {
     return (
-      <section className="marketplace" data-glass="true" style={{ padding: "5rem 0" }}>
+      <section className="marketplace" data-glass="true" data-animate-root style={{ padding: "5rem 0" }}>
         <div className="container" style={{ display: "grid", gap: "2rem" }}>
           {sectionHeader}
           <div
@@ -996,7 +1028,7 @@ export default function Marketplace({ user, openAuth }) {
             <p style={{ maxWidth: "420px", margin: "0 auto 1.5rem" }}>
               We're having trouble loading the automation marketplace. Please check your connection and try again.
             </p>
-            <button className="btn btn-primary" onClick={() => window.location.reload()}>
+            <button className="btn btn-primary" data-ripple="true" onClick={() => window.location.reload()}>
               Retry
             </button>
           </div>
@@ -1006,27 +1038,33 @@ export default function Marketplace({ user, openAuth }) {
   }
 
   return (
-    <section className="marketplace" data-glass="true" style={{ padding: "5rem 0" }}>
+    <section className="marketplace" data-glass="true" data-animate-root style={{ padding: "5rem 0" }}>
       <div className="container" style={{ display: "grid", gap: "2.5rem" }}>
         {sectionHeader}
 
         {collaborationReady && (
-          <MarketplaceCollaborationLayer
-            focus={activeNeed ? titleCase(activeNeed) : null}
-            channel={collaborationChannelRef.current}
-            sessionId={sessionId}
-          />
+          <div data-animate="blur-up" data-animate-context="story" data-animate-order="2">
+            <MarketplaceCollaborationLayer
+              focus={activeNeed ? titleCase(activeNeed) : null}
+              channel={collaborationChannelRef.current}
+              sessionId={sessionId}
+            />
+          </div>
         )}
 
-        <LivingSuccessMetrics
-          industry={detectedIndustry}
-          focus={activeNeed ? titleCase(activeNeed) : null}
-          activeCombo={activeCombination}
-        />
+        <div data-animate="scale-in" data-animate-context="dashboard" data-animate-order="3">
+          <LivingSuccessMetrics
+            industry={detectedIndustry}
+            focus={activeNeed ? titleCase(activeNeed) : null}
+            activeCombo={activeCombination}
+          />
+        </div>
 
         {error && automations.length > 0 && (
           <div
             role="alert"
+            data-animate="fade-up"
+            data-animate-order="4"
             style={{
               padding: "1rem 1.25rem",
               borderRadius: "1rem",
@@ -1040,7 +1078,7 @@ export default function Marketplace({ user, openAuth }) {
           </div>
         )}
 
-        <div className="marketplace-detected-message">
+        <div className="marketplace-detected-message" data-animate="fade-up" data-animate-order="7">
           {activeNeed ? (
             <span>
               <strong>{titleCase(activeNeed)}</strong> automations surge to the front based on live

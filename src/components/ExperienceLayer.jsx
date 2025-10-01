@@ -2,6 +2,7 @@ import { useEffect, useMemo } from "react";
 import { useTheme } from "../context/ThemeContext";
 import { MicroInteractionProvider } from "../context/MicroInteractionContext";
 import useInteractiveEffects from "../hooks/useInteractiveEffects";
+import useScrollChoreography from "../hooks/useScrollChoreography";
 
 const THEME_PRESETS = {
   light: {
@@ -75,6 +76,7 @@ export default function ExperienceLayer({ children }) {
   const { darkMode } = useTheme();
   const theme = useThemeTokens(darkMode);
   useInteractiveEffects();
+  useScrollChoreography();
 
   return (
     <MicroInteractionProvider>

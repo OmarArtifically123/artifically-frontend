@@ -382,6 +382,7 @@ export default function Footer() {
                 <button
                   type="submit"
                   className="btn btn-primary"
+                  data-ripple="true"
                   style={{
                     padding: "0.75rem 1.4rem",
                     borderRadius: "0.85rem",

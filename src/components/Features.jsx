@@ -11,9 +11,10 @@ import {
 
 // Memoize the feature card to avoid unnecessary re-renders while keeping SSR markup stable
 const FeatureCard = memo(
-  function FeatureCard({ feature, darkMode }) {
+  function FeatureCard({ feature, darkMode, ...motionProps }) {
     return (
       <article
+      {...motionProps}
         style={{
           position: "relative",
           padding: "1.75rem",
@@ -168,6 +169,7 @@ function FeaturesContent() {
   return (
     <section
       className="features"
+      data-animate-root
       style={{
         position: "relative",
         padding: "5rem 0",
@@ -184,6 +186,8 @@ function FeaturesContent() {
       >
         <div
           className="section-header"
+          data-animate="fade-up"
+          data-animate-context="story"
           style={{
             display: "flex",
             flexDirection: "column",
@@ -201,7 +205,7 @@ function FeaturesContent() {
               flexWrap: "wrap",
             }}
           >
-            <div>
+            <div data-animate="fade-up" data-animate-order="1">
               <h2
                 style={{
                   fontSize: "clamp(2.1rem, 4vw, 2.8rem)",
@@ -217,11 +221,15 @@ function FeaturesContent() {
                   color: darkMode ? "#94a3b8" : "#475569",
                   fontSize: "1.05rem",
                 }}
+                data-animate="fade-up"
+                data-animate-order="2"
               >
                 Automations that deliver measurable ROI from day one, with governance controls your compliance teams will love.
               </p>
             </div>
-            <ThemeToggle />
+            <div data-animate="scale-in" data-animate-order="3" data-animate-context="panel">
+              <ThemeToggle />
+            </div>
           </div>
 
           <div
@@ -230,6 +238,9 @@ function FeaturesContent() {
               flexWrap: "wrap",
               gap: "0.75rem",
             }}
+            data-animate="fade-up"
+            data-animate-order="4"
+            data-animate-cascade="0.05"
           >
             {[
               { label: "Accessibility first", color: "#10b981" },
@@ -261,7 +272,9 @@ function FeaturesContent() {
           </div>
         </div>
 
-         <ServerFeatureHighlights defaultFeatures={features} defaultStats={stats} />
+         <div data-animate="blur-up" data-animate-context="story" data-animate-order="1">
+          <ServerFeatureHighlights defaultFeatures={features} defaultStats={stats} />
+        </div>
         
         {loading ? (
           <FeatureSkeletonGrid cards={4} />
@@ -274,11 +287,15 @@ function FeaturesContent() {
               gap: "1.5rem",
             }}
           >
-            {features.map((feature) => (
+            {features.map((feature, index) => (
               <FeatureCard
                 key={feature.id}
                 feature={feature}
                 darkMode={darkMode}
+                data-animate="scale-in"
+                data-animate-context="panel"
+                data-animate-order={index}
+                data-animate-cascade="0.08"
               />
             ))}
           </div>

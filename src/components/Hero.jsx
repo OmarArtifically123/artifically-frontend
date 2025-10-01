@@ -405,21 +405,27 @@ export default function Hero({ openAuth }) {
   const selectedTrending = TRENDING_AUTOMATIONS[tickerIndex];
 
   return (
-    <section className="hero">
+    <section className="hero" data-animate-root>
       <canvas ref={canvasRef} className="hero-canvas" aria-hidden="true" />
       <div className="hero-gradient" aria-hidden="true" />
       <div className="hero-inner">
-        <header className="hero-header">
+        <header
+          className="hero-header"
+          data-animate="fade-up"
+          data-animate-speed="fast"
+          data-animate-context="story"
+        >
           <span className="hero-badge">
             <span aria-hidden="true">✨</span>
             The AI automation marketplace
           </span>
-          <div className="hero-actions">
+          <div className="hero-actions" data-animate="fade-up" data-animate-order="1">
             <button
               type="button"
               className="hero-command"
               data-magnetic="true"
               data-magnetic-strength="1.1"
+              data-ripple="true"
               onClick={handleCommandToggle}
             >
               <span aria-hidden="true">⌘</span>
@@ -446,17 +452,24 @@ export default function Hero({ openAuth }) {
                 </span>
               ))}
             </h1>
-            <p className="hero-subtitle">
+            <p className="hero-subtitle" data-animate="fade-up" data-animate-order="1">
               Full-screen cinematic storytelling meets enterprise-grade automation. Launch AI-driven workflows
               with Apple-level polish, Stripe clarity, and Linear precision—built to outperform Zapier and Make.com
               on day one.
             </p>
-            <div className="hero-ctas">
+            <div
+              className="hero-ctas"
+              data-animate="fade-up"
+              data-animate-order="2"
+              data-animate-context="form"
+              data-animate-cascade="0.06"
+            >
               <button
                 type="button"
                 className="btn btn-primary"
                 data-magnetic="true"
                 data-magnetic-strength="1.25"
+                data-ripple="true"
                 onClick={handleTryFree}
               >
                 Try free
@@ -467,6 +480,7 @@ export default function Hero({ openAuth }) {
                 className="btn btn-secondary"
                 data-magnetic="true"
                 data-magnetic-strength="1"
+                data-ripple="true"
                 onClick={handleExplore}
               >
                 Explore marketplace
@@ -476,7 +490,7 @@ export default function Hero({ openAuth }) {
                 Live status: 99.99% uptime
               </small>
             </div>
-            <div className="hero-ticker" aria-live="polite">
+            <div className="hero-ticker" aria-live="polite" data-animate="slide-left" data-animate-order="3">
               <span className="hero-ticker__label">
                 <span aria-hidden="true">▲</span>
                 Trending
@@ -487,7 +501,7 @@ export default function Hero({ openAuth }) {
                 <span>{selectedTrending.meta}</span>
               </span>
             </div>
-            <ul className="hero-badges">
+            <ul className="hero-badges" data-animate="fade-up" data-animate-order="4">
               {HERO_BADGES.map(({ icon, label }) => (
                 <li key={label}>
                   <span aria-hidden="true">{icon}</span>
@@ -497,7 +511,12 @@ export default function Hero({ openAuth }) {
             </ul>
           </div>
           <div className="hero-insights">
-            <div className="hero-panel hero-panel--demo hero-demo">
+            <div
+              className="hero-panel hero-panel--demo hero-demo"
+              data-animate="scale-in"
+              data-animate-context="panel"
+              data-animate-speed="cinematic"
+            >
               <h2>AI-personalized demo</h2>
               <form>
                 <div className="hero-demo__inputs">
@@ -526,7 +545,13 @@ export default function Hero({ openAuth }) {
                 Dive into developer mode
               </Link>
             </div>
-            <div className="hero-panel hero-panel--map">
+            <div
+              className="hero-panel hero-panel--map"
+              data-animate="blur-up"
+              data-animate-context="story"
+              data-animate-speed="slow"
+              data-animate-order="1"
+            >
               <h2>Live global activity</h2>
               <div className="hero-map" role="img" aria-label="Live automations map">
                 <div className="hero-map__globe" />
@@ -545,7 +570,13 @@ export default function Hero({ openAuth }) {
                 </div>
               </div>
             </div>
-            <div className="hero-panel hero-panel--stats">
+            <div
+              className="hero-panel hero-panel--stats"
+              data-animate="fade-up"
+              data-animate-speed="medium"
+              data-animate-order="2"
+              data-animate-context="dashboard"
+            >
               <h2>Platform telemetry</h2>
               <div className="hero-stats">
                 {LIVE_STATS.map((stat) => (
@@ -557,7 +588,12 @@ export default function Hero({ openAuth }) {
                 ))}
               </div>
             </div>
-            <div className="hero-panel hero-panel--trust">
+            <div
+              className="hero-panel hero-panel--trust"
+              data-animate="fade-up"
+              data-animate-speed="medium"
+              data-animate-order="3"
+            >
               <h2>Teams shipping with Artifically</h2>
               <div className="hero-trust__grid">
                 {TRUST_LOGOS.map((logo) => (

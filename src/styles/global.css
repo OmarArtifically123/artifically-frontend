@@ -390,6 +390,32 @@ main :where(section, div)[id] {
   }
 }
 
+[data-motion-ready="true"] [data-animate]:not([data-animate-initialized="true"]) {
+  opacity: 0;
+}
+
+[data-animate] {
+  position: relative;
+  transform-origin: var(--animate-origin, 50% 50%);
+  transition: filter 240ms ease;
+}
+
+[data-animate][data-animate-context="form"] {
+  transform-origin: 50% 0%;
+}
+
+[data-animate][data-animate-context="story"] {
+  transform-style: preserve-3d;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  [data-animate] {
+    opacity: 1 !important;
+    transform: none !important;
+    filter: none !important;
+  }
+}
+
 .btn {
   display: inline-flex;
   align-items: center;
@@ -399,6 +425,20 @@ main :where(section, div)[id] {
   font-variation-settings: 'wght' 600;
   letter-spacing: 0.02em;
   transition: transform var(--transition-fast), box-shadow var(--transition-fast), background var(--transition-fast);
+}
+
+.btn[data-ripple="true"]::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(circle at center, rgba(255, 255, 255, 0.16), transparent 60%);
+  opacity: 0;
+  transition: opacity 180ms ease-out;
+}
+
+.btn[data-ripple="true"]:hover::after,
+.btn[data-ripple="true"]:focus-visible::after {
+  opacity: 1;
 }
 
 .btn:focus-visible {
@@ -2693,13 +2733,23 @@ body.demo-experience-open {
   font-size: 0.875rem;
   background: var(--bg-glass);
   color: var(--white);
-  transition: all var(--transition-fast);
+  transition: border-color 180ms ease, box-shadow 220ms ease, transform 200ms ease, background 220ms ease;
+  will-change: transform, box-shadow;
+}
+
+.form-input:hover {
+  border-color: var(--border-hover);
+  background: var(--bg-card);
+  background: color-mix(in srgb, var(--bg-glass) 92%, var(--dynamic-primary));
+  transform: translateY(-1px);
 }
 
 .form-input:focus {
   outline: none;
   border-color: var(--primary);
-  box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.1);
+  box-shadow: 0 18px 40px rgba(99, 102, 241, 0.18);
+  background: rgba(30, 41, 59, 0.82);
+  transform: translateY(-1px) scale(1.005);
 }
 
 .form-input::placeholder {
