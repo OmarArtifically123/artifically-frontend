@@ -77,11 +77,11 @@
   --content-narrow-width: min(960px, calc(100vw - 3rem));
   --hero-headline-color: #f8fafc;
   --hero-headline-gradient: linear-gradient(
-    120deg,
-    rgba(245, 248, 255, 0.92) 10%,
-    rgba(183, 206, 255, 0.88) 45%,
-    rgba(62, 249, 197, 0.9) 85%
-  );
+  120deg,
+  #ffffff 10%,
+  #818cf8 45%,
+  #3ef9c5 85%
+);
 
 
   /* Borders */
@@ -175,11 +175,11 @@
   );
   --hero-headline-color: #061128;
   --hero-headline-gradient: linear-gradient(
-    120deg,
-    rgba(6, 17, 40, 0.95) 12%,
-    rgba(36, 83, 204, 0.9) 46%,
-    rgba(12, 166, 118, 0.88) 88%
-  );
+  120deg,
+  #0f172a 12%,
+  #6366f1 46%,
+  #10b981 88%
+);
 }
 
 [data-theme="dark"] {
