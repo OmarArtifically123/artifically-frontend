@@ -133,11 +133,18 @@
   --content-max-width: min(1200px, calc(100vw - 3rem));
   --content-narrow-width: min(960px, calc(100vw - 3rem));
   --hero-headline-color: #f4f6ff;
+  --hero-headline-gradient-angle: 120deg;
+  --hero-headline-gradient-stop-1: #eef3ff;
+  --hero-headline-gradient-stop-1-pos: 10%;
+  --hero-headline-gradient-stop-2: #b7a8ff;
+  --hero-headline-gradient-stop-2-pos: 45%;
+  --hero-headline-gradient-stop-3: #6fe7ff;
+  --hero-headline-gradient-stop-3-pos: 85%;
   --hero-headline-gradient: linear-gradient(
-  120deg,
-    #eef3ff 10%,
-    #b7a8ff 45%,
-    #6fe7ff 85%
+  var(--hero-headline-gradient-angle),
+    var(--hero-headline-gradient-stop-1) var(--hero-headline-gradient-stop-1-pos),
+    var(--hero-headline-gradient-stop-2) var(--hero-headline-gradient-stop-2-pos),
+    var(--hero-headline-gradient-stop-3) var(--hero-headline-gradient-stop-3-pos)
   );
 
 
@@ -236,12 +243,12 @@
     color-mix(in oklch, white 88%, var(--brand-primary) 12%) 100%
   );
   --hero-headline-color: #1d2752;
-  --hero-headline-gradient: linear-gradient(
-  120deg,
-    #4f54ff 12%,
-    #5665ff 46%,
-    #18a4ff 88%
-  );
+  --hero-headline-gradient-stop-1: #4f54ff;
+  --hero-headline-gradient-stop-1-pos: 12%;
+  --hero-headline-gradient-stop-2: #5665ff;
+  --hero-headline-gradient-stop-2-pos: 46%;
+  --hero-headline-gradient-stop-3: #18a4ff;
+  --hero-headline-gradient-stop-3-pos: 88%;
 }
 
 [data-theme="dark"] {
@@ -261,12 +268,12 @@
     --text-secondary: oklch(0.82 0.03 260 / 0.72);
     --text-muted: oklch(0.7 0.02 260 / 0.7);
     --hero-headline-color: oklch(0.94 0.02 260);
-    --hero-headline-gradient: linear-gradient(
-      120deg,
-      color-mix(in oklch, white 90%, var(--brand-primary)) 10%,
-      color-mix(in oklch, var(--brand-primary) 80%, var(--brand-glow)) 45%,
-      color-mix(in oklch, var(--brand-glow) 70%, var(--brand-energy)) 85%
-    );
+    --hero-headline-gradient-stop-1: color-mix(in oklch, white 90%, var(--brand-primary));
+    --hero-headline-gradient-stop-1-pos: 10%;
+    --hero-headline-gradient-stop-2: color-mix(in oklch, var(--brand-primary) 80%, var(--brand-glow));
+    --hero-headline-gradient-stop-2-pos: 45%;
+    --hero-headline-gradient-stop-3: color-mix(in oklch, var(--brand-glow) 70%, var(--brand-energy));
+    --hero-headline-gradient-stop-3-pos: 85%;
   }
 
   [data-theme="dark"] {
@@ -280,12 +287,12 @@
     --text-secondary: color-mix(in oklch, black 30%, white / 0.9);
     --text-muted: color-mix(in oklch, black 45%, white / 0.85);
     --hero-headline-color: color-mix(in oklch, black 15%, white);
-    --hero-headline-gradient: linear-gradient(
-      120deg,
-      color-mix(in oklch, var(--brand-primary) 45%, white) 12%,
-      color-mix(in oklch, var(--brand-primary) 35%, var(--brand-glow)) 46%,
-      color-mix(in oklch, var(--brand-glow) 50%, var(--brand-energy)) 88%
-    );
+    --hero-headline-gradient-stop-1: color-mix(in oklch, var(--brand-primary) 45%, white);
+    --hero-headline-gradient-stop-1-pos: 12%;
+    --hero-headline-gradient-stop-2: color-mix(in oklch, var(--brand-primary) 35%, var(--brand-glow));
+    --hero-headline-gradient-stop-2-pos: 46%;
+    --hero-headline-gradient-stop-3: color-mix(in oklch, var(--brand-glow) 50%, var(--brand-energy));
+    --hero-headline-gradient-stop-3-pos: 88%;
   }
 }
 
@@ -1105,6 +1112,18 @@ main :where(section, div)[id] {
 
 @supports (-webkit-background-clip: text) or (background-clip: text) {
   .hero-kinetic-word {
+    background: var(--hero-headline-gradient);
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+    -webkit-text-fill-color: transparent;
+  }
+
+  .hero-kinetic-word[data-split="true"] {
+    background: none;
+  }
+
+  .hero-kinetic-word[data-split="true"] .hero-kinetic-char {
     background: var(--hero-headline-gradient);
     -webkit-background-clip: text;
     background-clip: text;
