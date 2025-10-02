@@ -1,208 +1,623 @@
+import { useCallback, useMemo, useState } from "react";
 import { Link } from "react-router-dom";
+import ThemeToggle from "../components/ThemeToggle";
+import { useTheme } from "../context/ThemeContext";
+
+const tooltipStyle = {
+  position: "relative",
+  cursor: "help",
+  borderBottom: "1px dashed rgba(148,163,184,0.5)",
+};
+
+function TooltipTerm({ label, description }) {
+  const [visible, setVisible] = useState(false);
+
+  return (
+    <span
+      style={tooltipStyle}
+      onMouseEnter={() => setVisible(true)}
+      onMouseLeave={() => setVisible(false)}
+    >
+      {label}
+      <span
+        style={{
+          position: "absolute",
+          bottom: "110%",
+          left: "50%",
+          transform: "translateX(-50%)",
+          background: "rgba(15,23,42,0.95)",
+          color: "#f8fafc",
+          padding: "0.75rem",
+          borderRadius: "0.75rem",
+          width: "220px",
+          fontSize: "0.8rem",
+          lineHeight: 1.5,
+          pointerEvents: "none",
+          boxShadow: "0 20px 45px rgba(15,23,42,0.45)",
+          opacity: visible ? 1 : 0,
+          transition: "opacity 0.2s ease, transform 0.2s ease",
+          transformOrigin: "bottom center",
+          zIndex: 10,
+          backdropFilter: "blur(6px)",
+          border: "1px solid rgba(148,163,184,0.25)",
+          visibility: visible ? "visible" : "hidden",
+        }}
+      >
+        {description}
+      </span>
+    </span>
+  );
+}
+
+function CodeBlock({ language = "", code }) {
+  const [copied, setCopied] = useState(false);
+
+  const handleCopy = useCallback(async () => {
+    try {
+      if (typeof navigator !== "undefined" && navigator.clipboard) {
+        await navigator.clipboard.writeText(code.trim());
+      } else {
+        if (typeof document === "undefined") {
+          return;
+        }
+        const textarea = document.createElement("textarea");
+        textarea.value = code.trim();
+        textarea.setAttribute("readonly", "");
+        textarea.style.position = "absolute";
+        textarea.style.opacity = "0";
+        document.body.appendChild(textarea);
+        textarea.select();
+        document.execCommand("copy");
+        document.body.removeChild(textarea);
+      }
+      setCopied(true);
+      setTimeout(() => setCopied(false), 1500);
+    } catch (error) {
+      console.warn("Unable to copy code block", error);
+    }
+  }, [code]);
+
+  return (
+    <div
+      style={{
+        position: "relative",
+        background: "rgba(15,23,42,0.85)",
+        borderRadius: "1rem",
+        padding: "1.25rem",
+        border: "1px solid rgba(148,163,184,0.35)",
+        overflow: "hidden",
+      }}
+    >
+      <button
+        type="button"
+        onClick={handleCopy}
+        style={{
+          position: "absolute",
+          top: "0.75rem",
+          right: "0.75rem",
+          background: copied ? "rgba(34,197,94,0.15)" : "rgba(99,102,241,0.2)",
+          color: copied ? "#22c55e" : "#e0e7ff",
+          border: "1px solid rgba(99,102,241,0.35)",
+          borderRadius: "999px",
+          padding: "0.35rem 0.9rem",
+          fontSize: "0.75rem",
+          letterSpacing: "0.04em",
+          textTransform: "uppercase",
+          fontWeight: 600,
+          cursor: "pointer",
+        }}
+      >
+        {copied ? "Copied" : "Copy"}
+      </button>
+      <div
+        style={{
+          color: "rgba(148,163,184,0.6)",
+          fontSize: "0.75rem",
+          letterSpacing: "0.08em",
+          textTransform: "uppercase",
+          marginBottom: "0.75rem",
+        }}
+      >
+        {language}
+      </div>
+      <pre
+        style={{
+          margin: 0,
+          whiteSpace: "pre-wrap",
+          wordBreak: "break-word",
+          fontFamily: "var(--font-mono)",
+          fontSize: "0.95rem",
+          color: "#e2e8f0",
+        }}
+      >
+        <code>{code.trim()}</code>
+      </pre>
+    </div>
+  );
+}
+
+const playgroundSamples = [
+  {
+    id: "deploy",
+    label: "Create Deployment",
+    method: "POST",
+    path: "/api/v1/deployments",
+    request: {
+      automationId: "ops-guardian",
+      environment: "production",
+      webhookUrl: "https://hooks.example.com/ops",
+    },
+    response: {
+      id: "dep_87ac3",
+      status: "queued",
+      etaSeconds: 42,
+      dashboardUrl: "https://app.artifically.com/deployments/dep_87ac3",
+    },
+  },
+  {
+    id: "pause",
+    label: "Pause Automation",
+    method: "POST",
+    path: "/api/v1/deployments/dep_87ac3/pause",
+    request: {
+      reason: "Scheduled maintenance",
+      notifyTeam: true,
+    },
+    response: {
+      id: "dep_87ac3",
+      status: "paused",
+      pausedAt: "2024-03-01T09:12:18.204Z",
+      resumesAt: null,
+    },
+  },
+  {
+    id: "metrics",
+    label: "Deployment Metrics",
+    method: "GET",
+    path: "/api/v1/deployments/dep_87ac3/metrics",
+    request: null,
+    response: {
+      requests: 4230,
+      successRate: 0.998,
+      avgLatencyMs: 321,
+      hoursSaved: 186,
+    },
+  },
+];
 
 export default function Docs() {
+  const { darkMode } = useTheme();
+  const [activeSection, setActiveSection] = useState("overview");
+  const [playgroundSelection, setPlaygroundSelection] = useState(playgroundSamples[0]);
+  const [playgroundState, setPlaygroundState] = useState({
+    loading: false,
+    response: playgroundSamples[0].response,
+  });
+
+  const sections = useMemo(
+    () => [
+      { id: "overview", label: "Overview" },
+      { id: "quickstart", label: "Quickstart" },
+      { id: "concepts", label: "Core Concepts" },
+      { id: "api", label: "API" },
+      { id: "tooling", label: "Tooling" },
+      { id: "support", label: "Support" },
+    ],
+    []
+  );
+
+  const runPlayground = useCallback(() => {
+    setPlaygroundState({ loading: true, response: null });
+    setTimeout(() => {
+      setPlaygroundState({ loading: false, response: playgroundSelection.response });
+    }, 550);
+  }, [playgroundSelection]);
+
   return (
-    <main className="container" style={{ padding: "48px 0", minHeight: "80vh" }}>
-      <div style={{ maxWidth: "800px", margin: "0 auto" }}>
-        <div style={{ textAlign: "center", marginBottom: "48px" }}>
-          <h1 style={{ 
-            fontSize: "2.5rem", 
-            fontWeight: "800", 
-            marginBottom: "16px",
-            background: "linear-gradient(135deg, var(--white) 0%, var(--gray-300) 100%)",
-            WebkitBackgroundClip: "text",
-            WebkitTextFillColor: "transparent",
-            backgroundClip: "text"
-          }}>
+    <main
+      className="container"
+      style={{
+        padding: "48px 0 96px",
+        minHeight: "80vh",
+        display: "grid",
+        gap: "2.5rem",
+      }}
+    >
+      <div
+        style={{
+          display: "grid",
+          gridTemplateColumns: "280px minmax(0, 1fr)",
+          gap: "2.5rem",
+          alignItems: "flex-start",
+        }}
+      >
+        <aside
+          style={{
+            position: "sticky",
+            top: "120px",
+            alignSelf: "start",
+            background: darkMode ? "rgba(15,23,42,0.8)" : "rgba(255,255,255,0.95)",
+            borderRadius: "1.25rem",
+            border: `1px solid ${darkMode ? "rgba(148,163,184,0.25)" : "rgba(148,163,184,0.35)"}`,
+            padding: "1.5rem 1.25rem",
+            display: "grid",
+            gap: "0.5rem",
+          }}
+        >
+          <div style={{ fontWeight: 700, fontSize: "0.85rem", color: darkMode ? "#cbd5e1" : "#1f2937" }}>
             Documentation
-          </h1>
-          <p style={{ color: "var(--gray-400)", fontSize: "1.125rem" }}>
-            Everything you need to deploy and manage AI automations at scale
-          </p>
-        </div>
+          </div>
+          {sections.map((section) => (
+            <button
+              key={section.id}
+              onClick={() => {
+                setActiveSection(section.id);
+                const element = document.getElementById(section.id);
+                if (element) {
+                  element.scrollIntoView({ behavior: "smooth", block: "start" });
+                }
+              }}
+              style={{
+                textAlign: "left",
+                background: activeSection === section.id ? "rgba(99,102,241,0.15)" : "transparent",
+                color: activeSection === section.id ? "#6366f1" : darkMode ? "#94a3b8" : "#334155",
+                padding: "0.6rem 0.75rem",
+                borderRadius: "0.85rem",
+                border: "none",
+                fontSize: "0.95rem",
+                fontWeight: activeSection === section.id ? 600 : 500,
+                cursor: "pointer",
+                transition: "all 0.2s ease",
+              }}
+            >
+              {section.label}
+            </button>
+          ))}
+        </aside>
 
-        <div style={{ display: "grid", gap: "32px" }}>
-          <section className="glass" style={{ padding: "32px", borderRadius: "16px" }}>
-            <h2 style={{ 
-              fontSize: "1.5rem", 
-              fontWeight: "700", 
-              marginBottom: "16px",
-              color: "var(--white)"
-            }}>
-              Quick Start Guide
-            </h2>
-            <div style={{ color: "var(--gray-300)", lineHeight: "1.8" }}>
-              <ol style={{ paddingLeft: "24px", marginTop: "16px" }}>
-                <li style={{ marginBottom: "12px" }}>
-                  <Link to="/pricing" style={{ color: "var(--primary-light)", textDecoration: "none" }}>
-                    Create your account
-                  </Link> and complete business verification
-                </li>
-                <li style={{ marginBottom: "12px" }}>
-                  Browse the <Link to="/marketplace" style={{ color: "var(--primary-light)", textDecoration: "none" }}>
-                    Marketplace
-                  </Link> and select your automation
-                </li>
-                <li style={{ marginBottom: "12px" }}>
-                  Configure automation parameters and integration settings
-                </li>
-                <li style={{ marginBottom: "12px" }}>
-                  Deploy with one click and monitor from your dashboard
-                </li>
-              </ol>
+        <div style={{ display: "grid", gap: "2rem" }}>
+          <div
+            style={{
+              position: "sticky",
+              top: "80px",
+              zIndex: 10,
+              padding: "1rem 1.25rem",
+              borderRadius: "1rem",
+              background: darkMode ? "rgba(15,23,42,0.88)" : "rgba(255,255,255,0.92)",
+              border: `1px solid ${darkMode ? "rgba(99,102,241,0.25)" : "rgba(99,102,241,0.15)"}`,
+              display: "flex",
+              justifyContent: "space-between",
+              alignItems: "center",
+              gap: "1rem",
+              backdropFilter: "blur(8px)",
+            }}
+          >
+            <div>
+              <div style={{ fontSize: "0.75rem", letterSpacing: "0.08em", textTransform: "uppercase", color: "#818cf8" }}>
+                Ship faster
+              </div>
+              <h1 style={{ fontSize: "1.5rem", margin: 0 }}>Deploy production-ready automations in minutes.</h1>
             </div>
-          </section>
+            <div style={{ display: "flex", alignItems: "center", gap: "0.75rem" }}>
+              <button
+                className="btn btn-primary"
+                style={{ whiteSpace: "nowrap" }}
+                onClick={() =>
+                  typeof window !== "undefined" &&
+                  window.scrollTo({ top: 0, behavior: "smooth" })
+                }
+              >
+                Deploy Your First Automation
+              </button>
+              <ThemeToggle />
+            </div>
+          </div>
 
-          <section className="glass" style={{ padding: "32px", borderRadius: "16px" }}>
-            <h2 style={{ 
-              fontSize: "1.5rem", 
-              fontWeight: "700", 
-              marginBottom: "16px",
-              color: "var(--white)"
-            }}>
-              Configuration Parameters
-            </h2>
-            <p style={{ color: "var(--gray-400)", marginBottom: "16px" }}>
-              Each automation requires specific configuration inputs for optimal performance:
+          <article
+            id="overview"
+            className="glass"
+            style={{
+              borderRadius: "1.5rem",
+              padding: "2.5rem",
+              display: "grid",
+              gap: "1.5rem",
+            }}
+          >
+            <header>
+              <h2 style={{ fontSize: "2.25rem", marginBottom: "0.75rem" }}>Artifically Docs</h2>
+              <p style={{ color: "var(--gray-300)", fontSize: "1.05rem", lineHeight: 1.7 }}>
+                Built for teams who automate with confidence. Explore production patterns, enterprise safeguards,
+                and <TooltipTerm label="SLA" description="Service level agreements define uptime guarantees and response targets." />
+                -ready integrations inspired by Stripe and Vercel docs.
+              </p>
+            </header>
+            <section
+              style={{
+                display: "grid",
+                gap: "1.25rem",
+                gridTemplateColumns: "repeat(auto-fit, minmax(220px, 1fr))",
+              }}
+            >
+              {[
+                {
+                  title: "Comprehensive guides",
+                  description: "Opinionated walkthroughs for provisioning, securing, and scaling automations across environments.",
+                },
+                {
+                  title: "Audit-grade tooling",
+                  description: "Trace every request with structured logs and exportable evidence to streamline compliance reviews.",
+                },
+                {
+                  title: "SDKs & CLI",
+                  description: "Ship faster with generated clients, typed SDKs, and a CLI that mirrors production automations locally.",
+                },
+              ].map((card) => (
+                <div
+                  key={card.title}
+                  style={{
+                    background: darkMode ? "rgba(15,23,42,0.75)" : "rgba(255,255,255,0.95)",
+                    borderRadius: "1.25rem",
+                    padding: "1.5rem",
+                    border: `1px solid ${darkMode ? "rgba(148,163,184,0.25)" : "rgba(148,163,184,0.3)"}`,
+                    display: "grid",
+                    gap: "0.75rem",
+                  }}
+                >
+                  <h3 style={{ margin: 0, fontSize: "1.1rem", color: darkMode ? "#e2e8f0" : "#1e293b" }}>{card.title}</h3>
+                  <p style={{ margin: 0, color: darkMode ? "#94a3b8" : "#475569", lineHeight: 1.6 }}>{card.description}</p>
+                </div>
+              ))}
+            </section>
+          </article>
+
+          <article
+            id="quickstart"
+            className="glass"
+            style={{ borderRadius: "1.5rem", padding: "2.5rem", display: "grid", gap: "1.75rem" }}
+          >
+            <header>
+              <h2 style={{ fontSize: "1.75rem", marginBottom: "0.5rem" }}>Quickstart</h2>
+              <p style={{ color: "var(--gray-300)" }}>
+                Launch your first automation in under five minutes with our streamlined provisioning workflow.
+              </p>
+            </header>
+            <ol style={{ display: "grid", gap: "1rem", paddingLeft: "1.5rem", color: "var(--gray-300)" }}>
+              <li>
+                Create your workspace via the <Link to="/pricing">enterprise trial</Link> and invite teammates for
+                shared controls.
+              </li>
+              <li>
+                Select a template from the <Link to="/marketplace">automation marketplace</Link> and tailor parameters.
+              </li>
+              <li>
+                Connect integrations, configure <TooltipTerm label="webhooks" description="HTTP callbacks that Artifically triggers when automation state changes." />, and set rollout gates.
+              </li>
+              <li>
+                Deploy with one click, then monitor performance in the dashboard with live insights.
+              </li>
+            </ol>
+            <CodeBlock
+              language="CLI"
+              code={`npm create artifically@latest
+cd my-automation
+artifically deploy --env production --automation ops-guardian`}
+            />
+          </article>
+
+          <article
+            id="concepts"
+            className="glass"
+            style={{ borderRadius: "1.5rem", padding: "2.5rem", display: "grid", gap: "1.75rem" }}
+          >
+            <header>
+              <h2 style={{ fontSize: "1.75rem", marginBottom: "0.5rem" }}>Core concepts</h2>
+              <p style={{ color: "var(--gray-300)" }}>
+                Understand the primitives that power Artifically—designed for clarity and enterprise scale.
+              </p>
+            </header>
+            <div style={{ display: "grid", gap: "1.25rem" }}>
+              {["Deployments", "Policies", "Observability"].map((title) => (
+                <section key={title} style={{ display: "grid", gap: "0.75rem" }}>
+                  <h3 style={{ margin: 0, fontSize: "1.1rem", color: "var(--white)" }}>{title}</h3>
+                  <p style={{ margin: 0, color: "var(--gray-400)", lineHeight: 1.7 }}>
+                    {title === "Deployments" &&
+                      "Immutable units of automation runtime. Each deployment carries its own secrets, rollout plan, and approval workflow."}
+                    {title === "Policies" &&
+                      "Guardrails defining who can trigger, pause, or edit automations. Policies mirror your SSO roles and support conditional access."}
+                    {title === "Observability" &&
+                      "Built-in traces, logs, and anomaly alerts with exportable data lakes. Integrate directly with Datadog or Grafana for advanced insights."}
+                  </p>
+                </section>
+              ))}
+            </div>
+            <CodeBlock
+              language="JSON"
+              code={`{
+  "deploymentId": "dep_87ac3",
+  "policy": {
+    "approvers": ["ops-lead@company.com"],
+    "rollout": { "strategy": "progressive", "segment": "enterprise" },
+    "alerting": ["slack:#automation-alerts"]
+  }
+}`}
+            />
+          </article>
+
+          <article
+            id="api"
+            className="glass"
+            style={{ borderRadius: "1.5rem", padding: "2.5rem", display: "grid", gap: "2rem" }}
+          >
+            <header>
+              <h2 style={{ fontSize: "1.75rem", marginBottom: "0.5rem" }}>API playground</h2>
+              <p style={{ color: "var(--gray-300)" }}>
+                Explore the REST API with live, sandboxed responses. Perfect for validating requests before pushing to CI.
+              </p>
+            </header>
+            <div
+              style={{
+                display: "grid",
+                gap: "1rem",
+                gridTemplateColumns: "minmax(0, 220px) minmax(0, 1fr)",
+                alignItems: "stretch",
+              }}
+            >
+              <div
+                style={{
+                  background: darkMode ? "rgba(15,23,42,0.75)" : "rgba(255,255,255,0.95)",
+                  borderRadius: "1.25rem",
+                  border: `1px solid ${darkMode ? "rgba(148,163,184,0.25)" : "rgba(148,163,184,0.3)"}`,
+                  display: "grid",
+                  gap: "0.5rem",
+                  padding: "1rem",
+                }}
+              >
+                {playgroundSamples.map((sample) => (
+                  <button
+                    key={sample.id}
+                    onClick={() => {
+                      setPlaygroundSelection(sample);
+                      setPlaygroundState({ loading: false, response: sample.response });
+                    }}
+                    style={{
+                      textAlign: "left",
+                      padding: "0.75rem 0.9rem",
+                      borderRadius: "0.9rem",
+                      border: "none",
+                      cursor: "pointer",
+                      background:
+                        playgroundSelection.id === sample.id
+                          ? "rgba(99,102,241,0.15)"
+                          : "transparent",
+                      color:
+                        playgroundSelection.id === sample.id
+                          ? "#6366f1"
+                          : darkMode
+                          ? "#cbd5e1"
+                          : "#1f2937",
+                      fontWeight: playgroundSelection.id === sample.id ? 600 : 500,
+                    }}
+                  >
+                    {sample.label}
+                  </button>
+                ))}
+              </div>
+              <div
+                style={{
+                  background: darkMode ? "rgba(15,23,42,0.75)" : "rgba(255,255,255,0.95)",
+                  borderRadius: "1.25rem",
+                  border: `1px solid ${darkMode ? "rgba(148,163,184,0.25)" : "rgba(148,163,184,0.3)"}`,
+                  padding: "1.5rem",
+                  display: "grid",
+                  gap: "1.25rem",
+                }}
+              >
+                <div style={{ fontFamily: "var(--font-mono)", color: "var(--gray-300)" }}>
+                  <span
+                    style={{
+                      padding: "0.25rem 0.65rem",
+                      borderRadius: "999px",
+                      background: "rgba(34,197,94,0.15)",
+                      color: "#22c55e",
+                      fontSize: "0.75rem",
+                      marginRight: "0.75rem",
+                    }}
+                  >
+                    {playgroundSelection.method}
+                  </span>
+                  {playgroundSelection.path}
+                </div>
+                {playgroundSelection.request && (
+                  <CodeBlock
+                    language="Request"
+                    code={JSON.stringify(playgroundSelection.request, null, 2)}
+                  />
+                )}
+                <div style={{ display: "flex", gap: "0.75rem", alignItems: "center" }}>
+                  <button className="btn btn-secondary" onClick={runPlayground} disabled={playgroundState.loading}>
+                    {playgroundState.loading ? "Running..." : "Run request"}
+                  </button>
+                  <span style={{ fontSize: "0.85rem", color: "var(--gray-400)" }}>
+                    Responses stream back instantly from our mocked sandbox.
+                  </span>
+                </div>
+                {playgroundState.response && (
+                  <CodeBlock
+                    language="Response"
+                    code={JSON.stringify(playgroundState.response, null, 2)}
+                  />
+                )}
+              </div>
+            </div>
+          </article>
+
+          <article
+            id="tooling"
+            className="glass"
+            style={{ borderRadius: "1.5rem", padding: "2.5rem", display: "grid", gap: "1.75rem" }}
+          >
+            <header>
+              <h2 style={{ fontSize: "1.75rem", marginBottom: "0.5rem" }}>Developer tooling</h2>
+              <p style={{ color: "var(--gray-300)" }}>
+                Everything your platform team needs: Observability dashboards, typed SDKs, and policy validation baked in.
+              </p>
+            </header>
+            <CodeBlock
+              language="TypeScript"
+              code={`import { Artifically } from "@artifically/sdk";
+
+const client = new Artifically({ apiKey: process.env.ARTIFICIALLY_KEY });
+
+const { deployment } = await client.deployments.create({
+  automationId: "revenue-loop",
+  environment: "staging",
+  approvals: ["revops-lead@company.com"],
+});
+
+console.log(deployment.status);
+`}
+            />
+            <p style={{ color: "var(--gray-400)", lineHeight: 1.7 }}>
+              Validate rollout plans locally, surface guardrails inline with your IDE, and rely on generated types to
+              remove guesswork. The CLI mirrors production APIs so what you ship in staging behaves exactly the same in
+              production.
             </p>
-            <div style={{ display: "grid", gap: "16px", marginTop: "16px" }}>
-              <div style={{ 
-                background: "var(--bg-glass)", 
-                padding: "16px", 
-                borderRadius: "12px",
-                border: "1px solid var(--border-color)"
-              }}>
-                <h4 style={{ color: "var(--primary-light)", fontWeight: "600", marginBottom: "8px" }}>
-                  AI Receptionist
-                </h4>
-                <p style={{ color: "var(--gray-300)", fontSize: "0.875rem" }}>
-                  businessName, businessPhone, workingHours, timezone, brandTone, escalationRules
-                </p>
-              </div>
-              <div style={{ 
-                background: "var(--bg-glass)", 
-                padding: "16px", 
-                borderRadius: "12px",
-                border: "1px solid var(--border-color)"
-              }}>
-                <h4 style={{ color: "var(--primary-light)", fontWeight: "600", marginBottom: "8px" }}>
-                  Lead Scoring Engine
-                </h4>
-                <p style={{ color: "var(--gray-300)", fontSize: "0.875rem" }}>
-                  crmProvider, leadScoreThreshold, salesSlackChannel, scoringCriteria
-                </p>
-              </div>
-              <div style={{ 
-                background: "var(--bg-glass)", 
-                padding: "16px", 
-                borderRadius: "12px",
-                border: "1px solid var(--border-color)"
-              }}>
-                <h4 style={{ color: "var(--primary-light)", fontWeight: "600", marginBottom: "8px" }}>
-                  Cart Recovery Bot
-                </h4>
-                <p style={{ color: "var(--gray-300)", fontSize: "0.875rem" }}>
-                  ecommercePlatform, discountCode, whatsappNumber, recoverySequence
-                </p>
-              </div>
-            </div>
-          </section>
+          </article>
 
-          <section className="glass" style={{ padding: "32px", borderRadius: "16px" }}>
-            <h2 style={{ 
-              fontSize: "1.5rem", 
-              fontWeight: "700", 
-              marginBottom: "16px",
-              color: "var(--white)"
-            }}>
-              Security & Compliance
-            </h2>
-            <div style={{ color: "var(--gray-300)", lineHeight: "1.8" }}>
-              <p style={{ marginBottom: "16px" }}>
-                All data is encrypted in transit and at rest using AES-256 encryption. 
-                Our platform maintains SOC 2 Type II compliance and follows zero-trust security principles.
+          <article
+            id="support"
+            className="glass"
+            style={{ borderRadius: "1.5rem", padding: "2.5rem", display: "grid", gap: "1.75rem" }}
+          >
+            <header>
+              <h2 style={{ fontSize: "1.75rem", marginBottom: "0.5rem" }}>Support & enablement</h2>
+              <p style={{ color: "var(--gray-300)" }}>
+                Enterprise help 24/7 with direct-to-engineering escalation paths.
               </p>
-              <ul style={{ paddingLeft: "24px", marginTop: "16px" }}>
-                <li style={{ marginBottom: "8px" }}>
-                  <strong style={{ color: "var(--white)" }}>Payment Processing:</strong> Handled via Stripe with PCI DSS compliance
-                </li>
-                <li style={{ marginBottom: "8px" }}>
-                  <strong style={{ color: "var(--white)" }}>Data Retention:</strong> Configurable retention policies with automated purging
-                </li>
-                <li style={{ marginBottom: "8px" }}>
-                  <strong style={{ color: "var(--white)" }}>Access Control:</strong> Role-based permissions with audit logging
-                </li>
-                <li style={{ marginBottom: "8px" }}>
-                  <strong style={{ color: "var(--white)" }}>Monitoring:</strong> 24/7 security monitoring with real-time alerts
-                </li>
-              </ul>
+            </header>
+            <div style={{ display: "grid", gap: "1.25rem", gridTemplateColumns: "repeat(auto-fit, minmax(240px, 1fr))" }}>
+              {["support@artifically.com", "Docs office hours", "Private Slack"].map((item) => (
+                <div
+                  key={item}
+                  style={{
+                    background: darkMode ? "rgba(15,23,42,0.75)" : "rgba(255,255,255,0.95)",
+                    borderRadius: "1.25rem",
+                    padding: "1.5rem",
+                    border: `1px solid ${darkMode ? "rgba(148,163,184,0.25)" : "rgba(148,163,184,0.3)"}`,
+                    display: "grid",
+                    gap: "0.5rem",
+                  }}
+                >
+                  <h3 style={{ margin: 0, fontSize: "1rem", color: darkMode ? "#e2e8f0" : "#1f2937" }}>{item}</h3>
+                  <p style={{ margin: 0, color: darkMode ? "#94a3b8" : "#475569", lineHeight: 1.6 }}>
+                    {item === "support@artifically.com" && "Get a response in under two hours from automation specialists."}
+                    {item === "Docs office hours" && "Join weekly deep-dives with our solutions engineers to unblock complex rollouts."}
+                    {item === "Private Slack" && "Collaborate with 5k+ operators sharing playbooks and best practices."}
+                  </p>
+                </div>
+              ))}
             </div>
-          </section>
-
-          <section className="glass" style={{ padding: "32px", borderRadius: "16px" }}>
-            <h2 style={{ 
-              fontSize: "1.5rem", 
-              fontWeight: "700", 
-              marginBottom: "16px",
-              color: "var(--white)"
-            }}>
-              API Integration
-            </h2>
-            <div style={{ color: "var(--gray-300)", lineHeight: "1.8" }}>
-              <p style={{ marginBottom: "16px" }}>
-                Enterprise customers can access our REST API for custom integrations and automation management.
-              </p>
-              <div style={{ 
-                background: "var(--gray-900)", 
-                padding: "16px", 
-                borderRadius: "8px", 
-                marginTop: "16px",
-                fontFamily: "var(--font-mono)",
-                fontSize: "0.875rem",
-                border: "1px solid var(--border-color)"
-              }}>
-                <div style={{ color: "var(--success)" }}>POST</div>
-                <div style={{ color: "var(--gray-300)" }}>/api/v1/deployments</div>
-                <div style={{ color: "var(--gray-400)", marginTop: "8px" }}>
-                  Deploy a new automation instance
-                </div>
-              </div>
-            </div>
-          </section>
-
-          <section className="glass" style={{ padding: "32px", borderRadius: "16px" }}>
-            <h2 style={{ 
-              fontSize: "1.5rem", 
-              fontWeight: "700", 
-              marginBottom: "16px",
-              color: "var(--white)"
-            }}>
-              Support & Resources
-            </h2>
-            <div style={{ color: "var(--gray-300)", lineHeight: "1.8" }}>
-              <p style={{ marginBottom: "16px" }}>
-                Our enterprise support team is available 24/7 to help with deployment, configuration, and optimization.
-              </p>
-              <div style={{ display: "grid", gap: "12px", marginTop: "16px" }}>
-                <div>
-                  <strong style={{ color: "var(--white)" }}>Email Support:</strong>{" "}
-                  <a href="mailto:support@artifically.com" style={{ color: "var(--primary-light)", textDecoration: "none" }}>
-                    support@artifically.com
-                  </a>
-                </div>
-                <div>
-                  <strong style={{ color: "var(--white)" }}>Response Time:</strong> 
-                  <span style={{ color: "var(--success)" }}> &lt; 2 hours for enterprise customers</span>
-                </div>
-                <div>
-                  <strong style={{ color: "var(--white)" }}>Slack Community:</strong>{" "}
-                  <a href="#" style={{ color: "var(--primary-light)", textDecoration: "none" }}>
-                    Join 5000+ automation experts
-                  </a>
-                </div>
-              </div>
-            </div>
-          </section>
+          </article>
         </div>
       </div>
     </main>

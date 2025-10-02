@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import api, { pick } from "../api";
 import { toast } from "./Toast";
@@ -15,14 +15,78 @@ const statusColors = {
 
 const clamp = (value, min, max) => Math.min(Math.max(value, min), max);
 
+const marketplaceShowcase = [
+  {
+    id: "ops-guardian",
+    name: "Ops Guardian",
+    description: "Route incidents to the right squad and auto-generate postmortems.",
+    category: "operations",
+    keywords: ["ops", "operations", "it", "engineering"],
+    preview: { success: 99.92, throughput: 240, savings: 6200 },
+  },
+  {
+    id: "revenue-loop",
+    name: "Revenue Loop",
+    description: "Recover stalled deals with AI nudges and synced playbooks.",
+    category: "revenue",
+    keywords: ["sales", "revenue", "revops", "marketing"],
+    preview: { success: 99.4, throughput: 185, savings: 7800 },
+  },
+  {
+    id: "support-coach",
+    name: "Support Coach",
+    description: "Coach agents live with empathetic macros and churn signals.",
+    category: "support",
+    keywords: ["support", "customer", "cx", "service"],
+    preview: { success: 98.7, throughput: 320, savings: 5400 },
+  },
+  {
+    id: "commerce-recover",
+    name: "Cart Recovery Bot",
+    description: "Re-engage shoppers with multi-channel outreach automatically.",
+    category: "ecommerce",
+    keywords: ["commerce", "retail", "ecommerce", "d2c"],
+    preview: { success: 99.1, throughput: 410, savings: 6600 },
+  },
+];
+
 export default function Dashboard({ user, openAuth }) {
   const { darkMode } = useTheme();
+  const [dockedAutomation, setDockedAutomation] = useState(marketplaceShowcase[0]);
+  const [demoMetrics, setDemoMetrics] = useState(marketplaceShowcase[0].preview);
   const [deployments, setDeployments] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [viewerCounts, setViewerCounts] = useState({});
   const [loginStreak, setLoginStreak] = useState(1);
   const navigate = useNavigate();
+
+  const handleAutomationDrop = useCallback((automation) => {
+    setDockedAutomation(automation);
+    setDemoMetrics(automation.preview);
+  }, []);
+
+  const handleDrop = useCallback(
+    (event) => {
+      event.preventDefault();
+      const automationId = event.dataTransfer.getData("automation-id");
+      const automation = marketplaceShowcase.find((item) => item.id === automationId);
+      if (automation) {
+        handleAutomationDrop(automation);
+      }
+    },
+    [handleAutomationDrop]
+  );
+
+  const handleDragOver = useCallback((event) => {
+    event.preventDefault();
+    event.dataTransfer.dropEffect = "copy";
+  }, []);
+
+  const handleDragStart = useCallback((automation) => (event) => {
+    event.dataTransfer.setData("automation-id", automation.id);
+    event.dataTransfer.effectAllowed = "copy";
+  }, []);
 
   useEffect(() => {
     if (!user) {
@@ -143,6 +207,40 @@ export default function Dashboard({ user, openAuth }) {
     return () => clearInterval(interval);
   }, [deployments]);
 
+  useEffect(() => {
+    if (!dockedAutomation) {
+      return;
+    }
+    setDemoMetrics(dockedAutomation.preview);
+  }, [dockedAutomation]);
+
+  useEffect(() => {
+    if (!dockedAutomation) {
+      return;
+    }
+
+    const interval = setInterval(() => {
+      setDemoMetrics((previous) => {
+        const base = dockedAutomation.preview || previous;
+        const jitter = (value, delta, precision = 0) => {
+          const updated = value + (Math.random() - 0.5) * delta;
+          if (precision > 0) {
+            return Number(updated.toFixed(precision));
+          }
+          return Math.round(updated);
+        };
+
+        return {
+          success: Math.min(100, Math.max(95, jitter(base.success ?? 99, 0.35, 2))),
+          throughput: Math.max(0, jitter(base.throughput ?? 200, 28)),
+          savings: Math.max(0, jitter(base.savings ?? 5000, 380)),
+        };
+      });
+    }, 6500);
+
+    return () => clearInterval(interval);
+  }, [dockedAutomation]);
+
   const formatPrice = useMemo(
     () =>
       (price, currency = "USD") =>
@@ -199,6 +297,34 @@ export default function Dashboard({ user, openAuth }) {
     }, 0);
   }, [deployments]);
 
+  const statsSnapshot = useMemo(() => {
+    const totalHours = deployments.reduce((sum, deployment) => {
+      if (typeof deployment.metrics?.hoursSaved === "number") {
+        return sum + deployment.metrics.hoursSaved;
+      }
+      const fallback = deployment.requestsUsed ?? deployment.metrics?.runs ?? 90;
+      return sum + Math.max(30, Math.round(fallback / 2));
+    }, 0);
+
+    const totalRuns = deployments.reduce((sum, deployment) => {
+      if (typeof deployment.metrics?.runs === "number") {
+        return sum + deployment.metrics.runs;
+      }
+      const used = deployment.requestsUsed ?? 160;
+      return sum + Math.max(used, 120);
+    }, 0);
+
+    const computedHours = totalHours || (deployments.length ? deployments.length * 42 : 120);
+    const computedRuns = totalRuns || (deployments.length ? deployments.length * 180 : 420);
+    const projectedSavings = Math.max(estimatedSavings || computedHours * 58, 0);
+
+    return [
+      { key: "hours", label: "Hours saved", value: `${computedHours.toLocaleString()}h`, accent: "#0ea5e9" },
+      { key: "runs", label: "Automations executed", value: computedRuns.toLocaleString(), accent: "#a855f7" },
+      { key: "savings", label: "Money saved", value: formatPrice(Math.round(projectedSavings)), accent: "#22c55e" },
+    ];
+  }, [deployments, estimatedSavings, formatPrice]);
+
   const streakProgress = useMemo(() => Math.min(100, Math.round((loginStreak / 14) * 100)), [loginStreak]);
   const automationProgress = useMemo(
     () => Math.min(100, Math.round(((deployments?.length || 0) / 5) * 100)),
@@ -207,6 +333,59 @@ export default function Dashboard({ user, openAuth }) {
   const roiProgress = useMemo(
     () => Math.min(100, Math.round(((estimatedSavings || 0) / 5000) * 100)),
     [estimatedSavings]
+  );
+
+  const aiSuggestion = useMemo(() => {
+    const profileHint = (user?.industry || user?.businessType || "").toLowerCase();
+    const tokens = profileHint.split(/[^a-z0-9]+/).filter(Boolean);
+
+    if (tokens.length) {
+      const matched = marketplaceShowcase.find((automation) =>
+        automation.keywords.some((keyword) => tokens.includes(keyword))
+      );
+      if (matched) {
+        return matched;
+      }
+    }
+
+    if (deployments.length === 0) {
+      return marketplaceShowcase[0];
+    }
+
+    const deployedIds = new Set(
+      deployments
+        .map((deployment) => deployment.automation?.id || deployment.automationId)
+        .filter(Boolean)
+    );
+
+    return marketplaceShowcase.find((automation) => !deployedIds.has(automation.id)) ?? marketplaceShowcase[0];
+  }, [deployments, user]);
+
+  const milestoneBadges = useMemo(
+    () => [
+      {
+        id: "first",
+        icon: "🚀",
+        label: "First automation",
+        unlocked: deployments.length > 0,
+        description: "Launch your first workflow to unlock AI guidance and deeper analytics.",
+      },
+      {
+        id: "scale",
+        icon: "🌐",
+        label: "5 live automations",
+        unlocked: deployments.length >= 5,
+        description: "Reach full-team coverage and earn concierge rollout reviews.",
+      },
+      {
+        id: "streak",
+        icon: "🔥",
+        label: "7-day streak",
+        unlocked: loginStreak >= 7,
+        description: "Stay active every day for a week to unlock streak boosts.",
+      },
+    ],
+    [deployments.length, loginStreak]
   );
 
   const gamificationStats = useMemo(
@@ -248,6 +427,12 @@ export default function Dashboard({ user, openAuth }) {
       },
     ];
 
+    stepsList.push({
+      target: "dashboard-ai-suggestion",
+      title: "Review your AI suggestion",
+      description: "We recommend a starter automation tailored to your industry signals—preview it in seconds.",
+    });
+
     if ((deployments?.length || 0) === 0) {
       stepsList.push({
         target: "dashboard-action-button",
@@ -272,6 +457,12 @@ export default function Dashboard({ user, openAuth }) {
       target: "dashboard-gamification",
       title: "Monitor streaks and ROI",
       description: "Let the streak, coverage, and ROI progress bars keep your automation goals on track.",
+    });
+
+    stepsList.push({
+      target: "dashboard-marketplace-embed",
+      title: "Drag in a new automation",
+      description: "Drop automations into your workspace to simulate live performance before deploying.",
     });
 
     return stepsList;
@@ -331,11 +522,11 @@ export default function Dashboard({ user, openAuth }) {
   return (
     <section className="dashboard" style={{ padding: "5rem 0" }}>
       <div className="container" style={{ display: "grid", gap: "2rem" }}>
-        <div
-          className="dashboard-header"
-          style={{
-            display: "flex",
-            justifyContent: "space-between",
+      <div
+        className="dashboard-header"
+        style={{
+          display: "flex",
+          justifyContent: "space-between",
             alignItems: "center",
             flexWrap: "wrap",
             gap: "1rem",
@@ -362,6 +553,78 @@ export default function Dashboard({ user, openAuth }) {
             </button>
           </div>
         </div>
+
+        <div
+          data-tour-id="dashboard-stats"
+          style={{
+            display: "grid",
+            gap: "1.25rem",
+            gridTemplateColumns: "repeat(auto-fit, minmax(220px, 1fr))",
+          }}
+        >
+          {statsSnapshot.map((stat) => (
+            <div
+              key={stat.key}
+              style={{
+                background: darkMode ? "rgba(15,23,42,0.75)" : "rgba(255,255,255,0.95)",
+                borderRadius: "1.25rem",
+                padding: "1.25rem",
+                border: `1px solid ${darkMode ? "rgba(148,163,184,0.2)" : "rgba(148,163,184,0.25)"}`,
+                display: "grid",
+                gap: "0.5rem",
+              }}
+            >
+              <span
+                style={{
+                  fontSize: "0.8rem",
+                  letterSpacing: "0.08em",
+                  textTransform: "uppercase",
+                  color: darkMode ? "#94a3b8" : "#475569",
+                }}
+              >
+                {stat.label}
+              </span>
+              <span style={{ fontSize: "1.85rem", fontWeight: 700, color: stat.accent }}>{stat.value}</span>
+            </div>
+          ))}
+        </div>
+
+        {aiSuggestion && (
+          <div
+            data-tour-id="dashboard-ai-suggestion"
+            style={{
+              background: darkMode ? "rgba(30,41,59,0.78)" : "rgba(248,250,252,0.96)",
+              borderRadius: "1.25rem",
+              padding: "1.5rem",
+              border: `1px solid ${darkMode ? "rgba(99,102,241,0.3)" : "rgba(99,102,241,0.2)"}`,
+              display: "grid",
+              gap: "0.75rem",
+            }}
+          >
+            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", gap: "1rem" }}>
+              <div>
+                <span
+                  style={{
+                    fontSize: "0.75rem",
+                    letterSpacing: "0.08em",
+                    textTransform: "uppercase",
+                    color: darkMode ? "#a5b4fc" : "#4f46e5",
+                  }}
+                >
+                  AI assistant
+                </span>
+                <h2 style={{ margin: "0.35rem 0 0", fontSize: "1.35rem" }}>{aiSuggestion.name}</h2>
+              </div>
+              <button className="btn btn-secondary" onClick={() => handleAutomationDrop(aiSuggestion)}>
+                Load into preview
+              </button>
+            </div>
+            <p style={{ margin: 0, color: darkMode ? "#cbd5e1" : "#475569", lineHeight: 1.6 }}>
+              {aiSuggestion.description} We picked this based on your industry profile. Drop it into the playground to
+              explore metrics before going live.
+            </p>
+          </div>
+        )}
 
         <div
           data-tour-id="dashboard-profile-progress"
@@ -421,6 +684,124 @@ export default function Dashboard({ user, openAuth }) {
             )}
           </div>
         </div>
+
+        <section
+          data-tour-id="dashboard-marketplace-embed"
+          style={{
+            background: darkMode ? "rgba(15,23,42,0.75)" : "rgba(255,255,255,0.95)",
+            borderRadius: "1.35rem",
+            border: `1px solid ${darkMode ? "rgba(99,102,241,0.25)" : "rgba(148,163,184,0.25)"}`,
+            padding: "1.75rem",
+            display: "grid",
+            gap: "1.5rem",
+          }}
+        >
+          <header style={{ display: "flex", justifyContent: "space-between", alignItems: "center", flexWrap: "wrap", gap: "1rem" }}>
+            <div>
+              <h2 style={{ margin: 0, fontSize: "1.4rem" }}>Marketplace preview</h2>
+              <p style={{ margin: "0.35rem 0 0", color: darkMode ? "#94a3b8" : "#475569" }}>
+                Drag automations into the live preview. We’ll simulate metrics so you can sense how it performs before
+                deployment.
+              </p>
+            </div>
+            <button className="btn btn-primary" onClick={() => navigate("/marketplace")}>
+              Browse marketplace
+            </button>
+          </header>
+          <div
+            style={{
+              display: "grid",
+              gap: "1.5rem",
+              gridTemplateColumns: "repeat(auto-fit, minmax(280px, 1fr))",
+            }}
+          >
+            <div style={{ display: "grid", gap: "1rem" }}>
+              {marketplaceShowcase.map((automation) => (
+                <article
+                  key={automation.id}
+                  draggable
+                  onDragStart={handleDragStart(automation)}
+                  onClick={() => handleAutomationDrop(automation)}
+                  style={{
+                    background: darkMode ? "rgba(30,41,59,0.85)" : "rgba(248,250,252,0.95)",
+                    borderRadius: "1.15rem",
+                    padding: "1.25rem",
+                    border: `1px dashed ${darkMode ? "rgba(148,163,184,0.35)" : "rgba(99,102,241,0.35)"}`,
+                    cursor: "grab",
+                    display: "grid",
+                    gap: "0.5rem",
+                  }}
+                >
+                  <span style={{ fontSize: "0.75rem", color: darkMode ? "#a5b4fc" : "#6366f1" }}>Drag to preview</span>
+                  <h3 style={{ margin: 0, fontSize: "1.1rem" }}>{automation.name}</h3>
+                  <p style={{ margin: 0, color: darkMode ? "#cbd5e1" : "#475569", lineHeight: 1.5 }}>
+                    {automation.description}
+                  </p>
+                </article>
+              ))}
+            </div>
+            <div
+              onDrop={handleDrop}
+              onDragOver={handleDragOver}
+              role="presentation"
+              style={{
+                minHeight: "260px",
+                borderRadius: "1.25rem",
+                border: `2px dashed ${darkMode ? "rgba(99,102,241,0.35)" : "rgba(99,102,241,0.45)"}`,
+                background: darkMode ? "rgba(17,24,39,0.85)" : "rgba(241,245,249,0.9)",
+                padding: "1.75rem",
+                display: "grid",
+                gap: "1rem",
+                alignContent: "start",
+              }}
+            >
+              <div>
+                <span style={{ fontSize: "0.75rem", color: darkMode ? "#a5b4fc" : "#6366f1", textTransform: "uppercase", letterSpacing: "0.08em" }}>
+                  Live demo
+                </span>
+                <h3 style={{ margin: "0.35rem 0 0", fontSize: "1.35rem" }}>{dockedAutomation.name}</h3>
+              </div>
+              <p style={{ margin: 0, color: darkMode ? "#cbd5e1" : "#475569", lineHeight: 1.6 }}>
+                {dockedAutomation.description}
+              </p>
+              <div
+                style={{
+                  display: "grid",
+                  gap: "0.75rem",
+                  gridTemplateColumns: "repeat(auto-fit, minmax(120px, 1fr))",
+                }}
+              >
+                {[{
+                  label: "Success rate",
+                  value: `${(demoMetrics.success ?? dockedAutomation.preview.success).toFixed(2)}%`,
+                },
+                {
+                  label: "Runs / hour",
+                  value: Math.max(0, Math.round(demoMetrics.throughput ?? dockedAutomation.preview.throughput)).toLocaleString(),
+                },
+                {
+                  label: "Monthly savings",
+                  value: formatPrice(Math.round(demoMetrics.savings ?? dockedAutomation.preview.savings)),
+                }].map((metric) => (
+                  <div
+                    key={metric.label}
+                    style={{
+                      background: darkMode ? "rgba(30,41,59,0.8)" : "rgba(255,255,255,0.95)",
+                      borderRadius: "0.85rem",
+                      padding: "0.85rem",
+                      border: `1px solid ${darkMode ? "rgba(148,163,184,0.2)" : "rgba(148,163,184,0.3)"}`,
+                    }}
+                  >
+                    <div style={{ fontSize: "0.75rem", color: darkMode ? "#94a3b8" : "#64748b", textTransform: "uppercase", letterSpacing: "0.08em" }}>
+                      {metric.label}
+                    </div>
+                    <div style={{ fontSize: "1.2rem", fontWeight: 700 }}>{metric.value}</div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          </div>
+        </section>
 
         <div
           data-tour-id="dashboard-achievements"
@@ -532,6 +913,64 @@ export default function Dashboard({ user, openAuth }) {
           </div>
         </div>
 
+        <section
+          data-tour-id="dashboard-badges"
+          style={{
+            background: darkMode ? "rgba(15,23,42,0.75)" : "rgba(255,255,255,0.95)",
+            borderRadius: "1.25rem",
+            padding: "1.5rem",
+            border: `1px solid ${darkMode ? "rgba(148,163,184,0.25)" : "rgba(148,163,184,0.35)"}`,
+            display: "grid",
+            gap: "1.25rem",
+          }}
+        >
+          <header style={{ display: "flex", justifyContent: "space-between", alignItems: "center", flexWrap: "wrap", gap: "0.75rem" }}>
+            <div>
+              <h3 style={{ margin: 0, fontSize: "1.2rem" }}>Badge milestones</h3>
+              <p style={{ margin: "0.35rem 0 0", color: darkMode ? "#94a3b8" : "#475569" }}>
+                Unlock badges as you launch automations and keep engagement streaks alive.
+              </p>
+            </div>
+          </header>
+          <div style={{ display: "grid", gap: "1rem", gridTemplateColumns: "repeat(auto-fit, minmax(200px, 1fr))" }}>
+            {milestoneBadges.map((badge) => (
+              <div
+                key={badge.id}
+                style={{
+                  borderRadius: "1rem",
+                  border: `1px solid ${badge.unlocked ? "rgba(34,197,94,0.45)" : darkMode ? "rgba(148,163,184,0.2)" : "rgba(148,163,184,0.3)"}`,
+                  background: badge.unlocked
+                    ? darkMode
+                      ? "rgba(22,163,74,0.15)"
+                      : "rgba(22,163,74,0.12)"
+                    : darkMode
+                    ? "rgba(30,41,59,0.6)"
+                    : "rgba(248,250,252,0.9)",
+                  padding: "1.1rem",
+                  display: "grid",
+                  gap: "0.5rem",
+                }}
+              >
+                <span style={{ fontSize: "1.5rem" }}>{badge.icon}</span>
+                <div style={{ fontWeight: 600 }}>{badge.label}</div>
+                <p style={{ margin: 0, color: darkMode ? "#cbd5e1" : "#475569", fontSize: "0.9rem", lineHeight: 1.5 }}>
+                  {badge.description}
+                </p>
+                <span
+                  style={{
+                    fontSize: "0.75rem",
+                    textTransform: "uppercase",
+                    letterSpacing: "0.08em",
+                    color: badge.unlocked ? "#22c55e" : darkMode ? "#94a3b8" : "#94a3b8",
+                  }}
+                >
+                  {badge.unlocked ? "Unlocked" : "Locked"}
+                </span>
+              </div>
+            ))}
+          </div>
+        </section>
+        
         <div
           data-tour-id="dashboard-gamification"
           style={{
