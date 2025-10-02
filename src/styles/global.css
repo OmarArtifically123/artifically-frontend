@@ -1139,8 +1139,8 @@ main :where(section, div)[id] {
   background: linear-gradient(120deg, transparent 5%, rgba(255, 255, 255, 0.45) 35%, transparent 65%);
   transform: translate3d(-120%, 0, 0);
   animation: heroGradientShine 6s ease-in-out infinite;
-  mix-blend-mode: screen;
-  opacity: 0.35;
+  mix-blend-mode: lighten;
+  opacity: 0.18;
 }
 
 .hero-kinetic-char {
