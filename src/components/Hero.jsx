@@ -5,6 +5,7 @@ import { gsap } from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
 import ThemeToggle from "./ThemeToggle";
 import useMicroInteractions from "../hooks/useMicroInteractions";
+import useScrambleText from "../hooks/useScrambleText";
 
 const HERO_BADGES = [
   { icon: "🧠", label: "AI-personalized demos" },
@@ -274,14 +275,38 @@ function useKineticHeadline(containerRef) {
       const words = gsap.utils.toArray(container.querySelectorAll("[data-kinetic-word]"));
       if (!words.length) return;
 
-      gsap.set(words, { yPercent: 120, opacity: 0 });
+      const characters = words.reduce((accumulator, word) => {
+        if (word.dataset.split === "true") {
+          accumulator.push(...gsap.utils.toArray(word.querySelectorAll("[data-kinetic-char]")));
+          return accumulator;
+        }
 
-      gsap.to(words, {
+        const text = word.textContent ?? "";
+        word.textContent = "";
+        Array.from(text).forEach((character, index) => {
+          const span = document.createElement("span");
+          span.className = "hero-kinetic-char";
+          span.dataset.kineticChar = "true";
+          span.textContent = character === " " ? "\u00A0" : character;
+          span.style.setProperty("--char-index", `${index}`);
+          word.appendChild(span);
+          accumulator.push(span);
+        });
+        word.dataset.split = "true";
+        return accumulator;
+      }, []);
+
+      if (!characters.length) return;
+
+      gsap.set(words, { opacity: 1 });
+      gsap.set(characters, { yPercent: 120, opacity: 0 });
+
+      gsap.to(characters, {
         yPercent: 0,
         opacity: 1,
         ease: "power3.out",
-        duration: 1.1,
-        stagger: 0.08,
+        duration: 1.05,
+        stagger: 0.05,
         delay: 0.25,
       });
 
@@ -300,21 +325,21 @@ function useKineticHeadline(containerRef) {
           },
         })
         .to(
-          words,
+          characters,
           {
             yPercent: 0,
             opacity: 1,
-            stagger: 0.12,
+            stagger: 0.08,
             duration: 1,
           },
           0,
         )
         .to(
-          words,
+          characters,
           {
             yPercent: -80,
             opacity: 0,
-            stagger: 0.12,
+            stagger: 0.08,
             duration: 1,
           },
           0.55,
@@ -333,6 +358,7 @@ export default function Hero({ openAuth }) {
   const canvasRef = useRef(null);
   const headlineRef = useRef(null);
   const commandInputRef = useRef(null);
+  const tickerTitleRef = useRef(null);
 
   const [commandOpen, setCommandOpen] = useState(false);
   const [tickerIndex, setTickerIndex] = useState(0);
@@ -451,6 +477,8 @@ export default function Hero({ openAuth }) {
 
   const selectedTrending = TRENDING_AUTOMATIONS[tickerIndex];
 
+  useScrambleText(tickerTitleRef, selectedTrending.title);
+
   return (
     <section className="hero" data-animate-root>
       <canvas ref={canvasRef} className="hero-canvas" aria-hidden="true" />
@@ -542,10 +570,11 @@ export default function Hero({ openAuth }) {
                 <span aria-hidden="true">▲</span>
                 Trending
               </span>
-              <span className="hero-ticker__item">
-                {selectedTrending.title}
-                <br />
-                <span>{selectedTrending.meta}</span>
+              <span className="hero-ticker__item" data-scramble-host>
+                <span className="hero-ticker__primary" ref={tickerTitleRef} data-scramble>
+                  {selectedTrending.title}
+                </span>
+                <span className="hero-ticker__meta">{selectedTrending.meta}</span>
               </span>
             </div>
             <ul className="hero-badges" data-animate="fade-up" data-animate-order="4">
