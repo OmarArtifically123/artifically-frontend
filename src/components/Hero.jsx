@@ -342,7 +342,7 @@ function useKineticHeadline(containerRef) {
             stagger: 0.08,
             duration: 1,
           },
-          0.55,
+          ">+=0.8",
         );
     }, containerRef);
 
