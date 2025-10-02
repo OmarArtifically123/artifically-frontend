@@ -1062,14 +1062,21 @@ main :where(section, div)[id] {
   display: inline-flex;
   padding-inline: 0.08em;
   margin-inline-end: 0.32rem;
-  background: var(--hero-headline-gradient);
-  -webkit-background-clip: text;
-  background-clip: text;
-  -webkit-text-fill-color: transparent;
+  color: var(--hero-headline-color);
   transform-origin: bottom left;
   filter: drop-shadow(0 14px 30px rgba(52, 211, 153, 0.22));
   will-change: filter;
   overflow: hidden;
+}
+
+@supports (-webkit-background-clip: text) or (background-clip: text) {
+  .hero-kinetic-word {
+    background: var(--hero-headline-gradient);
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+    -webkit-text-fill-color: transparent;
+  }
 }
 
 .hero-kinetic-word::after {
@@ -1126,13 +1133,6 @@ main :where(section, div)[id] {
   }
   100% {
     transform: translate3d(140%, 0, 0);
-  }
-}
-
-@supports not ((-webkit-background-clip: text) or (background-clip: text)) {
-  .hero-kinetic-word {
-    color: var(--hero-headline-color);
-    -webkit-text-fill-color: initial;
   }
 }
 

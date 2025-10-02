@@ -373,7 +373,7 @@ export default function Hero({ openAuth }) {
     if (typeof window === "undefined") return undefined;
     const id = window.setInterval(
       () => setTickerIndex((index) => (index + 1) % TRENDING_AUTOMATIONS.length),
-      3800,
+      5200,
     );
     return () => window.clearInterval(id);
   }, []);
