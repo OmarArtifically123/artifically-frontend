@@ -844,7 +844,7 @@ export default function Marketplace({ user, openAuth }) {
             fit feels more like a guided tour than a scavenger hunt.
           </p>
           <div
-            className="marketplace-entry__meta"
+            className="marketplace-entry__meta glass-card glass-card--subtle"
             data-animate="fade-up"
             data-animate-order="2"
             data-animate-cascade="0.08"
@@ -884,7 +884,7 @@ export default function Marketplace({ user, openAuth }) {
         data-animate-order="4"
         data-animate-cascade="0.05"
       >
-        {[
+        {[ 
           "Psychic glow predictions",
           "Canvas ecosystem map",
           "Collaborative decisions",
@@ -895,15 +895,7 @@ export default function Marketplace({ user, openAuth }) {
           .map((tag) => (
             <span
               key={tag}
-              style={{
-                padding: `${space("2xs", 1.6)} ${space("xs", 1.5)}`,
-                borderRadius: "0.8rem",
-                background: darkMode ? "rgba(148,163,184,0.18)" : "rgba(99,102,241,0.12)",
-                border: `1px solid ${darkMode ? "rgba(148,163,184,0.32)" : "rgba(99,102,241,0.25)"}`,
-                fontSize: "0.85rem",
-                fontWeight: 600,
-                color: darkMode ? "#cbd5e1" : "#1f2937",
-              }}
+              className="marketplace-entry__tag glass-pill"
             >
               {tag}
             </span>
@@ -925,14 +917,14 @@ export default function Marketplace({ user, openAuth }) {
           {MARKETPLACE_JOURNEY.map(({ title, icon, steps }, index) => (
             <article
               key={title}
-              className="marketplace-journey__card"
+              className="marketplace-journey__card glass-card glass-card--subtle"
               data-animate="scale-in"
               data-animate-context="panel"
               data-animate-order={index + 1}
               data-animate-cascade="0.08"
             >
               <div className="marketplace-journey__card-header">
-                <span aria-hidden="true" className="marketplace-journey__icon">
+                <span aria-hidden="true" className="marketplace-journey__icon glass-pill">
                   {icon}
                 </span>
                 <h4>{title}</h4>
@@ -954,7 +946,7 @@ export default function Marketplace({ user, openAuth }) {
           data-animate="fade-up"
           data-animate-order="6"
         >
-          <div className="marketplace-needs__meta" data-animate="fade-up" data-animate-order="0">
+          <div className="marketplace-needs__meta glass-card glass-card--subtle" data-animate="fade-up" data-animate-order="0">
             <span>We think you're optimizing for</span>
             <strong>{activeNeed ? titleCase(activeNeed) : "blended impact"}</strong>
           </div>
@@ -965,7 +957,7 @@ export default function Marketplace({ user, openAuth }) {
                 <button
                   type="button"
                   key={need}
-                  className="marketplace-needs__chip"
+                  className="marketplace-needs__chip glass-pill"
                   data-active={isActive}
                   onClick={() => setActiveNeed(need)}
                 >
@@ -988,19 +980,9 @@ export default function Marketplace({ user, openAuth }) {
       <section className="marketplace" data-glass="true" data-animate-root style={{ padding: `${space("3xl")} 0` }}>
         <div className="container" style={{ display: "grid", gap: space("lg") }}>
           {sectionHeader}
-          <div
-            style={{
-              textAlign: "center",
-              padding: `${space("2xl")} 0`,
-              borderRadius: "1.5rem",
-              border: `1px solid ${darkMode ? "rgba(148,163,184,0.25)" : "rgba(148,163,184,0.35)"}`,
-              background: darkMode
-                ? "linear-gradient(145deg, rgba(15,23,42,0.75), rgba(30,41,59,0.82))"
-                : "linear-gradient(145deg, rgba(255,255,255,0.95), rgba(241,245,249,0.92))",
-            }}
-          >
+          <div className="marketplace-placeholder glass-card glass-card--subtle">
             <div className="loading" style={{ width: "40px", height: "40px", margin: "0 auto" }}></div>
-            <p style={{ color: darkMode ? "#94a3b8" : "#475569", marginTop: space("sm") }}>Loading automations…</p>
+            <p className="marketplace-placeholder__text">Loading automations…</p>
           </div>
         </div>
       </section>
@@ -1012,21 +994,10 @@ export default function Marketplace({ user, openAuth }) {
       <section className="marketplace" data-glass="true" data-animate-root style={{ padding: `${space("3xl")} 0` }}>
         <div className="container" style={{ display: "grid", gap: space("lg") }}>
           {sectionHeader}
-          <div
-            style={{
-              textAlign: "center",
-              padding: `${space("2xl")} 0`,
-              borderRadius: "1.5rem",
-              border: `1px solid ${darkMode ? "rgba(248,113,113,0.4)" : "rgba(248,113,113,0.5)"}`,
-              background: darkMode
-                ? "linear-gradient(145deg, rgba(127,29,29,0.45), rgba(15,23,42,0.85))"
-                : "linear-gradient(145deg, rgba(254,226,226,0.95), rgba(254,242,242,0.9))",
-              color: darkMode ? "#fecaca" : "#b91c1c",
-            }}
-          >
+          <div className="marketplace-error glass-card glass-card--danger">
             <div style={{ fontSize: "3rem", marginBottom: space("sm") }}>⚠️</div>
             <h3 style={{ fontSize: "1.5rem", marginBottom: space("xs") }}>Unable to Load Marketplace</h3>
-            <p style={{ maxWidth: "420px", margin: `0 auto ${space("md")}` }}>
+            <p className="marketplace-error__description">
               We're having trouble loading the automation marketplace. Please check your connection and try again.
             </p>
             <button className="btn btn-primary" data-ripple="true" onClick={() => window.location.reload()}>
@@ -1066,14 +1037,7 @@ export default function Marketplace({ user, openAuth }) {
             role="alert"
             data-animate="fade-up"
             data-animate-order="4"
-            style={{
-              padding: `${space("sm")} ${space("fluid-sm")}`,
-              borderRadius: "1rem",
-              border: `1px solid ${darkMode ? "rgba(245,158,11,0.4)" : "rgba(245,158,11,0.5)"}`,
-              background: darkMode ? "rgba(245,158,11,0.12)" : "rgba(245,158,11,0.18)",
-              color: darkMode ? "#fbbf24" : "#b45309",
-              textAlign: "center",
-            }}
+            className="marketplace-alert glass-card glass-card--warning"
           >
             Some automations may not be displayed due to a connection issue.
           </div>

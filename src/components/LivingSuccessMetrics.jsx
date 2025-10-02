@@ -36,17 +36,17 @@ export default function LivingSuccessMetrics({ industry, focus, activeCombo }) {
   }, [industry, focus, activeCombo]);
 
   return (
-    <section className="living-metrics" aria-live="polite">
+    <section className="living-metrics glass-card" aria-live="polite">
       <header>
         <span>Marketplace telemetry</span>
         <h3>Success metrics go live after your first deployment</h3>
       </header>
       <div className="living-metrics__grid">
-        <article>
+        <article className="living-metrics__card glass-card glass-card--subtle">
           <strong>{summaries.deployments}</strong>
           <p>Telemetry is idle until an automation is deployed.</p>
         </article>
-        <article>
+        <article className="living-metrics__card glass-card glass-card--subtle">
           <strong>{summaries.savings}</strong>
           <p>Financial impact tracking boots up alongside your first workflow.</p>
           <div className="living-metrics__sparkline" aria-hidden="true">
@@ -55,15 +55,15 @@ export default function LivingSuccessMetrics({ industry, focus, activeCombo }) {
             </svg>
           </div>
         </article>
-        <article>
+        <article className="living-metrics__card glass-card glass-card--subtle">
           <strong>Competitor data activates later</strong>
           <p>Comparative insights appear once verified customers are running this automation.</p>
         </article>
-        <article>
+        <article className="living-metrics__card glass-card glass-card--subtle">
           <strong>{summaries.wins}</strong>
           <p>Keep an eye here — live outcomes stream in the moment customers go live.</p>
         </article>
-        <article className="living-metrics__highlight">
+        <article className="living-metrics__highlight glass-card">
           <strong>{summaries.combo}</strong>
           <p>Plan your rollout today so these cards show the story you want to tell.</p>
         </article>

@@ -526,8 +526,10 @@ const AuthModal = ({ onClose, onAuthenticated, initialMode = "signin" }) => {
       style={{
         position: 'fixed',
         inset: 0,
-        background: darkMode ? 'rgba(15, 23, 42, 0.85)' : 'rgba(148, 163, 184, 0.45)',
-        backdropFilter: 'blur(14px)',
+        background: darkMode
+          ? 'linear-gradient(135deg, oklch(0.12 0.03 264 / 0.78), oklch(0.08 0.02 270 / 0.65))'
+          : 'linear-gradient(135deg, oklch(0.92 0.03 264 / 0.75), oklch(0.85 0.03 270 / 0.62))',
+        backdropFilter: 'blur(40px) saturate(180%)',
         display: 'flex',
         alignItems: 'center',
         justifyContent: 'center',
@@ -545,19 +547,21 @@ const AuthModal = ({ onClose, onAuthenticated, initialMode = "signin" }) => {
           maxHeight: '90vh',
           overflowY: 'auto',
           background: darkMode
-            ? 'linear-gradient(140deg, rgba(15,23,42,0.95), rgba(30,41,59,0.9))'
-            : 'linear-gradient(140deg, rgba(255,255,255,0.98), rgba(241,245,249,0.95))',
+            ? 'linear-gradient(135deg, oklch(0.18 0.03 264 / 0.92), oklch(0.12 0.02 270 / 0.78))'
+            : 'linear-gradient(135deg, oklch(0.94 0.02 264 / 0.96), oklch(0.86 0.02 270 / 0.85))',
           borderRadius: 'var(--rounded-2xl)',
           padding: 'var(--space-lg)',
           border: darkMode
-            ? '1px solid rgba(148,163,184,0.35)'
-            : '1px solid rgba(148,163,184,0.45)',
+            ? '1px solid oklch(0.35 0.08 264 / 0.35)'
+            : '1px solid oklch(0.62 0.05 264 / 0.35)',
           boxShadow: darkMode
-            ? '0 40px 70px rgba(8, 15, 34, 0.55)'
-            : '0 40px 70px rgba(148, 163, 184, 0.35)',
+            ? 'inset 0 1px 0 oklch(0.45 0.12 264 / 0.2), 0 55px 120px oklch(0.08 0.02 264 / 0.55)'
+            : 'inset 0 1px 0 oklch(0.84 0.04 264 / 0.3), 0 55px 120px oklch(0.82 0.02 250 / 0.35)',
           position: 'relative',
           transform: 'scale(1)',
-          transition: 'all 0.3s ease'
+          transition: 'all 0.3s ease',
+          backdropFilter: 'blur(32px) saturate(180%)',
+          WebkitBackdropFilter: 'blur(32px) saturate(180%)'
         }}
       >
         {/* Header */}
@@ -607,9 +611,11 @@ const AuthModal = ({ onClose, onAuthenticated, initialMode = "signin" }) => {
         {/* Error Display */}
         {error && (
           <div style={{
-            background: darkMode ? 'rgba(239, 68, 68, 0.15)' : 'rgba(254, 226, 226, 0.9)',
-            border: darkMode ? '1px solid rgba(239,68,68,0.35)' : '1px solid rgba(239,68,68,0.45)',
-            color: darkMode ? '#fca5a5' : '#b91c1c',
+            background: darkMode
+              ? 'linear-gradient(135deg, oklch(0.42 0.22 25 / 0.25), oklch(0.32 0.18 25 / 0.2))'
+              : 'linear-gradient(135deg, oklch(0.9 0.12 25 / 0.85), oklch(0.82 0.1 25 / 0.72))',
+            border: darkMode ? '1px solid oklch(0.6 0.18 25 / 0.45)' : '1px solid oklch(0.65 0.16 25 / 0.5)',
+            color: darkMode ? '#fecaca' : '#b91c1c',
             padding: 'var(--space-sm)',
             borderRadius: 'var(--rounded-lg)',
             marginBottom: 'var(--space-sm)',

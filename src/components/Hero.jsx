@@ -490,14 +490,14 @@ export default function Hero({ openAuth }) {
           data-animate-speed="fast"
           data-animate-context="story"
         >
-          <span className="hero-badge">
+          <span className="hero-badge glass-pill">
             <span aria-hidden="true">✨</span>
             The AI automation marketplace
           </span>
           <div className="hero-actions" data-animate="fade-up" data-animate-order="1">
             <button
               type="button"
-              className="hero-command"
+              className="hero-command glass-control"
               data-magnetic="true"
               data-magnetic-strength="1.1"
               data-ripple="true"
@@ -579,7 +579,7 @@ export default function Hero({ openAuth }) {
             </div>
             <ul className="hero-badges" data-animate="fade-up" data-animate-order="4">
               {HERO_BADGES.map(({ icon, label }) => (
-                <li key={label}>
+                <li key={label} className="hero-badge__item glass-pill">
                   <span aria-hidden="true">{icon}</span>
                   <span>{label}</span>
                 </li>
@@ -588,7 +588,7 @@ export default function Hero({ openAuth }) {
           </div>
           <div className="hero-insights">
             <div
-              className="hero-panel hero-panel--demo hero-demo"
+              className="hero-panel glass-card hero-panel--demo hero-demo"
               data-animate="scale-in"
               data-animate-context="panel"
               data-animate-speed="cinematic"
@@ -615,21 +615,21 @@ export default function Hero({ openAuth }) {
                     ))}
                   </select>
                 </div>
-                <div className="hero-demo__output">{demoOutput}</div>
+                <div className="hero-demo__output glass-card glass-card--subtle">{demoOutput}</div>
               </form>
               <Link to="/docs" className="hero-docs-link" onClick={handleDocsClick}>
                 Dive into developer mode
               </Link>
             </div>
             <div
-              className="hero-panel hero-panel--map"
+              className="hero-panel glass-card hero-panel--map"
               data-animate="blur-up"
               data-animate-context="story"
               data-animate-speed="slow"
               data-animate-order="1"
             >
               <h2>Live global activity</h2>
-              <div className="hero-map" role="img" aria-label="Live automations map">
+              <div className="hero-map glass-card glass-card--subtle" role="img" aria-label="Live automations map">
                 <div className="hero-map__globe" />
                 {MAP_POINTS.map((point, index) => (
                   <span
@@ -640,14 +640,14 @@ export default function Hero({ openAuth }) {
                     aria-hidden="true"
                   />
                 ))}
-                <div className="hero-map__legend">
+                <div className="hero-map__legend glass-pill">
                   <span aria-hidden="true">●</span>
                   Automations executing in real time
                 </div>
               </div>
             </div>
             <div
-              className="hero-panel hero-panel--stats"
+              className="hero-panel glass-card hero-panel--stats"
               data-animate="fade-up"
               data-animate-speed="medium"
               data-animate-order="2"
@@ -656,7 +656,7 @@ export default function Hero({ openAuth }) {
               <h2>Platform telemetry</h2>
               <div className="hero-stats">
                 {LIVE_STATS.map((stat) => (
-                  <div key={stat.label} className="hero-stat">
+                  <div key={stat.label} className="hero-stat glass-card glass-card--subtle">
                     <span>{stat.label}</span>
                     <strong>{stat.value}</strong>
                     <em>{stat.delta}</em>
@@ -665,7 +665,7 @@ export default function Hero({ openAuth }) {
               </div>
             </div>
             <div
-              className="hero-panel hero-panel--trust"
+              className="hero-panel glass-card hero-panel--trust"
               data-animate="fade-up"
               data-animate-speed="medium"
               data-animate-order="3"
@@ -673,7 +673,7 @@ export default function Hero({ openAuth }) {
               <h2>Teams shipping with Artifically</h2>
               <div className="hero-trust__grid">
                 {TRUST_LOGOS.map((logo) => (
-                  <div key={logo} className="hero-trust__logo">
+                  <div key={logo} className="hero-trust__logo glass-card glass-card--subtle">
                     {logo}
                   </div>
                 ))}
@@ -685,8 +685,8 @@ export default function Hero({ openAuth }) {
 
       {commandOpen ? (
         <div className="hero-command-overlay" role="dialog" aria-modal="true" aria-label="Artifically command bar">
-          <div className="hero-command-overlay__dialog">
-            <div className="hero-command-overlay__input">
+          <div className="hero-command-overlay__dialog glass-card">
+            <div className="hero-command-overlay__input glass-control">
               <span aria-hidden="true">⌘K</span>
               <input
                 ref={commandInputRef}
@@ -703,7 +703,7 @@ export default function Hero({ openAuth }) {
                 <Link
                   key={shortcut.href}
                   to={shortcut.href}
-                  className="hero-command-overlay__item"
+                  className="hero-command-overlay__item glass-card glass-card--subtle"
                   onClick={() => setCommandOpen(false)}
                 >
                   <strong>{shortcut.title}</strong>

@@ -158,14 +158,14 @@ export default function Header({ user, onSignIn, onSignUp, onSignOut }) {
   const headerBackground = useMemo(
     () => ({
       background: darkMode
-        ? "linear-gradient(120deg, rgba(15, 23, 42, 0.96), rgba(30, 41, 59, 0.9))"
-        : "linear-gradient(120deg, rgba(255, 255, 255, 0.95), rgba(226, 232, 240, 0.9))",
-      borderBottom: `1px solid ${darkMode ? "rgba(148, 163, 184, 0.28)" : "rgba(148, 163, 184, 0.35)"}`,
+        ? "linear-gradient(135deg, oklch(0.15 0.03 264 / 0.92), oklch(0.12 0.02 270 / 0.78))"
+        : "linear-gradient(135deg, oklch(0.92 0.03 264 / 0.96), oklch(0.85 0.04 270 / 0.85))",
+      borderBottom: `1px solid ${darkMode ? "oklch(0.35 0.08 264 / 0.35)" : "oklch(0.62 0.05 264 / 0.35)"}`,
       boxShadow: scrolled
         ? darkMode
-          ? "0 20px 45px rgba(8, 15, 34, 0.65)"
-          : "0 20px 45px rgba(148, 163, 184, 0.45)"
-        : "none",
+          ? "inset 0 1px 0 oklch(0.45 0.12 264 / 0.18), 0 30px 80px oklch(0.08 0.02 264 / 0.55)"
+          : "inset 0 1px 0 oklch(0.84 0.04 264 / 0.25), 0 30px 80px oklch(0.82 0.02 250 / 0.35)"
+        : "inset 0 1px 0 oklch(0.45 0.12 264 / 0.18)",
     }),
     [darkMode, scrolled]
   );
@@ -180,8 +180,8 @@ export default function Header({ user, onSignIn, onSignUp, onSignOut }) {
         right: 0,
         zIndex: 1000,
         padding: scrolled ? `${space("xs", 1.3)} 0` : `${space("sm")} 0`,
-        backdropFilter: "blur(20px)",
-        WebkitBackdropFilter: "blur(20px)",
+        backdropFilter: "blur(40px) saturate(180%)",
+        WebkitBackdropFilter: "blur(40px) saturate(180%)",
         transition: "all var(--transition-normal)",
         ...headerBackground,
       }}
