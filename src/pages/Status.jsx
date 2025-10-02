@@ -1,4 +1,5 @@
 import { useMemo } from "react";
+import { space } from "../styles/spacing";
 
 export default function Status() {
   const systems = useMemo(
@@ -42,43 +43,43 @@ export default function Status() {
   );
 
   return (
-    <main className="container" style={{ padding: "64px 0", minHeight: "80vh" }}>
-      <header style={{ maxWidth: "720px", margin: "0 auto 40px", textAlign: "center" }}>
-        <h1 style={{ fontSize: "2.75rem", fontWeight: 800, marginBottom: "12px" }}>Status</h1>
+    <main className="container" style={{ padding: `${space("2xl")} 0`, minHeight: "80vh" }}>
+      <header style={{ maxWidth: "720px", margin: `0 auto ${space("lg", 1.25)}`, textAlign: "center" }}>
+        <h1 style={{ fontSize: "2.75rem", fontWeight: 800, marginBottom: space("xs", 1.5) }}>Status</h1>
         <p style={{ color: "var(--gray-400)", fontSize: "1.05rem", lineHeight: 1.7 }}>
           Real-time view of Artifically system availability. Subscribe to updates from the dashboard or via
           webhook callbacks.
         </p>
       </header>
 
-      <section className="glass" style={{ padding: "32px", borderRadius: "16px", marginBottom: "32px" }}>
-        <h2 style={{ marginBottom: "16px" }}>Current status</h2>
-        <div style={{ display: "grid", gap: "16px" }}>
+      <section className="glass" style={{ padding: space("lg"), borderRadius: "16px", marginBottom: space("lg") }}>
+        <h2 style={{ marginBottom: space("sm") }}>Current status</h2>
+        <div style={{ display: "grid", gap: space("sm") }}>
           {systems.map((system) => (
             <div
               key={system.name}
               style={{
-                padding: "20px",
+                padding: space("fluid-sm"),
                 borderRadius: "14px",
                 border: "1px solid rgba(148, 163, 184, 0.28)",
                 background: "rgba(15, 23, 42, 0.58)",
                 display: "flex",
                 justifyContent: "space-between",
                 alignItems: "center",
-                gap: "16px",
+                gap: space("sm"),
                 flexWrap: "wrap",
               }}
             >
               <div>
                 <strong>{system.name}</strong>
-                <p style={{ color: "var(--gray-300)", marginTop: "6px" }}>{system.description}</p>
+                <p style={{ color: "var(--gray-300)", marginTop: space("2xs", 1.5) }}>{system.description}</p>
               </div>
               <span
                 style={{
                   color: system.color,
                   fontWeight: 700,
                   background: "rgba(15, 23, 42, 0.6)",
-                  padding: "8px 14px",
+                  padding: `${space("xs")} ${space("xs", 1.75)}`,
                   borderRadius: "999px",
                   border: `1px solid ${system.color}40`,
                 }}
@@ -90,29 +91,29 @@ export default function Status() {
         </div>
       </section>
 
-      <section className="glass" style={{ padding: "32px", borderRadius: "16px" }}>
-        <h2 style={{ marginBottom: "16px" }}>Active incidents</h2>
+      <section className="glass" style={{ padding: space("lg"), borderRadius: "16px" }}>
+        <h2 style={{ marginBottom: space("sm") }}>Active incidents</h2>
         {incidents.length === 0 ? (
           <p style={{ color: "var(--gray-400)" }}>No active incidents reported.</p>
         ) : (
-          <div style={{ display: "grid", gap: "24px" }}>
+          <div style={{ display: "grid", gap: space("md") }}>
             {incidents.map((incident) => (
               <article
                 key={incident.title}
                 style={{
-                  padding: "24px",
+                  padding: space("md"),
                   borderRadius: "14px",
                   border: "1px solid rgba(148, 163, 184, 0.28)",
                   background: "rgba(15, 23, 42, 0.58)",
                 }}
               >
-                <header style={{ marginBottom: "12px" }}>
-                  <h3 style={{ marginBottom: "4px" }}>{incident.title}</h3>
+                <header style={{ marginBottom: space("xs", 1.5) }}>
+                  <h3 style={{ marginBottom: space("2xs") }}>{incident.title}</h3>
                   <div style={{ color: "var(--gray-400)", fontSize: "0.9rem" }}>
                     Started {incident.startedAt} • {incident.status}
                   </div>
                 </header>
-                <ul style={{ margin: 0, paddingLeft: "20px", color: "var(--gray-300)", lineHeight: 1.6 }}>
+                <ul style={{ margin: 0, paddingLeft: space("fluid-sm"), color: "var(--gray-300)", lineHeight: 1.6 }}>
                   {incident.updates.map((update) => (
                     <li key={update}>{update}</li>
                   ))}

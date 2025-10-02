@@ -1,4 +1,5 @@
 import { useMemo } from "react";
+import { space } from "../styles/spacing";
 
 export default function ApiReference() {
   const endpoints = useMemo(
@@ -32,18 +33,18 @@ export default function ApiReference() {
   );
 
   return (
-    <main className="container" style={{ padding: "64px 0", minHeight: "80vh" }}>
-      <header style={{ maxWidth: "720px", margin: "0 auto 48px", textAlign: "center" }}>
-        <h1 style={{ fontSize: "2.75rem", fontWeight: 800, marginBottom: "16px" }}>API Reference</h1>
+    <main className="container" style={{ padding: `${space("2xl")} 0`, minHeight: "80vh" }}>
+      <header style={{ maxWidth: "720px", margin: `0 auto ${space("xl")}`, textAlign: "center" }}>
+        <h1 style={{ fontSize: "2.75rem", fontWeight: 800, marginBottom: space("sm") }}>API Reference</h1>
         <p style={{ color: "var(--gray-400)", fontSize: "1.125rem", lineHeight: 1.7 }}>
           Everything you need to integrate Artifically automations into your own products. Explore
           authenticated requests, webhook payloads, and streaming responses with copy-paste samples.
         </p>
       </header>
 
-      <section className="glass" style={{ padding: "32px", borderRadius: "16px", marginBottom: "48px" }}>
-        <h2 style={{ marginBottom: "12px" }}>Getting started</h2>
-        <p style={{ color: "var(--gray-400)", marginBottom: "16px" }}>
+      <section className="glass" style={{ padding: space("lg"), borderRadius: "16px", marginBottom: space("xl") }}>
+        <h2 style={{ marginBottom: space("xs", 1.5) }}>Getting started</h2>
+        <p style={{ color: "var(--gray-400)", marginBottom: space("sm") }}>
           Authenticate using a <code>Bearer</code> token generated from your dashboard. All requests must
           be made over HTTPS. Visit the <strong>Developers</strong> section in the dashboard to rotate keys,
           inspect logs, and configure webhooks.
@@ -51,7 +52,7 @@ export default function ApiReference() {
         <pre
           style={{
             background: "rgba(15, 23, 42, 0.65)",
-            padding: "20px",
+            padding: space("fluid-sm"),
             borderRadius: "12px",
             overflowX: "auto",
             fontSize: "0.9rem",
@@ -67,10 +68,10 @@ export default function ApiReference() {
       <section
         className="glass"
         style={{
-          padding: "32px",
+          padding: space("lg"),
           borderRadius: "16px",
           display: "grid",
-          gap: "24px",
+          gap: space("md"),
         }}
       >
         {endpoints.map((endpoint) => (
@@ -79,11 +80,11 @@ export default function ApiReference() {
             style={{
               border: "1px solid rgba(148, 163, 184, 0.3)",
               borderRadius: "14px",
-              padding: "24px",
+              padding: space("md"),
               background: "rgba(15, 23, 42, 0.55)",
             }}
           >
-            <div style={{ display: "flex", justifyContent: "space-between", marginBottom: "8px" }}>
+            <div style={{ display: "flex", justifyContent: "space-between", marginBottom: space("xs") }}>
               <h3 style={{ margin: 0 }}>{endpoint.name}</h3>
               <span
                 style={{
@@ -98,7 +99,7 @@ export default function ApiReference() {
               </span>
             </div>
             <code style={{ fontSize: "0.95rem", color: "var(--gray-200)" }}>{endpoint.path}</code>
-            <p style={{ color: "var(--gray-400)", marginTop: "12px", lineHeight: 1.6 }}>
+            <p style={{ color: "var(--gray-400)", marginTop: space("xs", 1.5), lineHeight: 1.6 }}>
               {endpoint.description}
             </p>
           </article>

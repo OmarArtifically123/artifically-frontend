@@ -2,6 +2,7 @@ import { useCallback, useMemo, useState } from "react";
 import { Link } from "react-router-dom";
 import ThemeToggle from "../components/ThemeToggle";
 import { useTheme } from "../context/ThemeContext";
+import { space } from "../styles/spacing";
 
 const tooltipStyle = {
   position: "relative",
@@ -27,7 +28,7 @@ function TooltipTerm({ label, description }) {
           transform: "translateX(-50%)",
           background: "rgba(15,23,42,0.95)",
           color: "#f8fafc",
-          padding: "0.75rem",
+          padding: space("xs", 1.5),
           borderRadius: "0.75rem",
           width: "220px",
           fontSize: "0.8rem",
@@ -83,7 +84,7 @@ function CodeBlock({ language = "", code }) {
         position: "relative",
         background: "rgba(15,23,42,0.85)",
         borderRadius: "1rem",
-        padding: "1.25rem",
+        padding: space("fluid-sm"),
         border: "1px solid rgba(148,163,184,0.35)",
         overflow: "hidden",
       }}
@@ -99,7 +100,7 @@ function CodeBlock({ language = "", code }) {
           color: copied ? "#22c55e" : "#e0e7ff",
           border: "1px solid rgba(99,102,241,0.35)",
           borderRadius: "999px",
-          padding: "0.35rem 0.9rem",
+          padding: `${space("2xs", 1.4)} ${space("xs", 1.8)}`,
           fontSize: "0.75rem",
           letterSpacing: "0.04em",
           textTransform: "uppercase",
@@ -115,7 +116,7 @@ function CodeBlock({ language = "", code }) {
           fontSize: "0.75rem",
           letterSpacing: "0.08em",
           textTransform: "uppercase",
-          marginBottom: "0.75rem",
+          marginBottom: space("xs", 1.5),
         }}
       >
         {language}
@@ -217,17 +218,17 @@ export default function Docs() {
     <main
       className="container"
       style={{
-        padding: "48px 0 96px",
+        padding: `${space("xl")} 0 ${space("2xl", 1.5)}`,
         minHeight: "80vh",
         display: "grid",
-        gap: "2.5rem",
+        gap: space("lg", 1.25),
       }}
     >
       <div
         style={{
           display: "grid",
           gridTemplateColumns: "280px minmax(0, 1fr)",
-          gap: "2.5rem",
+          gap: space("lg", 1.25),
           alignItems: "flex-start",
         }}
       >
@@ -239,9 +240,9 @@ export default function Docs() {
             background: darkMode ? "rgba(15,23,42,0.8)" : "rgba(255,255,255,0.95)",
             borderRadius: "1.25rem",
             border: `1px solid ${darkMode ? "rgba(148,163,184,0.25)" : "rgba(148,163,184,0.35)"}`,
-            padding: "1.5rem 1.25rem",
+            padding: `${space("md")} ${space("fluid-sm")}`,
             display: "grid",
-            gap: "0.5rem",
+            gap: space("xs"),
           }}
         >
           <div style={{ fontWeight: 700, fontSize: "0.85rem", color: darkMode ? "#cbd5e1" : "#1f2937" }}>
@@ -261,7 +262,7 @@ export default function Docs() {
                 textAlign: "left",
                 background: activeSection === section.id ? "rgba(99,102,241,0.15)" : "transparent",
                 color: activeSection === section.id ? "#6366f1" : darkMode ? "#94a3b8" : "#334155",
-                padding: "0.6rem 0.75rem",
+                padding: `${space("xs", 1.2)} ${space("xs", 1.5)}`,
                 borderRadius: "0.85rem",
                 border: "none",
                 fontSize: "0.95rem",
@@ -275,20 +276,20 @@ export default function Docs() {
           ))}
         </aside>
 
-        <div style={{ display: "grid", gap: "2rem" }}>
+        <div style={{ display: "grid", gap: space("lg") }}>
           <div
             style={{
               position: "sticky",
               top: "80px",
               zIndex: 10,
-              padding: "1rem 1.25rem",
+              padding: `${space("sm")} ${space("fluid-sm")}`,
               borderRadius: "1rem",
               background: darkMode ? "rgba(15,23,42,0.88)" : "rgba(255,255,255,0.92)",
               border: `1px solid ${darkMode ? "rgba(99,102,241,0.25)" : "rgba(99,102,241,0.15)"}`,
               display: "flex",
               justifyContent: "space-between",
               alignItems: "center",
-              gap: "1rem",
+              gap: space("sm"),
               backdropFilter: "blur(8px)",
             }}
           >
@@ -298,7 +299,7 @@ export default function Docs() {
               </div>
               <h1 style={{ fontSize: "1.5rem", margin: 0 }}>Deploy production-ready automations in minutes.</h1>
             </div>
-            <div style={{ display: "flex", alignItems: "center", gap: "0.75rem" }}>
+            <div style={{ display: "flex", alignItems: "center", gap: space("xs", 1.5) }}>
               <button
                 className="btn btn-primary"
                 style={{ whiteSpace: "nowrap" }}
@@ -318,13 +319,13 @@ export default function Docs() {
             className="glass"
             style={{
               borderRadius: "1.5rem",
-              padding: "2.5rem",
+              padding: space("lg", 1.25),
               display: "grid",
-              gap: "1.5rem",
+              gap: space("md"),
             }}
           >
             <header>
-              <h2 style={{ fontSize: "2.25rem", marginBottom: "0.75rem" }}>Artifically Docs</h2>
+              <h2 style={{ fontSize: "2.25rem", marginBottom: space("xs", 1.5) }}>Artifically Docs</h2>
               <p style={{ color: "var(--gray-300)", fontSize: "1.05rem", lineHeight: 1.7 }}>
                 Built for teams who automate with confidence. Explore production patterns, enterprise safeguards,
                 and <TooltipTerm label="SLA" description="Service level agreements define uptime guarantees and response targets." />
@@ -334,7 +335,7 @@ export default function Docs() {
             <section
               style={{
                 display: "grid",
-                gap: "1.25rem",
+                gap: space("fluid-sm"),
                 gridTemplateColumns: "repeat(auto-fit, minmax(220px, 1fr))",
               }}
             >
@@ -357,10 +358,10 @@ export default function Docs() {
                   style={{
                     background: darkMode ? "rgba(15,23,42,0.75)" : "rgba(255,255,255,0.95)",
                     borderRadius: "1.25rem",
-                    padding: "1.5rem",
+                    padding: space("md"),
                     border: `1px solid ${darkMode ? "rgba(148,163,184,0.25)" : "rgba(148,163,184,0.3)"}`,
                     display: "grid",
-                    gap: "0.75rem",
+                    gap: space("xs", 1.5),
                   }}
                 >
                   <h3 style={{ margin: 0, fontSize: "1.1rem", color: darkMode ? "#e2e8f0" : "#1e293b" }}>{card.title}</h3>
@@ -373,15 +374,15 @@ export default function Docs() {
           <article
             id="quickstart"
             className="glass"
-            style={{ borderRadius: "1.5rem", padding: "2.5rem", display: "grid", gap: "1.75rem" }}
+            style={{ borderRadius: "1.5rem", padding: space("lg", 1.25), display: "grid", gap: space("md", 1.1667) }}
           >
             <header>
-              <h2 style={{ fontSize: "1.75rem", marginBottom: "0.5rem" }}>Quickstart</h2>
+              <h2 style={{ fontSize: "1.75rem", marginBottom: space("xs") }}>Quickstart</h2>
               <p style={{ color: "var(--gray-300)" }}>
                 Launch your first automation in under five minutes with our streamlined provisioning workflow.
               </p>
             </header>
-            <ol style={{ display: "grid", gap: "1rem", paddingLeft: "1.5rem", color: "var(--gray-300)" }}>
+            <ol style={{ display: "grid", gap: space("sm"), paddingLeft: space("md"), color: "var(--gray-300)" }}>
               <li>
                 Create your workspace via the <Link to="/pricing">enterprise trial</Link> and invite teammates for
                 shared controls.
@@ -407,17 +408,17 @@ artifically deploy --env production --automation ops-guardian`}
           <article
             id="concepts"
             className="glass"
-            style={{ borderRadius: "1.5rem", padding: "2.5rem", display: "grid", gap: "1.75rem" }}
+            style={{ borderRadius: "1.5rem", padding: space("lg", 1.25), display: "grid", gap: space("md", 1.1667) }}
           >
             <header>
-              <h2 style={{ fontSize: "1.75rem", marginBottom: "0.5rem" }}>Core concepts</h2>
+              <h2 style={{ fontSize: "1.75rem", marginBottom: space("xs") }}>Core concepts</h2>
               <p style={{ color: "var(--gray-300)" }}>
                 Understand the primitives that power Artifically—designed for clarity and enterprise scale.
               </p>
             </header>
-            <div style={{ display: "grid", gap: "1.25rem" }}>
+            <div style={{ display: "grid", gap: space("fluid-sm") }}>
               {["Deployments", "Policies", "Observability"].map((title) => (
-                <section key={title} style={{ display: "grid", gap: "0.75rem" }}>
+                <section key={title} style={{ display: "grid", gap: space("xs", 1.5) }}>
                   <h3 style={{ margin: 0, fontSize: "1.1rem", color: "var(--white)" }}>{title}</h3>
                   <p style={{ margin: 0, color: "var(--gray-400)", lineHeight: 1.7 }}>
                     {title === "Deployments" &&
@@ -446,10 +447,10 @@ artifically deploy --env production --automation ops-guardian`}
           <article
             id="api"
             className="glass"
-            style={{ borderRadius: "1.5rem", padding: "2.5rem", display: "grid", gap: "2rem" }}
+            style={{ borderRadius: "1.5rem", padding: space("lg", 1.25), display: "grid", gap: space("lg") }}
           >
             <header>
-              <h2 style={{ fontSize: "1.75rem", marginBottom: "0.5rem" }}>API playground</h2>
+              <h2 style={{ fontSize: "1.75rem", marginBottom: space("xs") }}>API playground</h2>
               <p style={{ color: "var(--gray-300)" }}>
                 Explore the REST API with live, sandboxed responses. Perfect for validating requests before pushing to CI.
               </p>
@@ -457,7 +458,7 @@ artifically deploy --env production --automation ops-guardian`}
             <div
               style={{
                 display: "grid",
-                gap: "1rem",
+                gap: space("sm"),
                 gridTemplateColumns: "minmax(0, 220px) minmax(0, 1fr)",
                 alignItems: "stretch",
               }}
@@ -468,8 +469,8 @@ artifically deploy --env production --automation ops-guardian`}
                   borderRadius: "1.25rem",
                   border: `1px solid ${darkMode ? "rgba(148,163,184,0.25)" : "rgba(148,163,184,0.3)"}`,
                   display: "grid",
-                  gap: "0.5rem",
-                  padding: "1rem",
+                  gap: space("xs"),
+                  padding: space("sm"),
                 }}
               >
                 {playgroundSamples.map((sample) => (
@@ -481,7 +482,7 @@ artifically deploy --env production --automation ops-guardian`}
                     }}
                     style={{
                       textAlign: "left",
-                      padding: "0.75rem 0.9rem",
+                      padding: `${space("xs", 1.5)} ${space("xs", 1.8)}`,
                       borderRadius: "0.9rem",
                       border: "none",
                       cursor: "pointer",
@@ -507,20 +508,20 @@ artifically deploy --env production --automation ops-guardian`}
                   background: darkMode ? "rgba(15,23,42,0.75)" : "rgba(255,255,255,0.95)",
                   borderRadius: "1.25rem",
                   border: `1px solid ${darkMode ? "rgba(148,163,184,0.25)" : "rgba(148,163,184,0.3)"}`,
-                  padding: "1.5rem",
+                  padding: space("md"),
                   display: "grid",
-                  gap: "1.25rem",
+                  gap: space("fluid-sm"),
                 }}
               >
                 <div style={{ fontFamily: "var(--font-mono)", color: "var(--gray-300)" }}>
                   <span
                     style={{
-                      padding: "0.25rem 0.65rem",
+                      padding: `${space("2xs")} ${space("xs", 1.3)}`,
                       borderRadius: "999px",
                       background: "rgba(34,197,94,0.15)",
                       color: "#22c55e",
                       fontSize: "0.75rem",
-                      marginRight: "0.75rem",
+                      marginRight: space("xs", 1.5),
                     }}
                   >
                     {playgroundSelection.method}
@@ -533,7 +534,7 @@ artifically deploy --env production --automation ops-guardian`}
                     code={JSON.stringify(playgroundSelection.request, null, 2)}
                   />
                 )}
-                <div style={{ display: "flex", gap: "0.75rem", alignItems: "center" }}>
+                <div style={{ display: "flex", gap: space("xs", 1.5), alignItems: "center" }}>
                   <button className="btn btn-secondary" onClick={runPlayground} disabled={playgroundState.loading}>
                     {playgroundState.loading ? "Running..." : "Run request"}
                   </button>
@@ -554,10 +555,10 @@ artifically deploy --env production --automation ops-guardian`}
           <article
             id="tooling"
             className="glass"
-            style={{ borderRadius: "1.5rem", padding: "2.5rem", display: "grid", gap: "1.75rem" }}
+            style={{ borderRadius: "1.5rem", padding: space("lg", 1.25), display: "grid", gap: space("md", 1.1667) }}
           >
             <header>
-              <h2 style={{ fontSize: "1.75rem", marginBottom: "0.5rem" }}>Developer tooling</h2>
+              <h2 style={{ fontSize: "1.75rem", marginBottom: space("xs") }}>Developer tooling</h2>
               <p style={{ color: "var(--gray-300)" }}>
                 Everything your platform team needs: Observability dashboards, typed SDKs, and policy validation baked in.
               </p>
@@ -587,25 +588,25 @@ console.log(deployment.status);
           <article
             id="support"
             className="glass"
-            style={{ borderRadius: "1.5rem", padding: "2.5rem", display: "grid", gap: "1.75rem" }}
+            style={{ borderRadius: "1.5rem", padding: space("lg", 1.25), display: "grid", gap: space("md", 1.1667) }}
           >
             <header>
-              <h2 style={{ fontSize: "1.75rem", marginBottom: "0.5rem" }}>Support & enablement</h2>
+              <h2 style={{ fontSize: "1.75rem", marginBottom: space("xs") }}>Support & enablement</h2>
               <p style={{ color: "var(--gray-300)" }}>
                 Enterprise help 24/7 with direct-to-engineering escalation paths.
               </p>
             </header>
-            <div style={{ display: "grid", gap: "1.25rem", gridTemplateColumns: "repeat(auto-fit, minmax(240px, 1fr))" }}>
+            <div style={{ display: "grid", gap: space("fluid-sm"), gridTemplateColumns: "repeat(auto-fit, minmax(240px, 1fr))" }}>
               {["support@artifically.com", "Docs office hours", "Private Slack"].map((item) => (
                 <div
                   key={item}
                   style={{
                     background: darkMode ? "rgba(15,23,42,0.75)" : "rgba(255,255,255,0.95)",
                     borderRadius: "1.25rem",
-                    padding: "1.5rem",
+                    padding: space("md"),
                     border: `1px solid ${darkMode ? "rgba(148,163,184,0.25)" : "rgba(148,163,184,0.3)"}`,
                     display: "grid",
-                    gap: "0.5rem",
+                    gap: space("xs"),
                   }}
                 >
                   <h3 style={{ margin: 0, fontSize: "1rem", color: darkMode ? "#e2e8f0" : "#1f2937" }}>{item}</h3>

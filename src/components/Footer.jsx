@@ -4,6 +4,7 @@ import LogoLight from "../assets/logos/1_Primary.svg";
 import LogoDark from "../assets/logos/3_Dark_Mode.svg";
 import ThemeToggle from "./ThemeToggle";
 import { useTheme } from "../context/ThemeContext";
+import { space } from "../styles/spacing";
 
 export default function Footer() {
   const { darkMode } = useTheme();
@@ -159,8 +160,8 @@ export default function Footer() {
     <footer
       className="site-footer"
       style={{
-        marginTop: "4rem",
-        padding: "4rem 0 2.5rem",
+        marginTop: space("2xl"),
+        padding: `${space("2xl")} 0 ${space("lg", 1.25)}`,
         color: darkMode ? "#e2e8f0" : "#1f2937",
         background: darkMode
           ? "radial-gradient(circle at top, rgba(99,102,241,0.25), transparent 55%), linear-gradient(180deg, rgba(15, 23, 42, 0.95), rgba(15, 23, 42, 0.98))"
@@ -176,18 +177,18 @@ export default function Footer() {
           position: "relative",
           zIndex: 1,
           display: "grid",
-          gap: "3rem",
+          gap: space("xl"),
         }}
       >
         <div
           style={{
             display: "flex",
             flexDirection: "column",
-            gap: "1.5rem",
+            gap: space("md"),
             background: darkMode ? "rgba(15, 23, 42, 0.65)" : "rgba(255, 255, 255, 0.8)",
             border: `1px solid ${darkMode ? "rgba(148,163,184,0.22)" : "rgba(148,163,184,0.28)"}`,
             borderRadius: "1.5rem",
-            padding: "2rem",
+            padding: space("lg"),
             boxShadow: darkMode
               ? "0 30px 50px rgba(8, 15, 34, 0.55)"
               : "0 30px 50px rgba(148, 163, 184, 0.35)",
@@ -201,10 +202,10 @@ export default function Footer() {
               flexWrap: "wrap",
               alignItems: "center",
               justifyContent: "space-between",
-              gap: "1rem",
+              gap: space("sm"),
             }}
           >
-            <div style={{ display: "flex", alignItems: "center", gap: "1rem" }}>
+            <div style={{ display: "flex", alignItems: "center", gap: space("sm") }}>
               <img
                 src={darkMode ? LogoDark : LogoLight}
                 alt="Artifically"
@@ -215,7 +216,7 @@ export default function Footer() {
                   style={{
                     fontSize: "1.15rem",
                     fontWeight: 600,
-                    marginBottom: "0.35rem",
+                    marginBottom: space("2xs", 1.4),
                   }}
                 >
                   Building trustworthy automations for enterprises worldwide.
@@ -223,7 +224,7 @@ export default function Footer() {
                 <div
                   style={{
                     display: "flex",
-                    gap: "0.75rem",
+                    gap: space("xs", 1.5),
                     flexWrap: "wrap",
                   }}
                 >
@@ -233,8 +234,8 @@ export default function Footer() {
                       style={{
                         display: "inline-flex",
                         alignItems: "center",
-                        gap: "0.35rem",
-                        padding: "0.35rem 0.75rem",
+                        gap: space("2xs", 1.4),
+                        padding: `${space("2xs", 1.4)} ${space("xs", 1.5)}`,
                         borderRadius: "999px",
                         fontSize: "0.8rem",
                         fontWeight: 600,
@@ -269,8 +270,8 @@ export default function Footer() {
             style={{
               display: "grid",
               gridTemplateColumns: "repeat(auto-fit, minmax(220px, 1fr))",
-              gap: "1.75rem",
-              marginTop: "1.5rem",
+              gap: space("md", 1.1667),
+              marginTop: space("md"),
             }}
           >
             {footerSections.map(({ title, links }) => (
@@ -278,13 +279,13 @@ export default function Footer() {
                 <h4
                   style={{
                     fontSize: "1rem",
-                    marginBottom: "0.75rem",
+                    marginBottom: space("xs", 1.5),
                     color: darkMode ? "#e2e8f0" : "#1e293b",
                   }}
                 >
                   {title}
                 </h4>
-                <ul style={{ listStyle: "none", display: "grid", gap: "0.75rem" }}>
+                <ul style={{ listStyle: "none", display: "grid", gap: space("xs", 1.5) }}>
                   {links.map((link) => (
                     <li key={link.name}>
                       <Link
@@ -292,8 +293,8 @@ export default function Footer() {
                         style={{
                           display: "flex",
                           flexDirection: "column",
-                          gap: "0.2rem",
-                          padding: "0.6rem 0.75rem",
+                          gap: space("3xs", 1.6),
+                          padding: `${space("xs", 1.2)} ${space("xs", 1.5)}`,
                           borderRadius: "0.75rem",
                           textDecoration: "none",
                           color: darkMode ? "#cbd5e1" : "#475569",
@@ -316,10 +317,10 @@ export default function Footer() {
           <div
             style={{
               display: "grid",
-              gap: "1.5rem",
+              gap: space("md"),
               background: darkMode ? "rgba(15, 23, 42, 0.6)" : "rgba(248, 250, 252, 0.85)",
               borderRadius: "1.25rem",
-              padding: "1.75rem",
+              padding: space("md", 1.1667),
               border: `1px solid ${darkMode ? "rgba(148,163,184,0.22)" : "rgba(148,163,184,0.3)"}`,
             }}
           >
@@ -327,7 +328,7 @@ export default function Footer() {
               style={{
                 display: "flex",
                 flexWrap: "wrap",
-                gap: "1rem",
+                gap: space("sm"),
                 justifyContent: "space-between",
                 alignItems: "center",
               }}
@@ -345,7 +346,7 @@ export default function Footer() {
                 style={{
                   display: "flex",
                   flexWrap: "wrap",
-                  gap: "0.75rem",
+                  gap: space("xs", 1.5),
                   alignItems: "center",
                 }}
               >
@@ -363,7 +364,7 @@ export default function Footer() {
                   aria-invalid={newsletterStatus === "error"}
                   style={{
                     minWidth: "240px",
-                    padding: "0.75rem 1rem",
+                    padding: `${space("xs", 1.5)} ${space("sm")}`,
                     borderRadius: "0.85rem",
                     border: `1px solid ${
                       newsletterStatus === "error"
@@ -384,11 +385,11 @@ export default function Footer() {
                   className="btn btn-primary"
                   data-ripple="true"
                   style={{
-                    padding: "0.75rem 1.4rem",
+                    padding: `${space("xs", 1.5)} ${space("sm", 1.4)}`,
                     borderRadius: "0.85rem",
                     display: "inline-flex",
                     alignItems: "center",
-                    gap: "0.5rem",
+                    gap: space("xs"),
                   }}
                   disabled={newsletterStatus === "loading"}
                 >
@@ -421,7 +422,7 @@ export default function Footer() {
               style={{
                 display: "grid",
                 gridTemplateColumns: "repeat(auto-fit, minmax(160px, 1fr))",
-                gap: "1rem",
+                gap: space("sm"),
                 textAlign: "center",
               }}
             >
@@ -436,7 +437,7 @@ export default function Footer() {
                   <div
                     key={label}
                     style={{
-                      padding: "1rem",
+                      padding: space("sm"),
                       borderRadius: "1rem",
                       background: darkMode ? "rgba(15, 23, 42, 0.75)" : "rgba(255, 255, 255, 0.95)",
                       border: `1px solid ${darkMode ? "rgba(148,163,184,0.16)" : "rgba(148,163,184,0.28)"}`,
@@ -454,11 +455,11 @@ export default function Footer() {
                 display: "flex",
                 flexWrap: "wrap",
                 justifyContent: "space-between",
-                gap: "1rem",
+                gap: space("sm"),
                 alignItems: "center",
               }}
             >
-              <div style={{ display: "flex", gap: "0.85rem", flexWrap: "wrap" }}>
+              <div style={{ display: "flex", gap: space("xs", 1.7), flexWrap: "wrap" }}>
                 {socialLinks.map((link) => (
                   <a
                     key={link.name}
@@ -468,8 +469,8 @@ export default function Footer() {
                     style={{
                       display: "inline-flex",
                       alignItems: "center",
-                      gap: "0.4rem",
-                      padding: "0.6rem 0.85rem",
+                      gap: space("2xs", 1.6),
+                      padding: `${space("xs", 1.2)} ${space("xs", 1.7)}`,
                       borderRadius: "0.75rem",
                       border: `1px solid ${darkMode ? "rgba(148,163,184,0.25)" : "rgba(148,163,184,0.35)"}`,
                       color: link.color,

@@ -1,3 +1,4 @@
+import { space } from "../styles/spacing";
 // src/components/DebugHydration.jsx
 import { useEffect, useState } from "react";
 
@@ -40,7 +41,7 @@ export function DebugHydration({ children, name = "Component" }) {
           right: 0,
           background: "rgba(0,0,0,0.8)",
           color: "white",
-          padding: "0.5rem",
+          padding: space("xs"),
           fontSize: "12px",
           zIndex: 9999,
           fontFamily: "monospace",

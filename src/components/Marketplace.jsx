@@ -8,6 +8,7 @@ import { useTheme } from "../context/ThemeContext";
 import { warmupWasm, wasmAverage } from "../lib/wasmMath";
 import LivingSuccessMetrics from "./LivingSuccessMetrics";
 import MarketplaceCollaborationLayer from "./MarketplaceCollaborationLayer";
+import { space } from "../styles/spacing";
 import {
   FALLBACK_MARKETPLACE_STATS,
   loadMarketplaceStats,
@@ -822,7 +823,7 @@ export default function Marketplace({ user, openAuth }) {
       style={{
         display: "flex",
         flexDirection: "column",
-        gap: "1rem",
+        gap: space("sm"),
       }}
     >
       <div
@@ -830,7 +831,7 @@ export default function Marketplace({ user, openAuth }) {
           display: "flex",
           justifyContent: "space-between",
           alignItems: "center",
-          gap: "1rem",
+          gap: space("sm"),
           flexWrap: "wrap",
         }}
       >
@@ -877,7 +878,7 @@ export default function Marketplace({ user, openAuth }) {
         style={{
           display: "flex",
           flexWrap: "wrap",
-          gap: "0.75rem",
+          gap: space("xs", 1.5),
         }}
         data-animate="fade-up"
         data-animate-order="4"
@@ -895,7 +896,7 @@ export default function Marketplace({ user, openAuth }) {
             <span
               key={tag}
               style={{
-                padding: "0.4rem 0.75rem",
+                padding: `${space("2xs", 1.6)} ${space("xs", 1.5)}`,
                 borderRadius: "0.8rem",
                 background: darkMode ? "rgba(148,163,184,0.18)" : "rgba(99,102,241,0.12)",
                 border: `1px solid ${darkMode ? "rgba(148,163,184,0.32)" : "rgba(99,102,241,0.25)"}`,
@@ -984,13 +985,13 @@ export default function Marketplace({ user, openAuth }) {
 
   if (loading) {
     return (
-      <section className="marketplace" data-glass="true" data-animate-root style={{ padding: "5rem 0" }}>
-        <div className="container" style={{ display: "grid", gap: "2rem" }}>
+      <section className="marketplace" data-glass="true" data-animate-root style={{ padding: `${space("3xl")} 0` }}>
+        <div className="container" style={{ display: "grid", gap: space("lg") }}>
           {sectionHeader}
           <div
             style={{
               textAlign: "center",
-              padding: "4rem 0",
+              padding: `${space("2xl")} 0`,
               borderRadius: "1.5rem",
               border: `1px solid ${darkMode ? "rgba(148,163,184,0.25)" : "rgba(148,163,184,0.35)"}`,
               background: darkMode
@@ -999,7 +1000,7 @@ export default function Marketplace({ user, openAuth }) {
             }}
           >
             <div className="loading" style={{ width: "40px", height: "40px", margin: "0 auto" }}></div>
-            <p style={{ color: darkMode ? "#94a3b8" : "#475569", marginTop: "1rem" }}>Loading automations…</p>
+            <p style={{ color: darkMode ? "#94a3b8" : "#475569", marginTop: space("sm") }}>Loading automations…</p>
           </div>
         </div>
       </section>
@@ -1008,13 +1009,13 @@ export default function Marketplace({ user, openAuth }) {
 
   if (error && automations.length === 0) {
     return (
-      <section className="marketplace" data-glass="true" data-animate-root style={{ padding: "5rem 0" }}>
-        <div className="container" style={{ display: "grid", gap: "2rem" }}>
+      <section className="marketplace" data-glass="true" data-animate-root style={{ padding: `${space("3xl")} 0` }}>
+        <div className="container" style={{ display: "grid", gap: space("lg") }}>
           {sectionHeader}
           <div
             style={{
               textAlign: "center",
-              padding: "4rem 0",
+              padding: `${space("2xl")} 0`,
               borderRadius: "1.5rem",
               border: `1px solid ${darkMode ? "rgba(248,113,113,0.4)" : "rgba(248,113,113,0.5)"}`,
               background: darkMode
@@ -1023,9 +1024,9 @@ export default function Marketplace({ user, openAuth }) {
               color: darkMode ? "#fecaca" : "#b91c1c",
             }}
           >
-            <div style={{ fontSize: "3rem", marginBottom: "1rem" }}>⚠️</div>
-            <h3 style={{ fontSize: "1.5rem", marginBottom: "0.5rem" }}>Unable to Load Marketplace</h3>
-            <p style={{ maxWidth: "420px", margin: "0 auto 1.5rem" }}>
+            <div style={{ fontSize: "3rem", marginBottom: space("sm") }}>⚠️</div>
+            <h3 style={{ fontSize: "1.5rem", marginBottom: space("xs") }}>Unable to Load Marketplace</h3>
+            <p style={{ maxWidth: "420px", margin: `0 auto ${space("md")}` }}>
               We're having trouble loading the automation marketplace. Please check your connection and try again.
             </p>
             <button className="btn btn-primary" data-ripple="true" onClick={() => window.location.reload()}>
@@ -1038,8 +1039,8 @@ export default function Marketplace({ user, openAuth }) {
   }
 
   return (
-    <section className="marketplace" data-glass="true" data-animate-root style={{ padding: "5rem 0" }}>
-      <div className="container" style={{ display: "grid", gap: "2.5rem" }}>
+    <section className="marketplace" data-glass="true" data-animate-root style={{ padding: `${space("3xl")} 0` }}>
+      <div className="container" style={{ display: "grid", gap: space("lg", 1.25) }}>
         {sectionHeader}
 
         {collaborationReady && (
@@ -1066,7 +1067,7 @@ export default function Marketplace({ user, openAuth }) {
             data-animate="fade-up"
             data-animate-order="4"
             style={{
-              padding: "1rem 1.25rem",
+              padding: `${space("sm")} ${space("fluid-sm")}`,
               borderRadius: "1rem",
               border: `1px solid ${darkMode ? "rgba(245,158,11,0.4)" : "rgba(245,158,11,0.5)"}`,
               background: darkMode ? "rgba(245,158,11,0.12)" : "rgba(245,158,11,0.18)",

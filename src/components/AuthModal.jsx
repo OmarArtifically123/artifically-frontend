@@ -22,7 +22,7 @@ const InputField = ({
 }) => (
   <div
     className="form-group"
-    style={{ display: 'grid', gap: '0.35rem' }}
+    style={{ display: 'grid', gap: 'calc(var(--space-2xs) * 1.5)' }}
   >
     <label
       className="form-label"
@@ -46,7 +46,7 @@ const InputField = ({
         borderColor: fieldErrors[field] ? '#ef4444' : (darkMode ? 'rgba(148,163,184,0.4)' : 'rgba(148,163,184,0.55)'),
         background: darkMode ? 'rgba(15,23,42,0.85)' : 'rgba(255,255,255,0.95)',
         color: darkMode ? '#e2e8f0' : '#1f2937',
-        padding: '0.75rem 1rem',
+        padding: 'var(--space-xs) var(--space-sm)',
         borderRadius: '0.85rem',
         transition: 'all 0.2s ease'
       }}
@@ -55,10 +55,10 @@ const InputField = ({
       <div style={{
         color: '#ef4444',
         fontSize: '0.75rem',
-        marginTop: '4px',
+        marginTop: 'var(--space-2xs)',
         display: 'flex',
         alignItems: 'center',
-        gap: '4px'
+        gap: 'var(--space-2xs)'
       }}>
         <span>⚠ </span>
         {fieldErrors[field]}
@@ -532,7 +532,7 @@ const AuthModal = ({ onClose, onAuthenticated, initialMode = "signin" }) => {
         alignItems: 'center',
         justifyContent: 'center',
         zIndex: 1000,
-        padding: 'var(--space-4)',
+        padding: 'var(--space-sm)',
         overflowY: 'auto'
       }}
     >
@@ -548,7 +548,7 @@ const AuthModal = ({ onClose, onAuthenticated, initialMode = "signin" }) => {
             ? 'linear-gradient(140deg, rgba(15,23,42,0.95), rgba(30,41,59,0.9))'
             : 'linear-gradient(140deg, rgba(255,255,255,0.98), rgba(241,245,249,0.95))',
           borderRadius: 'var(--rounded-2xl)',
-          padding: 'var(--space-8)',
+          padding: 'var(--space-lg)',
           border: darkMode
             ? '1px solid rgba(148,163,184,0.35)'
             : '1px solid rgba(148,163,184,0.45)',
@@ -561,8 +561,8 @@ const AuthModal = ({ onClose, onAuthenticated, initialMode = "signin" }) => {
         }}
       >
         {/* Header */}
-        <div className="modal-header" style={{ marginBottom: 'var(--space-6)' }}>
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: '1rem' }}>
+        <div className="modal-header" style={{ marginBottom: 'var(--space-md)' }}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 'var(--space-sm)' }}>
             <h2 style={{
               fontSize: '1.5rem',
               fontWeight: '700',
@@ -584,7 +584,7 @@ const AuthModal = ({ onClose, onAuthenticated, initialMode = "signin" }) => {
               fontSize: '1.5rem',
               color: darkMode ? '#94a3b8' : '#475569',
               cursor: loading ? 'not-allowed' : 'pointer',
-              padding: 'var(--space-2)',
+              padding: 'var(--space-xs)',
               borderRadius: 'var(--rounded-lg)',
               transition: 'all 0.2s ease',
               opacity: loading ? 0.5 : 1
@@ -610,13 +610,13 @@ const AuthModal = ({ onClose, onAuthenticated, initialMode = "signin" }) => {
             background: darkMode ? 'rgba(239, 68, 68, 0.15)' : 'rgba(254, 226, 226, 0.9)',
             border: darkMode ? '1px solid rgba(239,68,68,0.35)' : '1px solid rgba(239,68,68,0.45)',
             color: darkMode ? '#fca5a5' : '#b91c1c',
-            padding: 'var(--space-3)',
+            padding: 'var(--space-sm)',
             borderRadius: 'var(--rounded-lg)',
-            marginBottom: 'var(--space-4)',
+            marginBottom: 'var(--space-sm)',
             fontSize: '0.875rem',
             display: 'flex',
             alignItems: 'center',
-            gap: '8px'
+            gap: 'var(--space-xs)'
           }}>
             <span>⚠ </span>
             {error}
@@ -624,28 +624,28 @@ const AuthModal = ({ onClose, onAuthenticated, initialMode = "signin" }) => {
         )}
 
         {/* Form */}
-        <form onSubmit={handleFormSubmit} noValidate style={{ display: 'grid', gap: '1.5rem' }}>
-          <div style={{ display: 'grid', gap: '0.75rem' }}>
+        <form onSubmit={handleFormSubmit} noValidate style={{ display: 'grid', gap: 'var(--space-md)' }}>
+          <div style={{ display: 'grid', gap: 'var(--space-xs)' }}>
             <div
               style={{
                 display: 'flex',
                 justifyContent: 'space-between',
                 alignItems: 'center',
                 flexWrap: 'wrap',
-                gap: '0.75rem',
+                gap: 'var(--space-xs)',
               }}
             >
               <span style={{ fontWeight: 600, color: darkMode ? '#f8fafc' : '#0f172a' }}>
                 Step {Math.min(step + 1, totalSteps)} of {totalSteps}
               </span>
-              <div style={{ display: 'flex', gap: '0.5rem', flexWrap: 'wrap' }}>
+              <div style={{ display: 'flex', gap: 'var(--space-xs)', flexWrap: 'wrap' }}>
                 {stepLabels.map((label, index) => {
                   const active = index === step;
                   return (
                     <span
                       key={label}
                       style={{
-                        padding: '0.35rem 0.75rem',
+                        padding: 'calc(var(--space-2xs) * 1.4) var(--space-xs)',
                         borderRadius: '999px',
                         fontSize: '0.8rem',
                         fontWeight: 600,
@@ -688,12 +688,12 @@ const AuthModal = ({ onClose, onAuthenticated, initialMode = "signin" }) => {
           {mode === 'signup' && step > 0 && (
             <div
               style={{
-                padding: '1rem 1.1rem',
+                padding: 'var(--space-sm) calc(var(--space-sm) * 1.1)',
                 borderRadius: '1rem',
                 background: darkMode ? 'rgba(99,102,241,0.12)' : 'rgba(79,70,229,0.08)',
                 color: darkMode ? '#c7d2fe' : '#3730a3',
                 display: 'grid',
-                gap: '0.35rem',
+                gap: 'calc(var(--space-2xs) * 1.5)',
                 fontSize: '0.9rem',
               }}
             >
@@ -706,11 +706,11 @@ const AuthModal = ({ onClose, onAuthenticated, initialMode = "signin" }) => {
           )}
 
           {showAccountFields && (
-            <div style={{ display: 'grid', gap: '1rem' }}>{accountFields}</div>
+            <div style={{ display: 'grid', gap: 'var(--space-sm)' }}>{accountFields}</div>
           )}
 
           {showBusinessFields && (
-            <div style={{ display: 'grid', gap: '1rem' }}>{businessFields}</div>
+            <div style={{ display: 'grid', gap: 'var(--space-sm)' }}>{businessFields}</div>
           )}
 
           <div
@@ -718,8 +718,8 @@ const AuthModal = ({ onClose, onAuthenticated, initialMode = "signin" }) => {
               display: 'flex',
               justifyContent: mode === 'signup' && step > 0 ? 'space-between' : 'flex-end',
               alignItems: 'center',
-              gap: '1rem',
-              marginTop: 'var(--space-2)',
+              gap: 'var(--space-sm)',
+              marginTop: 'var(--space-xs)',
             }}
           >
             {mode === 'signup' && step > 0 && (
@@ -728,7 +728,7 @@ const AuthModal = ({ onClose, onAuthenticated, initialMode = "signin" }) => {
                 onClick={handleStepBack}
                 className="btn"
                 style={{
-                  padding: '0.85rem 1.5rem',
+                  padding: 'calc(var(--space-sm) * 0.85) var(--space-md)',
                   borderRadius: '0.85rem',
                   background: darkMode ? 'rgba(148,163,184,0.15)' : 'rgba(148,163,184,0.2)',
                   color: darkMode ? '#e2e8f0' : '#1f2937',
@@ -748,7 +748,7 @@ const AuthModal = ({ onClose, onAuthenticated, initialMode = "signin" }) => {
               style={{
                 width: mode === 'signup' && step > 0 ? 'auto' : '100%',
                 minWidth: '160px',
-                padding: '0.9rem 1.5rem',
+                padding: 'calc(var(--space-sm) * 0.9) var(--space-md)',
                 fontSize: '1rem',
                 fontWeight: '600',
                 opacity: loading ? 0.7 : 1,
@@ -756,7 +756,7 @@ const AuthModal = ({ onClose, onAuthenticated, initialMode = "signin" }) => {
                 display: 'inline-flex',
                 alignItems: 'center',
                 justifyContent: 'center',
-                gap: '8px',
+                gap: 'var(--space-xs)',
                 boxShadow: darkMode
                   ? '0 20px 35px rgba(99, 102, 241, 0.35)'
                   : '0 20px 35px rgba(99, 102, 241, 0.25)',
@@ -781,7 +781,7 @@ const AuthModal = ({ onClose, onAuthenticated, initialMode = "signin" }) => {
 
         {/* Mode Switch */}
         <div style={{
-          marginTop: 'var(--space-6)',
+          marginTop: 'var(--space-md)',
           fontSize: '0.875rem',
           textAlign: 'center',
           color: darkMode ? '#94a3b8' : '#475569'

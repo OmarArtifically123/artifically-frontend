@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState } from "react";
 import { createPortal } from "react-dom";
 import { useTheme } from "../context/ThemeContext";
+import { space } from "../styles/spacing";
 
 const clamp = (value, min, max) => Math.min(Math.max(value, min), max);
 
@@ -202,7 +203,7 @@ const OnboardingTour = ({
           background: tooltipBg,
           color: darkMode ? "#e2e8f0" : "#1f2937",
           borderRadius: "1.25rem",
-          padding: "1.5rem",
+          padding: space("md"),
           boxShadow: darkMode
             ? "0 24px 45px rgba(8, 15, 34, 0.55)"
             : "0 24px 45px rgba(148, 163, 184, 0.45)",
@@ -212,7 +213,7 @@ const OnboardingTour = ({
           ...tooltipStyle,
         }}
       >
-        <div style={{ display: "flex", justifyContent: "space-between", marginBottom: "0.5rem" }}>
+        <div style={{ display: "flex", justifyContent: "space-between", marginBottom: space("xs") }}>
           <span style={{ fontSize: "0.8rem", fontWeight: 600, color: darkMode ? "#a5b4fc" : "#4338ca" }}>
             Step {currentStep + 1} of {totalSteps}
           </span>
@@ -233,10 +234,10 @@ const OnboardingTour = ({
           </button>
         </div>
         <h3 style={{ margin: 0, fontSize: "1.15rem", fontWeight: 700 }}>{step?.title}</h3>
-        <p style={{ margin: "0.75rem 0", fontSize: "0.9rem", lineHeight: 1.5 }}>
+        <p style={{ margin: `${space("xs", 1.5)} 0`, fontSize: "0.9rem", lineHeight: 1.5 }}>
           {step?.description}
         </p>
-        <div style={{ display: "flex", justifyContent: "flex-end", gap: "0.75rem", marginTop: "1rem" }}>
+        <div style={{ display: "flex", justifyContent: "flex-end", gap: space("xs", 1.5), marginTop: space("sm") }}>
           <button
             type="button"
             onClick={dismissTour}
@@ -246,7 +247,7 @@ const OnboardingTour = ({
               background: darkMode ? "rgba(148,163,184,0.18)" : "rgba(148,163,184,0.2)",
               color: darkMode ? "#e2e8f0" : "#1f2937",
               borderRadius: "0.85rem",
-              padding: "0.6rem 1.25rem",
+              padding: `${space("xs", 1.2)} ${space("fluid-sm")}`,
               fontWeight: 600,
               cursor: "pointer",
             }}
@@ -262,7 +263,7 @@ const OnboardingTour = ({
               background: "linear-gradient(120deg, #6366f1, #22d3ee)",
               color: "#0f172a",
               borderRadius: "0.85rem",
-              padding: "0.6rem 1.5rem",
+              padding: `${space("xs", 1.2)} ${space("md")}`,
               fontWeight: 700,
               cursor: "pointer",
               boxShadow: darkMode

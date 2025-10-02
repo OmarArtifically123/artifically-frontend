@@ -1,6 +1,7 @@
 import { memo, useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useTheme } from "../context/ThemeContext";
 import useMicroInteractions from "../hooks/useMicroInteractions";
+import { space } from "../styles/spacing";
 
 const SAMPLE_COMPANIES = [
   "TechCorp",
@@ -1054,8 +1055,8 @@ function AutomationCardComponent({
       style={{
         position: "relative",
         display: "grid",
-        gap: "1rem",
-        padding: "1.9rem",
+        gap: space("sm"),
+        padding: space("md", 1.2667),
         borderRadius: "1.35rem",
         border: `1px solid ${darkMode ? "rgba(148,163,184,0.22)" : "rgba(148,163,184,0.32)"}`,
         background: `linear-gradient(145deg, ${palette.secondary}, rgba(15,23,42,0.85))`,

@@ -5,6 +5,7 @@ import LogoDark from "../assets/logos/3_Dark_Mode.svg";
 import ThemeToggle from "./ThemeToggle";
 import { useTheme } from "../context/ThemeContext";
 import useMicroInteractions from "../hooks/useMicroInteractions";
+import { space } from "../styles/spacing";
 
 export default function Header({ user, onSignIn, onSignUp, onSignOut }) {
   const navigate = useNavigate();
@@ -178,7 +179,7 @@ export default function Header({ user, onSignIn, onSignUp, onSignOut }) {
         left: 0,
         right: 0,
         zIndex: 1000,
-        padding: scrolled ? "0.65rem 0" : "1rem 0",
+        padding: scrolled ? `${space("xs", 1.3)} 0` : `${space("sm")} 0`,
         backdropFilter: "blur(20px)",
         WebkitBackdropFilter: "blur(20px)",
         transition: "all var(--transition-normal)",
@@ -193,7 +194,7 @@ export default function Header({ user, onSignIn, onSignUp, onSignOut }) {
           justifyContent: "space-between",
           maxWidth: "1200px",
           margin: "0 auto",
-          padding: "0 1.75rem",
+          padding: `0 ${space("md", 1.1667)}`,
           position: "relative",
         }}
       >
@@ -226,11 +227,11 @@ export default function Header({ user, onSignIn, onSignUp, onSignOut }) {
           style={{
             display: "flex",
             alignItems: "center",
-            gap: "0.75rem",
+            gap: space("xs", 1.5),
             cursor: "pointer",
             position: "relative",
             zIndex: 1,
-            padding: "0.35rem 0.5rem",
+            padding: `${space("2xs", 1.4)} ${space("xs")}`,
             borderRadius: "0.9rem",
             transition: "transform var(--transition-fast)",
           }}
@@ -255,7 +256,7 @@ export default function Header({ user, onSignIn, onSignUp, onSignOut }) {
           style={{
             display: "flex",
             alignItems: "center",
-            gap: "1.5rem",
+            gap: space("md"),
             position: "relative",
             zIndex: 1,
           }}
@@ -272,7 +273,7 @@ export default function Header({ user, onSignIn, onSignUp, onSignOut }) {
                 data-predicted={isPredicted}
                 style={{
                   position: "relative",
-                  padding: "0.55rem 1.15rem",
+                  padding: `${space("xs", 1.1)} ${space("sm", 1.15)}`,
                   borderRadius: "0.85rem",
                   textDecoration: "none",
                   fontWeight: 600,
@@ -330,7 +331,7 @@ export default function Header({ user, onSignIn, onSignUp, onSignOut }) {
           style={{
             display: "flex",
             alignItems: "center",
-            gap: "1rem",
+            gap: space("sm"),
             position: "relative",
             zIndex: 1,
           }}
@@ -342,7 +343,7 @@ export default function Header({ user, onSignIn, onSignUp, onSignOut }) {
               style={{
                 display: "flex",
                 alignItems: "center",
-                gap: "0.75rem",
+                gap: space("xs", 1.5),
               }}
             >
               <button
@@ -356,7 +357,7 @@ export default function Header({ user, onSignIn, onSignUp, onSignOut }) {
                   navigate("/dashboard");
                 }}
                 style={{
-                  padding: "0.5rem 1.15rem",
+                  padding: `${space("xs")} ${space("sm", 1.15)}`,
                   borderRadius: "0.85rem",
                   border: `1px solid ${darkMode ? "rgba(148, 163, 184, 0.35)" : "rgba(148, 163, 184, 0.45)"}`,
                   background: darkMode
@@ -379,7 +380,7 @@ export default function Header({ user, onSignIn, onSignUp, onSignOut }) {
                   onSignOut?.(event);
                 }}
                 style={{
-                  padding: "0.5rem 1.25rem",
+                  padding: `${space("xs")} ${space("fluid-sm")}`,
                   borderRadius: "0.85rem",
                   boxShadow: darkMode
                     ? "0 18px 30px rgba(99, 102, 241, 0.35)"
@@ -394,7 +395,7 @@ export default function Header({ user, onSignIn, onSignUp, onSignOut }) {
               style={{
                 display: "flex",
                 alignItems: "center",
-                gap: "0.75rem",
+                gap: space("xs", 1.5),
               }}
             >
               <button
@@ -408,7 +409,7 @@ export default function Header({ user, onSignIn, onSignUp, onSignOut }) {
                   onSignIn?.(event);
                 }}
                 style={{
-                  padding: "0.5rem 1.1rem",
+                  padding: `${space("xs")} ${space("sm", 1.1)}`,
                   borderRadius: "0.85rem",
                   border: `1px solid ${darkMode ? "rgba(148, 163, 184, 0.35)" : "rgba(148, 163, 184, 0.45)"}`,
                   background: darkMode
@@ -431,7 +432,7 @@ export default function Header({ user, onSignIn, onSignUp, onSignOut }) {
                   onSignUp?.(event);
                 }}
                 style={{
-                  padding: "0.5rem 1.25rem",
+                  padding: `${space("xs")} ${space("fluid-sm")}`,
                   borderRadius: "0.85rem",
                   boxShadow: darkMode
                     ? "0 18px 30px rgba(99, 102, 241, 0.35)"

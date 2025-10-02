@@ -6,6 +6,7 @@ import ThemeToggle from "./ThemeToggle";
 import { useTheme } from "../context/ThemeContext";
 import OnboardingTour from "./OnboardingTour";
 import { useAchievements } from "../hooks/useAchievements";
+import { space } from "../styles/spacing";
 
 const statusColors = {
   active: { bg: "rgba(16,185,129,0.18)", color: "#10b981" },
@@ -471,7 +472,7 @@ export default function Dashboard({ user, openAuth }) {
   const renderGate = (title, message, action) => (
     <section
       style={{
-        padding: "5rem 0",
+        padding: `${space("3xl")} 0`,
         textAlign: "center",
         color: darkMode ? "#e2e8f0" : "#1f2937",
       }}
@@ -481,15 +482,15 @@ export default function Dashboard({ user, openAuth }) {
         style={{
           background: darkMode ? "rgba(15,23,42,0.75)" : "rgba(255,255,255,0.9)",
           borderRadius: "1.5rem",
-          padding: "3rem",
+          padding: space("xl"),
           border: `1px solid ${darkMode ? "rgba(148,163,184,0.25)" : "rgba(148,163,184,0.35)"}`,
           boxShadow: darkMode
             ? "0 40px 70px rgba(8, 15, 34, 0.55)"
             : "0 40px 70px rgba(148, 163, 184, 0.35)",
         }}
       >
-        <h2 style={{ fontSize: "2rem", marginBottom: "1rem" }}>{title}</h2>
-        <p style={{ color: darkMode ? "#94a3b8" : "#475569", marginBottom: "2rem" }}>{message}</p>
+        <h2 style={{ fontSize: "2rem", marginBottom: space("sm") }}>{title}</h2>
+        <p style={{ color: darkMode ? "#94a3b8" : "#475569", marginBottom: space("lg") }}>{message}</p>
         {action}
       </div>
     </section>
@@ -520,8 +521,8 @@ export default function Dashboard({ user, openAuth }) {
   }
 
   return (
-    <section className="dashboard" style={{ padding: "5rem 0" }}>
-      <div className="container" style={{ display: "grid", gap: "2rem" }}>
+    <section className="dashboard" style={{ padding: `${space("3xl")} 0` }}>
+      <div className="container" style={{ display: "grid", gap: space("lg") }}>
       <div
         className="dashboard-header"
         style={{
@@ -529,9 +530,9 @@ export default function Dashboard({ user, openAuth }) {
           justifyContent: "space-between",
             alignItems: "center",
             flexWrap: "wrap",
-            gap: "1rem",
+            gap: space("sm"),
             background: darkMode ? "rgba(15,23,42,0.75)" : "rgba(255,255,255,0.95)",
-            padding: "1.5rem",
+            padding: space("md"),
             borderRadius: "1.25rem",
             border: `1px solid ${darkMode ? "rgba(148,163,184,0.25)" : "rgba(148,163,184,0.35)"}`,
           }}
@@ -542,7 +543,7 @@ export default function Dashboard({ user, openAuth }) {
             </h1>
             <p style={{ color: darkMode ? "#94a3b8" : "#475569" }}>Your deployed automations and usage</p>
           </div>
-          <div style={{ display: "flex", alignItems: "center", gap: "0.75rem" }}>
+          <div style={{ display: "flex", alignItems: "center", gap: space("xs", 1.5) }}>
             <ThemeToggle />
             <button
               className="btn btn-primary"
@@ -558,7 +559,7 @@ export default function Dashboard({ user, openAuth }) {
           data-tour-id="dashboard-stats"
           style={{
             display: "grid",
-            gap: "1.25rem",
+            gap: space("fluid-sm"),
             gridTemplateColumns: "repeat(auto-fit, minmax(220px, 1fr))",
           }}
         >
@@ -568,10 +569,10 @@ export default function Dashboard({ user, openAuth }) {
               style={{
                 background: darkMode ? "rgba(15,23,42,0.75)" : "rgba(255,255,255,0.95)",
                 borderRadius: "1.25rem",
-                padding: "1.25rem",
+                padding: space("fluid-sm"),
                 border: `1px solid ${darkMode ? "rgba(148,163,184,0.2)" : "rgba(148,163,184,0.25)"}`,
                 display: "grid",
-                gap: "0.5rem",
+                gap: space("xs"),
               }}
             >
               <span
@@ -595,13 +596,13 @@ export default function Dashboard({ user, openAuth }) {
             style={{
               background: darkMode ? "rgba(30,41,59,0.78)" : "rgba(248,250,252,0.96)",
               borderRadius: "1.25rem",
-              padding: "1.5rem",
+              padding: space("md"),
               border: `1px solid ${darkMode ? "rgba(99,102,241,0.3)" : "rgba(99,102,241,0.2)"}`,
               display: "grid",
-              gap: "0.75rem",
+              gap: space("xs", 1.5),
             }}
           >
-            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", gap: "1rem" }}>
+            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", gap: space("sm") }}>
               <div>
                 <span
                   style={{
@@ -613,7 +614,7 @@ export default function Dashboard({ user, openAuth }) {
                 >
                   AI assistant
                 </span>
-                <h2 style={{ margin: "0.35rem 0 0", fontSize: "1.35rem" }}>{aiSuggestion.name}</h2>
+                <h2 style={{ margin: `${space("2xs", 1.4)} 0 0`, fontSize: "1.35rem" }}>{aiSuggestion.name}</h2>
               </div>
               <button className="btn btn-secondary" onClick={() => handleAutomationDrop(aiSuggestion)}>
                 Load into preview
@@ -631,13 +632,13 @@ export default function Dashboard({ user, openAuth }) {
           style={{
             background: darkMode ? "rgba(15,23,42,0.75)" : "rgba(255,255,255,0.95)",
             borderRadius: "1.25rem",
-            padding: "1.5rem",
+            padding: space("md"),
             border: `1px solid ${darkMode ? "rgba(99,102,241,0.35)" : "rgba(99,102,241,0.25)"}`,
             display: "grid",
-            gap: "1rem",
+            gap: space("sm"),
           }}
         >
-          <div style={{ display: "grid", gap: "0.35rem" }}>
+          <div style={{ display: "grid", gap: space("2xs", 1.4) }}>
             <h3 style={{ margin: 0, fontSize: "1.2rem", fontWeight: 700 }}>
               Profile completion
             </h3>
@@ -645,7 +646,7 @@ export default function Dashboard({ user, openAuth }) {
               Finish your business profile to unlock tailored onboarding nudges and drive more engaged automation rollouts.
             </p>
           </div>
-          <div style={{ display: "grid", gap: "0.5rem" }}>
+          <div style={{ display: "grid", gap: space("xs") }}>
             <div style={{ display: "flex", justifyContent: "space-between", color: darkMode ? "#cbd5e1" : "#1f2937" }}>
               <span>{profileCompletion.percent}% complete</span>
               <span>
@@ -691,15 +692,15 @@ export default function Dashboard({ user, openAuth }) {
             background: darkMode ? "rgba(15,23,42,0.75)" : "rgba(255,255,255,0.95)",
             borderRadius: "1.35rem",
             border: `1px solid ${darkMode ? "rgba(99,102,241,0.25)" : "rgba(148,163,184,0.25)"}`,
-            padding: "1.75rem",
+            padding: space("md", 1.1667),
             display: "grid",
-            gap: "1.5rem",
+            gap: space("md"),
           }}
         >
-          <header style={{ display: "flex", justifyContent: "space-between", alignItems: "center", flexWrap: "wrap", gap: "1rem" }}>
+          <header style={{ display: "flex", justifyContent: "space-between", alignItems: "center", flexWrap: "wrap", gap: space("sm") }}>
             <div>
               <h2 style={{ margin: 0, fontSize: "1.4rem" }}>Marketplace preview</h2>
-              <p style={{ margin: "0.35rem 0 0", color: darkMode ? "#94a3b8" : "#475569" }}>
+              <p style={{ margin: `${space("2xs", 1.4)} 0 0`, color: darkMode ? "#94a3b8" : "#475569" }}>
                 Drag automations into the live preview. We’ll simulate metrics so you can sense how it performs before
                 deployment.
               </p>
@@ -711,11 +712,11 @@ export default function Dashboard({ user, openAuth }) {
           <div
             style={{
               display: "grid",
-              gap: "1.5rem",
+              gap: space("md"),
               gridTemplateColumns: "repeat(auto-fit, minmax(280px, 1fr))",
             }}
           >
-            <div style={{ display: "grid", gap: "1rem" }}>
+            <div style={{ display: "grid", gap: space("sm") }}>
               {marketplaceShowcase.map((automation) => (
                 <article
                   key={automation.id}
@@ -725,11 +726,11 @@ export default function Dashboard({ user, openAuth }) {
                   style={{
                     background: darkMode ? "rgba(30,41,59,0.85)" : "rgba(248,250,252,0.95)",
                     borderRadius: "1.15rem",
-                    padding: "1.25rem",
+                    padding: space("fluid-sm"),
                     border: `1px dashed ${darkMode ? "rgba(148,163,184,0.35)" : "rgba(99,102,241,0.35)"}`,
                     cursor: "grab",
                     display: "grid",
-                    gap: "0.5rem",
+                    gap: space("xs"),
                   }}
                 >
                   <span style={{ fontSize: "0.75rem", color: darkMode ? "#a5b4fc" : "#6366f1" }}>Drag to preview</span>
@@ -749,9 +750,9 @@ export default function Dashboard({ user, openAuth }) {
                 borderRadius: "1.25rem",
                 border: `2px dashed ${darkMode ? "rgba(99,102,241,0.35)" : "rgba(99,102,241,0.45)"}`,
                 background: darkMode ? "rgba(17,24,39,0.85)" : "rgba(241,245,249,0.9)",
-                padding: "1.75rem",
+                padding: space("md", 1.1667),
                 display: "grid",
-                gap: "1rem",
+                gap: space("sm"),
                 alignContent: "start",
               }}
             >
@@ -759,7 +760,7 @@ export default function Dashboard({ user, openAuth }) {
                 <span style={{ fontSize: "0.75rem", color: darkMode ? "#a5b4fc" : "#6366f1", textTransform: "uppercase", letterSpacing: "0.08em" }}>
                   Live demo
                 </span>
-                <h3 style={{ margin: "0.35rem 0 0", fontSize: "1.35rem" }}>{dockedAutomation.name}</h3>
+                <h3 style={{ margin: `${space("2xs", 1.4)} 0 0`, fontSize: "1.35rem" }}>{dockedAutomation.name}</h3>
               </div>
               <p style={{ margin: 0, color: darkMode ? "#cbd5e1" : "#475569", lineHeight: 1.6 }}>
                 {dockedAutomation.description}
@@ -767,7 +768,7 @@ export default function Dashboard({ user, openAuth }) {
               <div
                 style={{
                   display: "grid",
-                  gap: "0.75rem",
+                  gap: space("xs", 1.5),
                   gridTemplateColumns: "repeat(auto-fit, minmax(120px, 1fr))",
                 }}
               >
@@ -788,7 +789,7 @@ export default function Dashboard({ user, openAuth }) {
                     style={{
                       background: darkMode ? "rgba(30,41,59,0.8)" : "rgba(255,255,255,0.95)",
                       borderRadius: "0.85rem",
-                      padding: "0.85rem",
+                      padding: space("xs", 1.7),
                       border: `1px solid ${darkMode ? "rgba(148,163,184,0.2)" : "rgba(148,163,184,0.3)"}`,
                     }}
                   >
@@ -803,15 +804,15 @@ export default function Dashboard({ user, openAuth }) {
           </div>
         </section>
 
-        <div
-          data-tour-id="dashboard-achievements"
-          style={{
-            background: darkMode ? "rgba(15,23,42,0.75)" : "rgba(255,255,255,0.95)",
-            borderRadius: "1.25rem",
-            padding: "1.5rem",
-            border: `1px solid ${darkMode ? "rgba(148,163,184,0.25)" : "rgba(148,163,184,0.35)"}`,
-            display: "grid",
-            gap: "1.25rem",
+       <div
+            data-tour-id="dashboard-achievements"
+            style={{
+              background: darkMode ? "rgba(15,23,42,0.75)" : "rgba(255,255,255,0.95)",
+              borderRadius: "1.25rem",
+              padding: space("md"),
+              border: `1px solid ${darkMode ? "rgba(148,163,184,0.25)" : "rgba(148,163,184,0.35)"}`,
+              display: "grid",
+              gap: space("fluid-sm"),
           }}
         >
           <div
@@ -820,12 +821,12 @@ export default function Dashboard({ user, openAuth }) {
               justifyContent: "space-between",
               alignItems: "center",
               flexWrap: "wrap",
-              gap: "0.75rem",
+              gap: space("xs", 1.5),
             }}
           >
             <div>
               <h3 style={{ margin: 0, fontSize: "1.2rem", fontWeight: 700 }}>Achievement tracker</h3>
-              <p style={{ margin: "0.35rem 0 0", color: darkMode ? "#94a3b8" : "#475569", fontSize: "0.95rem" }}>
+              <p style={{ margin: `${space("2xs", 1.4)} 0 0`, color: darkMode ? "#94a3b8" : "#475569", fontSize: "0.95rem" }}>
                 {unlockedCount} of {totalCount} milestones unlocked
               </p>
             </div>
@@ -840,7 +841,7 @@ export default function Dashboard({ user, openAuth }) {
             </span>
           </div>
 
-          <div style={{ display: "grid", gap: "0.5rem" }}>
+          <div style={{ display: "grid", gap: space("xs") }}>
             <div
               style={{
                 width: "100%",
@@ -864,7 +865,7 @@ export default function Dashboard({ user, openAuth }) {
           <div
             style={{
               display: "grid",
-              gap: "1rem",
+              gap: space("sm"),
               gridTemplateColumns: "repeat(auto-fit, minmax(200px, 1fr))",
             }}
           >
@@ -885,9 +886,9 @@ export default function Dashboard({ user, openAuth }) {
                     background: unlocked
                       ? darkMode ? "rgba(16,185,129,0.12)" : "rgba(134,239,172,0.2)"
                       : darkMode ? "rgba(15,23,42,0.6)" : "rgba(248,250,252,0.9)",
-                    padding: "1.1rem",
+                    padding: space("sm", 1.1),
                     display: "grid",
-                    gap: "0.5rem",
+                    gap: space("xs"),
                   }}
                 >
                   <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
@@ -918,21 +919,21 @@ export default function Dashboard({ user, openAuth }) {
           style={{
             background: darkMode ? "rgba(15,23,42,0.75)" : "rgba(255,255,255,0.95)",
             borderRadius: "1.25rem",
-            padding: "1.5rem",
+            padding: space("md"),
             border: `1px solid ${darkMode ? "rgba(148,163,184,0.25)" : "rgba(148,163,184,0.35)"}`,
             display: "grid",
-            gap: "1.25rem",
+            gap: space("fluid-sm"),
           }}
         >
-          <header style={{ display: "flex", justifyContent: "space-between", alignItems: "center", flexWrap: "wrap", gap: "0.75rem" }}>
+          <header style={{ display: "flex", justifyContent: "space-between", alignItems: "center", flexWrap: "wrap", gap: space("xs", 1.5) }}>
             <div>
               <h3 style={{ margin: 0, fontSize: "1.2rem" }}>Badge milestones</h3>
-              <p style={{ margin: "0.35rem 0 0", color: darkMode ? "#94a3b8" : "#475569" }}>
+              <p style={{ margin: `${space("2xs", 1.4)} 0 0`, color: darkMode ? "#94a3b8" : "#475569" }}>
                 Unlock badges as you launch automations and keep engagement streaks alive.
               </p>
             </div>
           </header>
-          <div style={{ display: "grid", gap: "1rem", gridTemplateColumns: "repeat(auto-fit, minmax(200px, 1fr))" }}>
+          <div style={{ display: "grid", gap: space("sm"), gridTemplateColumns: "repeat(auto-fit, minmax(200px, 1fr))" }}>
             {milestoneBadges.map((badge) => (
               <div
                 key={badge.id}
@@ -946,9 +947,9 @@ export default function Dashboard({ user, openAuth }) {
                     : darkMode
                     ? "rgba(30,41,59,0.6)"
                     : "rgba(248,250,252,0.9)",
-                  padding: "1.1rem",
+                  padding: space("sm", 1.1),
                   display: "grid",
-                  gap: "0.5rem",
+                  gap: space("xs"),
                 }}
               >
                 <span style={{ fontSize: "1.5rem" }}>{badge.icon}</span>
@@ -970,12 +971,12 @@ export default function Dashboard({ user, openAuth }) {
             ))}
           </div>
         </section>
-        
+
         <div
           data-tour-id="dashboard-gamification"
           style={{
             display: "grid",
-            gap: "1.25rem",
+            gap: space("fluid-sm"),
             gridTemplateColumns: "repeat(auto-fit, minmax(230px, 1fr))",
           }}
         >
@@ -986,14 +987,14 @@ export default function Dashboard({ user, openAuth }) {
                 borderRadius: "1.25rem",
                 border: `1px solid ${darkMode ? "rgba(148,163,184,0.25)" : "rgba(148,163,184,0.3)"}`,
                 background: darkMode ? "rgba(15,23,42,0.7)" : "rgba(255,255,255,0.95)",
-                padding: "1.25rem",
+                padding: space("fluid-sm"),
                 display: "grid",
-                gap: "0.75rem",
+                gap: space("xs", 1.5),
               }}
             >
               <div>
                 <h4 style={{ margin: 0, fontSize: "1.05rem", fontWeight: 700 }}>{stat.title}</h4>
-                <p style={{ margin: "0.35rem 0 0", fontSize: "0.85rem", color: darkMode ? "#94a3b8" : "#475569" }}>
+                <p style={{ margin: `${space("2xs", 1.4)} 0 0`, fontSize: "0.85rem", color: darkMode ? "#94a3b8" : "#475569" }}>
                   {stat.description}
                 </p>
               </div>
@@ -1026,15 +1027,15 @@ export default function Dashboard({ user, openAuth }) {
             className="empty-state"
             style={{
               textAlign: "center",
-              padding: "4rem",
+              padding: space("2xl"),
               borderRadius: "1.5rem",
               border: `1px solid ${darkMode ? "rgba(148,163,184,0.25)" : "rgba(148,163,184,0.35)"}`,
               background: darkMode ? "rgba(15,23,42,0.7)" : "rgba(255,255,255,0.95)",
             }}
           >
-            <div style={{ fontSize: "3rem", marginBottom: "1rem", opacity: 0.6 }}>🤖</div>
-            <h3 style={{ fontSize: "1.4rem", marginBottom: "0.5rem" }}>No Automations Yet</h3>
-            <p style={{ color: darkMode ? "#94a3b8" : "#475569", maxWidth: "400px", margin: "0 auto 1.5rem" }}>
+            <div style={{ fontSize: "3rem", marginBottom: space("sm"), opacity: 0.6 }}>🤖</div>
+            <h3 style={{ fontSize: "1.4rem", marginBottom: space("xs") }}>No Automations Yet</h3>
+            <p style={{ color: darkMode ? "#94a3b8" : "#475569", maxWidth: "400px", margin: `0 auto ${space("md")}` }}>
               Browse the marketplace to deploy your first AI automation and start transforming your business operations.
             </p>
             <button className="btn btn-primary" onClick={() => navigate("/marketplace")}>
@@ -1046,7 +1047,7 @@ export default function Dashboard({ user, openAuth }) {
             className="deployments-list"
             style={{
               display: "grid",
-              gap: "1.5rem",
+              gap: space("md"),
             }}
           >
             {deployments.map((deployment, index) => {
@@ -1062,7 +1063,7 @@ export default function Dashboard({ user, openAuth }) {
                   style={{
                     borderRadius: "1.25rem",
                     border: `1px solid ${darkMode ? "rgba(148,163,184,0.25)" : "rgba(148,163,184,0.35)"}`,
-                    padding: "1.75rem",
+                    padding: space("md", 1.1667),
                     background: darkMode
                       ? "linear-gradient(145deg, rgba(15,23,42,0.8), rgba(30,41,59,0.85))"
                       : "linear-gradient(145deg, rgba(255,255,255,0.97), rgba(241,245,249,0.94))",
@@ -1070,7 +1071,7 @@ export default function Dashboard({ user, openAuth }) {
                       ? "0 30px 55px rgba(8, 15, 34, 0.45)"
                       : "0 30px 55px rgba(148, 163, 184, 0.3)",
                     display: "grid",
-                    gap: "1.25rem",
+                    gap: space("fluid-sm"),
                   }}
                 >
                   <header
@@ -1078,7 +1079,7 @@ export default function Dashboard({ user, openAuth }) {
                       display: "flex",
                       justifyContent: "space-between",
                       alignItems: "center",
-                      gap: "1rem",
+                      gap: space("sm"),
                       flexWrap: "wrap",
                     }}
                   >
@@ -1090,10 +1091,10 @@ export default function Dashboard({ user, openAuth }) {
                         {deployment.automation?.description || "Deployed workflow"}
                       </p>
                     </div>
-                    <div style={{ display: "flex", alignItems: "center", gap: "0.75rem" }}>
+                    <div style={{ display: "flex", alignItems: "center", gap: space("xs", 1.5) }}>
                       <span
                         style={{
-                          padding: "0.35rem 0.75rem",
+                          padding: `${space("2xs", 1.4)} ${space("xs", 1.5)}`,
                           borderRadius: "0.75rem",
                           fontSize: "0.8rem",
                           fontWeight: 700,
@@ -1117,7 +1118,7 @@ export default function Dashboard({ user, openAuth }) {
                     style={{
                       display: "flex",
                       alignItems: "center",
-                      gap: "0.5rem",
+                      gap: space("xs"),
                       color: darkMode ? "#22d3ee" : "#0f766e",
                       fontWeight: 600,
                     }}
@@ -1138,7 +1139,7 @@ export default function Dashboard({ user, openAuth }) {
                   </div>
 
                   {usagePercent !== null && (
-                    <div style={{ display: "grid", gap: "0.5rem" }}>
+                    <div style={{ display: "grid", gap: space("xs") }}>
                       <div style={{ display: "flex", justifyContent: "space-between", color: darkMode ? "#cbd5e1" : "#475569" }}>
                         <span>Usage this month</span>
                         <span>
@@ -1171,16 +1172,16 @@ export default function Dashboard({ user, openAuth }) {
                         background: darkMode ? "rgba(15,23,42,0.75)" : "rgba(255,255,255,0.95)",
                         borderRadius: "1rem",
                         border: `1px solid ${darkMode ? "rgba(148,163,184,0.2)" : "rgba(148,163,184,0.3)"}`,
-                        padding: "1rem 1.25rem",
+                        padding: `${space("sm")} ${space("fluid-sm")}`,
                       }}
                     >
                       <summary style={{ cursor: "pointer", fontWeight: 600 }}>Configuration Details</summary>
                       <pre
                         style={{
-                          marginTop: "0.75rem",
+                          marginTop: space("xs", 1.5),
                           background: darkMode ? "rgba(15,23,42,0.85)" : "rgba(15,23,42,0.85)",
                           color: "#f8fafc",
-                          padding: "1rem",
+                          padding: space("sm"),
                           borderRadius: "0.85rem",
                           fontFamily: "var(--font-mono)",
                           fontSize: "0.85rem",
@@ -1201,8 +1202,8 @@ export default function Dashboard({ user, openAuth }) {
           <div
             role="alert"
             style={{
-              marginTop: "0.5rem",
-              padding: "1rem 1.25rem",
+              marginTop: space("xs"),
+              padding: `${space("sm")} ${space("fluid-sm")}`,
               borderRadius: "1rem",
               border: `1px solid ${darkMode ? "rgba(239,68,68,0.4)" : "rgba(239,68,68,0.5)"}`,
               background: darkMode ? "rgba(239,68,68,0.15)" : "rgba(254,226,226,0.85)",

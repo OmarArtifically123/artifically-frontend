@@ -1,4 +1,5 @@
 import { useMemo } from "react";
+import { space } from "../styles/spacing";
 
 export default function CaseStudies() {
   const studies = useMemo(
@@ -26,9 +27,9 @@ export default function CaseStudies() {
   );
 
   return (
-    <main className="container" style={{ padding: "64px 0", minHeight: "80vh" }}>
-      <header style={{ maxWidth: "700px", margin: "0 auto 40px", textAlign: "center" }}>
-        <h1 style={{ fontSize: "2.75rem", fontWeight: 800, marginBottom: "16px" }}>Case Studies</h1>
+    <main className="container" style={{ padding: `${space("2xl")} 0`, minHeight: "80vh" }}>
+      <header style={{ maxWidth: "700px", margin: `0 auto ${space("lg", 1.25)}`, textAlign: "center" }}>
+        <h1 style={{ fontSize: "2.75rem", fontWeight: 800, marginBottom: space("sm") }}>Case Studies</h1>
         <p style={{ color: "var(--gray-400)", fontSize: "1.1rem", lineHeight: 1.7 }}>
           Explore how industry leaders design resilient automations with Artifically. Every engagement is
           crafted with compliance, observability, and measurable ROI in mind.
@@ -39,8 +40,8 @@ export default function CaseStudies() {
         className="glass"
         style={{
           display: "grid",
-          gap: "24px",
-          padding: "32px",
+          gap: space("md"),
+          padding: space("lg"),
           borderRadius: "16px",
         }}
       >
@@ -48,17 +49,17 @@ export default function CaseStudies() {
           <article
             key={study.company}
             style={{
-              padding: "28px",
+              padding: space("md", 1.1667),
               borderRadius: "16px",
               background: "rgba(15, 23, 42, 0.62)",
               border: "1px solid rgba(148, 163, 184, 0.28)",
             }}
           >
-            <div style={{ display: "flex", justifyContent: "space-between", marginBottom: "8px" }}>
+            <div style={{ display: "flex", justifyContent: "space-between", marginBottom: space("xs") }}>
               <h2 style={{ margin: 0 }}>{study.company}</h2>
               <span style={{ color: "var(--gray-400)", fontSize: "0.9rem" }}>{study.industry}</span>
             </div>
-            <p style={{ color: "var(--gray-200)", marginBottom: "8px" }}>
+            <p style={{ color: "var(--gray-200)", marginBottom: space("xs") }}>
               <strong>Outcome:</strong> {study.outcome}
             </p>
             <p style={{ color: "var(--gray-300)", lineHeight: 1.6 }}>

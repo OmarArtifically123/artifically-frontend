@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from "react";
 import FeatureSkeletonGrid from "./skeletons/FeatureSkeleton";
 import useIntersectionLazy from "../hooks/useIntersectionLazy";
+import { space } from "../styles/spacing";
 import {
   FALLBACK_FEATURE_HIGHLIGHTS,
   FALLBACK_MARKETPLACE_STATS,
@@ -19,7 +20,7 @@ function FeatureHighlightFallback({
     <div className="rsc-feature-grid" aria-live="polite">
       {safeFeatures.map((feature) => (
         <article key={feature.id} data-fallback-node="feature-card">
-          <header style={{ display: "flex", alignItems: "center", gap: "0.75rem" }}>
+          <header style={{ display: "flex", alignItems: "center", gap: space("xs", 1.5) }}>
             <span
               aria-hidden="true"
               style={{

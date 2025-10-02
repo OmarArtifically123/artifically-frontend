@@ -4,6 +4,7 @@ import api, { pick } from "../api";
 import { toast } from "./Toast";
 import ThemeToggle from "./ThemeToggle";
 import { useTheme } from "../context/ThemeContext";
+import { space } from "../styles/spacing";
 
 export default function Verify({ onVerified }) {
   const { darkMode } = useTheme();
@@ -63,18 +64,18 @@ export default function Verify({ onVerified }) {
   };
 
   const renderCard = (content) => (
-    <section style={{ padding: "6rem 0" }}>
+    <section style={{ padding: `${space("2xl", 1.5)} 0` }}>
       <div
         className="container"
         style={{
           maxWidth: "640px",
           margin: "0 auto",
           display: "grid",
-          gap: "1.5rem",
+          gap: space("md"),
           textAlign: "center",
           background: darkMode ? "rgba(15,23,42,0.75)" : "rgba(255,255,255,0.95)",
           borderRadius: "1.5rem",
-          padding: "3rem",
+          padding: space("xl"),
           border: `1px solid ${darkMode ? "rgba(148,163,184,0.25)" : "rgba(148,163,184,0.35)"}`,
           boxShadow: darkMode
             ? "0 35px 65px rgba(8, 15, 34, 0.55)"

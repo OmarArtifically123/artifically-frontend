@@ -1,4 +1,5 @@
 import { useMemo, useState } from "react";
+import { space } from "../styles/spacing";
 
 const faqs = [
   {
@@ -29,17 +30,17 @@ export default function HelpCenter() {
   );
 
   return (
-    <main className="container" style={{ padding: "64px 0", minHeight: "80vh" }}>
-      <header style={{ maxWidth: "720px", margin: "0 auto 48px", textAlign: "center" }}>
-        <h1 style={{ fontSize: "2.75rem", fontWeight: 800, marginBottom: "16px" }}>Help Center</h1>
+    <main className="container" style={{ padding: `${space("2xl")} 0`, minHeight: "80vh" }}>
+      <header style={{ maxWidth: "720px", margin: `0 auto ${space("xl")}`, textAlign: "center" }}>
+        <h1 style={{ fontSize: "2.75rem", fontWeight: 800, marginBottom: space("sm") }}>Help Center</h1>
         <p style={{ color: "var(--gray-400)", fontSize: "1.1rem", lineHeight: 1.7 }}>
           Self-serve resources and quick answers for operators, developers, and security teams.
         </p>
       </header>
 
-      <section className="glass" style={{ padding: "32px", borderRadius: "16px", marginBottom: "32px" }}>
-        <h2 style={{ marginBottom: "16px" }}>Popular questions</h2>
-        <div style={{ display: "grid", gap: "16px" }}>
+      <section className="glass" style={{ padding: space("lg"), borderRadius: "16px", marginBottom: space("lg") }}>
+        <h2 style={{ marginBottom: space("sm") }}>Popular questions</h2>
+        <div style={{ display: "grid", gap: space("sm") }}>
           {faqs.map((faq, index) => (
             <button
               key={faq.question}
@@ -47,7 +48,7 @@ export default function HelpCenter() {
               onClick={() => setActiveIndex(index === activeIndex ? -1 : index)}
               style={{
                 textAlign: "left",
-                padding: "20px",
+                padding: space("fluid-sm"),
                 borderRadius: "14px",
                 border: "1px solid rgba(148, 163, 184, 0.28)",
                 background: "rgba(15, 23, 42, 0.6)",
@@ -59,7 +60,7 @@ export default function HelpCenter() {
                 <span aria-hidden="true">{activeIndex === index ? "−" : "+"}</span>
               </div>
               {activeIndex === index && (
-                <p style={{ color: "var(--gray-300)", marginTop: "12px", lineHeight: 1.6 }}>
+                <p style={{ color: "var(--gray-300)", marginTop: space("xs", 1.5), lineHeight: 1.6 }}>
                   {faq.answer}
                 </p>
               )}
@@ -68,17 +69,17 @@ export default function HelpCenter() {
         </div>
       </section>
 
-      <section className="glass" style={{ padding: "32px", borderRadius: "16px" }}>
-        <h2 style={{ marginBottom: "12px" }}>Need more help?</h2>
-        <p style={{ color: "var(--gray-400)", marginBottom: "16px" }}>
+      <section className="glass" style={{ padding: space("lg"), borderRadius: "16px" }}>
+        <h2 style={{ marginBottom: space("xs", 1.5) }}>Need more help?</h2>
+        <p style={{ color: "var(--gray-400)", marginBottom: space("sm") }}>
           Our support team is available 24/7 with a dedicated escalation path for enterprise customers.
         </p>
-        <ul style={{ display: "grid", gap: "12px", listStyle: "none", padding: 0 }}>
+        <ul style={{ display: "grid", gap: space("xs", 1.5), listStyle: "none", padding: 0 }}>
           {contactOptions.map((option) => (
             <li
               key={option.label}
               style={{
-                padding: "18px",
+                padding: space("sm", 1.125),
                 borderRadius: "12px",
                 background: "rgba(15, 23, 42, 0.55)",
                 border: "1px solid rgba(148, 163, 184, 0.26)",

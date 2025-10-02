@@ -2,6 +2,7 @@ import { useEffect, useMemo, useState, useRef } from "react";
 import gsap from "gsap";
 import { fetchAutomations } from "../data/automations";
 import { toast } from "../components/Toast";
+import { space } from "../styles/spacing";
 
 const billingOptions = [
   { id: "monthly", label: "Monthly" },
@@ -95,7 +96,7 @@ function FaqAccordion({ question, answer, isOpen, onToggle }) {
       className="glass"
       style={{
         borderRadius: "1.25rem",
-        padding: "1.25rem 1.5rem",
+        padding: `${space("fluid-sm")} ${space("md")}`,
         border: `1px solid ${isOpen ? "rgba(99,102,241,0.3)" : "rgba(148,163,184,0.15)"}`,
         transition: "border-color 0.2s ease",
       }}
@@ -110,7 +111,7 @@ function FaqAccordion({ question, answer, isOpen, onToggle }) {
           justifyContent: "space-between",
           alignItems: "center",
           width: "100%",
-          gap: "1rem",
+          gap: space("sm"),
           cursor: "pointer",
           color: "inherit",
         }}
@@ -122,7 +123,7 @@ function FaqAccordion({ question, answer, isOpen, onToggle }) {
         ref={contentRef}
         style={{
           overflow: "hidden",
-          marginTop: "0.9rem",
+          marginTop: space("xs", 1.8),
           color: "var(--gray-400)",
           lineHeight: 1.6,
           fontSize: "0.95rem",
@@ -194,9 +195,9 @@ export default function Pricing() {
   return (
     <main
       className="container"
-      style={{ padding: "56px 0 96px", minHeight: "80vh", display: "grid", gap: "3rem" }}
+      style={{ padding: `${space("xl", 1.1667)} 0 ${space("2xl", 1.5)}`, minHeight: "80vh", display: "grid", gap: space("xl") }}
     >
-      <section style={{ textAlign: "center", display: "grid", gap: "1.5rem" }}>
+      <section style={{ textAlign: "center", display: "grid", gap: space("md") }}>
         <span style={{ color: "#6366f1", fontSize: "0.85rem", letterSpacing: "0.08em" }}>Pricing</span>
         <h1 style={{ fontSize: "2.75rem", fontWeight: 800 }}>Predictable pricing for automation scale</h1>
         <p style={{ color: "var(--gray-400)", fontSize: "1.1rem", maxWidth: "720px", margin: "0 auto" }}>
@@ -208,8 +209,8 @@ export default function Pricing() {
             display: "inline-flex",
             background: "rgba(99,102,241,0.08)",
             borderRadius: "999px",
-            padding: "0.35rem",
-            gap: "0.35rem",
+            padding: space("2xs", 1.4),
+            gap: space("2xs", 1.4),
             margin: "0 auto",
           }}
         >
@@ -222,7 +223,7 @@ export default function Pricing() {
                 border: "none",
                 cursor: "pointer",
                 borderRadius: "999px",
-                padding: "0.55rem 1.4rem",
+                padding: `${space("xs", 1.1)} ${space("sm", 1.4)}`,
                 fontWeight: 600,
                 background: billingCycle === option.id ? "#6366f1" : "transparent",
                 color: billingCycle === option.id ? "#f8fafc" : "#6366f1",
@@ -238,20 +239,20 @@ export default function Pricing() {
       <section
         style={{
           display: "grid",
-          gap: "2rem",
+          gap: space("lg"),
           gridTemplateColumns: "repeat(auto-fit, minmax(280px, 1fr))",
         }}
       >
         {loading
           ? [1, 2, 3].map((index) => (
-              <div key={index} className="glass" style={{ borderRadius: "1.5rem", padding: "2.5rem" }}>
-                <div className="loading" style={{ width: "36px", height: "36px", marginBottom: "1.5rem" }}></div>
+              <div key={index} className="glass" style={{ borderRadius: "1.5rem", padding: space("lg", 1.25) }}>
+                <div className="loading" style={{ width: "36px", height: "36px", marginBottom: space("md") }}></div>
                 <div
                   style={{
                     height: "12px",
                     background: "rgba(148,163,184,0.15)",
                     borderRadius: "999px",
-                    marginBottom: "0.75rem",
+                    marginBottom: space("xs", 1.5),
                   }}
                 ></div>
                 <div
@@ -273,9 +274,9 @@ export default function Pricing() {
                   className="glass"
                   style={{
                     borderRadius: "1.5rem",
-                    padding: "2.5rem",
+                    padding: space("lg", 1.25),
                     display: "grid",
-                    gap: "1.25rem",
+                    gap: space("fluid-sm"),
                     border: "1px solid rgba(99,102,241,0.2)",
                     boxShadow: "0 35px 80px rgba(15,23,42,0.25)",
                   }}
@@ -286,7 +287,7 @@ export default function Pricing() {
                     <span style={{ fontSize: "2.4rem", fontWeight: 800, color: "#6366f1" }}>
                       {formatCurrency(price, automation.currency)}
                     </span>
-                    <span style={{ color: "var(--gray-400)", marginLeft: "0.35rem" }}>
+                    <span style={{ color: "var(--gray-400)", marginLeft: space("2xs", 1.4) }}>
                       {isYearly ? "/year" : "/month"}
                     </span>
                   </div>
@@ -294,9 +295,9 @@ export default function Pricing() {
                     style={{
                       color: "var(--gray-300)",
                       lineHeight: 1.6,
-                      paddingLeft: "1.1rem",
+                      paddingLeft: space("sm", 1.1),
                       display: "grid",
-                      gap: "0.4rem",
+                      gap: space("2xs", 1.6),
                     }}
                   >
                     {(automation.highlights || []).slice(0, 3).map((highlight) => (
@@ -315,20 +316,20 @@ export default function Pricing() {
         className="glass"
         style={{
           borderRadius: "1.5rem",
-          padding: "2.5rem",
+          padding: space("lg", 1.25),
           display: "grid",
-          gap: "2rem",
+          gap: space("lg"),
           alignItems: "center",
           gridTemplateColumns: "repeat(auto-fit, minmax(240px, 1fr))",
         }}
       >
-        <div style={{ display: "grid", gap: "0.75rem" }}>
+        <div style={{ display: "grid", gap: space("xs", 1.5) }}>
           <h2 style={{ fontSize: "1.6rem", fontWeight: 700 }}>Interactive calculator</h2>
           <p style={{ color: "var(--gray-400)", lineHeight: 1.7 }}>
             Slide to match your automation volume. Pricing updates instantly so you can model new rollouts with
             confidence.
           </p>
-          <div style={{ display: "grid", gap: "0.75rem" }}>
+          <div style={{ display: "grid", gap: space("xs", 1.5) }}>
             <label htmlFor="automation-count" style={{ fontWeight: 600 }}>
               Automations: {automationCount}
             </label>
@@ -352,9 +353,9 @@ export default function Pricing() {
           style={{
             background: "rgba(99,102,241,0.08)",
             borderRadius: "1.25rem",
-            padding: "1.5rem",
+            padding: space("md"),
             display: "grid",
-            gap: "1rem",
+            gap: space("sm"),
           }}
         >
           <h3 style={{ margin: 0 }}>ROI snapshot</h3>
@@ -380,14 +381,14 @@ export default function Pricing() {
         </div>
       </section>
 
-      <section style={{ display: "grid", gap: "1.5rem" }}>
+      <section style={{ display: "grid", gap: space("md") }}>
         <h2 style={{ fontSize: "1.75rem", fontWeight: 700 }}>Teams scaling with Artifically</h2>
-        <div style={{ display: "grid", gap: "1.25rem", gridTemplateColumns: "repeat(auto-fit, minmax(260px, 1fr))" }}>
+        <div style={{ display: "grid", gap: space("fluid-sm"), gridTemplateColumns: "repeat(auto-fit, minmax(260px, 1fr))" }}>
           {caseStudies.map((item) => (
             <article
               key={item.customer}
               className="glass"
-              style={{ borderRadius: "1.5rem", padding: "2rem", display: "grid", gap: "0.75rem" }}
+              style={{ borderRadius: "1.5rem", padding: space("lg"), display: "grid", gap: space("xs", 1.5) }}
             >
               <div style={{ fontWeight: 700, fontSize: "1.1rem" }}>{item.customer}</div>
               <p style={{ color: "var(--gray-400)", margin: 0 }}>{item.story}</p>
@@ -398,9 +399,9 @@ export default function Pricing() {
         </div>
       </section>
 
-      <section style={{ display: "grid", gap: "1rem" }}>
+      <section style={{ display: "grid", gap: space("sm") }}>
         <h2 style={{ fontSize: "1.75rem", fontWeight: 700 }}>Questions</h2>
-        <div style={{ display: "grid", gap: "0.75rem" }}>
+        <div style={{ display: "grid", gap: space("xs", 1.5) }}>
           {faqItems.map((item) => (
             <FaqAccordion
               key={item.question}
@@ -416,12 +417,12 @@ export default function Pricing() {
       <section
         style={{
           borderRadius: "1.75rem",
-          padding: "3rem",
+          padding: space("xl"),
           textAlign: "center",
           background: "linear-gradient(120deg, rgba(99,102,241,0.85), rgba(14,165,233,0.85))",
           color: "#f8fafc",
           display: "grid",
-          gap: "1rem",
+          gap: space("sm"),
         }}
       >
         <h2 style={{ fontSize: "2.1rem", fontWeight: 800 }}>Ready to orchestrate your automations?</h2>

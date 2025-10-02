@@ -6,6 +6,7 @@ import App from "./App";
 import { ThemeProvider } from "./context/ThemeContext";
 import { warmupWasm } from "./lib/wasmMath";
 import "./styles/global.css";
+import { space } from "./styles/spacing";
 
 // Enhanced fallback UI
 function ErrorFallback({ error, resetErrorBoundary }) {
@@ -17,7 +18,7 @@ function ErrorFallback({ error, resetErrorBoundary }) {
     <BrowserRouter>
       <ThemeProvider>
         <div style={{ 
-          padding: "2rem", 
+          padding: space("lg"), 
           textAlign: "center",
           minHeight: "100vh",
           display: "flex",
@@ -27,19 +28,19 @@ function ErrorFallback({ error, resetErrorBoundary }) {
           background: "#0f172a",
           color: "#f8fafc"
         }}>
-          <h1 style={{ fontSize: "2rem", marginBottom: "1rem" }}>Something went wrong</h1>
+          <h1 style={{ fontSize: "2rem", marginBottom: space("sm") }}>Something went wrong</h1>
           <p style={{ 
             color: "#94a3b8", 
-            marginBottom: "2rem",
+            marginBottom: space("lg"),
             maxWidth: "500px"
           }}>
             {error?.message || "An unexpected error occurred. Please try refreshing the page."}
           </p>
-          <div style={{ display: "flex", gap: "1rem" }}>
+          <div style={{ display: "flex", gap: space("sm") }}>
             <button
               onClick={() => window.location.reload()}
               style={{
-                padding: "0.75rem 1.5rem",
+                padding: `${space("xs", 1.5)} ${space("md")}`,
                 borderRadius: "0.5rem",
                 border: "none",
                 background: "#6366f1",

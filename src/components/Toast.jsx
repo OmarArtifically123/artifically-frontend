@@ -1,3 +1,4 @@
+import { space } from "../styles/spacing";
 // src/components/Toast.jsx
 import { useEffect, useMemo, useState } from "react";
 import { createPortal } from "react-dom";
@@ -95,14 +96,14 @@ export function ToastItem({ data, onClose }) {
       style={{
         display: "flex",
         alignItems: "center",
-        gap: "1rem",
+        gap: space("sm"),
         background: colors[type] || colors.success,
         color: darkMode ? "#0f172a" : "#0f172a",
         boxShadow: darkMode
           ? "0 24px 45px rgba(8, 15, 34, 0.45)"
           : "0 24px 45px rgba(148, 163, 184, 0.35)",
         borderRadius: "1.25rem",
-        padding: "1rem 1.25rem",
+        padding: `${space("sm")} ${space("fluid-sm")}`,
         minWidth: "260px",
         position: "relative",
         overflow: "hidden",
@@ -129,7 +130,7 @@ export function ToastItem({ data, onClose }) {
         )}
       </div>
 
-      <div style={{ display: "grid", gap: "0.25rem", flex: 1 }}>
+      <div style={{ display: "grid", gap: space("2xs"), flex: 1 }}>
         {displayTitle && (
           <strong style={{ fontSize: "1rem", color: darkMode ? "#0f172a" : "#0f172a" }}>
             {displayTitle}
@@ -148,7 +149,7 @@ export function ToastItem({ data, onClose }) {
               color: darkMode ? "#1e293b" : "#1e293b",
               display: "inline-flex",
               alignItems: "center",
-              gap: "0.35rem",
+              gap: space("2xs", 1.4),
             }}
           >
             🎁 {reward}
@@ -221,7 +222,7 @@ export function ToastHost() {
 
   return createPortal(
     <div style={{ position: "fixed", top: 20, right: 20, zIndex: 1200 }}>
-      <div style={{ display: "grid", gap: "1rem" }}>
+      <div style={{ display: "grid", gap: space("sm") }}>
         {toasts.map((toastItem) => (
           <ToastItem
             key={toastItem.id}

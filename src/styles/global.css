@@ -167,26 +167,20 @@
   );
 
   /* Spacing */
-  --space-px: 1px;
-  --space-0: 0;
-  --space-1: 0.25rem;
-  --space-2: 0.5rem;
-  --space-3: 0.75rem;
-  --space-4: 1rem;
-  --space-5: 1.25rem;
-  --space-6: 1.5rem;
-  --space-8: 2rem;
-  --space-10: 2.5rem;
-  --space-12: 3rem;
-  --space-16: 4rem;
-  --space-20: 5rem;
-  --space-24: 6rem;
-  --space-32: 8rem;
-  --space-fluid-2: clamp(0.75rem, 0.5rem + 1vw, 1.25rem);
-  --space-fluid-4: clamp(1.1rem, 0.75rem + 1.75vw, 2rem);
-  --space-fluid-6: clamp(1.25rem, 0.9rem + 2.35vw, 2.75rem);
-  --space-fluid-8: clamp(1.75rem, 1.25rem + 3vw, 3.25rem);
-  --space-fluid-12: clamp(2.5rem, 1.5rem + 5vw, 4.5rem);
+  --space-3xs: clamp(0.125rem, 0.1rem + 0.1vw, 0.2rem);
+  --space-2xs: clamp(0.25rem, 0.2rem + 0.15vw, 0.4rem);
+  --space-xs: clamp(0.5rem, 0.45rem + 0.25vw, 0.75rem);
+  --space-sm: clamp(1rem, 0.9rem + 0.5vw, 1.5rem);
+  --space-md: clamp(1.5rem, 1.3rem + 1vw, 2.5rem);
+  --space-lg: clamp(2rem, 1.6rem + 2vw, 4rem);
+  --space-xl: clamp(3rem, 2.25rem + 3.75vw, 6rem);
+  --space-2xl: clamp(4rem, 2.75rem + 6.25vw, 10rem);
+  --space-3xl: clamp(5rem, 3.25rem + 7.5vw, 14rem);
+  --space-fluid-xs: clamp(0.75rem, 0.6rem + 0.6vw, 1.35rem);
+  --space-fluid-sm: clamp(1.25rem, 0.95rem + 1.3vw, 2rem);
+  --space-fluid-md: clamp(1.75rem, 1.35rem + 2.1vw, 3rem);
+  --space-fluid-lg: clamp(2.5rem, 1.85rem + 3.4vw, 4.5rem);
+  --space-fluid-xl: clamp(3.5rem, 2.35rem + 5.25vw, 6.5rem);
 
   /* Border Radius */
   --rounded-sm: 0.125rem;
@@ -307,7 +301,7 @@ html {
   scroll-behavior: smooth;
   font-size: 16px;
   line-height: 1.5;
-  scroll-padding-top: calc(var(--header-offset) + var(--space-4));
+  scroll-padding-top: calc(var(--header-offset) + var(--space-sm));
   background-color: var(--bg-primary);
 }
 
@@ -403,16 +397,16 @@ body[data-time-theme="midnight"] {
 }
 
 .app-shell {
-  padding-top: calc(var(--header-offset) + var(--space-8));
+  padding-top: calc(var(--header-offset) + var(--space-lg));
 }
 @media (max-width: 768px) {
   .app-shell {
-    padding-top: calc(var(--header-offset) + var(--space-6));
+    padding-top: calc(var(--header-offset) + var(--space-md));
   }
 }
 
 main :where(section, div)[id] {
-  scroll-margin-top: calc(var(--header-offset) + var(--space-4));
+  scroll-margin-top: calc(var(--header-offset) + var(--space-sm));
 }
 
 .experience-shell {
@@ -460,7 +454,7 @@ main :where(section, div)[id] {
   position: relative;
   display: inline-flex;
   align-items: center;
-  gap: var(--space-2);
+  gap: var(--space-xs);
   padding: 0.35rem 0.5rem;
   border-radius: var(--rounded-full);
   background: linear-gradient(135deg, rgba(99, 102, 241, 0.15), rgba(6, 182, 212, 0.08));
@@ -686,7 +680,7 @@ main :where(section, div)[id] {
 .container {
   max-width: 1200px;
   margin: 0 auto;
-  padding: 0 var(--space-6);
+  padding: 0 var(--space-md);
 }
 
 .sr-only {
@@ -717,7 +711,7 @@ main :where(section, div)[id] {
   background: rgba(15, 23, 42, 0.8);
   backdrop-filter: blur(20px);
   border-bottom: 1px solid var(--border-color);
-  padding: var(--space-4) 0;
+  padding: var(--space-sm) 0;
   transition: all var(--transition-normal);
 }
 
@@ -727,13 +721,13 @@ main :where(section, div)[id] {
   justify-content: space-between;
   max-width: 1200px;
     margin: 0 auto;
-  padding: 0 var(--space-6);
+  padding: 0 var(--space-md);
 }
 
 .brand {
   display: flex;
   align-items: center;
-  gap: var(--space-3);
+  gap: var(--space-sm);
   cursor: pointer;
   transition: all var(--transition-fast);
 }
@@ -766,7 +760,7 @@ main :where(section, div)[id] {
 .nav {
   display: flex;
   align-items: center;
-  gap: var(--space-8);
+  gap: var(--space-lg);
 }
 
 .nav a {
@@ -775,7 +769,7 @@ main :where(section, div)[id] {
   font-weight: 500;
   transition: all var(--transition-fast);
   position: relative;
-  padding: var(--space-2) var(--space-4);
+  padding: var(--space-xs) var(--space-sm);
   border-radius: var(--rounded-lg);
 }
 
@@ -809,12 +803,12 @@ main :where(section, div)[id] {
 .header-actions {
   display: flex;
   align-items: center;
-  gap: var(--space-3);
+  gap: var(--space-sm);
 }
 
 .user-chip {
   background: var(--bg-glass);
-  padding: var(--space-2) var(--space-4);
+  padding: var(--space-xs) var(--space-sm);
   border-radius: var(--rounded-full);
   font-size: 0.875rem;
   font-weight: 500;
@@ -826,8 +820,8 @@ main :where(section, div)[id] {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  gap: var(--space-2);
-  padding: var(--space-3) var(--space-6);
+  gap: var(--space-xs);
+  padding: var(--space-sm) var(--space-md);
   border-radius: var(--rounded-lg);
   font-weight: 600;
   font-size: 0.875rem;
@@ -895,7 +889,7 @@ main :where(section, div)[id] {
 .btn-text {
   background: transparent;
   color: var(--gray-300);
-  padding: var(--space-2) var(--space-4);
+  padding: var(--space-xs) var(--space-sm);
 }
 
 .btn-text:hover {
@@ -904,7 +898,7 @@ main :where(section, div)[id] {
 }
 
 .btn-small {
-  padding: var(--space-2) var(--space-4);
+  padding: var(--space-xs) var(--space-sm);
   font-size: 0.75rem;
 }
 
@@ -1935,13 +1929,13 @@ main :where(section, div)[id] {
 }
 
 .route-shell {
-  padding: var(--space-fluid-12) 0;
+  padding: var(--space-fluid-xl) 0;
 }
 
 .route-shell__surface {
   display: grid;
-  gap: var(--space-fluid-2);
-  padding: var(--space-fluid-4);
+  gap: var(--space-fluid-xs);
+  padding: var(--space-fluid-sm);
   background: rgba(15, 23, 42, 0.4);
   border: 1px solid rgba(148, 163, 184, 0.18);
 }
@@ -2012,7 +2006,7 @@ main :where(section, div)[id] {
   .hero {
     width: min(100%, calc(100vw - 2rem));
     padding: clamp(2.25rem, 9vw, 3rem);
-    margin: var(--space-fluid-6) auto;
+    margin: var(--space-fluid-md) auto;
   }
 
   .hero-header {
@@ -2062,20 +2056,20 @@ main :where(section, div)[id] {
 
 /* Features Section */
 .features {
-  padding: var(--space-20) 0;
+  padding: var(--space-3xl) 0;
   background: var(--bg-secondary);
   position: relative;
 }
 
 .section-header {
   text-align: center;
-  margin-bottom: var(--space-16);
+  margin-bottom: var(--space-2xl);
 }
 
 .section-header h2 {
   font-size: clamp(2rem, 5vw, 2.5rem);
   font-weight: 800;
-  margin-bottom: var(--space-4);
+  margin-bottom: var(--space-sm);
   color: var(--text-primary);
 }
 
@@ -2097,13 +2091,13 @@ main :where(section, div)[id] {
 .features-grid {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-  gap: var(--space-8);
+  gap: var(--space-lg);
 }
 
 .rsc-feature-shell {
-  margin-top: var(--space-12);
+  margin-top: var(--space-xl);
   border-radius: var(--rounded-3xl);
-  padding: var(--space-6);
+  padding: var(--space-md);
   border: 1px solid rgba(148, 163, 184, 0.15);
   background: linear-gradient(135deg, rgba(99, 102, 241, 0.12), rgba(45, 212, 191, 0.06));
   position: relative;
@@ -2122,18 +2116,18 @@ main :where(section, div)[id] {
   position: relative;
   z-index: 1;
   display: grid;
-  gap: var(--space-6);
+  gap: var(--space-md);
   grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
 }
 
 .rsc-feature-grid article {
-  padding: var(--space-5);
+  padding: var(--space-sm);
   border-radius: var(--rounded-2xl);
   border: 1px solid rgba(148, 163, 184, 0.2);
   background: rgba(15, 23, 42, 0.4);
   backdrop-filter: blur(12px);
   display: grid;
-  gap: var(--space-4);
+  gap: var(--space-sm);
   transition: transform var(--transition-fast), border-color var(--transition-fast);
 }
 
@@ -2174,7 +2168,7 @@ main :where(section, div)[id] {
 
 .feature-card {
   text-align: center;
-  padding: var(--space-8);
+  padding: var(--space-lg);
   background: var(--bg-glass);
   border-radius: var(--rounded-2xl);
   border: 1px solid var(--border-color);
@@ -2213,7 +2207,7 @@ main :where(section, div)[id] {
   display: flex;
   align-items: center;
   justify-content: center;
-  margin: 0 auto var(--space-6);
+  margin: 0 auto var(--space-md);
   font-size: 1.5rem;
   box-shadow: var(--shadow-lg), var(--shadow-glow);
 }
@@ -2221,7 +2215,7 @@ main :where(section, div)[id] {
 .feature-card h3 {
   font-size: 1.25rem;
   font-weight: 700;
-  margin-bottom: var(--space-3);
+  margin-bottom: var(--space-sm);
   color: var(--white);
 }
 
@@ -2232,7 +2226,7 @@ main :where(section, div)[id] {
 
 /* Marketplace Section */
 .marketplace {
-  padding: var(--space-20) 0;
+  padding: var(--space-3xl) 0;
   scroll-margin-top: 100px;
 }
 
@@ -2260,13 +2254,13 @@ main :where(section, div)[id] {
 .automation-grid {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
-  gap: var(--space-6);
+  gap: var(--space-md);
 }
 
 .automation-card {
   background: var(--bg-card);
   border-radius: var(--rounded-2xl);
-  padding: var(--space-6);
+  padding: var(--space-md);
   border: 1px solid var(--border-color);
   transition: all var(--transition-normal);
   position: relative;
@@ -2300,7 +2294,7 @@ main :where(section, div)[id] {
   display: flex;
   align-items: flex-start;
   justify-content: space-between;
-  margin-bottom: var(--space-4);
+  margin-bottom: var(--space-sm);
 }
 
 .card-icon {
@@ -2318,7 +2312,7 @@ main :where(section, div)[id] {
 
 .card-price {
   background: var(--bg-glass);
-  padding: var(--space-1) var(--space-3);
+  padding: var(--space-2xs) var(--space-sm);
   border-radius: var(--rounded-full);
   font-size: 0.75rem;
   font-weight: 600;
@@ -2329,27 +2323,27 @@ main :where(section, div)[id] {
 .automation-card h3 {
   font-size: 1.125rem;
   font-weight: 700;
-  margin: var(--space-2) 0 var(--space-3);
+  margin: var(--space-xs) 0 var(--space-sm);
   color: var(--white);
 }
 
 .automation-card p {
   color: var(--gray-400);
-  margin-bottom: var(--space-4);
+  margin-bottom: var(--space-sm);
   line-height: 1.6;
 }
 
 .card-tags {
   display: flex;
-  gap: var(--space-2);
+  gap: var(--space-xs);
   flex-wrap: wrap;
-  margin-bottom: var(--space-6);
+  margin-bottom: var(--space-md);
 }
 
 .tag {
   background: var(--bg-glass);
   color: var(--gray-300);
-  padding: var(--space-1) var(--space-3);
+  padding: var(--space-2xs) var(--space-sm);
   border-radius: var(--rounded-lg);
   font-size: 0.75rem;
   font-weight: 600;
@@ -2358,7 +2352,7 @@ main :where(section, div)[id] {
 
 .card-actions {
   display: flex;
-  gap: var(--space-3);
+  gap: var(--space-sm);
 }
 
 /* Modal Styles */
@@ -2371,7 +2365,7 @@ main :where(section, div)[id] {
   align-items: center;
   justify-content: center;
   z-index: 1000;
-  padding: var(--space-4);
+  padding: var(--space-sm);
 }
 
 .modal {
@@ -2381,7 +2375,7 @@ main :where(section, div)[id] {
   overflow-y: auto;
   background: var(--bg-secondary);
   border-radius: var(--rounded-2xl);
-  padding: var(--space-8);
+  padding: var(--space-lg);
   border: 1px solid var(--border-color);
   box-shadow: var(--shadow-2xl);
   position: relative;
@@ -2391,7 +2385,7 @@ main :where(section, div)[id] {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  margin-bottom: var(--space-6);
+  margin-bottom: var(--space-md);
 }
 
 .modal-header h2 {
@@ -2406,7 +2400,7 @@ main :where(section, div)[id] {
   font-size: 1.5rem;
   color: var(--gray-400);
   cursor: pointer;
-  padding: var(--space-2);
+  padding: var(--space-xs);
   border-radius: var(--rounded-lg);
   transition: all var(--transition-fast);
 }
@@ -2421,20 +2415,20 @@ body.demo-experience-open {
 }
 
 .marketplace-journey {
-  margin-top: var(--space-6);
+  margin-top: var(--space-md);
   display: grid;
-  gap: var(--space-4);
+  gap: var(--space-sm);
 }
 
 .marketplace-journey header {
   display: grid;
-  gap: var(--space-2);
+  gap: var(--space-xs);
 }
 
 .marketplace-journey__eyebrow {
   display: inline-flex;
   align-items: center;
-  gap: var(--space-2);
+  gap: var(--space-xs);
   font-size: 0.9rem;
   font-weight: 700;
   letter-spacing: 0.05em;
@@ -2445,13 +2439,13 @@ body.demo-experience-open {
 .marketplace-journey__grid {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
-  gap: var(--space-4);
+  gap: var(--space-sm);
 }
 
 .marketplace-journey__card {
   display: grid;
-  gap: var(--space-3);
-  padding: var(--space-5) var(--space-4);
+  gap: var(--space-sm);
+  padding: var(--space-sm) var(--space-sm);
   border-radius: var(--rounded-2xl);
   border: 1px solid rgba(99, 102, 241, 0.18);
   background: linear-gradient(160deg, rgba(15, 23, 42, 0.72), rgba(30, 41, 59, 0.78));
@@ -2461,7 +2455,7 @@ body.demo-experience-open {
 .marketplace-journey__card-header {
   display: flex;
   align-items: center;
-  gap: var(--space-3);
+  gap: var(--space-sm);
 }
 
 .marketplace-journey__icon {
@@ -2483,7 +2477,7 @@ body.demo-experience-open {
   margin: 0;
   padding-left: 1.2rem;
   display: grid;
-  gap: var(--space-2);
+  gap: var(--space-xs);
   color: var(--gray-200);
   font-weight: 500;
 }
@@ -3009,18 +3003,18 @@ body.demo-experience-open {
   }
 
   .marketplace-demo-experience {
-    padding: var(--space-4);
+    padding: var(--space-sm);
   }
 }
 
 /* Form Styles */
 .form-group {
-  margin-bottom: var(--space-6);
+  margin-bottom: var(--space-md);
 }
 
 .form-label {
   display: block;
-  margin-bottom: var(--space-2);
+  margin-bottom: var(--space-xs);
   font-weight: 600;
   color: var(--white);
   font-size: 0.875rem;
@@ -3028,7 +3022,7 @@ body.demo-experience-open {
 
 .form-input {
   width: 100%;
-  padding: var(--space-4);
+  padding: var(--space-sm);
   border: 1px solid var(--border-color);
   border-radius: var(--rounded-lg);
   font-size: 0.875rem;
@@ -3059,14 +3053,14 @@ body.demo-experience-open {
 
 .form-hint {
   display: block;
-  margin-top: var(--space-1);
+  margin-top: var(--space-2xs);
   font-size: 0.75rem;
   color: var(--gray-500);
 }
 
 /* Dashboard Styles */
 .dashboard {
-  padding: var(--space-12) 0;
+  padding: var(--space-xl) 0;
   min-height: calc(100vh - 200px);
 }
 
@@ -3074,9 +3068,9 @@ body.demo-experience-open {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  margin-bottom: var(--space-8);
+  margin-bottom: var(--space-lg);
   flex-wrap: wrap;
-  gap: var(--space-4);
+  gap: var(--space-sm);
 }
 
 .dashboard-header h1 {
@@ -3087,18 +3081,18 @@ body.demo-experience-open {
 
 .dashboard-header p {
   color: var(--gray-400);
-  margin-top: var(--space-1);
+  margin-top: var(--space-2xs);
 }
 
 .deployments-list {
   display: grid;
-  gap: var(--space-6);
+  gap: var(--space-md);
 }
 
 .deployment-card {
   background: var(--bg-card);
   border-radius: var(--rounded-xl);
-  padding: var(--space-6);
+  padding: var(--space-md);
   border: 1px solid var(--border-color);
   transition: all var(--transition-normal);
 }
@@ -3112,7 +3106,7 @@ body.demo-experience-open {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  margin-bottom: var(--space-4);
+  margin-bottom: var(--space-sm);
 }
 
 .deployment-title {
@@ -3123,7 +3117,7 @@ body.demo-experience-open {
 
 .deployment-plan {
   background: var(--bg-glass);
-  padding: var(--space-1) var(--space-3);
+  padding: var(--space-2xs) var(--space-sm);
   border-radius: var(--rounded-full);
   font-size: 0.75rem;
   font-weight: 700;
@@ -3137,12 +3131,12 @@ body.demo-experience-open {
 }
 
 .deployment-body > div {
-  margin-bottom: var(--space-2);
+  margin-bottom: var(--space-xs);
 }
 
 .deployment-details summary {
   cursor: pointer;
-  margin-top: var(--space-4);
+  margin-top: var(--space-sm);
   font-weight: 600;
   color: var(--primary-light);
 }
@@ -3150,18 +3144,18 @@ body.demo-experience-open {
 .code {
   background: var(--gray-900);
   color: var(--gray-300);
-  padding: var(--space-4);
+  padding: var(--space-sm);
   border-radius: var(--rounded-lg);
 overflow: auto;
   font-family: var(--font-mono);
   font-size: 0.875rem;
-  margin-top: var(--space-2);
+  margin-top: var(--space-xs);
   border: 1px solid var(--border-color);
 }
 
 /* Banner Styles */
 .banner {
-  padding: var(--space-4) 0;
+  padding: var(--space-sm) 0;
   text-align: center;
   position: sticky;
   top: 80px;

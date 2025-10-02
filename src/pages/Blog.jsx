@@ -1,4 +1,5 @@
 import { useMemo } from "react";
+import { space } from "../styles/spacing";
 
 export default function Blog() {
   const posts = useMemo(
@@ -29,9 +30,9 @@ export default function Blog() {
   );
 
   return (
-    <main className="container" style={{ padding: "64px 0", minHeight: "80vh" }}>
-      <header style={{ maxWidth: "680px", margin: "0 auto 40px", textAlign: "center" }}>
-        <h1 style={{ fontSize: "2.75rem", fontWeight: 800, marginBottom: "12px" }}>Artifically Blog</h1>
+    <main className="container" style={{ padding: `${space("2xl")} 0`, minHeight: "80vh" }}>
+      <header style={{ maxWidth: "680px", margin: `0 auto ${space("lg", 1.25)}`, textAlign: "center" }}>
+        <h1 style={{ fontSize: "2.75rem", fontWeight: 800, marginBottom: space("xs", 1.5) }}>Artifically Blog</h1>
         <p style={{ color: "var(--gray-400)", fontSize: "1.1rem", lineHeight: 1.7 }}>
           Insights, architectural deep dives, and customer stories from the team building trustworthy
           automations for the enterprise.
@@ -42,8 +43,8 @@ export default function Blog() {
         className="glass"
         style={{
           display: "grid",
-          gap: "24px",
-          padding: "32px",
+          gap: space("md"),
+          padding: space("lg"),
           borderRadius: "16px",
         }}
       >
@@ -51,16 +52,16 @@ export default function Blog() {
           <article
             key={post.title}
             style={{
-              padding: "24px",
+              padding: space("md"),
               borderRadius: "14px",
               border: "1px solid rgba(148, 163, 184, 0.25)",
               background: "rgba(15, 23, 42, 0.6)",
             }}
           >
-            <div style={{ color: "var(--gray-400)", marginBottom: "8px", fontSize: "0.9rem" }}>
+            <div style={{ color: "var(--gray-400)", marginBottom: space("xs"), fontSize: "0.9rem" }}>
               {post.date} • {post.readingTime}
             </div>
-            <h2 style={{ marginBottom: "12px", fontSize: "1.5rem", fontWeight: 700 }}>{post.title}</h2>
+            <h2 style={{ marginBottom: space("xs", 1.5), fontSize: "1.5rem", fontWeight: 700 }}>{post.title}</h2>
             <p style={{ color: "var(--gray-300)", lineHeight: 1.6 }}>{post.summary}</p>
           </article>
         ))}

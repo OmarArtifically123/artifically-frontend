@@ -3,6 +3,7 @@ import ThemeToggle from "./ThemeToggle";
 import ServerFeatureHighlights from "./ServerFeatureHighlights";
 import { useTheme } from "../context/ThemeContext";
 import FeatureSkeletonGrid from "./skeletons/FeatureSkeleton";
+import { space } from "../styles/spacing";
 import {
   FALLBACK_FEATURE_HIGHLIGHTS,
   FALLBACK_MARKETPLACE_STATS,
@@ -17,7 +18,7 @@ const FeatureCard = memo(
       {...motionProps}
         style={{
           position: "relative",
-          padding: "1.75rem",
+          padding: space("md", 1.1667),
           borderRadius: "1.25rem",
           border: `1px solid ${darkMode ? "rgba(148,163,184,0.2)" : "rgba(148,163,184,0.3)"}`,
           background: darkMode
@@ -49,7 +50,7 @@ const FeatureCard = memo(
             position: "relative",
             zIndex: 1,
             display: "grid",
-            gap: "1.25rem",
+            gap: space("fluid-sm"),
           }}
         >
           <div
@@ -79,7 +80,7 @@ const FeatureCard = memo(
             </div>
             <span
               style={{
-                padding: "0.35rem 0.85rem",
+                padding: `${space("2xs", 1.4)} ${space("xs", 1.7)}`,
                 borderRadius: "999px",
                 background: darkMode
                   ? "rgba(148,163,184,0.16)"
@@ -95,7 +96,7 @@ const FeatureCard = memo(
               {feature.status}
             </span>
           </div>
-          <div style={{ display: "grid", gap: "0.75rem" }}>
+          <div style={{ display: "grid", gap: space("xs", 1.5) }}>
             <h3
               style={{
                 fontSize: "1.4rem",
@@ -172,7 +173,7 @@ function FeaturesContent() {
       data-animate-root
       style={{
         position: "relative",
-        padding: "5rem 0",
+        padding: `${space("3xl")} 0`,
       }}
     >
       <div
@@ -181,7 +182,7 @@ function FeaturesContent() {
           position: "relative",
           zIndex: 1,
           display: "grid",
-          gap: "2.5rem",
+          gap: space("lg", 1.25),
         }}
       >
         <div
@@ -191,7 +192,7 @@ function FeaturesContent() {
           style={{
             display: "flex",
             flexDirection: "column",
-            gap: "1rem",
+            gap: space("sm"),
             alignItems: "flex-start",
           }}
         >
@@ -201,7 +202,7 @@ function FeaturesContent() {
               justifyContent: "space-between",
               alignItems: "center",
               width: "100%",
-              gap: "1rem",
+              gap: space("sm"),
               flexWrap: "wrap",
             }}
           >
@@ -236,7 +237,7 @@ function FeaturesContent() {
             style={{
               display: "flex",
               flexWrap: "wrap",
-              gap: "0.75rem",
+              gap: space("xs", 1.5),
             }}
             data-animate="fade-up"
             data-animate-order="4"
@@ -255,8 +256,8 @@ function FeaturesContent() {
                 style={{
                   display: "inline-flex",
                   alignItems: "center",
-                  gap: "0.35rem",
-                  padding: "0.4rem 0.75rem",
+                  gap: space("2xs", 1.4),
+                  padding: `${space("2xs", 1.6)} ${space("xs", 1.5)}`,
                   borderRadius: "0.75rem",
                   fontSize: "0.85rem",
                   background: `${badge.color}1a`,
@@ -284,7 +285,7 @@ function FeaturesContent() {
             style={{
               display: "grid",
               gridTemplateColumns: "repeat(auto-fit, minmax(260px, 1fr))",
-              gap: "1.5rem",
+              gap: space("md"),
             }}
           >
             {features.map((feature, index) => (

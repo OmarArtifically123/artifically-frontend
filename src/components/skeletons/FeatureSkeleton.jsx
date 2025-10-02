@@ -1,3 +1,4 @@
+import { space } from "../../styles/spacing";
 export default function FeatureSkeletonGrid({ cards = 6 }) {
   return (
     <div
@@ -6,19 +7,19 @@ export default function FeatureSkeletonGrid({ cards = 6 }) {
       style={{
         display: "grid",
         gridTemplateColumns: "repeat(auto-fit, minmax(260px, 1fr))",
-        gap: "1.5rem",
+        gap: space("md"),
       }}
     >
       {Array.from({ length: cards }).map((_, index) => (
         <div
           key={index}
           style={{
-            padding: "1.75rem",
+            padding: space("md", 1.1667),
             borderRadius: "1.25rem",
             border: "1px solid rgba(148,163,184,0.2)",
             background: "linear-gradient(160deg, rgba(148,163,184,0.2), rgba(148,163,184,0.1))",
             display: "grid",
-            gap: "1.25rem",
+            gap: space("fluid-sm"),
             minHeight: "220px",
           }}
         >

@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useRef, useState } from "react";
+import { space } from "../styles/spacing";
 
 const FORM_DEFAULTS = {
   name: "",
@@ -272,17 +273,17 @@ export default function Contact() {
   }, [formState.topic, showAdvanced]);
 
   return (
-    <main className="container" style={{ padding: "64px 0", minHeight: "80vh" }}>
-      <header style={{ maxWidth: "720px", margin: "0 auto 48px", textAlign: "center" }}>
-        <h1 style={{ fontSize: "2.75rem", fontWeight: 800, marginBottom: "16px" }}>Contact our team</h1>
+    <main className="container" style={{ padding: `${space("2xl")} 0`, minHeight: "80vh" }}>
+      <header style={{ maxWidth: "720px", margin: `0 auto ${space("xl")}`, textAlign: "center" }}>
+        <h1 style={{ fontSize: "2.75rem", fontWeight: 800, marginBottom: space("sm") }}>Contact our team</h1>
         <p style={{ color: "var(--gray-400)", fontSize: "1.05rem", lineHeight: 1.7 }}>
           Tell us about your automation initiative and we'll craft a tailored success plan.
         </p>
       </header>
 
-      <section className="glass" style={{ padding: "32px", borderRadius: "16px" }}>
-        <form onSubmit={handleSubmit} style={{ display: "grid", gap: "20px" }}>
-          <label style={{ display: "grid", gap: "8px" }}>
+      <section className="glass" style={{ padding: space("lg"), borderRadius: "16px" }}>
+        <form onSubmit={handleSubmit} style={{ display: "grid", gap: space("fluid-sm") }}>
+          <label style={{ display: "grid", gap: space("xs") }}>
             <span>Name</span>
             <input
               type="text"
@@ -296,7 +297,7 @@ export default function Contact() {
             />
             <FieldHint visible={activeHint === "name"}>{hints.name}</FieldHint>
           </label>
-          <label style={{ display: "grid", gap: "8px" }}>
+          <label style={{ display: "grid", gap: space("xs") }}>
             <span>Email</span>
             <input
               type="email"
@@ -310,7 +311,7 @@ export default function Contact() {
             />
             <FieldHint visible={activeHint === "email"}>{hints.email}</FieldHint>
           </label>
-          <label style={{ display: "grid", gap: "8px" }}>
+          <label style={{ display: "grid", gap: space("xs") }}>
             <span>Topic</span>
             <input
               type="text"
@@ -326,7 +327,7 @@ export default function Contact() {
             {!!topicHistory.length && (
               <div style={suggestionRowStyle}>
                 <span style={{ color: "var(--gray-400)", fontSize: "0.85rem" }}>Recent topics:</span>
-                <div style={{ display: "flex", flexWrap: "wrap", gap: "8px" }}>
+                <div style={{ display: "flex", flexWrap: "wrap", gap: space("xs") }}>
                   {topicHistory.map((topic) => (
                     <button
                       key={topic}
@@ -342,7 +343,7 @@ export default function Contact() {
               </div>
             )}
           </label>
-          <label style={{ display: "grid", gap: "8px" }}>
+          <label style={{ display: "grid", gap: space("xs") }}>
             <span>Message</span>
             <textarea
               name="message"
@@ -356,14 +357,14 @@ export default function Contact() {
             <FieldHint visible={activeHint === "message"}>{hints.message}</FieldHint>
           </label>
 
-          <div style={{ display: "grid", gap: "12px" }}>
+          <div style={{ display: "grid", gap: space("xs", 1.5) }}>
             <button
               type="button"
               onClick={() => setShowAdvanced((prev) => !prev)}
               className="btn"
               style={{
                 justifySelf: "flex-start",
-                padding: "8px 14px",
+                padding: `${space("xs")} ${space("xs", 1.75)}`,
                 borderRadius: "10px",
                 background: "rgba(148, 163, 184, 0.15)",
                 color: "var(--gray-100)",
@@ -377,13 +378,13 @@ export default function Contact() {
                 className="glass"
                 style={{
                   display: "grid",
-                  gap: "16px",
-                  padding: "20px",
+                  gap: space("sm"),
+                  padding: space("fluid-sm"),
                   borderRadius: "12px",
                   background: "rgba(15, 23, 42, 0.55)",
                 }}
               >
-                <label style={{ display: "grid", gap: "6px" }}>
+                <label style={{ display: "grid", gap: space("2xs", 1.5) }}>
                   <span>Preferred contact method</span>
                   <select
                     name="contactMethod"
@@ -400,7 +401,7 @@ export default function Contact() {
                   <FieldHint visible={activeHint === "contactMethod"}>{hints.contactMethod}</FieldHint>
                 </label>
 
-                <label style={{ display: "grid", gap: "6px" }}>
+                <label style={{ display: "grid", gap: space("2xs", 1.5) }}>
                   <span>Implementation timeline</span>
                   <select
                     name="timeline"
@@ -418,7 +419,7 @@ export default function Contact() {
                   <FieldHint visible={activeHint === "timeline"}>{hints.timeline}</FieldHint>
                 </label>
 
-                <label style={{ display: "flex", gap: "12px", alignItems: "flex-start" }}>
+                <label style={{ display: "flex", gap: space("xs", 1.5), alignItems: "flex-start" }}>
                   <input
                     type="checkbox"
                     name="shareMetrics"
@@ -426,9 +427,9 @@ export default function Contact() {
                     onChange={handleChange}
                     onFocus={() => startHesitation("shareMetrics", formState.shareMetrics)}
                     onBlur={() => stopHesitation("shareMetrics")}
-                    style={{ marginTop: "4px" }}
+                    style={{ marginTop: space("2xs") }}
                   />
-                  <span style={{ display: "grid", gap: "4px" }}>
+                  <span style={{ display: "grid", gap: space("2xs") }}>
                     <span>Share automation performance metrics</span>
                     <span style={{ color: "var(--gray-400)", fontSize: "0.85rem", lineHeight: 1.5 }}>
                       This helps our solutions team benchmark improvements against similar deployments.
@@ -444,7 +445,7 @@ export default function Contact() {
             type="submit"
             className="btn btn-primary"
             disabled={status === "loading"}
-            style={{ padding: "12px 20px", borderRadius: "12px" }}
+            style={{ padding: `${space("xs", 1.5)} ${space("fluid-sm")}`, borderRadius: "12px" }}
           >
             {status === "loading" ? "Sending..." : "Submit"}
           </button>
@@ -459,7 +460,7 @@ export default function Contact() {
 }
 
 const inputStyle = {
-  padding: "12px 16px",
+  padding: `${space("xs", 1.5)} ${space("sm")}`,
   borderRadius: "12px",
   border: "1px solid rgba(148, 163, 184, 0.32)",
   background: "rgba(15, 23, 42, 0.7)",
@@ -474,11 +475,11 @@ const hintStyle = {
 
 const suggestionRowStyle = {
   display: "grid",
-  gap: "6px",
+  gap: space("2xs", 1.5),
 };
 
 const chipStyle = {
-  padding: "6px 12px",
+  padding: `${space("2xs", 1.5)} ${space("xs", 1.5)}`,
   borderRadius: "999px",
   background: "rgba(99, 102, 241, 0.16)",
   border: "1px solid rgba(99, 102, 241, 0.35)",
