@@ -959,6 +959,7 @@ main :where(section, div)[id] {
   text-wrap: balance;
 }
 
+/* Base headline styles */
 .hero-text h1 {
   font-family: "Space Grotesk", "Inter", system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
   font-size: clamp(3.1rem, 6vw, 5.4rem);
@@ -966,49 +967,10 @@ main :where(section, div)[id] {
   line-height: 1.04;
   letter-spacing: -0.045em;
   text-wrap: balance;
-
-  /* gradient headline */
-  background: linear-gradient(90deg, #ffffff, #a78bfa, #34d399);
-  -webkit-background-clip: text;
-  background-clip: text;
-  -webkit-text-fill-color: transparent;
-
-  /* contrast boost */
-  text-shadow: 0 2px 8px rgba(0, 0, 0, 0.65);
-  /* Light theme fallback */
-[data-theme="light"] .hero-text h1 {
-  background: none !important;
-  -webkit-text-fill-color: initial !important;
-  color: #111827; /* dark slate text */
-  text-shadow: none; /* no shadow needed in light mode */
+  color: inherit;
 }
 
-/* Dark theme fallback */
-[data-theme="dark"] .hero-text h1 {
-  background: none !important;
-  -webkit-text-fill-color: initial !important;
-  color: #ffffff; /* bright white text */
-  text-shadow: 0 2px 10px rgba(0, 0, 0, 0.85); /* glow for contrast */
-}
-/* FORCE HERO HEADLINE VISIBLE */
-[data-theme="light"] .hero-text h1,
-[data-theme="dark"] .hero-text h1 {
-  background: none !important;
-  -webkit-background-clip: initial !important;
-  background-clip: initial !important;
-  -webkit-text-fill-color: initial !important;
-}
-
-[data-theme="light"] .hero-text h1 {
-  color: #111827 !important; /* dark slate */
-  text-shadow: none !important;
-}
-
-[data-theme="dark"] .hero-text h1 {
-  color: #ffffff !important; /* bright white */
-  text-shadow: 0 2px 10px rgba(0, 0, 0, 0.85) !important;
-}
-/* Fix for kinetic headline words */
+/* Gradient applied to actual words */
 .hero-text h1 .hero-kinetic-word {
   font: inherit;
   background: linear-gradient(90deg, #ffffff, #a78bfa, #34d399);
@@ -1022,20 +984,20 @@ main :where(section, div)[id] {
 [data-theme="light"] .hero-text h1 .hero-kinetic-word {
   background: none !important;
   -webkit-background-clip: initial !important;
-  background-clip: text;
+  background-clip: initial !important;
   -webkit-text-fill-color: initial !important;
-  color: #111827 !important;
+  color: #111827 !important; /* dark slate */
+  text-shadow: none !important;
 }
 
 /* Dark theme fallback */
 [data-theme="dark"] .hero-text h1 .hero-kinetic-word {
   background: none !important;
   -webkit-background-clip: initial !important;
-  background-clip: text;
+  background-clip: initial !important;
   -webkit-text-fill-color: initial !important;
-  color: #ffffff !important;
+  color: #ffffff !important; /* bright white */
   text-shadow: 0 2px 10px rgba(0, 0, 0, 0.85);
-}
 }
 
 .hero-kinetic-line {
