@@ -945,6 +945,7 @@ main :where(section, div)[id] {
 }
 
 .hero-text {
+  padding-bottom: 0.3em;
   display: grid;
   gap: 1.85rem;
 }
@@ -953,7 +954,7 @@ main :where(section, div)[id] {
   font-family: "Space Grotesk", "Inter", system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
   font-size: clamp(3.1rem, 6vw, 5.4rem);
   font-weight: 700;
-  line-height: 1.04;
+  line-height: 1.15;
   letter-spacing: -0.045em;
   color: var(--hero-headline-color);
   text-wrap: balance;
@@ -964,7 +965,7 @@ main :where(section, div)[id] {
   font-family: "Space Grotesk", "Inter", system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
   font-size: clamp(3.1rem, 6vw, 5.4rem);
   font-weight: 700;
-  line-height: 1.04;
+  line-height: 1.15;
   letter-spacing: -0.045em;
   text-wrap: balance;
   color: inherit;
@@ -1002,7 +1003,8 @@ main :where(section, div)[id] {
 
 .hero-kinetic-line {
   display: block;
-  overflow: hidden;
+  line-height: 1.2;
+  overflow: visible;
 }
 
 .hero-kinetic-word {
