@@ -961,12 +961,25 @@ main :where(section, div)[id] {
 
 @supports ((-webkit-background-clip: text) or (background-clip: text)) {
   .hero-text h1 {
-    background: var(--hero-headline-gradient);
-    -webkit-background-clip: text;
-    background-clip: text;
-    -webkit-text-fill-color: transparent;
-    color: transparent;
+  font-family: "Space Grotesk", "Inter", system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  font-size: clamp(3.1rem, 6vw, 5.4rem);
+  font-weight: 700;
+  line-height: 1.04;
+  letter-spacing: -0.045em;
+  color: var(--hero-headline-color);
+  text-wrap: balance;
+  background: var(--hero-headline-gradient);
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+@supports not ((-webkit-background-clip: text) or (background-clip: text)) {
+  .hero-text h1 {
+    -webkit-text-fill-color: var(--hero-headline-color);
+    color: var(--hero-headline-color);
   }
+}
 }
 
 .hero-kinetic-line {
