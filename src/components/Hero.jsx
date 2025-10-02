@@ -501,6 +501,7 @@ export default function Hero({ openAuth }) {
               data-magnetic="true"
               data-magnetic-strength="1.1"
               data-ripple="true"
+              data-micro-manual="true"
               onClick={handleCommandToggle}
             >
               <span aria-hidden="true">⌘</span>
@@ -545,6 +546,7 @@ export default function Hero({ openAuth }) {
                 data-magnetic="true"
                 data-magnetic-strength="1.25"
                 data-ripple="true"
+                data-micro-manual="true"
                 onClick={handleTryFree}
               >
                 Try free
@@ -556,6 +558,7 @@ export default function Hero({ openAuth }) {
                 data-magnetic="true"
                 data-magnetic-strength="1"
                 data-ripple="true"
+                data-micro-manual="true"
                 onClick={handleExplore}
               >
                 Explore marketplace
@@ -617,7 +620,12 @@ export default function Hero({ openAuth }) {
                 </div>
                 <div className="hero-demo__output glass-card glass-card--subtle">{demoOutput}</div>
               </form>
-              <Link to="/docs" className="hero-docs-link" onClick={handleDocsClick}>
+              <Link
+                to="/docs"
+                className="hero-docs-link"
+                data-micro-manual="true"
+                onClick={handleDocsClick}
+              >
                 Dive into developer mode
               </Link>
             </div>

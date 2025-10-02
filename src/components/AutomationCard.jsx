@@ -1257,6 +1257,7 @@ function AutomationCardComponent({
           data-magnetic="true"
           data-ripple="true"
           data-magnetic-strength="0.75"
+          data-micro-manual="true"
           onClick={handleDemo}
         >
           Try Demo
@@ -1266,6 +1267,7 @@ function AutomationCardComponent({
           data-magnetic="true"
           data-ripple="true"
           data-magnetic-strength="1.1"
+          data-micro-manual="true"
           onClick={handleBuy}
         >
           Buy & Deploy
@@ -1279,6 +1281,7 @@ function AutomationCardComponent({
             className="automation-card__vote"
             data-magnetic="true"
             data-magnetic-strength="0.65"
+            data-micro-manual="true"
             onClick={handleVote}
           >
             <span aria-hidden="true">🗳️</span>

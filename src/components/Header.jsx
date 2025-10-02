@@ -352,6 +352,7 @@ export default function Header({ user, onSignIn, onSignUp, onSignOut }) {
                 data-prefetch-route="/dashboard"
                 data-magnetic="true"
                 data-magnetic-strength="0.75"
+                data-micro-manual="true"
                 onClick={(event) => {
                   dispatchInteraction("cta-secondary", { event });
                   navigate("/dashboard");
@@ -375,6 +376,7 @@ export default function Header({ user, onSignIn, onSignUp, onSignOut }) {
                 data-prefetch-route="/signout"
                 data-magnetic="true"
                 data-ripple="true"
+                data-micro-manual="true"
                 onClick={(event) => {
                   dispatchInteraction("cta-ghost", { event });
                   onSignOut?.(event);
@@ -404,6 +406,7 @@ export default function Header({ user, onSignIn, onSignUp, onSignOut }) {
                 data-prefetch-route="/signin"
                 data-magnetic="true"
                 data-magnetic-strength="0.75"
+                data-micro-manual="true"
                 onClick={(event) => {
                   dispatchInteraction("cta-secondary", { event });
                   onSignIn?.(event);
@@ -427,6 +430,7 @@ export default function Header({ user, onSignIn, onSignUp, onSignOut }) {
                 data-prefetch-route="/signup"
                 data-magnetic="true"
                 data-ripple="true"
+                data-micro-manual="true"
                 onClick={(event) => {
                   dispatchInteraction("cta-primary", { event });
                   onSignUp?.(event);

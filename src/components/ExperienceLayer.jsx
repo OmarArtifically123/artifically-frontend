@@ -3,6 +3,7 @@ import { useTheme } from "../context/ThemeContext";
 import { MicroInteractionProvider } from "../context/MicroInteractionContext";
 import useInteractiveEffects from "../hooks/useInteractiveEffects";
 import useScrollChoreography from "../hooks/useScrollChoreography";
+import useMicroInteractionSystem from "../hooks/useMicroInteractionSystem";
 
 const THEME_PRESETS = {
   light: {
@@ -80,10 +81,16 @@ export default function ExperienceLayer({ children }) {
 
   return (
     <MicroInteractionProvider>
+      <MicroInteractionOrchestrator />
       <div className="experience-shell" data-theme-key={theme.themeKey}>
         <div className="experience-backdrop" aria-hidden="true" />
         <div className="experience-content">{children}</div>
       </div>
     </MicroInteractionProvider>
   );
+  }
+
+function MicroInteractionOrchestrator() {
+  useMicroInteractionSystem();
+  return null;
 }

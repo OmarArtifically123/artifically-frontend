@@ -161,6 +161,13 @@ export default function useInteractiveEffects() {
 
     const observer = new MutationObserver((mutations) => {
       mutations.forEach((mutation) => {
+        if (mutation.type === "attributes" && mutation.attributeName === "data-magnetic") {
+          const target = mutation.target;
+          if (target instanceof HTMLElement && target.dataset.magnetic === "true") {
+            initButton(target);
+          }
+        }
+
         mutation.addedNodes.forEach((node) => {
           if (!(node instanceof HTMLElement)) return;
           if (node.matches?.("[data-magnetic]")) {
@@ -171,7 +178,12 @@ export default function useInteractiveEffects() {
       });
     });
 
-    observer.observe(document.body, { childList: true, subtree: true });
+    observer.observe(document.body, {
+      childList: true,
+      subtree: true,
+      attributes: true,
+      attributeFilter: ["data-magnetic"],
+    });
 
     return () => {
       observer.disconnect();

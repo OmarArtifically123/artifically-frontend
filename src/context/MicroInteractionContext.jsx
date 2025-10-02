@@ -29,6 +29,10 @@ const PRESET_CONFIG = {
   "cta-ghost": { haptic: "gentle" },
   success: { haptic: "success", sound: "sparkle", particles: true },
   error: { haptic: "error", sound: "warn" },
+  interactive: { haptic: "click", sound: "click" },
+  "interactive-nav": { haptic: "gentle", sound: "click" },
+  "interactive-strong": { haptic: "success", sound: "sparkle", particles: true },
+  "form-celebrate": { haptic: "success", sound: "resolve", particles: true },
 };
 
 const STORAGE_KEYS = {
@@ -298,6 +302,18 @@ export function MicroInteractionProvider({ children }) {
 
   const dispatchInteraction = useCallback(
     (type, options = {}) => {
+      if (options && typeof options === "object" && options.event) {
+        try {
+          Object.defineProperty(options.event, "__microInteractionHandled", {
+            value: true,
+            configurable: true,
+            writable: true,
+          });
+        } catch (error) {
+          options.event.__microInteractionHandled = true;
+        }
+      }
+      
       const preset =
         typeof type === "string" && PRESET_CONFIG[type]
           ? PRESET_CONFIG[type]
