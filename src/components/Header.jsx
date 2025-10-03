@@ -1,11 +1,14 @@
 import { Link, useNavigate, useLocation } from "react-router-dom";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { motion } from "framer-motion";
 import LogoLight from "../assets/logos/1_Primary.svg";
 import LogoDark from "../assets/logos/3_Dark_Mode.svg";
 import ThemeToggle from "./ThemeToggle";
 import { useTheme } from "../context/ThemeContext";
 import useMicroInteractions from "../hooks/useMicroInteractions";
 import { space } from "../styles/spacing";
+import MagneticButton from "./animation/MagneticButton";
+import { StaggeredContainer, StaggeredItem } from "./animation/StaggeredList";
 
 export default function Header({ user, onSignIn, onSignUp, onSignOut }) {
   const navigate = useNavigate();
@@ -155,6 +158,8 @@ export default function Header({ user, onSignIn, onSignUp, onSignOut }) {
     []
   );
 
+  const MotionLink = motion(Link);
+
   const headerBackground = useMemo(
     () => ({
       background: darkMode ? "var(--glass-gradient-primary)" : "var(--glass-gradient-primary-light)",
@@ -169,7 +174,7 @@ export default function Header({ user, onSignIn, onSignUp, onSignOut }) {
   );
 
   return (
-    <header
+    <motion.header
       className={`site-header ${scrolled ? "scrolled" : ""}`}
       style={{
         position: "fixed",
@@ -183,8 +188,11 @@ export default function Header({ user, onSignIn, onSignUp, onSignOut }) {
         transition: "all var(--transition-normal)",
         ...headerBackground,
       }}
+      initial={{ opacity: 0, y: -24 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.48, ease: [0.33, 1, 0.68, 1] }}
     >
-      <div
+      <motion.div
         className="header-inner"
         style={{
           display: "flex",
@@ -195,6 +203,7 @@ export default function Header({ user, onSignIn, onSignUp, onSignOut }) {
           padding: `0 ${space("md", 1.1667)}`,
           position: "relative",
         }}
+        layout
       >
         <div
           aria-hidden="true"
@@ -211,7 +220,7 @@ export default function Header({ user, onSignIn, onSignUp, onSignOut }) {
           }}
         />
 
-        <div
+        <motion.div
           className="brand"
           onClick={() => navigate("/")}
           role="button"
@@ -233,6 +242,8 @@ export default function Header({ user, onSignIn, onSignUp, onSignOut }) {
             borderRadius: "0.9rem",
             transition: "transform var(--transition-fast)",
           }}
+          whileHover={{ scale: 1.03 }}
+          whileTap={{ scale: 0.97 }}
         >
           <img
             src={darkMode ? LogoDark : LogoLight}
@@ -247,72 +258,91 @@ export default function Header({ user, onSignIn, onSignUp, onSignOut }) {
               transition: "filter var(--transition-normal)",
             }}
           />
-        </div>
+        </motion.div>
 
-        <nav
+        <motion.nav
           className="nav"
           style={{
             display: "flex",
             alignItems: "center",
-            gap: space("md"),
             position: "relative",
             zIndex: 1,
           }}
+          initial="hidden"
+          animate="show"
         >
-          {navItems.map(({ path, label }) => {
-            const isActive = pathname === path;
-            const isPredicted = !isActive && predictedNav === path;
-            return (
-              <Link
-                key={path}
-                to={path}
-                data-prefetch-route={path}
-                className="nav-item"
-                data-predicted={isPredicted}
-                style={{
-                  position: "relative",
-                  padding: `${space("xs", 1.1)} ${space("sm", 1.15)}`,
-                  borderRadius: "0.85rem",
-                  textDecoration: "none",
-                  fontWeight: 600,
-                  letterSpacing: "0.01em",
-                  color: isActive
-                    ? "var(--text-primary)"
-                    : isPredicted
-                    ? "color-mix(in oklch, var(--brand-glow) 60%, var(--text-primary))"
-                    : "color-mix(in oklch, var(--text-secondary) 85%, transparent)",
-                  background: isActive
-                    ? "color-mix(in oklch, var(--brand-primary) 22%, transparent)"
-                    : isPredicted
-                    ? "color-mix(in oklch, var(--brand-glow) 18%, transparent)"
-                    : "color-mix(in oklch, var(--glass-2) 40%, transparent)",
-                  boxShadow: isPredicted
-                    ? "0 12px 28px color-mix(in srgb, var(--brand-primary) 55%, transparent)"
-                    : "none",
-                  transform: isPredicted ? "translateY(-2px)" : "none",
-                  transition: "all var(--transition-fast)",
-                }}
-              >
-                {label}
-                <span
-                  aria-hidden="true"
-                  style={{
-                    position: "absolute",
-                    inset: "auto 15% -6px 15%",
-                    height: "2px",
-                    borderRadius: "999px",
-                    background: isActive
-                      ? "linear-gradient(90deg, var(--brand-primary) 0%, var(--brand-glow) 50%, var(--brand-energy) 100%)"
-                      : isPredicted
-                        ? "linear-gradient(90deg, color-mix(in oklch, var(--brand-primary) 70%, transparent) 0%, color-mix(in oklch, var(--brand-glow) 75%, transparent) 100%)"
-                      : "transparent",
-                    transition: "opacity var(--transition-fast)",
-                  }}
-                />
-              </Link>
-            );
-          })}
-        </nav>
+          <StaggeredContainer
+            className="nav-items"
+            style={{
+              display: "flex",
+              alignItems: "center",
+              gap: space("md"),
+            }}
+          >
+            {navItems.map(({ path, label }, index) => {
+              const isActive = pathname === path;
+              const isPredicted = !isActive && predictedNav === path;
+              return (
+                <StaggeredItem
+                  key={path}
+                  style={{ display: "flex" }}
+                  transition={{ delay: index * 0.05 }}
+                >
+                  <MotionLink
+                    to={path}
+                    data-prefetch-route={path}
+                    className="nav-item"
+                    data-predicted={isPredicted}
+                    whileHover={{ scale: 1.04 }}
+                    whileFocus={{ scale: 1.02 }}
+                    transition={{ type: "spring", stiffness: 320, damping: 24 }}
+                    style={{
+                      position: "relative",
+                      padding: `${space("xs", 1.1)} ${space("sm", 1.15)}`,
+                      borderRadius: "0.85rem",
+                      textDecoration: "none",
+                      fontWeight: 600,
+                      letterSpacing: "0.01em",
+                      color: isActive
+                        ? "var(--text-primary)"
+                        : isPredicted
+                        ? "color-mix(in oklch, var(--brand-glow) 60%, var(--text-primary))"
+                        : "color-mix(in oklch, var(--text-secondary) 85%, transparent)",
+                      background: isActive
+                        ? "color-mix(in oklch, var(--brand-primary) 22%, transparent)"
+                        : isPredicted
+                        ? "color-mix(in oklch, var(--brand-glow) 18%, transparent)"
+                        : "color-mix(in oklch, var(--glass-2) 40%, transparent)",
+                      boxShadow: isPredicted
+                        ? "0 12px 28px color-mix(in srgb, var(--brand-primary) 55%, transparent)"
+                        : "none",
+                      transform: isPredicted ? "translateY(-2px)" : undefined,
+                      transition: "all var(--transition-fast)",
+                    }}
+                  >
+                    {label}
+                    <motion.span
+                      aria-hidden="true"
+                      layoutId={`nav-underline-${path}`}
+                      style={{
+                        position: "absolute",
+                        inset: "auto 15% -6px 15%",
+                        height: "2px",
+                        borderRadius: "999px",
+                        background: isActive
+                          ? "linear-gradient(90deg, var(--brand-primary) 0%, var(--brand-glow) 50%, var(--brand-energy) 100%)"
+                          : isPredicted
+                          ? "linear-gradient(90deg, color-mix(in oklch, var(--brand-primary) 70%, transparent) 0%, color-mix(in oklch, var(--brand-glow) 75%, transparent) 100%)"
+                          : "transparent",
+                        transition: "opacity var(--transition-fast)",
+                      }}
+                    />
+                  </MotionLink>
+                </StaggeredItem>
+              );
+            })}
+          </StaggeredContainer>
+        </motion.nav>
 
         <div
           className="header-actions"
@@ -334,13 +364,10 @@ export default function Header({ user, onSignIn, onSignUp, onSignOut }) {
                 gap: space("xs", 1.5),
               }}
             >
-              <button
+              <MagneticButton
                 type="button"
                 className="btn btn-ghost"
                 data-prefetch-route="/dashboard"
-                data-magnetic="true"
-                data-magnetic-strength="0.75"
-                data-micro-manual="true"
                 onClick={(event) => {
                   dispatchInteraction("cta-secondary", { event });
                   navigate("/dashboard");
@@ -361,14 +388,12 @@ export default function Header({ user, onSignIn, onSignUp, onSignOut }) {
                 }}
               >
                 Dashboard
-              </button>
-              <button
+              </MagneticButton>
+              <MagneticButton
                 type="button"
                 className="btn btn-primary"
                 data-prefetch-route="/signout"
-                data-magnetic="true"
-                data-ripple="true"
-                data-micro-manual="true"
+                variant="primary"
                 onClick={(event) => {
                   dispatchInteraction("cta-ghost", { event });
                   onSignOut?.(event);
@@ -382,7 +407,7 @@ export default function Header({ user, onSignIn, onSignUp, onSignOut }) {
                 }}
               >
                 Sign out
-              </button>
+              </MagneticButton>
             </div>
           ) : (
             <div
@@ -392,13 +417,10 @@ export default function Header({ user, onSignIn, onSignUp, onSignOut }) {
                 gap: space("xs", 1.5),
               }}
             >
-              <button
+              <MagneticButton
                 type="button"
                 className="btn btn-ghost"
                 data-prefetch-route="/signin"
-                data-magnetic="true"
-                data-magnetic-strength="0.75"
-                data-micro-manual="true"
                 onClick={(event) => {
                   dispatchInteraction("cta-secondary", { event });
                   onSignIn?.(event);
@@ -419,14 +441,12 @@ export default function Header({ user, onSignIn, onSignUp, onSignOut }) {
                 }}
               >
                 Sign in
-              </button>
-              <button
+              </MagneticButton>
+              <MagneticButton
                 type="button"
                 className="btn btn-primary"
                 data-prefetch-route="/signup"
-                data-magnetic="true"
-                data-ripple="true"
-                data-micro-manual="true"
+                variant="primary"
                 onClick={(event) => {
                   dispatchInteraction("cta-primary", { event });
                   onSignUp?.(event);
@@ -440,11 +460,11 @@ export default function Header({ user, onSignIn, onSignUp, onSignOut }) {
                 }}
               >
                 Get started
-              </button>
+              </MagneticButton>
             </div>
           )}
         </div>
-      </div>
-    </header>
+      </motion.div>
+    </motion.header>
   );
 }

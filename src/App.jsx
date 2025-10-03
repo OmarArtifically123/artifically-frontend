@@ -1,5 +1,6 @@
 import { lazy, Suspense, useEffect, useMemo, useState } from "react";
 import { Routes, Route, useNavigate, useLocation } from "react-router-dom";
+import { AnimatePresence } from "framer-motion";
 import Header from "./components/Header";
 import Footer from "./components/Footer";
 import RouteShell from "./components/skeletons/RouteShell";
@@ -8,6 +9,7 @@ import api, { pick } from "./api";
 import usePredictivePrefetch from "./hooks/usePredictivePrefetch";
 import "./styles/global.css";
 import ExperienceLayer from "./components/ExperienceLayer";
+import PageTransition from "./components/animation/PageTransition";
 
 const Home = lazy(() => import("./pages/Home"));
 const Pricing = lazy(() => import("./pages/Pricing"));
@@ -50,7 +52,8 @@ export default function App() {
   const [isHydrated, setIsHydrated] = useState(false);
 
   const navigate = useNavigate();
-  const { pathname } = useLocation();
+  const location = useLocation();
+  const { pathname } = location;
 
   // Mark as hydrated after initial mount
   useEffect(() => {
@@ -237,198 +240,246 @@ export default function App() {
       )}
 
       <main className="app-shell">
-        <Routes>
-          <Route
-            path="/"
-            element={
-              <SuspenseBoundary rows={6}>
-                <Home openAuth={openAuth} user={user} />
-              </SuspenseBoundary>
-            }
-          />
-          <Route
-            path="/pricing"
-            element={
-              <SuspenseBoundary rows={4}>
-                <Pricing />
-              </SuspenseBoundary>
-            }
-          />
-          <Route
-            path="/docs"
-            element={
-              <SuspenseBoundary rows={5}>
-                <Docs />
-              </SuspenseBoundary>
-            }
-          />
-          <Route
-            path="/documentation"
-            element={
-              <SuspenseBoundary rows={5}>
-                <Docs />
-              </SuspenseBoundary>
-            }
-          />
-          <Route
-            path="/api"
-            element={
-              <SuspenseBoundary rows={5}>
-                <ApiReference />
-              </SuspenseBoundary>
-            }
-          />
-          <Route
-            path="/docs/api"
-            element={
-              <SuspenseBoundary rows={5}>
-                <ApiReference />
-              </SuspenseBoundary>
-            }
-          />
-          <Route
-            path="/blog"
-            element={
-              <SuspenseBoundary rows={6}>
-                <Blog />
-              </SuspenseBoundary>
-            }
-          />
-          <Route
-            path="/case-studies"
-            element={
-              <SuspenseBoundary rows={6}>
-                <CaseStudies />
-              </SuspenseBoundary>
-            }
-          />
-          <Route
-            path="/customers"
-            element={
-              <SuspenseBoundary rows={6}>
-                <CaseStudies />
-              </SuspenseBoundary>
-            }
-          />
-          <Route
-            path="/changelog"
-            element={
-              <SuspenseBoundary rows={4}>
-                <Changelog />
-              </SuspenseBoundary>
-            }
-          />
-          <Route
-            path="/updates"
-            element={
-              <SuspenseBoundary rows={4}>
-                <Changelog />
-              </SuspenseBoundary>
-            }
-          />
-          <Route
-            path="/help"
-            element={
-              <SuspenseBoundary rows={4}>
-                <HelpCenter />
-              </SuspenseBoundary>
-            }
-          />
-          <Route
-            path="/support"
-            element={
-              <SuspenseBoundary rows={4}>
-                <HelpCenter />
-              </SuspenseBoundary>
-            }
-          />
-          <Route
-            path="/status"
-            element={
-              <SuspenseBoundary rows={3}>
-                <StatusPage />
-              </SuspenseBoundary>
-            }
-          />
-          <Route
-            path="/security"
-            element={
-              <SuspenseBoundary rows={3}>
-                <Security />
-              </SuspenseBoundary>
-            }
-          />
-          <Route
-            path="/privacy"
-            element={
-              <SuspenseBoundary rows={3}>
-                <Privacy />
-              </SuspenseBoundary>
-            }
-          />
-          <Route
-            path="/terms"
-            element={
-              <SuspenseBoundary rows={3}>
-                <Terms />
-              </SuspenseBoundary>
-            }
-          />
-          <Route
-            path="/contact"
-            element={
-              <SuspenseBoundary rows={3}>
-                <Contact />
-              </SuspenseBoundary>
-            }
-          />
-          <Route
-            path="/marketplace"
-            element={
-              <SuspenseBoundary rows={6}>
-                <Marketplace openAuth={openAuth} user={user} />
-              </SuspenseBoundary>
-            }
-          />
-          <Route
-            path="/products/marketplace"
-            element={
-              <SuspenseBoundary rows={6}>
-                <Marketplace openAuth={openAuth} user={user} />
-              </SuspenseBoundary>
-            }
-          />
-          <Route
-            path="/dashboard"
-            element={
-              <SuspenseBoundary rows={6}>
-                {authChecking ? (
-                  <RouteShell rows={6} />
-                ) : user ? (
-                  <Dashboard user={user} openAuth={openAuth} />
-                ) : (
-                  <Home openAuth={openAuth} user={null} />
-                )}
-              </SuspenseBoundary>
-            }
-          />
-          <Route
-            path="/verify"
-            element={
-              <SuspenseBoundary rows={3}>
-                <Verify onVerified={(u) => setUser(u)} />
-              </SuspenseBoundary>
-            }
-          />
-          <Route
-            path="*"
-            element={
-              <SuspenseBoundary rows={6}>
-                <Home openAuth={openAuth} user={user} />
-              </SuspenseBoundary>
-            }
-          />
-        </Routes>
+        <AnimatePresence mode="wait" initial={false}>
+          <Routes location={location} key={pathname}>
+            <Route
+              path="/"
+              element={
+                <SuspenseBoundary rows={6}>
+                  <PageTransition>
+                    <Home openAuth={openAuth} user={user} />
+                  </PageTransition>
+                </SuspenseBoundary>
+              }
+            />
+            <Route
+              path="/pricing"
+              element={
+                <SuspenseBoundary rows={4}>
+                  <PageTransition>
+                    <Pricing />
+                  </PageTransition>
+                </SuspenseBoundary>
+              }
+            />
+            <Route
+              path="/docs"
+              element={
+                <SuspenseBoundary rows={5}>
+                  <PageTransition>
+                    <Docs />
+                  </PageTransition>
+                </SuspenseBoundary>
+              }
+            />
+            <Route
+              path="/documentation"
+              element={
+                <SuspenseBoundary rows={5}>
+                  <PageTransition>
+                    <Docs />
+                  </PageTransition>
+                </SuspenseBoundary>
+              }
+            />
+            <Route
+              path="/api"
+              element={
+                <SuspenseBoundary rows={5}>
+                  <PageTransition>
+                    <ApiReference />
+                  </PageTransition>
+                </SuspenseBoundary>
+              }
+            />
+            <Route
+              path="/docs/api"
+              element={
+                <SuspenseBoundary rows={5}>
+                  <PageTransition>
+                    <ApiReference />
+                  </PageTransition>
+                </SuspenseBoundary>
+              }
+            />
+            <Route
+              path="/blog"
+              element={
+                <SuspenseBoundary rows={6}>
+                  <PageTransition>
+                    <Blog />
+                  </PageTransition>
+                </SuspenseBoundary>
+              }
+            />
+            <Route
+              path="/case-studies"
+              element={
+                <SuspenseBoundary rows={6}>
+                  <PageTransition>
+                    <CaseStudies />
+                  </PageTransition>
+                </SuspenseBoundary>
+              }
+            />
+            <Route
+              path="/customers"
+              element={
+                <SuspenseBoundary rows={6}>
+                  <PageTransition>
+                    <CaseStudies />
+                  </PageTransition>
+                </SuspenseBoundary>
+              }
+            />
+            <Route
+              path="/changelog"
+              element={
+                <SuspenseBoundary rows={4}>
+                  <PageTransition>
+                    <Changelog />
+                  </PageTransition>
+                </SuspenseBoundary>
+              }
+            />
+            <Route
+              path="/updates"
+              element={
+                <SuspenseBoundary rows={4}>
+                  <PageTransition>
+                    <Changelog />
+                  </PageTransition>
+                </SuspenseBoundary>
+              }
+            />
+            <Route
+              path="/help"
+              element={
+                <SuspenseBoundary rows={4}>
+                  <PageTransition>
+                    <HelpCenter />
+                  </PageTransition>
+                </SuspenseBoundary>
+              }
+            />
+            <Route
+              path="/support"
+              element={
+                <SuspenseBoundary rows={4}>
+                  <PageTransition>
+                    <HelpCenter />
+                  </PageTransition>
+                </SuspenseBoundary>
+              }
+            />
+            <Route
+              path="/status"
+              element={
+                <SuspenseBoundary rows={3}>
+                  <PageTransition>
+                    <StatusPage />
+                  </PageTransition>
+                </SuspenseBoundary>
+              }
+            />
+            <Route
+              path="/security"
+              element={
+                <SuspenseBoundary rows={3}>
+                  <PageTransition>
+                    <Security />
+                  </PageTransition>
+                </SuspenseBoundary>
+              }
+            />
+            <Route
+              path="/privacy"
+              element={
+                <SuspenseBoundary rows={3}>
+                  <PageTransition>
+                    <Privacy />
+                  </PageTransition>
+                </SuspenseBoundary>
+              }
+            />
+            <Route
+              path="/terms"
+              element={
+                <SuspenseBoundary rows={3}>
+                  <PageTransition>
+                    <Terms />
+                  </PageTransition>
+                </SuspenseBoundary>
+              }
+            />
+            <Route
+              path="/contact"
+              element={
+                <SuspenseBoundary rows={3}>
+                  <PageTransition>
+                    <Contact />
+                  </PageTransition>
+                </SuspenseBoundary>
+              }
+            />
+            <Route
+              path="/marketplace"
+              element={
+                <SuspenseBoundary rows={6}>
+                  <PageTransition>
+                    <Marketplace openAuth={openAuth} user={user} />
+                  </PageTransition>
+                </SuspenseBoundary>
+              }
+            />
+            <Route
+              path="/products/marketplace"
+              element={
+                <SuspenseBoundary rows={6}>
+                  <PageTransition>
+                    <Marketplace openAuth={openAuth} user={user} />
+                  </PageTransition>
+                </SuspenseBoundary>
+              }
+            />
+            <Route
+              path="/dashboard"
+              element={
+                <SuspenseBoundary rows={6}>
+                  <PageTransition>
+                    {authChecking ? (
+                      <RouteShell rows={6} />
+                    ) : user ? (
+                      <Dashboard user={user} openAuth={openAuth} />
+                    ) : (
+                      <Home openAuth={openAuth} user={null} />
+                    )}
+                  </PageTransition>
+                </SuspenseBoundary>
+              }
+            />
+            <Route
+              path="/verify"
+              element={
+                <SuspenseBoundary rows={3}>
+                  <PageTransition>
+                    <Verify onVerified={(u) => setUser(u)} />
+                  </PageTransition>
+                </SuspenseBoundary>
+              }
+            />
+            <Route
+              path="*"
+              element={
+                <SuspenseBoundary rows={6}>
+                  <PageTransition>
+                    <Home openAuth={openAuth} user={user} />
+                  </PageTransition>
+                </SuspenseBoundary>
+              }
+            />
+          </Routes>
+        </AnimatePresence>
       </main>
 
       <Footer />

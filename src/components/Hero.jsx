@@ -1,11 +1,16 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { Link } from "react-router-dom";
-import * as THREE from "three";
+import { motion } from "framer-motion";
 import { gsap } from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
+import Lottie from "lottie-react";
 import ThemeToggle from "./ThemeToggle";
+import HeroScene from "./HeroScene";
+import MagneticButton from "./animation/MagneticButton";
+import { StaggeredContainer, StaggeredItem } from "./animation/StaggeredList";
 import useMicroInteractions from "../hooks/useMicroInteractions";
 import useScrambleText from "../hooks/useScrambleText";
+import pulseAnimation from "../assets/animations/pulse.json";
 
 const HERO_BADGES = [
   { icon: "🧠", label: "AI-personalized demos" },
@@ -120,151 +125,6 @@ if (typeof window !== "undefined") {
   gsap.registerPlugin(ScrollTrigger);
 }
 
-function useCinematicBackground(canvasRef) {
-  useEffect(() => {
-    if (!canvasRef.current || typeof window === "undefined") return undefined;
-
-    const renderer = new THREE.WebGLRenderer({
-      canvas: canvasRef.current,
-      antialias: true,
-      alpha: true,
-    });
-    renderer.setPixelRatio(Math.min(window.devicePixelRatio, 1.8));
-
-    const scene = new THREE.Scene();
-    const camera = new THREE.PerspectiveCamera(45, 1, 0.1, 100);
-    camera.position.set(0, 0, 6);
-
-    const gradientMesh = new THREE.Mesh(
-      new THREE.IcosahedronGeometry(3, 2),
-      new THREE.MeshStandardMaterial({
-        color: new THREE.Color("#6B00B6"),
-        roughness: 0.35,
-        metalness: 0.65,
-        wireframe: true,
-        transparent: true,
-        opacity: 0.18,
-      }),
-    );
-
-    const glow = new THREE.Mesh(
-      new THREE.SphereGeometry(2.8, 64, 64),
-      new THREE.MeshBasicMaterial({
-        color: new THREE.Color("#FF00FF"),
-        transparent: true,
-        opacity: 0.14,
-      }),
-    );
-
-    const particlesGeometry = new THREE.BufferGeometry();
-    const particlesCount = 620;
-    const positions = new Float32Array(particlesCount * 3);
-    const basePositions = new Float32Array(particlesCount * 3);
-    const colors = new Float32Array(particlesCount * 3);
-    const colorA = new THREE.Color("#00F5FF");
-    const colorB = new THREE.Color("#FFD700");
-
-    for (let i = 0; i < particlesCount; i += 1) {
-      const i3 = i * 3;
-      const mix = Math.random();
-      const color = colorA.clone().lerp(colorB, mix);
-      positions[i3] = (Math.random() - 0.5) * 8;
-      positions[i3 + 1] = (Math.random() - 0.5) * 5;
-      positions[i3 + 2] = (Math.random() - 0.5) * 8;
-      basePositions[i3] = positions[i3];
-      basePositions[i3 + 1] = positions[i3 + 1];
-      basePositions[i3 + 2] = positions[i3 + 2];
-      colors[i3] = color.r;
-      colors[i3 + 1] = color.g;
-      colors[i3 + 2] = color.b;
-    }
-
-    particlesGeometry.setAttribute("position", new THREE.BufferAttribute(positions, 3));
-    particlesGeometry.setAttribute("color", new THREE.BufferAttribute(colors, 3));
-
-    const particlesMaterial = new THREE.PointsMaterial({
-      size: 0.05,
-      vertexColors: true,
-      transparent: true,
-      opacity: 0.85,
-    });
-
-    const particles = new THREE.Points(particlesGeometry, particlesMaterial);
-
-    const primaryLight = new THREE.PointLight("#FFD700", 2.2, 14);
-    primaryLight.position.set(2, 3, 4);
-    const ambientLight = new THREE.AmbientLight("#6B00B6", 0.6);
-
-    scene.add(gradientMesh);
-    scene.add(glow);
-    scene.add(particles);
-    scene.add(primaryLight);
-    scene.add(ambientLight);
-
-    const resize = () => {
-      if (!canvasRef.current) return;
-      const { clientWidth, clientHeight } = canvasRef.current;
-      const aspect = clientWidth / clientHeight;
-      camera.aspect = aspect;
-      camera.updateProjectionMatrix();
-      renderer.setSize(clientWidth, clientHeight, false);
-    };
-
-    resize();
-    window.addEventListener("resize", resize);
-
-    const targetRotation = new THREE.Vector2(0.12, 0.2);
-    const currentRotation = new THREE.Vector2();
-
-    const pointerMove = (event) => {
-      const { innerWidth, innerHeight } = window;
-      targetRotation.x = ((event.clientY / innerHeight) - 0.5) * 0.5;
-      targetRotation.y = ((event.clientX / innerWidth) - 0.5) * 0.5;
-    };
-
-    window.addEventListener("pointermove", pointerMove);
-
-    const clock = new THREE.Clock();
-    let animationFrame;
-
-    const renderScene = () => {
-      const elapsed = clock.getElapsedTime();
-      currentRotation.lerp(targetRotation, 0.05);
-      gradientMesh.rotation.set(
-        currentRotation.x + elapsed * 0.22,
-        currentRotation.y + elapsed * 0.18,
-        0,
-      );
-      glow.rotation.copy(gradientMesh.rotation);
-
-      const positionsAttr = particlesGeometry.getAttribute("position");
-      for (let i = 0; i < particlesCount; i += 1) {
-        const index = i * 3;
-        positions[index + 1] = basePositions[index + 1] + Math.sin(elapsed * 0.6 + i) * 0.2;
-        positions[index] = basePositions[index] + Math.cos(elapsed * 0.4 + i) * 0.05;
-      }
-      positionsAttr.needsUpdate = true;
-
-      particles.rotation.y += 0.0008;
-      particles.rotation.x += 0.0006;
-
-      renderer.render(scene, camera);
-      animationFrame = window.requestAnimationFrame(renderScene);
-    };
-
-    renderScene();
-
-    return () => {
-      window.cancelAnimationFrame(animationFrame);
-      window.removeEventListener("resize", resize);
-      window.removeEventListener("pointermove", pointerMove);
-      particlesGeometry.dispose();
-      particlesMaterial.dispose();
-      renderer.dispose();
-    };
-  }, [canvasRef]);
-}
-
 function useKineticHeadline(containerRef) {
   useEffect(() => {
     if (!containerRef.current || typeof window === "undefined") return undefined;
@@ -355,7 +215,6 @@ function useKineticHeadline(containerRef) {
 
 export default function Hero({ openAuth }) {
   const { dispatchInteraction } = useMicroInteractions();
-  const canvasRef = useRef(null);
   const headlineRef = useRef(null);
   const commandInputRef = useRef(null);
   const tickerTitleRef = useRef(null);
@@ -365,8 +224,6 @@ export default function Hero({ openAuth }) {
   const [activePulse, setActivePulse] = useState(0);
   const [demoPreset, setDemoPreset] = useState(PRESET_DEMOS[0].id);
   const [business, setBusiness] = useState("");
-
-  useCinematicBackground(canvasRef);
   useKineticHeadline(headlineRef);
 
   useEffect(() => {
@@ -480,8 +337,15 @@ export default function Hero({ openAuth }) {
   useScrambleText(tickerTitleRef, selectedTrending.title);
 
   return (
-    <section className="hero" data-animate-root>
-      <canvas ref={canvasRef} className="hero-canvas" aria-hidden="true" />
+    <motion.section
+      className="hero"
+      data-animate-root
+      initial={{ opacity: 0, y: 32 }}
+      whileInView={{ opacity: 1, y: 0 }}
+      viewport={{ once: true, amount: 0.35 }}
+      transition={{ duration: 0.6, ease: [0.33, 1, 0.68, 1] }}
+    >
+      <HeroScene className="hero-canvas" />
       <div className="hero-gradient" aria-hidden="true" />
       <div className="hero-inner">
         <header
@@ -495,19 +359,16 @@ export default function Hero({ openAuth }) {
             The AI automation marketplace
           </span>
           <div className="hero-actions" data-animate="fade-up" data-animate-order="1">
-            <button
+            <MagneticButton
               type="button"
               className="hero-command glass-control"
-              data-magnetic="true"
-              data-magnetic-strength="1.1"
-              data-ripple="true"
-              data-micro-manual="true"
               onClick={handleCommandToggle}
+              style={{ gap: "0.65rem" }}
             >
               <span aria-hidden="true">⌘</span>
               Launch Command
               <kbd>K</kbd>
-            </button>
+            </MagneticButton>
             <ThemeToggle />
           </div>
         </header>
@@ -540,29 +401,22 @@ export default function Hero({ openAuth }) {
               data-animate-context="form"
               data-animate-cascade="0.06"
             >
-              <button
+              <MagneticButton
                 type="button"
                 className="btn btn-primary"
-                data-magnetic="true"
-                data-magnetic-strength="1.25"
-                data-ripple="true"
-                data-micro-manual="true"
+                variant="primary"
                 onClick={handleTryFree}
               >
                 Try free
                 <span aria-hidden="true">→</span>
-              </button>
-              <button
+              </MagneticButton>
+              <MagneticButton
                 type="button"
                 className="btn btn-secondary"
-                data-magnetic="true"
-                data-magnetic-strength="1"
-                data-ripple="true"
-                data-micro-manual="true"
                 onClick={handleExplore}
               >
                 Explore marketplace
-              </button>
+              </MagneticButton>
               <small>
                 <span aria-hidden="true">●</span>
                 Live status: 99.99% uptime
@@ -580,14 +434,18 @@ export default function Hero({ openAuth }) {
                 <span className="hero-ticker__meta">{selectedTrending.meta}</span>
               </span>
             </div>
-            <ul className="hero-badges" data-animate="fade-up" data-animate-order="4">
+            <StaggeredContainer
+              className="hero-badges"
+              data-animate="fade-up"
+              data-animate-order="4"
+            >
               {HERO_BADGES.map(({ icon, label }) => (
-                <li key={label} className="hero-badge__item glass-pill">
+                <StaggeredItem key={label} className="hero-badge__item glass-pill">
                   <span aria-hidden="true">{icon}</span>
                   <span>{label}</span>
-                </li>
+                </StaggeredItem>
               ))}
-            </ul>
+            </StaggeredContainer>
           </div>
           <div className="hero-insights">
             <div
@@ -649,7 +507,9 @@ export default function Hero({ openAuth }) {
                   />
                 ))}
                 <div className="hero-map__legend glass-pill">
-                  <span aria-hidden="true">●</span>
+                  <div className="hero-map__legend-animation" aria-hidden="true">
+                    <Lottie animationData={pulseAnimation} loop style={{ width: 36, height: 36 }} />
+                  </div>
                   Automations executing in real time
                 </div>
               </div>
@@ -731,6 +591,6 @@ export default function Hero({ openAuth }) {
           </div>
         </div>
       ) : null}
-    </section>
+    </motion.section>
   );
 }

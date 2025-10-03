@@ -5,6 +5,8 @@ import useInteractiveEffects from "../hooks/useInteractiveEffects";
 import useScrollChoreography from "../hooks/useScrollChoreography";
 import useMicroInteractionSystem from "../hooks/useMicroInteractionSystem";
 import useKineticTypography from "../hooks/useKineticTypography";
+import { AnimationProvider } from "./animation/AnimationProvider";
+import CustomCursor from "./animation/CustomCursor";
 
 const THEME_PRESETS = {
   light: {
@@ -83,14 +85,17 @@ export default function ExperienceLayer({ children }) {
 
   return (
     <MicroInteractionProvider>
-      <MicroInteractionOrchestrator />
-      <div className="experience-shell" data-theme-key={theme.themeKey}>
-        <div className="experience-backdrop" aria-hidden="true" />
-        <div className="experience-content">{children}</div>
-      </div>
+      <AnimationProvider>
+        <CustomCursor />
+        <MicroInteractionOrchestrator />
+        <div className="experience-shell" data-theme-key={theme.themeKey}>
+          <div className="experience-backdrop" aria-hidden="true" />
+          <div className="experience-content">{children}</div>
+        </div>
+      </AnimationProvider>
     </MicroInteractionProvider>
   );
-  }
+}
 
 function MicroInteractionOrchestrator() {
   useMicroInteractionSystem();

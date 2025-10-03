@@ -1,9 +1,12 @@
 import { Suspense, memo, useEffect, useState } from "react";
+import { motion } from "framer-motion";
 import ThemeToggle from "./ThemeToggle";
 import ServerFeatureHighlights from "./ServerFeatureHighlights";
 import { useTheme } from "../context/ThemeContext";
 import FeatureSkeletonGrid from "./skeletons/FeatureSkeleton";
 import { space } from "../styles/spacing";
+import { StaggeredContainer, StaggeredItem } from "./animation/StaggeredList";
+import MagneticButton from "./animation/MagneticButton";
 import {
   FALLBACK_FEATURE_HIGHLIGHTS,
   FALLBACK_MARKETPLACE_STATS,
@@ -12,11 +15,14 @@ import {
 
 // Memoize the feature card to avoid unnecessary re-renders while keeping SSR markup stable
 const FeatureCard = memo(
-  function FeatureCard({ feature, darkMode, ...motionProps }) {
+  function FeatureCard({ feature, darkMode, ...props }) {
     return (
-      <article
-      {...motionProps}
+      <motion.article
         className={`feature-card glass-card ${darkMode ? "feature-card--dark" : "feature-card--light"}`}
+        whileHover={{ y: -8, scale: 1.02 }}
+        transition={{ type: "spring", stiffness: 260, damping: 24 }}
+        layout
+        {...props}
       >
         <div className="feature-card__inner">
           <div className="feature-card__header">
@@ -30,7 +36,7 @@ const FeatureCard = memo(
             <p>{feature.description}</p>
           </div>
         </div>
-      </article>
+      </motion.article>
     );
   },
   (prevProps, nextProps) =>
@@ -100,7 +106,7 @@ function FeaturesContent() {
   const { features, stats, loading } = state;
 
   return (
-    <section
+    <motion.section
       className="features"
       data-animate-root
       style={{
@@ -110,6 +116,10 @@ function FeaturesContent() {
           "radial-gradient(circle at 5% 0%, color-mix(in oklch, var(--brand-primary) 12%, transparent) 0%, transparent 65%), " +
           "radial-gradient(circle at 95% 8%, color-mix(in oklch, var(--brand-energy) 16%, transparent) 0%, transparent 55%)",
       }}
+      initial={{ opacity: 0, y: 48 }}
+      whileInView={{ opacity: 1, y: 0 }}
+      viewport={{ once: true, amount: 0.3 }}
+      transition={{ duration: 0.6, ease: [0.33, 1, 0.68, 1] }}
     >
       <div
         className="container"
@@ -230,7 +240,7 @@ function FeaturesContent() {
         {loading ? (
           <FeatureSkeletonGrid cards={4} />
         ) : (
-          <div
+          <StaggeredContainer
             className="features-grid layout-bento"
             style={{
               display: "grid",
@@ -238,21 +248,15 @@ function FeaturesContent() {
               gap: "var(--layout-bento-gap)",
             }}
           >
-            {features.map((feature, index) => (
-              <FeatureCard
-                key={feature.id}
-                feature={feature}
-                darkMode={darkMode}
-                data-animate="scale-in"
-                data-animate-context="panel"
-                data-animate-order={index}
-                data-animate-cascade="0.08"
-              />
+            {features.map((feature) => (
+              <StaggeredItem key={feature.id} style={{ display: "flex" }}>
+                <FeatureCard feature={feature} darkMode={darkMode} />
+              </StaggeredItem>
             ))}
-          </div>
+          </StaggeredContainer>
         )}
       </div>
-    </section>
+    </motion.section>
   );
 }
 
