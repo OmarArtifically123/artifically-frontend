@@ -97,7 +97,9 @@ function FaqAccordion({ question, answer, isOpen, onToggle }) {
       style={{
         borderRadius: "1.25rem",
         padding: `${space("fluid-sm")} ${space("md")}`,
-        border: `1px solid ${isOpen ? "rgba(99,102,241,0.3)" : "rgba(148,163,184,0.15)"}`,
+        border: `1px solid ${isOpen
+          ? "color-mix(in oklch, var(--brand-primary) 45%, transparent)"
+          : "color-mix(in oklch, var(--glass-border-primary) 65%, transparent)"}`,
         transition: "border-color 0.2s ease",
       }}
     >
@@ -198,21 +200,30 @@ export default function Pricing() {
       style={{ padding: `${space("xl", 1.1667)} 0 ${space("2xl", 1.5)}`, minHeight: "80vh", display: "grid", gap: space("xl") }}
     >
       <section style={{ textAlign: "center", display: "grid", gap: space("md") }}>
-        <span style={{ color: "#6366f1", fontSize: "0.85rem", letterSpacing: "0.08em" }}>Pricing</span>
+        <span
+          style={{
+            color: "var(--brand-primary)",
+            fontSize: "0.85rem",
+            letterSpacing: "0.08em",
+            textTransform: "uppercase",
+          }}
+        >
+          Pricing
+        </span>
         <h1 style={{ fontSize: "2.75rem", fontWeight: 800 }}>Predictable pricing for automation scale</h1>
         <p style={{ color: "var(--gray-400)", fontSize: "1.1rem", maxWidth: "720px", margin: "0 auto" }}>
           Inspired by Stripe-level clarity. Choose your plan, launch your automations, and grow without worrying about
           surprise overages.
         </p>
         <div
-          style={{
-            display: "inline-flex",
-            background: "rgba(99,102,241,0.08)",
-            borderRadius: "999px",
-            padding: space("2xs", 1.4),
-            gap: space("2xs", 1.4),
-            margin: "0 auto",
-          }}
+        style={{
+          display: "inline-flex",
+          background: "color-mix(in oklch, var(--brand-primary) 18%, transparent)",
+          borderRadius: "999px",
+          padding: space("2xs", 1.4),
+          gap: space("2xs", 1.4),
+          margin: "0 auto",
+        }}
         >
           {billingOptions.map((option) => (
             <button
@@ -225,8 +236,14 @@ export default function Pricing() {
                 borderRadius: "999px",
                 padding: `${space("xs", 1.1)} ${space("sm", 1.4)}`,
                 fontWeight: 600,
-                background: billingCycle === option.id ? "#6366f1" : "transparent",
-                color: billingCycle === option.id ? "#f8fafc" : "#6366f1",
+                background:
+                  billingCycle === option.id
+                    ? "linear-gradient(135deg, var(--brand-primary), var(--brand-glow))"
+                    : "transparent",
+                color:
+                  billingCycle === option.id
+                    ? "var(--text-primary)"
+                    : "color-mix(in oklch, var(--brand-primary) 75%, transparent)",
                 transition: "all 0.2s ease",
               }}
             >
@@ -250,7 +267,7 @@ export default function Pricing() {
                 <div
                   style={{
                     height: "12px",
-                    background: "rgba(148,163,184,0.15)",
+                    background: "color-mix(in oklch, var(--glass-2) 60%, transparent)",
                     borderRadius: "999px",
                     marginBottom: space("xs", 1.5),
                   }}
@@ -258,7 +275,7 @@ export default function Pricing() {
                 <div
                   style={{
                     height: "12px",
-                    background: "rgba(148,163,184,0.1)",
+                    background: "color-mix(in oklch, var(--glass-2) 45%, transparent)",
                     borderRadius: "999px",
                     width: "70%",
                   }}
@@ -277,14 +294,14 @@ export default function Pricing() {
                     padding: space("lg", 1.25),
                     display: "grid",
                     gap: space("fluid-sm"),
-                    border: "1px solid rgba(99,102,241,0.2)",
-                    boxShadow: "0 35px 80px rgba(15,23,42,0.25)",
+                    border: "1px solid color-mix(in oklch, var(--brand-primary) 30%, transparent)",
+                    boxShadow: "0 35px 80px color-mix(in srgb, var(--brand-depth) 35%, transparent)",
                   }}
                 >
                   <div style={{ fontSize: "1.15rem", fontWeight: 700 }}>{automation.name}</div>
                   <p style={{ color: "var(--gray-400)", lineHeight: 1.7 }}>{automation.description}</p>
                   <div>
-                    <span style={{ fontSize: "2.4rem", fontWeight: 800, color: "#6366f1" }}>
+                    <span style={{ fontSize: "2.4rem", fontWeight: 800, color: "var(--brand-primary)" }}>
                       {formatCurrency(price, automation.currency)}
                     </span>
                     <span style={{ color: "var(--gray-400)", marginLeft: space("2xs", 1.4) }}>
@@ -351,7 +368,7 @@ export default function Pricing() {
         </div>
         <div
           style={{
-            background: "rgba(99,102,241,0.08)",
+            background: "color-mix(in oklch, var(--brand-primary) 15%, transparent)",
             borderRadius: "1.25rem",
             padding: space("md"),
             display: "grid",
@@ -371,7 +388,7 @@ export default function Pricing() {
             value={hoursSaved}
             onChange={(event) => setHoursSaved(Number(event.target.value))}
           />
-          <div style={{ fontSize: "1.35rem", fontWeight: 800, color: "#10b981" }}>
+          <div style={{ fontSize: "1.35rem", fontWeight: 800, color: "var(--success-vibrant)" }}>
             {formatCurrency(roiMonthly, "USD")} /month in team capacity
           </div>
           <p style={{ color: "var(--gray-400)", margin: 0 }}>
@@ -392,8 +409,8 @@ export default function Pricing() {
             >
               <div style={{ fontWeight: 700, fontSize: "1.1rem" }}>{item.customer}</div>
               <p style={{ color: "var(--gray-400)", margin: 0 }}>{item.story}</p>
-              <div style={{ color: "#6366f1", fontWeight: 600 }}>{item.automation}</div>
-              <span style={{ color: "#10b981", fontWeight: 600 }}>{item.result}</span>
+              <div style={{ color: "var(--brand-primary)", fontWeight: 600 }}>{item.automation}</div>
+              <span style={{ color: "var(--success-vibrant)", fontWeight: 600 }}>{item.result}</span>
             </article>
           ))}
         </div>
@@ -419,8 +436,8 @@ export default function Pricing() {
           borderRadius: "1.75rem",
           padding: space("xl"),
           textAlign: "center",
-          background: "linear-gradient(120deg, rgba(99,102,241,0.85), rgba(14,165,233,0.85))",
-          color: "#f8fafc",
+          background: "linear-gradient(120deg, color-mix(in oklch, var(--brand-primary) 65%, transparent), color-mix(in oklch, var(--brand-glow) 65%, transparent))",
+          color: "var(--text-primary)",
           display: "grid",
           gap: space("sm"),
         }}

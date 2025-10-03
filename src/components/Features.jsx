@@ -38,6 +38,24 @@ const FeatureCard = memo(
     prevProps.darkMode === nextProps.darkMode
 );
 
+const BADGE_PALETTE = {
+  accent: {
+    text: "var(--brand-glow)",
+    background: "color-mix(in oklch, var(--brand-glow) 18%, transparent)",
+    border: "color-mix(in oklch, var(--brand-glow) 35%, transparent)",
+  },
+  energy: {
+    text: "var(--brand-energy)",
+    background: "color-mix(in oklch, var(--brand-energy) 18%, transparent)",
+    border: "color-mix(in oklch, var(--brand-energy) 35%, transparent)",
+  },
+  success: {
+    text: "var(--success-vibrant)",
+    background: "color-mix(in oklch, var(--success-vibrant) 18%, transparent)",
+    border: "color-mix(in oklch, var(--success-vibrant) 32%, transparent)",
+  },
+};
+
 function FeaturesContent() {
   const { darkMode } = useTheme();
   const [state, setState] = useState(() => ({
@@ -88,6 +106,9 @@ function FeaturesContent() {
       style={{
         position: "relative",
         padding: `${space("3xl")} 0`,
+        background:
+          "radial-gradient(circle at 5% 0%, color-mix(in oklch, var(--brand-primary) 12%, transparent) 0%, transparent 65%), " +
+          "radial-gradient(circle at 95% 8%, color-mix(in oklch, var(--brand-energy) 16%, transparent) 0%, transparent 55%)",
       }}
     >
       <div
@@ -97,6 +118,8 @@ function FeaturesContent() {
           zIndex: 1,
           display: "grid",
           gap: space("lg", 1.25),
+          maxWidth: "var(--layout-max-width)",
+          marginInline: "auto",
         }}
       >
         <div
@@ -122,10 +145,13 @@ function FeaturesContent() {
           >
             <div data-animate="fade-up" data-animate-order="1">
               <h2
+              data-kinetic="glimmer"
                 style={{
                   fontSize: "clamp(2.1rem, 4vw, 2.8rem)",
                   fontWeight: 800,
                   letterSpacing: "-0.02em",
+                  display: "inline-flex",
+                  gap: "0.35ch",
                 }}
               >
                 Built for Modern Enterprises
@@ -133,7 +159,7 @@ function FeaturesContent() {
               <p
                 style={{
                   maxWidth: "540px",
-                  color: darkMode ? "#94a3b8" : "#475569",
+                  color: "var(--text-secondary)",
                   fontSize: "1.05rem",
                 }}
                 data-animate="fade-up"
@@ -158,15 +184,16 @@ function FeaturesContent() {
             data-animate-cascade="0.05"
           >
             {[
-              { label: "Accessibility first", color: "#10b981" },
-              { label: "Glassmorphism UI", color: "#06b6d4" },
+              { label: "Accessibility first", tone: "success" },
+              { label: "Glassmorphism UI", tone: "accent" },
               {
                 label: `${stats.totalAutomations}+ automations deployed`,
-                color: "#6366f1",
+                tone: "energy",
               },
             ].map((badge) => (
               <span
                 key={badge.label}
+                className="glass-pill"
                 style={{
                   display: "inline-flex",
                   alignItems: "center",
@@ -174,9 +201,9 @@ function FeaturesContent() {
                   padding: `${space("2xs", 1.6)} ${space("xs", 1.5)}`,
                   borderRadius: "0.75rem",
                   fontSize: "0.85rem",
-                  background: `${badge.color}1a`,
-                  color: badge.color,
-                  border: `1px solid ${badge.color}33`,
+                  background: BADGE_PALETTE[badge.tone]?.background,
+                  color: BADGE_PALETTE[badge.tone]?.text,
+                  border: `1px solid ${BADGE_PALETTE[badge.tone]?.border || "transparent"}`,
                   fontWeight: 600,
                 }}
               >
@@ -187,19 +214,28 @@ function FeaturesContent() {
           </div>
         </div>
 
-         <div data-animate="blur-up" data-animate-context="story" data-animate-order="1">
+         <div
+          data-animate="blur-up"
+          data-animate-context="story"
+          data-animate-order="1"
+          style={{
+            position: "relative",
+            borderRadius: "var(--rounded-3xl)",
+            overflow: "hidden",
+          }}
+        >
           <ServerFeatureHighlights defaultFeatures={features} defaultStats={stats} />
         </div>
-        
+
         {loading ? (
           <FeatureSkeletonGrid cards={4} />
         ) : (
           <div
-            className="features-grid"
+            className="features-grid layout-bento"
             style={{
               display: "grid",
-              gridTemplateColumns: "repeat(auto-fit, minmax(260px, 1fr))",
-              gap: space("md"),
+              gridTemplateColumns: "repeat(auto-fit, minmax(280px, 1fr))",
+              gap: "var(--layout-bento-gap)",
             }}
           >
             {features.map((feature, index) => (

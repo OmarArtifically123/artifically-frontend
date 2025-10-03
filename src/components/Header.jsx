@@ -157,15 +157,13 @@ export default function Header({ user, onSignIn, onSignUp, onSignOut }) {
 
   const headerBackground = useMemo(
     () => ({
-      background: darkMode
-        ? "linear-gradient(135deg, oklch(0.15 0.03 264 / 0.92), oklch(0.12 0.02 270 / 0.78))"
-        : "linear-gradient(135deg, oklch(0.92 0.03 264 / 0.96), oklch(0.85 0.04 270 / 0.85))",
-      borderBottom: `1px solid ${darkMode ? "oklch(0.35 0.08 264 / 0.35)" : "oklch(0.62 0.05 264 / 0.35)"}`,
+      background: darkMode ? "var(--glass-gradient-primary)" : "var(--glass-gradient-primary-light)",
+      borderBottom: `1px solid ${darkMode ? "var(--glass-border-primary)" : "var(--glass-border-primary-light)"}`,
       boxShadow: scrolled
         ? darkMode
-          ? "inset 0 1px 0 oklch(0.45 0.12 264 / 0.18), 0 30px 80px oklch(0.08 0.02 264 / 0.55)"
-          : "inset 0 1px 0 oklch(0.84 0.04 264 / 0.25), 0 30px 80px oklch(0.82 0.02 250 / 0.35)"
-        : "inset 0 1px 0 oklch(0.45 0.12 264 / 0.18)",
+          ? "var(--shadow-ambient), var(--shadow-glow)"
+          : "var(--shadow-md)"
+        : "inset 0 1px 0 0 var(--glass-highlight)",
     }),
     [darkMode, scrolled]
   );
@@ -205,8 +203,8 @@ export default function Header({ user, onSignIn, onSignUp, onSignOut }) {
             inset: 0,
             borderRadius: "1.5rem",
             background: darkMode
-              ? "radial-gradient(circle at 20% 20%, rgba(99,102,241,0.18), transparent 55%), radial-gradient(circle at 80% 30%, rgba(6,182,212,0.18), transparent 55%)"
-              : "radial-gradient(circle at 20% 20%, rgba(99,102,241,0.12), transparent 55%), radial-gradient(circle at 80% 30%, rgba(6,182,212,0.12), transparent 55%)",
+              ? "radial-gradient(circle at 20% 20%, color-mix(in oklch, var(--brand-energy) 30%, transparent), transparent 55%), radial-gradient(circle at 80% 30%, color-mix(in oklch, var(--brand-glow) 35%, transparent), transparent 55%)"
+              : "radial-gradient(circle at 20% 20%, color-mix(in oklch, var(--brand-energy) 24%, transparent), transparent 55%), radial-gradient(circle at 80% 30%, color-mix(in oklch, var(--brand-glow) 28%, transparent), transparent 55%)",
             opacity: scrolled ? 1 : 0.65,
             transition: "opacity var(--transition-normal)",
             pointerEvents: "none",
@@ -244,8 +242,8 @@ export default function Header({ user, onSignIn, onSignUp, onSignOut }) {
               width: "auto",
               display: "block",
               filter: darkMode
-                ? "drop-shadow(0 0 10px rgba(99, 102, 241, 0.55))"
-                : "drop-shadow(0 0 6px rgba(99, 102, 241, 0.35))",
+                ? "drop-shadow(0 0 16px color-mix(in oklch, var(--brand-glow) 55%, transparent))"
+                : "drop-shadow(0 0 10px color-mix(in oklch, var(--brand-primary) 45%, transparent))",
               transition: "filter var(--transition-normal)",
             }}
           />
@@ -279,29 +277,19 @@ export default function Header({ user, onSignIn, onSignUp, onSignOut }) {
                   fontWeight: 600,
                   letterSpacing: "0.01em",
                   color: isActive
-                    ? darkMode
-                      ? "#ffffff"
-                      : "#0f172a"
-                      : isPredicted
-                    ? darkMode
-                      ? "#f8fafc"
-                      : "#0f172a"
-                    : darkMode
-                    ? "#cbd5e1"
-                    : "#475569",
+                    ? "var(--text-primary)"
+                    : isPredicted
+                    ? "color-mix(in oklch, var(--brand-glow) 60%, var(--text-primary))"
+                    : "color-mix(in oklch, var(--text-secondary) 85%, transparent)",
                   background: isActive
-                    ? darkMode
-                      ? "rgba(148, 163, 184, 0.16)"
-                      : "rgba(99, 102, 241, 0.15)"
-                      : isPredicted
-                      ? darkMode
-                        ? "rgba(99, 102, 241, 0.18)"
-                        : "rgba(99, 102, 241, 0.12)"
-                    : "transparent",
-                    boxShadow: isPredicted
-                      ? "0 12px 28px rgba(99, 102, 241, 0.35)"
-                      : "none",
-                    transform: isPredicted ? "translateY(-2px)" : "none",
+                    ? "color-mix(in oklch, var(--brand-primary) 22%, transparent)"
+                    : isPredicted
+                    ? "color-mix(in oklch, var(--brand-glow) 18%, transparent)"
+                    : "color-mix(in oklch, var(--glass-2) 40%, transparent)",
+                  boxShadow: isPredicted
+                    ? "0 12px 28px color-mix(in srgb, var(--brand-primary) 55%, transparent)"
+                    : "none",
+                  transform: isPredicted ? "translateY(-2px)" : "none",
                   transition: "all var(--transition-fast)",
                 }}
               >
@@ -314,9 +302,9 @@ export default function Header({ user, onSignIn, onSignUp, onSignOut }) {
                     height: "2px",
                     borderRadius: "999px",
                     background: isActive
-                      ? "linear-gradient(90deg, #6366f1 0%, #06b6d4 100%)"
+                      ? "linear-gradient(90deg, var(--brand-primary) 0%, var(--brand-glow) 50%, var(--brand-energy) 100%)"
                       : isPredicted
-                        ? "linear-gradient(90deg, rgba(99, 102, 241, 0.8) 0%, rgba(14, 165, 233, 0.6) 100%)"
+                        ? "linear-gradient(90deg, color-mix(in oklch, var(--brand-primary) 70%, transparent) 0%, color-mix(in oklch, var(--brand-glow) 75%, transparent) 100%)"
                       : "transparent",
                     transition: "opacity var(--transition-fast)",
                   }}
@@ -360,11 +348,15 @@ export default function Header({ user, onSignIn, onSignUp, onSignOut }) {
                 style={{
                   padding: `${space("xs")} ${space("sm", 1.15)}`,
                   borderRadius: "0.85rem",
-                  border: `1px solid ${darkMode ? "rgba(148, 163, 184, 0.35)" : "rgba(148, 163, 184, 0.45)"}`,
+                  border: `1px solid ${darkMode
+                    ? "color-mix(in oklch, var(--text-secondary) 45%, transparent)"
+                    : "color-mix(in oklch, var(--brand-primary) 35%, transparent)"}`,
                   background: darkMode
-                    ? "rgba(148, 163, 184, 0.18)"
-                    : "rgba(99, 102, 241, 0.12)",
-                  color: darkMode ? "#e2e8f0" : "#1f2937",
+                    ? "color-mix(in oklch, var(--glass-2) 65%, transparent)"
+                    : "color-mix(in oklch, var(--brand-primary) 22%, transparent)",
+                  color: darkMode
+                    ? "color-mix(in oklch, var(--text-primary) 95%, transparent)"
+                    : "color-mix(in oklch, var(--brand-depth) 85%, transparent)",
                   transition: "all var(--transition-fast)",
                 }}
               >
@@ -385,8 +377,8 @@ export default function Header({ user, onSignIn, onSignUp, onSignOut }) {
                   padding: `${space("xs")} ${space("fluid-sm")}`,
                   borderRadius: "0.85rem",
                   boxShadow: darkMode
-                    ? "0 18px 30px rgba(99, 102, 241, 0.35)"
-                    : "0 18px 30px rgba(99, 102, 241, 0.25)",
+                    ? "0 18px 30px color-mix(in srgb, var(--brand-glow) 45%, transparent)"
+                    : "0 18px 30px color-mix(in srgb, var(--brand-primary) 35%, transparent)",
                 }}
               >
                 Sign out
@@ -414,11 +406,15 @@ export default function Header({ user, onSignIn, onSignUp, onSignOut }) {
                 style={{
                   padding: `${space("xs")} ${space("sm", 1.1)}`,
                   borderRadius: "0.85rem",
-                  border: `1px solid ${darkMode ? "rgba(148, 163, 184, 0.35)" : "rgba(148, 163, 184, 0.45)"}`,
+                  border: `1px solid ${darkMode
+                    ? "color-mix(in oklch, var(--text-secondary) 45%, transparent)"
+                    : "color-mix(in oklch, var(--brand-primary) 35%, transparent)"}`,
                   background: darkMode
-                    ? "rgba(148, 163, 184, 0.18)"
-                    : "rgba(99, 102, 241, 0.12)",
-                  color: darkMode ? "#e2e8f0" : "#1f2937",
+                    ? "color-mix(in oklch, var(--glass-2) 65%, transparent)"
+                    : "color-mix(in oklch, var(--brand-primary) 22%, transparent)",
+                  color: darkMode
+                    ? "color-mix(in oklch, var(--text-primary) 95%, transparent)"
+                    : "color-mix(in oklch, var(--brand-depth) 85%, transparent)",
                   transition: "all var(--transition-fast)",
                 }}
               >
@@ -439,8 +435,8 @@ export default function Header({ user, onSignIn, onSignUp, onSignOut }) {
                   padding: `${space("xs")} ${space("fluid-sm")}`,
                   borderRadius: "0.85rem",
                   boxShadow: darkMode
-                    ? "0 18px 30px rgba(99, 102, 241, 0.35)"
-                    : "0 18px 30px rgba(99, 102, 241, 0.25)",
+                    ? "0 18px 30px color-mix(in srgb, var(--brand-glow) 45%, transparent)"
+                    : "0 18px 30px color-mix(in srgb, var(--brand-primary) 35%, transparent)",
                 }}
               >
                 Get started

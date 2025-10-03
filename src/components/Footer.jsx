@@ -142,12 +142,32 @@ export default function Footer() {
 
   const socialLinks = useMemo(
     () => [
-      { name: "Twitter", url: "https://twitter.com/artifically", icon: "🐦", color: "#1DA1F2" },
-      { name: "LinkedIn", url: "https://linkedin.com/company/artifically", icon: "💼", color: "#0A66C2" },
-      { name: "GitHub", url: "https://github.com/artifically", icon: "💻", color: darkMode ? "#ffffff" : "#1f2937" },
-      { name: "Discord", url: "https://discord.gg/artifically", icon: "💬", color: "#5865F2" },
+      {
+        name: "Twitter",
+        url: "https://twitter.com/artifically",
+        icon: "🐦",
+        color: "color-mix(in oklch, var(--brand-glow) 60%, transparent)",
+      },
+      {
+        name: "LinkedIn",
+        url: "https://linkedin.com/company/artifically",
+        icon: "💼",
+        color: "color-mix(in oklch, var(--brand-primary) 55%, transparent)",
+      },
+      {
+        name: "GitHub",
+        url: "https://github.com/artifically",
+        icon: "💻",
+        color: "color-mix(in oklch, var(--text-primary) 85%, transparent)",
+      },
+      {
+        name: "Discord",
+        url: "https://discord.gg/artifically",
+        icon: "💬",
+        color: "color-mix(in oklch, var(--brand-energy) 55%, transparent)",
+      },
     ],
-    [darkMode]
+    []
   );
 
   const statusBadges = [
@@ -156,17 +176,45 @@ export default function Footer() {
     { label: "99.99% uptime", status: "accent" },
   ];
 
+  const badgePalette = {
+    success: {
+      background: "color-mix(in oklch, var(--success-vibrant) 18%, transparent)",
+      text: "color-mix(in oklch, var(--success-vibrant) 65%, transparent)",
+      border: "color-mix(in oklch, var(--success-vibrant) 35%, transparent)",
+    },
+    info: {
+      background: "color-mix(in oklch, var(--brand-primary) 18%, transparent)",
+      text: "color-mix(in oklch, var(--brand-primary) 70%, transparent)",
+      border: "color-mix(in oklch, var(--brand-primary) 35%, transparent)",
+    },
+    accent: {
+      background: "color-mix(in oklch, var(--brand-glow) 18%, transparent)",
+      text: "color-mix(in oklch, var(--brand-glow) 65%, transparent)",
+      border: "color-mix(in oklch, var(--brand-glow) 35%, transparent)",
+    },
+  };
+
+  const footerSurface = darkMode
+    ? "linear-gradient(180deg, color-mix(in oklch, var(--brand-depth) 92%, black) 0%, color-mix(in oklch, var(--brand-depth) 70%, transparent) 100%)"
+    : "linear-gradient(180deg, color-mix(in oklch, white 94%, var(--brand-primary) 6%) 0%, color-mix(in oklch, white 88%, var(--brand-primary) 12%) 100%)";
+
+  const footerBorder = darkMode
+    ? "color-mix(in oklch, var(--glass-border-primary) 70%, transparent)"
+    : "color-mix(in oklch, var(--glass-border-primary-light) 65%, transparent)";
+
+  const panelSurface = darkMode
+    ? "color-mix(in oklch, var(--glass-1) 92%, transparent)"
+    : "color-mix(in oklch, var(--glass-3) 94%, transparent)";
+
   return (
     <footer
       className="site-footer"
       style={{
         marginTop: space("2xl"),
         padding: `${space("2xl")} 0 ${space("lg", 1.25)}`,
-        color: darkMode ? "#e2e8f0" : "#1f2937",
-        background: darkMode
-          ? "radial-gradient(circle at top, rgba(99,102,241,0.25), transparent 55%), linear-gradient(180deg, rgba(15, 23, 42, 0.95), rgba(15, 23, 42, 0.98))"
-          : "radial-gradient(circle at top, rgba(99,102,241,0.18), transparent 55%), linear-gradient(180deg, rgba(248, 250, 252, 0.95), rgba(241, 245, 249, 0.98))",
-        borderTop: `1px solid ${darkMode ? "rgba(148, 163, 184, 0.25)" : "rgba(148, 163, 184, 0.35)"}`,
+        color: "var(--text-primary)",
+        background: `${footerSurface}, radial-gradient(circle at 15% -10%, color-mix(in oklch, var(--brand-primary) 18%, transparent) 0%, transparent 55%), radial-gradient(circle at 85% -20%, color-mix(in oklch, var(--brand-energy) 18%, transparent) 0%, transparent 55%)`,
+        borderTop: `1px solid ${footerBorder}`,
         position: "relative",
         overflow: "hidden",
       }}
@@ -185,13 +233,13 @@ export default function Footer() {
             display: "flex",
             flexDirection: "column",
             gap: space("md"),
-            background: darkMode ? "rgba(15, 23, 42, 0.65)" : "rgba(255, 255, 255, 0.8)",
-            border: `1px solid ${darkMode ? "rgba(148,163,184,0.22)" : "rgba(148,163,184,0.28)"}`,
+            background: panelSurface,
+            border: `1px solid ${footerBorder}`,
             borderRadius: "1.5rem",
             padding: space("lg"),
             boxShadow: darkMode
-              ? "0 30px 50px rgba(8, 15, 34, 0.55)"
-              : "0 30px 50px rgba(148, 163, 184, 0.35)",
+              ? "0 30px 65px color-mix(in srgb, var(--brand-depth) 65%, transparent)"
+              : "0 30px 65px color-mix(in srgb, var(--brand-primary) 22%, transparent)",
             backdropFilter: "blur(22px)",
             WebkitBackdropFilter: "blur(22px)",
           }}
@@ -240,19 +288,9 @@ export default function Footer() {
                         fontSize: "0.8rem",
                         fontWeight: 600,
                         letterSpacing: "0.02em",
-                        background:
-                          status === "success"
-                            ? "rgba(16, 185, 129, 0.18)"
-                            : status === "info"
-                            ? "rgba(59, 130, 246, 0.18)"
-                            : "rgba(6, 182, 212, 0.18)",
-                        color:
-                          status === "success"
-                            ? darkMode ? "#6ee7b7" : "#047857"
-                            : status === "info"
-                            ? darkMode ? "#93c5fd" : "#1d4ed8"
-                            : darkMode ? "#67e8f9" : "#0e7490",
-                        border: "1px solid rgba(148, 163, 184, 0.22)",
+                        background: badgePalette[status]?.background,
+                        color: badgePalette[status]?.text,
+                        border: `1px solid ${badgePalette[status]?.border ?? "transparent"}`,
                       }}
                     >
                       <span aria-hidden="true">●</span>
@@ -280,7 +318,7 @@ export default function Footer() {
                   style={{
                     fontSize: "1rem",
                     marginBottom: space("xs", 1.5),
-                    color: darkMode ? "#e2e8f0" : "#1e293b",
+                    color: "var(--text-primary)",
                   }}
                 >
                   {title}
@@ -297,13 +335,13 @@ export default function Footer() {
                           padding: `${space("xs", 1.2)} ${space("xs", 1.5)}`,
                           borderRadius: "0.75rem",
                           textDecoration: "none",
-                          color: darkMode ? "#cbd5e1" : "#475569",
-                          background: darkMode ? "rgba(148, 163, 184, 0.08)" : "rgba(148, 163, 184, 0.16)",
+                          color: "var(--text-secondary)",
+                          background: "color-mix(in oklch, var(--glass-2) 65%, transparent)",
                           transition: "all var(--transition-fast)",
                         }}
                       >
                         <span style={{ fontWeight: 600 }}>{link.name}</span>
-                        <span style={{ fontSize: "0.85rem", color: darkMode ? "#94a3b8" : "#64748b" }}>
+                        <span style={{ fontSize: "0.85rem", color: "var(--text-muted)" }}>
                           {link.desc}
                         </span>
                       </Link>
@@ -318,10 +356,10 @@ export default function Footer() {
             style={{
               display: "grid",
               gap: space("md"),
-              background: darkMode ? "rgba(15, 23, 42, 0.6)" : "rgba(248, 250, 252, 0.85)",
+              background: "color-mix(in oklch, var(--glass-2) 75%, transparent)",
               borderRadius: "1.25rem",
               padding: space("md", 1.1667),
-              border: `1px solid ${darkMode ? "rgba(148,163,184,0.22)" : "rgba(148,163,184,0.3)"}`,
+              border: `1px solid ${footerBorder}`,
             }}
           >
             <div
@@ -335,7 +373,7 @@ export default function Footer() {
             >
               <div>
                 <h5 style={{ fontSize: "1.05rem", fontWeight: 600 }}>Stay ahead of automation trends</h5>
-                <p style={{ color: darkMode ? "#94a3b8" : "#475569" }}>
+                <p style={{ color: "var(--text-muted)" }}>
                   Join {stats.automationsDeployed.toLocaleString()} operators getting curated updates.
                 </p>
               </div>
@@ -369,14 +407,14 @@ export default function Footer() {
                     border: `1px solid ${
                       newsletterStatus === "error"
                         ? darkMode
-                          ? "rgba(248, 113, 113, 0.65)"
-                          : "rgba(220, 38, 38, 0.65)"
+                          ? "color-mix(in oklch, var(--error-sharp) 45%, transparent)"
+                          : "color-mix(in oklch, var(--error-sharp) 55%, transparent)"
                         : darkMode
-                        ? "rgba(148,163,184,0.28)"
-                        : "rgba(148,163,184,0.45)"
+                        ? "color-mix(in oklch, var(--glass-border-primary) 75%, transparent)"
+                        : "color-mix(in oklch, var(--glass-border-primary-light) 68%, transparent)"
                     }`,
-                    background: darkMode ? "rgba(15, 23, 42, 0.8)" : "rgba(255, 255, 255, 0.9)",
-                    color: darkMode ? "#e2e8f0" : "#1e293b",
+                    background: "color-mix(in oklch, var(--glass-2) 85%, transparent)",
+                    color: "var(--text-primary)",
                     transition: "border var(--transition-fast)",
                   }}
                 />
@@ -407,12 +445,10 @@ export default function Footer() {
                 fontSize: "0.9rem",
                 color:
                   newsletterStatus === "success"
-                    ? darkMode ? "#6ee7b7" : "#047857"
+                    ? badgePalette.success.text
                     : newsletterStatus === "error"
-                    ? darkMode ? "#fda4af" : "#b91c1c"
-                    : darkMode
-                    ? "#94a3b8"
-                    : "#64748b",
+                    ? "color-mix(in oklch, var(--error-sharp) 70%, transparent)"
+                    : "var(--text-muted)",
               }}
             >
               {newsletterMessage}
@@ -439,12 +475,12 @@ export default function Footer() {
                     style={{
                       padding: space("sm"),
                       borderRadius: "1rem",
-                      background: darkMode ? "rgba(15, 23, 42, 0.75)" : "rgba(255, 255, 255, 0.95)",
-                      border: `1px solid ${darkMode ? "rgba(148,163,184,0.16)" : "rgba(148,163,184,0.28)"}`,
+                      background: "color-mix(in oklch, var(--glass-2) 80%, transparent)",
+                      border: `1px solid ${footerBorder}`,
                     }}
                   >
                     <div style={{ fontSize: "1.65rem", fontWeight: 700 }}>{value}</div>
-                    <div style={{ color: darkMode ? "#94a3b8" : "#475569", fontSize: "0.85rem" }}>{label}</div>
+                    <div style={{ color: "var(--text-muted)", fontSize: "0.85rem" }}>{label}</div>
                   </div>
                 );
               })}
@@ -472,9 +508,9 @@ export default function Footer() {
                       gap: space("2xs", 1.6),
                       padding: `${space("xs", 1.2)} ${space("xs", 1.7)}`,
                       borderRadius: "0.75rem",
-                      border: `1px solid ${darkMode ? "rgba(148,163,184,0.25)" : "rgba(148,163,184,0.35)"}`,
+                      border: `1px solid ${footerBorder}`,
                       color: link.color,
-                      background: darkMode ? "rgba(15, 23, 42, 0.7)" : "rgba(255, 255, 255, 0.95)",
+                      background: "color-mix(in oklch, var(--glass-2) 78%, transparent)",
                       textDecoration: "none",
                       fontWeight: 600,
                     }}
@@ -485,7 +521,7 @@ export default function Footer() {
                 ))}
               </div>
 
-              <div style={{ color: darkMode ? "#64748b" : "#475569", fontSize: "0.85rem" }}>
+              <div style={{ color: "var(--text-muted)", fontSize: "0.85rem" }}>
                 &copy; {currentYear} Artifically. Crafted with resilience and intent.
               </div>
             </div>

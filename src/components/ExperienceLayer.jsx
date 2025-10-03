@@ -4,6 +4,7 @@ import { MicroInteractionProvider } from "../context/MicroInteractionContext";
 import useInteractiveEffects from "../hooks/useInteractiveEffects";
 import useScrollChoreography from "../hooks/useScrollChoreography";
 import useMicroInteractionSystem from "../hooks/useMicroInteractionSystem";
+import useKineticTypography from "../hooks/useKineticTypography";
 
 const THEME_PRESETS = {
   light: {
@@ -78,6 +79,7 @@ export default function ExperienceLayer({ children }) {
   const theme = useThemeTokens(darkMode);
   useInteractiveEffects();
   useScrollChoreography();
+  useKineticTypography();
 
   return (
     <MicroInteractionProvider>

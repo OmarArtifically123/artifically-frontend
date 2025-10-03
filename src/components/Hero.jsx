@@ -138,21 +138,21 @@ function useCinematicBackground(canvasRef) {
     const gradientMesh = new THREE.Mesh(
       new THREE.IcosahedronGeometry(3, 2),
       new THREE.MeshStandardMaterial({
-        color: new THREE.Color("#1a1744"),
+        color: new THREE.Color("#6B00B6"),
         roughness: 0.35,
         metalness: 0.65,
         wireframe: true,
         transparent: true,
-        opacity: 0.16,
+        opacity: 0.18,
       }),
     );
 
     const glow = new THREE.Mesh(
       new THREE.SphereGeometry(2.8, 64, 64),
       new THREE.MeshBasicMaterial({
-        color: new THREE.Color("#7a5bff"),
+        color: new THREE.Color("#FF00FF"),
         transparent: true,
-        opacity: 0.12,
+        opacity: 0.14,
       }),
     );
 
@@ -161,8 +161,8 @@ function useCinematicBackground(canvasRef) {
     const positions = new Float32Array(particlesCount * 3);
     const basePositions = new Float32Array(particlesCount * 3);
     const colors = new Float32Array(particlesCount * 3);
-    const colorA = new THREE.Color("#76fff7");
-    const colorB = new THREE.Color("#ff8f5f");
+    const colorA = new THREE.Color("#00F5FF");
+    const colorB = new THREE.Color("#FFD700");
 
     for (let i = 0; i < particlesCount; i += 1) {
       const i3 = i * 3;
@@ -191,9 +191,9 @@ function useCinematicBackground(canvasRef) {
 
     const particles = new THREE.Points(particlesGeometry, particlesMaterial);
 
-    const primaryLight = new THREE.PointLight("#ffffff", 2.2, 14);
+    const primaryLight = new THREE.PointLight("#FFD700", 2.2, 14);
     primaryLight.position.set(2, 3, 4);
-    const ambientLight = new THREE.AmbientLight("#6b7bff", 0.6);
+    const ambientLight = new THREE.AmbientLight("#6B00B6", 0.6);
 
     scene.add(gradientMesh);
     scene.add(glow);
