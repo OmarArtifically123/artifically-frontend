@@ -71,125 +71,148 @@ function createPhysicsController(element) {
   return { setTarget, reset, destroy: () => state.frame && window.cancelAnimationFrame(state.frame) };
 }
 
-export default function useInteractiveEffects() {
+export default function useInteractiveEffects(enabled) {
   useEffect(() => {
-    if (typeof window === "undefined") return undefined;
+    if (!enabled || typeof window === "undefined" || typeof document === "undefined") {
+      return undefined;
+    }
+
+    const pointerQuery = window.matchMedia?.("(pointer: fine)");
+    const reduceMotionQuery = window.matchMedia?.("(prefers-reduced-motion: reduce)");
+    const allowMagnetism = Boolean(pointerQuery?.matches) && !reduceMotionQuery?.matches;
+    const allowRipple = !reduceMotionQuery?.matches;
+
+    if (!allowMagnetism && !allowRipple) {
+      return undefined;
+    }
 
     const controllers = new WeakMap();
-    const cleanup = [];
-    const pointerQuery = window.matchMedia("(pointer: fine)");
-    const reduceMotionQuery = window.matchMedia("(prefers-reduced-motion: reduce)");
-    const enableMagnetism = pointerQuery.matches && !reduceMotionQuery.matches;
-    const enableRipple = !reduceMotionQuery.matches;
+    let activeElement = null;
+    let activeController = null;
+    let pending = null;
+    let rafId = null;
 
-    const initButton = (button) => {
-      if (controllers.has(button)) return;
-      const controller = enableMagnetism ? createPhysicsController(button) : null;
-      controllers.set(button, controller || true);
+    const isMouseLike = (event) =>
+      event.pointerType === "mouse" || event.pointerType === "pen" || event.pointerType === "";
 
-      const state = { pending: null, raf: null };
-
-      if (enableMagnetism) {
-        button.style.willChange = "transform";
-      }
-
-      const schedule = () => {
-        if (!enableMagnetism || state.raf != null) return;
-        state.raf = window.requestAnimationFrame(() => {
-          state.raf = null;
-          if (!state.pending || !controller) return;
-          const { x, y } = state.pending;
-          controller.setTarget(x, y);
-          state.pending = null;
-        });
-      };
-
-      const handleMove = (event) => {
-        if (!enableMagnetism || !controller) return;
-        const rect = button.getBoundingClientRect();
-        const strength = Number(button.dataset.magneticStrength || "1");
-        const offsetX = (event.clientX - rect.left - rect.width / 2) / rect.width;
-        const offsetY = (event.clientY - rect.top - rect.height / 2) / rect.height;
-        state.pending = {
-          x: offsetX * 16 * strength,
-          y: offsetY * 16 * strength,
-        };
-        schedule();
-      };
-
-      const handleLeave = () => {
-        if (!enableMagnetism || !controller) return;
-        state.pending = { x: 0, y: 0 };
-        schedule();
-        controller.reset();
-      };
-
-      const handleClick = (event) => {
-        if (!enableRipple) return;
-        if (button.dataset.ripple === "true") {
-          createRipple(event);
-        }
-      };
-
-      
-      if (enableMagnetism) {
-        button.addEventListener("pointermove", handleMove);
-        button.addEventListener("pointerleave", handleLeave);
-        button.addEventListener("pointercancel", handleLeave);
-        button.addEventListener("blur", handleLeave);
-      }
-
-      cleanup.push(() => {
-        if (controller) {
-          controller.destroy();
-        }
-        if (enableMagnetism) {
-          button.style.removeProperty("will-change");
-          button.removeEventListener("pointermove", handleMove);
-          button.removeEventListener("pointerleave", handleLeave);
-          button.removeEventListener("pointercancel", handleLeave);
-          button.removeEventListener("blur", handleLeave);
-        }
-        button.removeEventListener("click", handleClick);
-        if (state.raf != null) {
-          window.cancelAnimationFrame(state.raf);
-        }
-      });
+    const flush = () => {
+      rafId = null;
+      if (!pending || !activeController) return;
+      activeController.setTarget(pending.x, pending.y);
+      pending = null;
     };
 
-    document.querySelectorAll("[data-magnetic]").forEach((btn) => initButton(btn));
+    const ensureController = (element) => {
+      if (!allowMagnetism) return null;
+      let controller = controllers.get(element);
+      if (!controller) {
+        controller = createPhysicsController(element);
+        controllers.set(element, controller);
+      }
+      element.style.willChange = "transform";
+      return controller;
+    };
 
-    const observer = new MutationObserver((mutations) => {
-      mutations.forEach((mutation) => {
-        if (mutation.type === "attributes" && mutation.attributeName === "data-magnetic") {
-          const target = mutation.target;
-          if (target instanceof HTMLElement && target.dataset.magnetic === "true") {
-            initButton(target);
-          }
+    const resetActiveElement = () => {
+      if (!activeElement) return;
+      if (activeController) {
+        activeController.reset();
+      }
+      activeElement.style.removeProperty("will-change");
+      activeElement = null;
+      activeController = null;
+      pending = null;
+      if (rafId != null) {
+        window.cancelAnimationFrame(rafId);
+        rafId = null;
+      }
+    };
+
+    const updateTarget = (event) => {
+      if (!activeElement || !activeController) return;
+      const rect = activeElement.getBoundingClientRect();
+      const strength = Number(activeElement.dataset.magneticStrength || "1");
+      const offsetX = (event.clientX - rect.left - rect.width / 2) / rect.width;
+      const offsetY = (event.clientY - rect.top - rect.height / 2) / rect.height;
+      pending = {
+        x: offsetX * 16 * strength,
+        y: offsetY * 16 * strength,
+      };
+      if (rafId == null) {
+        rafId = window.requestAnimationFrame(flush);
+      }
+    };
+
+    const handlePointerOver = (event) => {
+      if (!allowMagnetism || !isMouseLike(event)) return;
+      if (!(event.target instanceof Element)) return;
+      const candidate = event.target.closest("[data-magnetic]");
+      if (!candidate) return;
+      if (candidate.dataset.magnetic === "false") return;
+      if (activeElement === candidate) return;
+      resetActiveElement();
+      activeElement = candidate;
+      activeController = ensureController(candidate);
+    };
+
+    const handlePointerOut = (event) => {
+      if (!activeElement || !(event.target instanceof Element)) return;
+      const candidate = event.target.closest("[data-magnetic]");
+      if (!candidate || candidate !== activeElement) return;
+      if (event.relatedTarget instanceof Element && candidate.contains(event.relatedTarget)) {
+        return;
+      }
+      if (activeController) {
+        pending = { x: 0, y: 0 };
+        if (rafId == null) {
+          rafId = window.requestAnimationFrame(flush);
         }
+      }
+      resetActiveElement();
+    };
 
-        mutation.addedNodes.forEach((node) => {
-          if (!(node instanceof HTMLElement)) return;
-          if (node.matches?.("[data-magnetic]")) {
-            initButton(node);
-          }
-          node.querySelectorAll?.("[data-magnetic]").forEach((child) => initButton(child));
-        });
-      });
-    });
+    const handlePointerMove = (event) => {
+      if (!allowMagnetism || !isMouseLike(event)) return;
+      updateTarget(event);
+    };
 
-    observer.observe(document.body, {
-      childList: true,
-      subtree: true,
-      attributes: true,
-      attributeFilter: ["data-magnetic"],
-    });
+    const handlePointerCancel = () => {
+      resetActiveElement();
+    };
+
+    const handleBlur = (event) => {
+      if (!(event.target instanceof HTMLElement)) return;
+      if (!event.target.matches("[data-magnetic]")) return;
+      resetActiveElement();
+    };
+
+    const handleClick = (event) => {
+      if (!allowRipple || !(event.target instanceof Element)) return;
+      const button = event.target.closest("button[data-ripple='true'], button[data-ripple=true], button[data-ripple]");
+      if (!button) return;
+      const rippleSetting = button.dataset.ripple;
+      if (rippleSetting !== "true") return;
+      if (typeof event.clientX !== "number" || typeof event.clientY !== "number") return;
+      createRipple({ currentTarget: button, clientX: event.clientX, clientY: event.clientY });
+    };
+
+    document.addEventListener("pointerover", handlePointerOver, true);
+    document.addEventListener("pointerout", handlePointerOut, true);
+    document.addEventListener("pointercancel", handlePointerCancel, true);
+    document.addEventListener("blur", handleBlur, true);
+    document.addEventListener("click", handleClick, true);
+    window.addEventListener("pointermove", handlePointerMove, { passive: true });
 
     return () => {
-      observer.disconnect();
-      cleanup.forEach((fn) => fn());
+      resetActiveElement();
+      document.removeEventListener("pointerover", handlePointerOver, true);
+      document.removeEventListener("pointerout", handlePointerOut, true);
+      document.removeEventListener("pointercancel", handlePointerCancel, true);
+      document.removeEventListener("blur", handleBlur, true);
+      document.removeEventListener("click", handleClick, true);
+      window.removeEventListener("pointermove", handlePointerMove);
     };
-  }, []);
+  }, [enabled]);
 
   return null;
 }

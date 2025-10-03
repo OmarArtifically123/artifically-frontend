@@ -54,6 +54,18 @@ export default function App() {
   const navigate = useNavigate();
   const location = useLocation();
   const { pathname } = location;
+  const experienceRoutes = useMemo(
+    () =>
+      new Set([
+        "/",
+        "/case-studies",
+        "/customers",
+        "/blog",
+        "/changelog",
+      ]),
+    [],
+  );
+  const enableExperience = experienceRoutes.has(pathname);
 
   // Mark as hydrated after initial mount
   useEffect(() => {
@@ -205,7 +217,7 @@ export default function App() {
   };
 
   return (
-    <ExperienceLayer>
+    <ExperienceLayer enableExperience={enableExperience}>
       <Header
         user={user}
         onSignIn={() => openAuth("signin")}

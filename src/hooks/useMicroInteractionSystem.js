@@ -121,66 +121,45 @@ function isMouseLike(event) {
   return event.pointerType === "mouse" || event.pointerType === "pen" || event.pointerType === "";
 }
 
-export default function useMicroInteractionSystem() {
-  const { dispatchInteraction, reducedMotion } = useMicroInteractions();
+export default function useMicroInteractionSystem({ enabled, pointerFine, reducedMotion }) {
+  const { dispatchInteraction, reducedMotion: contextReducedMotion } = useMicroInteractions();
+  const motionDisabled = reducedMotion ?? contextReducedMotion;
 
   useEffect(() => {
-    if (typeof window === "undefined" || typeof document === "undefined") {
+    if (!enabled || typeof window === "undefined" || typeof document === "undefined") {
       return undefined;
     }
 
-    const pointerQuery = window.matchMedia?.("(pointer: fine)");
-    const preferFinePointer = pointerQuery?.matches ?? false;
-    const cursor = preferFinePointer && !reducedMotion ? createPointerProxy() : null;
+    const preferFinePointer = Boolean(pointerFine);
+    const cursor = preferFinePointer && !motionDisabled ? createPointerProxy() : null;
 
-    const cleanupMap = new Map();
-    const formCleanup = new Map();
-    const hoverTimers = new WeakMap();
-    const focusTimers = new WeakMap();
-    const guideTimers = new WeakMap();
-    const guidePulseSeen = new WeakSet();
+    const hoverTimers = new Map();
+    const focusTimers = new Map();
+    const guideTimers = new Map();
+    const prefetchMap = new Map();
+    const preparedElements = new WeakSet();
 
-    const intersection = !reducedMotion && "IntersectionObserver" in window
-      ? new IntersectionObserver(
-          (entries) => {
-            entries.forEach((entry) => {
-              const { target, isIntersecting } = entry;
-              if (!isIntersecting) return;
-              if (guidePulseSeen.has(target)) return;
-              guidePulseSeen.add(target);
-              target.dataset.microGuidePulse = "true";
-              const timeout = window.setTimeout(() => {
-                if (target.dataset.microGuidePulse === "true") {
-                  delete target.dataset.microGuidePulse;
-                }
-                guideTimers.delete(target);
-              }, 900);
-              guideTimers.set(target, timeout);
-            });
-          },
-          { threshold: 0.55 },
-        )
-      : null;
-
-    const registerForm = (form) => {
-      if (formCleanup.has(form)) return;
-      const handleSubmit = (event) => {
-        dispatchInteraction("form-celebrate", { event, particles: { count: 72 } });
-        cursor?.celebrate();
-      };
-      form.addEventListener("submit", handleSubmit, true);
-      formCleanup.set(form, () => {
-        form.removeEventListener("submit", handleSubmit, true);
-      });
+    const clearTimer = (map, element) => {
+      const timer = map.get(element);
+      if (timer) {
+        window.clearTimeout(timer);
+        map.delete(element);
+      }
     };
 
-    const registerElement = (element) => {
-      if (!(element instanceof HTMLElement)) return;
-      if (!element.matches(INTERACTIVE_SELECTOR)) return;
-      if (cleanupMap.has(element)) return;
+    const cancelPrefetch = (element) => {
+      const cancel = prefetchMap.get(element);
+      if (typeof cancel === "function") {
+        cancel();
+      }
+      prefetchMap.delete(element);
+    };
 
+    const prepareElement = (element) => {
+      if (preparedElements.has(element)) return;
+      preparedElements.add(element);
       element.dataset.microInteractive = element.dataset.microInteractive || "true";
-      if (preferFinePointer && element.dataset.magnetic !== "false" && !element.dataset.magnetic) {
+      if (preferFinePointer && !motionDisabled && element.dataset.magnetic !== "false" && !element.dataset.magnetic) {
         element.dataset.magnetic = "true";
         if (!element.dataset.magneticStrength) {
           if (element.classList.contains("btn-primary")) {
@@ -192,268 +171,243 @@ export default function useMicroInteractionSystem() {
           }
         }
       }
-
       if (!element.dataset.ripple && element.tagName === "BUTTON") {
         element.dataset.ripple = "true";
       }
+    };
 
-      intersection?.observe(element);
+    const getInteractive = (node) => {
+      if (!(node instanceof Element)) return null;
+      return node.closest(INTERACTIVE_SELECTOR);
+    };
 
-      let prefetchCancel = null;
+    const clearHover = (element) => {
+      clearTimer(hoverTimers, element);
+      delete element.dataset.microHover;
+      cancelPrefetch(element);
+    };
 
-      const clearHoverTimer = () => {
-        const timer = hoverTimers.get(element);
-        if (timer) {
-          window.clearTimeout(timer);
-          hoverTimers.delete(element);
+    const clearFocus = (element) => {
+      clearTimer(focusTimers, element);
+      if (element.dataset.microGuided === "focus") {
+        delete element.dataset.microGuided;
+      }
+      delete element.dataset.microFocus;
+    };
+
+    const clearGuide = (element) => {
+      clearTimer(guideTimers, element);
+      delete element.dataset.microGuided;
+    };
+
+    const isMouseLike = (event) =>
+      event.pointerType === "mouse" || event.pointerType === "pen" || event.pointerType === "";
+
+    const handlePointerOver = (event) => {
+      if (!isMouseLike(event)) return;
+      const element = getInteractive(event.target);
+      if (!element) return;
+      prepareElement(element);
+      clearTimer(guideTimers, element);
+      clearTimer(hoverTimers, element);
+      const timer = window.setTimeout(() => {
+        element.dataset.microHover = "true";
+      }, 40);
+      hoverTimers.set(element, timer);
+      element.dataset.microGuided = "pointer";
+      cursor?.activate(element);
+      cursor?.move(event.clientX, event.clientY);
+      cancelPrefetch(element);
+      if (element.tagName === "A") {
+        const cancel = schedulePrefetch(element);
+        if (cancel) {
+          prefetchMap.set(element, cancel);
         }
-      };
+      }
+    };
 
-      const clearFocusTimer = () => {
-        const timer = focusTimers.get(element);
-        if (timer) {
-          window.clearTimeout(timer);
-          focusTimers.delete(element);
-        }
-      };
-
-      const clearGuideTimer = () => {
-        const timer = guideTimers.get(element);
-        if (typeof timer === "number") {
-          window.clearTimeout(timer);
-          guideTimers.delete(element);
-        }
-      };
-
-      const handlePointerEnter = (event) => {
-        if (!isMouseLike(event)) return;
-        clearHoverTimer();
+    const handlePointerOut = (event) => {
+      const element = getInteractive(event.target);
+      if (!element) return;
+      if (event.relatedTarget instanceof Element && element.contains(event.relatedTarget)) {
+        return;
+      }
+      clearHover(element);
+      if (element.dataset.microGuided === "pointer") {
+        clearTimer(guideTimers, element);
         const timer = window.setTimeout(() => {
-          element.dataset.microHover = "true";
-        }, 40);
-        hoverTimers.set(element, timer);
-        element.dataset.microGuided = "pointer";
-        cursor?.activate(element);
-        cursor?.move(event.clientX, event.clientY);
-        if (prefetchCancel) {
-          prefetchCancel();
-        }
-        if (element.tagName === "A") {
-          prefetchCancel = schedulePrefetch(element);
-        } else {
-          prefetchCancel = null;
-        }
-        const anticipate = new CustomEvent("micro:anticipate", {
-          bubbles: false,
-          detail: { element },
-        });
-        element.dispatchEvent(anticipate);
-      };
-
-      const handlePointerLeave = () => {
-        clearHoverTimer();
-        clearGuideTimer();
-        delete element.dataset.microHover;
-        if (element.dataset.microGuided === "pointer") {
-          window.setTimeout(() => {
+          if (element.dataset.microGuided === "pointer") {
             delete element.dataset.microGuided;
-          }, 140);
-        }
-        delete element.dataset.microPress;
-        cursor?.rest();
-        cursor?.release();
-        if (prefetchCancel) {
-          prefetchCancel();
-          prefetchCancel = null;
-        }
-      };
-
-      const handlePointerDown = (event) => {
-        if (!isMouseLike(event) && event.pointerType !== "touch") return;
-        window.requestAnimationFrame(() => {
-          element.dataset.microPress = "true";
-          cursor?.press();
-        });
-      };
-
-      const handlePointerUp = () => {
-        delete element.dataset.microPress;
-        cursor?.release();
-      };
-
-      const handleFocus = (event) => {
-        clearFocusTimer();
-        const timer = window.setTimeout(() => {
-          element.dataset.microFocus = "true";
-          element.dataset.microGuided = "focus";
-          cursor?.activate(element);
-          if (event.target instanceof HTMLElement) {
-            const rect = event.target.getBoundingClientRect();
-            cursor?.move(rect.left + rect.width / 2, rect.top + rect.height / 2);
           }
-        }, 24);
-        focusTimers.set(element, timer);
-      };
+          guideTimers.delete(element);
+        }, 140);
+        guideTimers.set(element, timer);
+      } else {
+        clearGuide(element);
+      }
+      delete element.dataset.microPress;
+      cursor?.release();
+      cursor?.rest();
+    };
 
-      const handleBlur = () => {
-        clearFocusTimer();
-        if (element.dataset.microGuided === "focus") {
-          delete element.dataset.microGuided;
-        }
-        delete element.dataset.microFocus;
-        cursor?.rest();
-      };
+    const handlePointerCancel = (event) => {
+      const element = getInteractive(event.target);
+      if (!element) return;
+      clearHover(element);
+      clearGuide(element);
+      delete element.dataset.microPress;
+      cursor?.release();
+      cursor?.rest();
+    };
 
-      const handleKeyDown = (event) => {
-        if (event.key !== "Enter" && event.key !== " ") return;
+    const handlePointerDown = (event) => {
+      if (!isMouseLike(event) && event.pointerType !== "touch") return;
+      const element = getInteractive(event.target);
+      if (!element) return;
+      prepareElement(element);
+      window.requestAnimationFrame(() => {
         element.dataset.microPress = "true";
         cursor?.press();
-      };
-
-      const handleKeyUp = (event) => {
-        if (event.key !== "Enter" && event.key !== " ") return;
-        delete element.dataset.microPress;
-        cursor?.release();
-      };
-
-      const handleClick = (event) => {
-        const celebrate =
-          element.dataset.microCelebrate === "true" ||
-          element.classList.contains("btn-primary") ||
-          element.getAttribute("type") === "submit";
-        const navIntent = element.closest("nav") ? "interactive-nav" : "interactive";
-        const intent = element.dataset.interactionIntent || (celebrate ? "interactive-strong" : navIntent);
-        const particleSetting = celebrate
-          ? { count: 42 }
-          : element.dataset.microParticles === "true"
-            ? { count: 24 }
-            : false;
-        const manual = element.dataset.microManual === "true" || event.__microInteractionHandled;
-        if (!manual) {
-          dispatchInteraction(intent, {
-            event,
-            particles: particleSetting,
-          });
-        }
-        if (celebrate) {
-          cursor?.celebrate();
-        }
-      };
-
-      element.addEventListener("pointerenter", handlePointerEnter);
-      element.addEventListener("pointerleave", handlePointerLeave);
-      element.addEventListener("pointercancel", handlePointerLeave);
-      element.addEventListener("pointerdown", handlePointerDown);
-      element.addEventListener("pointerup", handlePointerUp);
-      element.addEventListener("focus", handleFocus);
-      element.addEventListener("blur", handleBlur);
-      element.addEventListener("keydown", handleKeyDown);
-      element.addEventListener("keyup", handleKeyUp);
-      element.addEventListener("click", handleClick);
-
-      cleanupMap.set(element, () => {
-        clearHoverTimer();
-        clearFocusTimer();
-        clearGuideTimer();
-        element.removeEventListener("pointerenter", handlePointerEnter);
-        element.removeEventListener("pointerleave", handlePointerLeave);
-        element.removeEventListener("pointercancel", handlePointerLeave);
-        element.removeEventListener("pointerdown", handlePointerDown);
-        element.removeEventListener("pointerup", handlePointerUp);
-        element.removeEventListener("focus", handleFocus);
-        element.removeEventListener("blur", handleBlur);
-        element.removeEventListener("keydown", handleKeyDown);
-        element.removeEventListener("keyup", handleKeyUp);
-        element.removeEventListener("click", handleClick);
-        intersection?.unobserve(element);
-        if (prefetchCancel) {
-          prefetchCancel();
-        }
       });
     };
 
-    const initialInteractive = Array.from(document.querySelectorAll(INTERACTIVE_SELECTOR));
-    initialInteractive.forEach(registerElement);
-    const initialForms = Array.from(document.querySelectorAll(FORM_SELECTOR));
-    initialForms.forEach(registerForm);
+    const handlePointerUp = (event) => {
+      const element = getInteractive(event.target);
+      if (!element) return;
+      delete element.dataset.microPress;
+      cursor?.release();
+    };
+
+    const handleFocusIn = (event) => {
+      const element = getInteractive(event.target);
+      if (!element) return;
+      prepareElement(element);
+      clearFocus(element);
+      const timer = window.setTimeout(() => {
+        element.dataset.microFocus = "true";
+        element.dataset.microGuided = "focus";
+        if (event.target instanceof HTMLElement) {
+          const rect = event.target.getBoundingClientRect();
+          cursor?.activate(element);
+          cursor?.move(rect.left + rect.width / 2, rect.top + rect.height / 2);
+        }
+      }, 24);
+      focusTimers.set(element, timer);
+    };
+
+    const handleFocusOut = (event) => {
+      const element = getInteractive(event.target);
+      if (!element) return;
+      clearFocus(element);
+      cursor?.rest();
+    };
+
+    const handleKeyDown = (event) => {
+      if (event.key !== "Enter" && event.key !== " ") return;
+      const element = getInteractive(event.target);
+      if (!element) return;
+      element.dataset.microPress = "true";
+      cursor?.press();
+    };
+
+    const handleKeyUp = (event) => {
+      if (event.key !== "Enter" && event.key !== " ") return;
+      const element = getInteractive(event.target);
+      if (!element) return;
+      delete element.dataset.microPress;
+      cursor?.release();
+    };
+
+    const handleClick = (event) => {
+      const element = getInteractive(event.target);
+      if (!element) return;
+      prepareElement(element);
+      const celebrate =
+        element.dataset.microCelebrate === "true" ||
+        element.classList.contains("btn-primary") ||
+        element.getAttribute("type") === "submit";
+      const navIntent = element.closest("nav") ? "interactive-nav" : "interactive";
+      const intent = element.dataset.interactionIntent || (celebrate ? "interactive-strong" : navIntent);
+      const particleSetting = celebrate
+        ? { count: 42 }
+        : element.dataset.microParticles === "true"
+          ? { count: 24 }
+          : false;
+      const manual = element.dataset.microManual === "true" || event.__microInteractionHandled;
+      if (!manual) {
+        dispatchInteraction(intent, {
+          event,
+          particles: particleSetting,
+        });
+      }
+      if (celebrate) {
+        cursor?.celebrate();
+      }
+    };
+
+    const handleSubmit = (event) => {
+      const form = event.target;
+      if (!(form instanceof HTMLFormElement)) return;
+      if (!form.matches(FORM_SELECTOR)) return;
+      dispatchInteraction("form-celebrate", { event, particles: { count: 72 } });
+      cursor?.celebrate();
+    };
 
     const handlePointerMove = (event) => {
       if (!cursor || !isMouseLike(event)) return;
       cursor.move(event.clientX, event.clientY);
     };
 
+    const handleWindowBlur = () => {
+      cursor?.rest();
+      cursor?.release();
+    };
+
+    document.addEventListener("pointerover", handlePointerOver, true);
+    document.addEventListener("pointerout", handlePointerOut, true);
+    document.addEventListener("pointercancel", handlePointerCancel, true);
+    document.addEventListener("pointerdown", handlePointerDown, true);
+    document.addEventListener("pointerup", handlePointerUp, true);
+    document.addEventListener("focusin", handleFocusIn, true);
+    document.addEventListener("focusout", handleFocusOut, true);
+    document.addEventListener("keydown", handleKeyDown, true);
+    document.addEventListener("keyup", handleKeyUp, true);
+    document.addEventListener("click", handleClick, true);
+    document.addEventListener("submit", handleSubmit, true);
     window.addEventListener("pointermove", handlePointerMove, { passive: true });
     if (cursor) {
-      window.addEventListener("blur", cursor.rest);
+      window.addEventListener("blur", handleWindowBlur);
     }
 
-    const observer = new MutationObserver((mutations) => {
-      mutations.forEach((mutation) => {
-        mutation.addedNodes.forEach((node) => {
-          if (!(node instanceof HTMLElement)) return;
-          if (node.matches?.(INTERACTIVE_SELECTOR)) {
-            registerElement(node);
-          }
-          node.querySelectorAll?.(INTERACTIVE_SELECTOR).forEach((child) => registerElement(child));
-          if (node.matches?.(FORM_SELECTOR)) {
-            registerForm(node);
-          }
-          node.querySelectorAll?.(FORM_SELECTOR).forEach((child) => registerForm(child));
-        });
-        mutation.removedNodes.forEach((node) => {
-          if (!(node instanceof HTMLElement)) return;
-          const cleanup = cleanupMap.get(node);
-          if (cleanup) {
-            cleanup();
-            cleanupMap.delete(node);
-          }
-          node.querySelectorAll?.(INTERACTIVE_SELECTOR).forEach((child) => {
-            const childCleanup = cleanupMap.get(child);
-            if (childCleanup) {
-              childCleanup();
-              cleanupMap.delete(child);
-            }
-          });
-          const formHandler = formCleanup.get(node);
-          if (formHandler) {
-            formHandler();
-            formCleanup.delete(node);
-          }
-          node.querySelectorAll?.(FORM_SELECTOR).forEach((child) => {
-            const childHandler = formCleanup.get(child);
-            if (childHandler) {
-              childHandler();
-              formCleanup.delete(child);
-            }
-          });
-        });
-        if (mutation.type === "attributes" && mutation.attributeName === "data-micro-interactive") {
-          if (mutation.target instanceof HTMLElement && mutation.target.dataset.microInteractive === "true") {
-            registerElement(mutation.target);
-          }
-        }
-      });
-    });
-
-    observer.observe(document.body, {
-      childList: true,
-      subtree: true,
-      attributes: true,
-      attributeFilter: ["data-micro-interactive"],
-    });
-
     return () => {
-      observer.disconnect();
+      document.removeEventListener("pointerover", handlePointerOver, true);
+      document.removeEventListener("pointerout", handlePointerOut, true);
+      document.removeEventListener("pointercancel", handlePointerCancel, true);
+      document.removeEventListener("pointerdown", handlePointerDown, true);
+      document.removeEventListener("pointerup", handlePointerUp, true);
+      document.removeEventListener("focusin", handleFocusIn, true);
+      document.removeEventListener("focusout", handleFocusOut, true);
+      document.removeEventListener("keydown", handleKeyDown, true);
+      document.removeEventListener("keyup", handleKeyUp, true);
+      document.removeEventListener("click", handleClick, true);
+      document.removeEventListener("submit", handleSubmit, true);
       window.removeEventListener("pointermove", handlePointerMove);
       if (cursor) {
-        window.removeEventListener("blur", cursor.rest);
+        window.removeEventListener("blur", handleWindowBlur);
       }
-      cleanupMap.forEach((cleanup) => cleanup());
-      cleanupMap.clear();
-      formCleanup.forEach((cleanup) => cleanup());
-      formCleanup.clear();
-      intersection?.disconnect();
+      hoverTimers.forEach((timer) => window.clearTimeout(timer));
+      hoverTimers.clear();
+      focusTimers.forEach((timer) => window.clearTimeout(timer));
+      focusTimers.clear();
+      guideTimers.forEach((timer) => window.clearTimeout(timer));
+      guideTimers.clear();
+      prefetchMap.forEach((cancel) => {
+        if (typeof cancel === "function") {
+          cancel();
+        }
+      });
+      prefetchMap.clear();
       cursor?.destroy();
     };
-  }, [dispatchInteraction, reducedMotion]);
+  }, [dispatchInteraction, enabled, motionDisabled, pointerFine]);
 }

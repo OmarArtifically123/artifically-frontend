@@ -1,4 +1,4 @@
-import { useEffect, useMemo } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useTheme } from "../context/ThemeContext";
 import { MicroInteractionProvider } from "../context/MicroInteractionContext";
 import useInteractiveEffects from "../hooks/useInteractiveEffects";
@@ -76,18 +76,115 @@ function useThemeTokens(darkMode) {
   return theme;
 }
 
-export default function ExperienceLayer({ children }) {
+function useExperienceActivation(enableExperience) {
+  const [state, setState] = useState({
+    pointerFine: false,
+    reducedMotion: false,
+    activated: false,
+  });
+
+  useEffect(() => {
+    if (typeof window === "undefined" || typeof window.matchMedia !== "function") {
+      setState((prev) => ({ ...prev, pointerFine: false, reducedMotion: false, activated: false }));
+      return;
+    }
+
+    const pointerQuery = window.matchMedia("(pointer: fine)");
+    const motionQuery = window.matchMedia("(prefers-reduced-motion: reduce)");
+
+    const updateMediaState = () => {
+      setState((prev) => ({
+        pointerFine: pointerQuery.matches,
+        reducedMotion: motionQuery.matches,
+        activated: prev.activated && pointerQuery.matches && !motionQuery.matches,
+      }));
+    };
+
+    updateMediaState();
+    const pointerAdd = pointerQuery.addEventListener
+      ? pointerQuery.addEventListener.bind(pointerQuery)
+      : pointerQuery.addListener?.bind(pointerQuery);
+    const pointerRemove = pointerQuery.removeEventListener
+      ? pointerQuery.removeEventListener.bind(pointerQuery)
+      : pointerQuery.removeListener?.bind(pointerQuery);
+    const motionAdd = motionQuery.addEventListener
+      ? motionQuery.addEventListener.bind(motionQuery)
+      : motionQuery.addListener?.bind(motionQuery);
+    const motionRemove = motionQuery.removeEventListener
+      ? motionQuery.removeEventListener.bind(motionQuery)
+      : motionQuery.removeListener?.bind(motionQuery);
+
+    pointerAdd?.("change", updateMediaState);
+    motionAdd?.("change", updateMediaState);
+
+    return () => {
+      pointerRemove?.("change", updateMediaState);
+      motionRemove?.("change", updateMediaState);
+    };
+  }, []);
+
+  useEffect(() => {
+    if (typeof window === "undefined") return undefined;
+
+    const { pointerFine, reducedMotion } = state;
+    const eligible = enableExperience && pointerFine && !reducedMotion;
+
+    if (!eligible) {
+      setState((prev) => ({ ...prev, activated: false }));
+      return undefined;
+    }
+
+    let cancelled = false;
+
+    const activate = () => {
+      if (cancelled) return;
+      setState((prev) => ({ ...prev, activated: true }));
+    };
+
+    const options = { once: true };
+    window.addEventListener("pointermove", activate, options);
+    window.addEventListener("pointerdown", activate, options);
+    window.addEventListener("keydown", activate, options);
+    window.addEventListener("focusin", activate, options);
+
+    return () => {
+      cancelled = true;
+      window.removeEventListener("pointermove", activate);
+      window.removeEventListener("pointerdown", activate);
+      window.removeEventListener("keydown", activate);
+      window.removeEventListener("focusin", activate);
+    };
+  }, [enableExperience, state.pointerFine, state.reducedMotion]);
+
+  const eligible = enableExperience && state.pointerFine && !state.reducedMotion;
+  const activated = eligible && state.activated;
+
+  return {
+    eligible,
+    activated,
+    pointerFine: state.pointerFine,
+    reducedMotion: state.reducedMotion,
+  };
+}
+
+export default function ExperienceLayer({ children, enableExperience = false }) {
   const { darkMode } = useTheme();
-  const theme = useThemeTokens(darkMode);
+  const { eligible, activated, pointerFine, reducedMotion } = useExperienceActivation(enableExperience);
+
+  useInteractiveEffects(activated);
   useInteractiveEffects();
   useScrollChoreography();
   useKineticTypography();
 
   return (
-    <MicroInteractionProvider>
+    <MicroInteractionProvider enabled={eligible}>
       <AnimationProvider>
-        <CustomCursor />
-        <MicroInteractionOrchestrator />
+        {activated ? <CustomCursor /> : null}
+        <MicroInteractionOrchestrator
+          enabled={activated}
+          pointerFine={pointerFine}
+          reducedMotion={reducedMotion}
+        />
         <div className="experience-shell" data-theme-key={theme.themeKey}>
           <div className="experience-backdrop" aria-hidden="true" />
           <div className="experience-content">{children}</div>
@@ -97,7 +194,7 @@ export default function ExperienceLayer({ children }) {
   );
 }
 
-function MicroInteractionOrchestrator() {
-  useMicroInteractionSystem();
+function MicroInteractionOrchestrator({ enabled, pointerFine, reducedMotion }) {
+  useMicroInteractionSystem({ enabled, pointerFine, reducedMotion });
   return null;
 }

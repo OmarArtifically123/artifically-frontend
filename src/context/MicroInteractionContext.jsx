@@ -150,7 +150,7 @@ const spawnParticles = ({
   }
 };
 
-export function MicroInteractionProvider({ children }) {
+export function MicroInteractionProvider({ children, enabled = true }) {
   const [hapticsEnabled, setHapticsEnabled] = useState(() => {
     if (!isClient) return true;
     const stored = window.localStorage.getItem(STORAGE_KEYS.haptics);
@@ -184,7 +184,7 @@ export function MicroInteractionProvider({ children }) {
   }, []);
 
   useEffect(() => {
-    if (!isClient) return undefined;
+    if (!isClient || !enabled) return undefined;
     const canvas = document.createElement("canvas");
     canvas.dataset.microLayer = "true";
     canvas.style.position = "fixed";
@@ -221,7 +221,7 @@ export function MicroInteractionProvider({ children }) {
       contextRef.current = null;
       particlesRef.current = [];
     };
-  }, []);
+  }, [enabled]);
 
   useEffect(() => {
     if (!isClient) return;
@@ -288,17 +288,18 @@ export function MicroInteractionProvider({ children }) {
     [soundEnabled],
   );
 
-  const triggerParticles = useMemo(
-    () =>
-      spawnParticles({
-        particlesRef,
-        canvasRef,
-        contextRef,
-        rafRef,
-        reducedMotion,
-      }),
-    [particlesRef, canvasRef, contextRef, rafRef, reducedMotion],
-  );
+  const triggerParticles = useMemo(() => {
+    if (!enabled) {
+      return () => {};
+    }
+    return spawnParticles({
+      particlesRef,
+      canvasRef,
+      contextRef,
+      rafRef,
+      reducedMotion,
+    });
+  }, [enabled, particlesRef, canvasRef, contextRef, rafRef, reducedMotion]);
 
   const dispatchInteraction = useCallback(
     (type, options = {}) => {
@@ -313,13 +314,17 @@ export function MicroInteractionProvider({ children }) {
           options.event.__microInteractionHandled = true;
         }
       }
-      
+
       const preset =
         typeof type === "string" && PRESET_CONFIG[type]
           ? PRESET_CONFIG[type]
           : {};
 
       const config = { ...preset, ...options };
+
+      if (!enabled) {
+        return config;
+      }
 
       if (config.haptic !== false) {
         const pattern = config.haptic || preset.haptic || "click";
@@ -351,19 +356,19 @@ export function MicroInteractionProvider({ children }) {
 
       return config;
     },
-    [playTone, triggerParticles, vibrate],
+    [enabled, playTone, triggerParticles, vibrate],
   );
 
   const value = useMemo(
     () => ({
       hapticsEnabled,
       soundEnabled,
-      reducedMotion,
+      reducedMotion: reducedMotion || !enabled,
       setHapticsEnabled,
       setSoundEnabled,
       dispatchInteraction,
     }),
-    [hapticsEnabled, soundEnabled, reducedMotion, dispatchInteraction],
+    [dispatchInteraction, enabled, hapticsEnabled, reducedMotion, soundEnabled],
   );
 
   return (
