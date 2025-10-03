@@ -169,6 +169,7 @@ function useExperienceActivation(enableExperience) {
 
 export default function ExperienceLayer({ children, enableExperience = false }) {
   const { darkMode } = useTheme();
+  const theme = useThemeTokens(darkMode);
   const { eligible, activated, pointerFine, reducedMotion } = useExperienceActivation(enableExperience);
 
   useInteractiveEffects(activated);
