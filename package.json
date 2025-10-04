@@ -27,6 +27,7 @@
   },
   "dependencies": {
     "@builder.io/partytown": "^0.8.1",
+    "@react-three/drei": "^9.122.0",
     "@react-three/fiber": "^8.18.0",
     "@stripe/react-stripe-js": "^2.4.0",
     "@stripe/stripe-js": "^2.4.0",
