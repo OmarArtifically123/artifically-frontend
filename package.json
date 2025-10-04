@@ -33,6 +33,7 @@
     "framer-motion": "^12.23.22",
     "gsap": "^3.12.5",
     "lodash": "^4.17.21",
+    "lottie-react": "^2.4.1",
     "million": "^3.0.6",
     "react": "^18.2.0",
     "react-dom": "^18.2.0",
