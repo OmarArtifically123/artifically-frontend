@@ -7,6 +7,7 @@ import { useTheme } from "../context/ThemeContext";
 import OnboardingTour from "./OnboardingTour";
 import { useAchievements } from "../hooks/useAchievements";
 import { space } from "../styles/spacing";
+import "../styles/dashboard.css";
 
 const statusColors = {
   active: { bg: "rgba(16,185,129,0.18)", color: "#10b981" },

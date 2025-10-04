@@ -248,6 +248,8 @@ export default function Header({ user, onSignIn, onSignUp, onSignOut }) {
           <img
             src={darkMode ? LogoDark : LogoLight}
             alt="Artifically"
+            width={375}
+            height={375}
             style={{
               height: "56px",
               width: "auto",

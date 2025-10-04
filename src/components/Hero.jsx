@@ -1,16 +1,26 @@
-import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { Suspense, lazy, useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { Link } from "react-router-dom";
 import { motion } from "framer-motion";
 import { gsap } from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
 import Lottie from "lottie-react";
 import ThemeToggle from "./ThemeToggle";
-import HeroScene from "./HeroScene";
 import MagneticButton from "./animation/MagneticButton";
 import { StaggeredContainer, StaggeredItem } from "./animation/StaggeredList";
 import useMicroInteractions from "../hooks/useMicroInteractions";
 import useScrambleText from "../hooks/useScrambleText";
 import pulseAnimation from "../assets/animations/pulse.json";
+
+const HeroScene = lazy(() => import("./HeroScene"));
+
+const heroCanvasFallbackStyle = {
+  position: "absolute",
+  inset: 0,
+  borderRadius: "inherit",
+  background:
+    "radial-gradient(circle at 30% 35%, rgba(59, 130, 246, 0.28), transparent 55%), radial-gradient(circle at 70% 65%, rgba(147, 51, 234, 0.24), transparent 58%)",
+  opacity: 0.85,
+};
 
 const HERO_BADGES = [
   { icon: "🧠", label: "AI-personalized demos" },
@@ -345,7 +355,11 @@ export default function Hero({ openAuth }) {
       viewport={{ once: true, amount: 0.35 }}
       transition={{ duration: 0.6, ease: [0.33, 1, 0.68, 1] }}
     >
-      <HeroScene className="hero-canvas" />
+      <Suspense
+        fallback={<div className="hero-canvas" style={heroCanvasFallbackStyle} aria-hidden="true" />}
+      >
+        <HeroScene className="hero-canvas" />
+      </Suspense>
       <div className="hero-gradient" aria-hidden="true" />
       <div className="hero-inner">
         <header

@@ -1,7 +1,7 @@
 // src/components/AuthModal.jsx - FIXED INPUT REMOUNTING ISSUE
 import { useState, useRef, useCallback, useEffect, useMemo } from "react";
 import { useTheme } from "../context/ThemeContext";
-import { debounce } from "lodash";
+import debounce from "lodash/debounce";
 import api from "../api";
 import ThemeToggle from "./ThemeToggle";
 

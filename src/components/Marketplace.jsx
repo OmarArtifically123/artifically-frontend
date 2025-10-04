@@ -1,6 +1,5 @@
-import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { Suspense, lazy, useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { fetchAutomations } from "../data/automations";
-import DemoModal from "./DemoModal";
 import { toast } from "./Toast";
 import api from "../api";
 import ThemeToggle from "./ThemeToggle";
@@ -13,6 +12,10 @@ import {
   FALLBACK_MARKETPLACE_STATS,
   loadMarketplaceStats,
 } from "../lib/graphqlClient";
+import ModalShell from "./skeletons/ModalShell";
+import "../styles/marketplace.css";
+
+const DemoModal = lazy(() => import("./DemoModal.jsx"));
 
 const BROWSING_STORAGE_KEY = "automation-browsing-signals";
 const ATTENTION_STORAGE_KEY = "automation-attention-scores";
@@ -1057,7 +1060,9 @@ export default function Marketplace({ user, openAuth }) {
       </div>
 
       {demo && (
-        <DemoModal automation={demo} user={user} onClose={() => setDemo(null)} />
+        <Suspense fallback={<ModalShell label="Preparing automation preview" />}>
+          <DemoModal automation={demo} user={user} onClose={() => setDemo(null)} />
+        </Suspense>
       )}
     </section>
   );

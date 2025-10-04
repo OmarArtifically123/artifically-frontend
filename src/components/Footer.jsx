@@ -263,6 +263,9 @@ export default function Footer() {
               <img
                 src={darkMode ? LogoDark : LogoLight}
                 alt="Artifically"
+                width={375}
+                height={375}
+                loading="lazy"
                 style={{ height: "60px", width: "auto" }}
               />
               <div>

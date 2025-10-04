@@ -15,9 +15,12 @@ export default defineConfig((configEnv) => {
     build.manifest = true
     build.ssrManifest = true
     build.rollupOptions.output = {
-      manualChunks: {
-        vendor: ['react', 'react-dom'],
-        router: ['react-router-dom'],
+      manualChunks(id) {
+        if (!id.includes('node_modules')) return undefined
+        if (id.includes('react-router-dom')) {
+          return 'router'
+        }
+        return 'vendor'
       }
     }
   }
