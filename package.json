@@ -30,6 +30,7 @@
     "@stripe/react-stripe-js": "^2.4.0",
     "@stripe/stripe-js": "^2.4.0",
     "axios": "^1.6.0",
+    "framer-motion": "^12.23.22",
     "gsap": "^3.12.5",
     "lodash": "^4.17.21",
     "million": "^3.0.6",
