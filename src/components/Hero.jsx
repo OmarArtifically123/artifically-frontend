@@ -131,6 +131,22 @@ const HEADLINE_LINES = [
   ["AI", "choreography."]
 ];
 
+const heroSceneLoadDelay = 120;
+
+function scheduleSceneLoad(callback) {
+  if (typeof window === "undefined") {
+    return () => {};
+  }
+
+  if (typeof window.requestIdleCallback === "function") {
+    const idleId = window.requestIdleCallback(callback, { timeout: 750 });
+    return () => window.cancelIdleCallback(idleId);
+  }
+
+  const timeoutId = window.setTimeout(callback, heroSceneLoadDelay);
+  return () => window.clearTimeout(timeoutId);
+}
+
 if (typeof window !== "undefined") {
   gsap.registerPlugin(ScrollTrigger);
 }
@@ -229,12 +245,31 @@ export default function Hero({ openAuth }) {
   const commandInputRef = useRef(null);
   const tickerTitleRef = useRef(null);
 
+  const [shouldRenderScene, setShouldRenderScene] = useState(false);
   const [commandOpen, setCommandOpen] = useState(false);
   const [tickerIndex, setTickerIndex] = useState(0);
   const [activePulse, setActivePulse] = useState(0);
   const [demoPreset, setDemoPreset] = useState(PRESET_DEMOS[0].id);
   const [business, setBusiness] = useState("");
   useKineticHeadline(headlineRef);
+
+  useEffect(() => {
+    if (shouldRenderScene) {
+      return undefined;
+    }
+
+    let cancelled = false;
+    const cancelSchedule = scheduleSceneLoad(() => {
+      if (!cancelled) {
+        setShouldRenderScene(true);
+      }
+    });
+
+    return () => {
+      cancelled = true;
+      cancelSchedule();
+    };
+  }, [shouldRenderScene]);
 
   useEffect(() => {
     if (typeof window === "undefined") return undefined;
@@ -355,11 +390,15 @@ export default function Hero({ openAuth }) {
       viewport={{ once: true, amount: 0.35 }}
       transition={{ duration: 0.6, ease: [0.33, 1, 0.68, 1] }}
     >
-      <Suspense
-        fallback={<div className="hero-canvas" style={heroCanvasFallbackStyle} aria-hidden="true" />}
-      >
-        <HeroScene className="hero-canvas" />
-      </Suspense>
+      {shouldRenderScene ? (
+        <Suspense
+          fallback={<div className="hero-canvas" style={heroCanvasFallbackStyle} aria-hidden="true" />}
+        >
+          <HeroScene className="hero-canvas" />
+        </Suspense>
+      ) : (
+        <div className="hero-canvas" style={heroCanvasFallbackStyle} aria-hidden="true" />
+      )}
       <div className="hero-gradient" aria-hidden="true" />
       <div className="hero-inner">
         <header

@@ -1,10 +1,10 @@
 import { lazy, Suspense, useEffect, useState } from "react";
 import { useLocation } from "react-router-dom";
 import { motion } from "framer-motion";
-import Hero from "../components/Hero";
 import RouteShell from "../components/skeletons/RouteShell";
 import ParallaxSection from "../components/animation/ParallaxSection";
 
+const Hero = lazy(() => import("../components/Hero"));
 const Features = lazy(() => import("../components/Features"));
 const Marketplace = lazy(() => import("../components/Marketplace"));
 
@@ -41,7 +41,9 @@ export default function Home({ user, scrollTo, openAuth }) {
       animate={{ opacity: 1, filter: "blur(0px)" }}
       transition={{ duration: 0.6, ease: [0.33, 1, 0.68, 1] }}
     >
-      <Hero openAuth={openAuth} />
+      <Suspense fallback={<HeroSkeleton />}>
+        <Hero openAuth={openAuth} />
+      </Suspense>
       <ParallaxSection
         speed={0.22}
         className="home-section home-section--features"
@@ -72,5 +74,23 @@ export default function Home({ user, scrollTo, openAuth }) {
         </div>
       </ParallaxSection>
     </motion.main>
+    );
+}
+
+function HeroSkeleton() {
+  return (
+    <section
+      className="hero"
+      aria-busy="true"
+      style={{
+        minHeight: "100vh",
+        display: "grid",
+        placeItems: "center",
+        background:
+          "linear-gradient(135deg, rgba(102, 126, 234, 0.35) 0%, rgba(118, 75, 162, 0.45) 100%)",
+      }}
+    >
+      <div className="loading-spinner" aria-hidden="true" />
+    </section>
   );
 }
