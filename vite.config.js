@@ -44,44 +44,43 @@ export default defineConfig((configEnv) => {
     sourcemap: false,
     chunkSizeWarningLimit: 1000,
     reportCompressedSize: true,
-    rollupOptions: {
-      output: {
-        manualChunks: (id) => {
-          if (!id.includes('node_modules')) {
-            return undefined
-          }
-
-          if (id.includes('three')) {
-            return 'three-vendor'
-          }
-
-          if (id.includes('framer-motion')) {
-            return 'framer-vendor'
-          }
-
-          if (id.includes('gsap')) {
-            return 'gsap-vendor'
-          }
-
-          return 'vendor'
-        },
-        entryFileNames: 'assets/[name]-[hash].js',
-        chunkFileNames: 'assets/[name]-[hash].js',
-        assetFileNames: 'assets/[name]-[hash].[ext]'
-      }
-    }
+    rollupOptions: {}
   }
 
   if (!ssrBuild) {
     build.manifest = true
     build.ssrManifest = true
+    build.rollupOptions.output = {
+      manualChunks: (id) => {
+        if (!id.includes('node_modules')) {
+          return undefined
+        }
+
+        if (id.includes('three')) {
+          return 'three-vendor'
+        }
+
+        if (id.includes('framer-motion')) {
+          return 'framer-vendor'
+        }
+
+        if (id.includes('gsap')) {
+          return 'gsap-vendor'
+        }
+
+        return 'vendor'
+      },
+      entryFileNames: 'assets/[name]-[hash].js',
+      chunkFileNames: 'assets/[name]-[hash].js',
+      assetFileNames: 'assets/[name]-[hash].[ext]'
+    }
   }
 
   return {
     plugins: plugins.filter(Boolean),
     build,
     optimizeDeps: {
-      include: ['react', 'react-dom']
+      include: ['react', 'react-dom', 'react-router-dom']
     }
   }
 })
