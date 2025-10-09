@@ -142,6 +142,32 @@ const serveStaticFile = (filePath, res) => {
   return true;
 };
 
+const resolveEntryServerPath = (serverDist) => {
+  const directCandidates = [
+    path.join(serverDist, "entry-server.js"),
+    path.join(serverDist, "entry-server.mjs"),
+  ];
+
+  for (const candidate of directCandidates) {
+    if (fs.existsSync(candidate)) {
+      return candidate;
+    }
+  }
+
+  const assetsDir = path.join(serverDist, "assets");
+  if (fs.existsSync(assetsDir)) {
+    const entryFromAssets = fs
+      .readdirSync(assetsDir)
+      .find((file) => file.startsWith("entry-server") && file.endsWith(".js"));
+
+    if (entryFromAssets) {
+      return path.join(assetsDir, entryFromAssets);
+    }
+  }
+
+  return null;
+};
+
 async function createProdServer() {
   const clientDist = path.resolve(__dirname, "../dist/client");
   const serverDist = path.resolve(__dirname, "../dist/server");
@@ -177,13 +203,19 @@ async function createProdServer() {
     console.warn("⚠️ ssr-manifest.json not found, falling back to client-only rendering.");
   }
 
-  const entryUrl = pathToFileURL(path.join(serverDist, "entry-server.js")).href;
+  const entryPath = resolveEntryServerPath(serverDist);
   let render = null;
   let renderFeatureHighlightsRSC = null;
-  try {
-    ({ render, renderFeatureHighlightsRSC } = await import(entryUrl));
-  } catch (error) {
-    console.error("⚠️ Failed to load SSR entry module, falling back to client-only", error);
+  if (!entryPath) {
+    console.error(
+      "⚠️ SSR entry module not found in dist/server. Falling back to client-only rendering."
+    );
+  } else {
+    try {
+      ({ render, renderFeatureHighlightsRSC } = await import(pathToFileURL(entryPath).href));
+    } catch (error) {
+      console.error("⚠️ Failed to load SSR entry module, falling back to client-only", error);
+    }
   }
 
   const sendClientOnly = (res) => {

@@ -1,6 +1,6 @@
 import path from "path";
 import fs from "fs";
-import { fileURLToPath } from "url";
+import { fileURLToPath, pathToFileURL } from "url";
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
@@ -8,6 +8,32 @@ export default async function handler(req, res) {
   const clientDist = path.resolve(__dirname, "../dist/client");
   const serverDist = path.resolve(__dirname, "../dist/server");
   const templatePath = path.join(clientDist, "index.html");
+
+  const resolveEntryServerPath = () => {
+    const directCandidates = [
+      path.join(serverDist, "entry-server.js"),
+      path.join(serverDist, "entry-server.mjs"),
+    ];
+
+    for (const candidate of directCandidates) {
+      if (fs.existsSync(candidate)) {
+        return candidate;
+      }
+    }
+
+    const assetsDir = path.join(serverDist, "assets");
+    if (fs.existsSync(assetsDir)) {
+      const entryFromAssets = fs
+        .readdirSync(assetsDir)
+        .find((file) => file.startsWith("entry-server") && file.endsWith(".js"));
+
+      if (entryFromAssets) {
+        return path.join(assetsDir, entryFromAssets);
+      }
+    }
+
+    return null;
+  };
 
   let template = null;
   let clientOnlyTemplate = null;
@@ -25,7 +51,13 @@ export default async function handler(req, res) {
       );
 
     // Load SSR entry
-    const { render } = await import(path.join(serverDist, "entry-server.js"));
+    const entryPath = resolveEntryServerPath();
+
+    if (!entryPath) {
+      throw new Error("SSR entry-server bundle not found");
+    }
+
+    const { render } = await import(pathToFileURL(entryPath).href);
 
     // Load manifest with fallbacks
     const manifestCandidates = [
