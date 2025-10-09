@@ -4,11 +4,97 @@ import { fileURLToPath, pathToFileURL } from "url";
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
+const mimeTypes = {
+  ".js": "application/javascript",
+  ".mjs": "application/javascript",
+  ".css": "text/css",
+  ".json": "application/json",
+  ".webmanifest": "application/manifest+json",
+  ".svg": "image/svg+xml",
+  ".png": "image/png",
+  ".ico": "image/x-icon",
+  ".jpg": "image/jpeg",
+  ".jpeg": "image/jpeg",
+  ".gif": "image/gif",
+  ".woff": "font/woff",
+  ".woff2": "font/woff2",
+  ".ttf": "font/ttf",
+};
+
+const sendStaticFile = (filePath, res) => {
+  if (!fs.existsSync(filePath) || !fs.statSync(filePath).isFile()) {
+    return false;
+  }
+
+  const ext = path.extname(filePath).toLowerCase();
+  const mime = mimeTypes[ext];
+  if (mime && !res.headersSent) {
+    res.setHeader("Content-Type", mime);
+  }
+
+  return new Promise((resolve, reject) => {
+    const stream = fs.createReadStream(filePath);
+    stream.on("error", (error) => {
+      console.error("Static asset stream error", error);
+      if (!res.headersSent) {
+        res.statusCode = 500;
+      }
+      res.end();
+      reject(error);
+    });
+    stream.on("end", resolve);
+    stream.pipe(res);
+  });
+};
+
+const isStaticAssetRequest = (urlPath) => {
+  if (!urlPath || urlPath === "/") {
+    return false;
+  }
+
+  const hasExtension = path.extname(urlPath) !== "";
+  return hasExtension && !urlPath.endsWith(".html");
+};
+
+const normaliseRequestPath = (rawPath = "/") => {
+  try {
+    const decoded = decodeURIComponent(rawPath.split("?")[0]);
+    const normalised = path.posix.normalize(decoded);
+    if (normalised.startsWith("..")) {
+      return "/";
+    }
+    return normalised;
+  } catch (error) {
+    console.warn("Failed to decode request path", rawPath, error);
+    return "/";
+  }
+};
+
 export default async function handler(req, res) {
   const clientDist = path.resolve(__dirname, "../dist/client");
   const serverDist = path.resolve(__dirname, "../dist/server");
   const templatePath = path.join(clientDist, "index.html");
 
+  const requestPath = normaliseRequestPath(req.url);
+
+  if (isStaticAssetRequest(requestPath)) {
+    const assetPath = path.join(clientDist, requestPath);
+    const streamPromise = sendStaticFile(assetPath, res);
+
+    if (streamPromise) {
+      try {
+        await streamPromise;
+      } catch (error) {
+        console.error("Failed to stream static asset", assetPath, error);
+        if (!res.headersSent) {
+          res.statusCode = 500;
+          res.end();
+        }
+      }
+      return;
+    }
+  }
+  
   const resolveEntryServerPath = () => {
     const directCandidates = [
       path.join(serverDist, "entry-server.js"),
