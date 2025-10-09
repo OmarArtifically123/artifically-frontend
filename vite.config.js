@@ -51,10 +51,6 @@ export default defineConfig((configEnv) => {
             return undefined
           }
 
-          if (id.includes('react') || id.includes('react-dom')) {
-            return 'react-vendor'
-          }
-
           if (id.includes('three')) {
             return 'three-vendor'
           }
