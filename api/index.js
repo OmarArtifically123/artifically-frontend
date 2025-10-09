@@ -28,8 +28,11 @@ const sendStaticFile = (filePath, res) => {
 
   const ext = path.extname(filePath).toLowerCase();
   const mime = mimeTypes[ext];
-  if (mime && !res.headersSent) {
-    res.setHeader("Content-Type", mime);
+  if (!res.headersSent) {
+    res.statusCode = 200;
+    if (mime) {
+      res.setHeader("Content-Type", mime);
+    }
   }
 
   return new Promise((resolve, reject) => {
@@ -93,8 +96,14 @@ export default async function handler(req, res) {
       }
       return;
     }
+
+    if (!res.headersSent) {
+      res.statusCode = 404;
+      res.end("Not Found");
+    }
+    return;
   }
-  
+
   const resolveEntryServerPath = () => {
     const directCandidates = [
       path.join(serverDist, "entry-server.js"),

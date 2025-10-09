@@ -9,10 +9,10 @@ export default defineConfig((configEnv) => {
   const enableMillion = process.env.ENABLE_MILLION === 'true'
   const enableAnalyze = process.env.ANALYZE === 'true'
 
-  const plugins = []
+  const plugins = [react()]
 
   if (enableMillion) {
-    plugins.push(
+    plugins.unshift(
       million.vite({
         auto: {
           threshold: 0.05,
@@ -25,16 +25,16 @@ export default defineConfig((configEnv) => {
     )
   }
 
-  plugins.push(
-    react(),
-    enableAnalyze &&
+  if (enableAnalyze) {
+    plugins.push(
       visualizer({
         open: true,
         gzipSize: true,
         brotliSize: true,
         filename: 'dist/stats.html'
       })
-  )
+    )
+  }
 
   const build = {
     target: 'es2015',
@@ -43,41 +43,42 @@ export default defineConfig((configEnv) => {
     cssMinify: 'esbuild',
     sourcemap: false,
     chunkSizeWarningLimit: 1000,
-    reportCompressedSize: true,
-    rollupOptions: {}
+    reportCompressedSize: true
   }
 
   if (!ssrBuild) {
     build.manifest = true
     build.ssrManifest = true
-    build.rollupOptions.output = {
-      manualChunks: (id) => {
-        if (!id.includes('node_modules')) {
-          return undefined
-        }
+    build.rollupOptions = {
+      output: {
+        manualChunks: (id) => {
+          if (!id.includes('node_modules')) {
+            return undefined
+          }
 
-        if (id.includes('three')) {
-          return 'three-vendor'
-        }
+          if (id.includes('three') && !id.includes('react-three')) {
+            return 'three-vendor'
+          }
 
-        if (id.includes('framer-motion')) {
-          return 'framer-vendor'
-        }
+          if (id.includes('framer-motion')) {
+            return 'framer-vendor'
+          }
 
-        if (id.includes('gsap')) {
-          return 'gsap-vendor'
-        }
+          if (id.includes('gsap')) {
+            return 'gsap-vendor'
+          }
 
-        return 'vendor'
-      },
-      entryFileNames: 'assets/[name]-[hash].js',
-      chunkFileNames: 'assets/[name]-[hash].js',
-      assetFileNames: 'assets/[name]-[hash].[ext]'
+          return 'vendor'
+        },
+        entryFileNames: 'assets/[name]-[hash].js',
+        chunkFileNames: 'assets/[name]-[hash].js',
+        assetFileNames: 'assets/[name]-[hash].[ext]'
+      }
     }
   }
 
   return {
-    plugins: plugins.filter(Boolean),
+    plugins,
     build,
     optimizeDeps: {
       include: ['react', 'react-dom', 'react-router-dom']
