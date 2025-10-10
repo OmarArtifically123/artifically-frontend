@@ -1,6 +1,5 @@
 import { lazy, Suspense, useEffect, useState } from "react";
 import { useLocation } from "react-router-dom";
-import * as m from "framer-motion/m";
 import RouteShell from "../components/skeletons/RouteShell";
 import ParallaxSection from "../components/animation/ParallaxSection";
 
@@ -11,6 +10,7 @@ const Marketplace = lazy(() => import("../components/Marketplace"));
 export default function Home({ user, scrollTo, openAuth }) {
   const location = useLocation();
   const [contentReady, setContentReady] = useState(typeof window === "undefined");
+  const [pageReady, setPageReady] = useState(false);
 
   useEffect(() => {
     let target = scrollTo;
@@ -35,12 +35,17 @@ export default function Home({ user, scrollTo, openAuth }) {
     }
   }, [contentReady]);
 
+  useEffect(() => {
+    const frame = typeof window !== "undefined" ? window.requestAnimationFrame(() => setPageReady(true)) : null;
+    return () => {
+      if (frame && typeof window !== "undefined") {
+        window.cancelAnimationFrame(frame);
+      }
+    };
+  }, []);
+
   return (
-    <m.main
-      initial={{ opacity: 0, filter: "blur(10px)" }}
-      animate={{ opacity: 1, filter: "blur(0px)" }}
-      transition={{ duration: 0.6, ease: [0.33, 1, 0.68, 1] }}
-    >
+    <main className="home-shell" data-ready={pageReady ? "true" : "false"}>
       <Suspense fallback={<HeroSkeleton />}>
         <Hero openAuth={openAuth} />
       </Suspense>
@@ -73,8 +78,8 @@ export default function Home({ user, scrollTo, openAuth }) {
           </Suspense>
         </div>
       </ParallaxSection>
-    </m.main>
-    );
+    </main>
+  );
 }
 
 

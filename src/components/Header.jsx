@@ -1,6 +1,5 @@
 import { Link, useNavigate, useLocation } from "react-router-dom";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import * as m from "framer-motion/m";
 import LogoLight from "../assets/logos/1_Primary.svg";
 import LogoDark from "../assets/logos/3_Dark_Mode.svg";
 import ThemeToggle from "./ThemeToggle";
@@ -23,6 +22,7 @@ export default function Header({ user, onSignIn, onSignUp, onSignOut }) {
   });
   const observerRef = useRef(null);
   const { dispatchInteraction } = useMicroInteractions();
+  const [headerReady, setHeaderReady] = useState(false);
 
   const syncHeaderOffset = useCallback(() => {
     const header = document.querySelector(".site-header");
@@ -35,6 +35,15 @@ export default function Header({ user, onSignIn, onSignUp, onSignOut }) {
     const handleScroll = () => setScrolled(window.scrollY > 20);
     window.addEventListener("scroll", handleScroll, { passive: true });
     return () => window.removeEventListener("scroll", handleScroll);
+  }, []);
+
+  useEffect(() => {
+    const frame = typeof window !== "undefined" ? window.requestAnimationFrame(() => setHeaderReady(true)) : null;
+    return () => {
+      if (frame && typeof window !== "undefined") {
+        window.cancelAnimationFrame(frame);
+      }
+    };
   }, []);
 
   const commitPrediction = useCallback(
@@ -158,8 +167,6 @@ export default function Header({ user, onSignIn, onSignUp, onSignOut }) {
     []
   );
 
-  const MotionLink = m.create(Link);
-
   const headerBackground = useMemo(
     () => ({
       background: darkMode ? "var(--glass-gradient-primary)" : "var(--glass-gradient-primary-light)",
@@ -174,7 +181,7 @@ export default function Header({ user, onSignIn, onSignUp, onSignOut }) {
   );
 
   return (
-    <m.header
+    <header
       className={`site-header ${scrolled ? "scrolled" : ""}`}
       style={{
         position: "fixed",
@@ -185,14 +192,14 @@ export default function Header({ user, onSignIn, onSignUp, onSignOut }) {
         padding: scrolled ? `${space("xs", 1.3)} 0` : `${space("sm")} 0`,
         backdropFilter: "blur(40px) saturate(180%)",
         WebkitBackdropFilter: "blur(40px) saturate(180%)",
-        transition: "all var(--transition-normal)",
+        transition: "background 280ms ease, box-shadow 280ms ease, padding 220ms ease, opacity 360ms ease, transform 360ms ease",
+        opacity: headerReady ? 1 : 0,
+        transform: headerReady ? "translateY(0)" : "translateY(-24px)",
         ...headerBackground,
       }}
-      initial={{ opacity: 0, y: -24 }}
-      animate={{ opacity: 1, y: 0 }}
-      transition={{ duration: 0.48, ease: [0.33, 1, 0.68, 1] }}
+      data-ready={headerReady ? "true" : "false"}
     >
-      <m.div
+      <div
         className="header-inner"
         style={{
           display: "flex",
@@ -203,7 +210,6 @@ export default function Header({ user, onSignIn, onSignUp, onSignOut }) {
           padding: `0 ${space("md", 1.1667)}`,
           position: "relative",
         }}
-        layout
       >
         <div
           aria-hidden="true"
@@ -220,8 +226,8 @@ export default function Header({ user, onSignIn, onSignUp, onSignOut }) {
           }}
         />
 
-        <m.div
-          className="brand"
+        <div
+          className="brand brand--interactive"
           onClick={() => navigate("/")}
           role="button"
           tabIndex={0}
@@ -242,8 +248,6 @@ export default function Header({ user, onSignIn, onSignUp, onSignOut }) {
             borderRadius: "0.9rem",
             transition: "transform var(--transition-fast)",
           }}
-          whileHover={{ scale: 1.03 }}
-          whileTap={{ scale: 0.97 }}
         >
           <img
             src={darkMode ? LogoDark : LogoLight}
@@ -260,9 +264,9 @@ export default function Header({ user, onSignIn, onSignUp, onSignOut }) {
               transition: "filter var(--transition-normal)",
             }}
           />
-        </m.div>
+        </div>
 
-        <m.nav
+        <nav
           className="nav"
           style={{
             display: "flex",
@@ -270,8 +274,6 @@ export default function Header({ user, onSignIn, onSignUp, onSignOut }) {
             position: "relative",
             zIndex: 1,
           }}
-          initial="hidden"
-          animate="show"
         >
           <StaggeredContainer
             className="nav-items"
@@ -287,16 +289,13 @@ export default function Header({ user, onSignIn, onSignUp, onSignOut }) {
               return (
                 <StaggeredItem
                   key={path}
+                  index={index}
                   style={{ display: "flex" }}
-                  transition={{ delay: index * 0.05 }}
                 >
-                  <MotionLink
+                  <Link
                     to={path}
                     data-prefetch-route={path}
                     className="nav-item"
-                    data-predicted={isPredicted}
-                    whileHover={{ scale: 1.04 }}
-                    whileFocus={{ scale: 1.02 }}
                     transition={{ type: "spring", stiffness: 320, damping: 24 }}
                     style={{
                       position: "relative",
@@ -318,14 +317,15 @@ export default function Header({ user, onSignIn, onSignUp, onSignOut }) {
                       boxShadow: isPredicted
                         ? "0 12px 28px color-mix(in srgb, var(--brand-primary) 55%, transparent)"
                         : "none",
-                      transform: isPredicted ? "translateY(-2px)" : undefined,
-                      transition: "all var(--transition-fast)",
+                      "--nav-translate": isPredicted ? "-2px" : "0px",
+                      transition:
+                        "transform 180ms cubic-bezier(0.33, 1, 0.68, 1), box-shadow 220ms ease, background 220ms ease, color 180ms ease",
+                      willChange: "transform",
                     }}
                   >
                     {label}
-                    <m.span
+                    <span
                       aria-hidden="true"
-                      layoutId={`nav-underline-${path}`}
                       style={{
                         position: "absolute",
                         inset: "auto 15% -6px 15%",
@@ -339,12 +339,12 @@ export default function Header({ user, onSignIn, onSignUp, onSignOut }) {
                         transition: "opacity var(--transition-fast)",
                       }}
                     />
-                  </MotionLink>
+                  </Link>
                 </StaggeredItem>
               );
             })}
           </StaggeredContainer>
-        </m.nav>
+        </nav>
 
         <div
           className="header-actions"
@@ -466,7 +466,7 @@ export default function Header({ user, onSignIn, onSignUp, onSignOut }) {
             </div>
           )}
         </div>
-      </m.div>
-    </m.header>
+      </div>
+    </header>
   );
 }

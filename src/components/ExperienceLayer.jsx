@@ -5,7 +5,6 @@ import useInteractiveEffects from "../hooks/useInteractiveEffects";
 import useScrollChoreography from "../hooks/useScrollChoreography";
 import useMicroInteractionSystem from "../hooks/useMicroInteractionSystem";
 import useKineticTypography from "../hooks/useKineticTypography";
-import { AnimationProvider } from "./animation/AnimationProvider";
 import CustomCursor from "./animation/CustomCursor";
 
 const THEME_PRESETS = {
@@ -179,18 +178,16 @@ export default function ExperienceLayer({ children, enableExperience = false }) 
 
   return (
     <MicroInteractionProvider enabled={eligible}>
-      <AnimationProvider>
-        {activated ? <CustomCursor /> : null}
-        <MicroInteractionOrchestrator
-          enabled={activated}
-          pointerFine={pointerFine}
-          reducedMotion={reducedMotion}
-        />
-        <div className="experience-shell" data-theme-key={theme.themeKey}>
-          <div className="experience-backdrop" aria-hidden="true" />
-          <div className="experience-content">{children}</div>
-        </div>
-      </AnimationProvider>
+      {activated ? <CustomCursor /> : null}
+      <MicroInteractionOrchestrator
+        enabled={activated}
+        pointerFine={pointerFine}
+        reducedMotion={reducedMotion}
+      />
+      <div className="experience-shell" data-theme-key={theme.themeKey}>
+        <div className="experience-backdrop" aria-hidden="true" />
+        <div className="experience-content">{children}</div>
+      </div>
     </MicroInteractionProvider>
   );
 }

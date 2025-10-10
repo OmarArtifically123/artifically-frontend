@@ -1,5 +1,4 @@
 import { Suspense, memo, useEffect, useState } from "react";
-import * as m from "framer-motion/m";
 import ThemeToggle from "./ThemeToggle";
 import ServerFeatureHighlights from "./ServerFeatureHighlights";
 import { useTheme } from "../context/ThemeContext";
@@ -17,11 +16,8 @@ import {
 const FeatureCard = memo(
   function FeatureCard({ feature, darkMode, ...props }) {
     return (
-      <m.article
+      <article
         className={`feature-card glass-card ${darkMode ? "feature-card--dark" : "feature-card--light"}`}
-        whileHover={{ y: -8, scale: 1.02 }}
-        transition={{ type: "spring", stiffness: 260, damping: 24 }}
-        layout
         {...props}
       >
         <div className="feature-card__inner">
@@ -36,7 +32,7 @@ const FeatureCard = memo(
             <p>{feature.description}</p>
           </div>
         </div>
-      </m.article>
+      </article>
     );
   },
   (prevProps, nextProps) =>
@@ -106,7 +102,7 @@ function FeaturesContent() {
   const { features, stats, loading } = state;
 
   return (
-    <m.section
+    <section
       className="features"
       data-animate-root
       style={{
@@ -116,10 +112,6 @@ function FeaturesContent() {
           "radial-gradient(circle at 5% 0%, color-mix(in oklch, var(--brand-primary) 12%, transparent) 0%, transparent 65%), " +
           "radial-gradient(circle at 95% 8%, color-mix(in oklch, var(--brand-energy) 16%, transparent) 0%, transparent 55%)",
       }}
-      initial={{ opacity: 0, y: 48 }}
-      whileInView={{ opacity: 1, y: 0 }}
-      viewport={{ once: true, amount: 0.3 }}
-      transition={{ duration: 0.6, ease: [0.33, 1, 0.68, 1] }}
     >
       <div
         className="container"
@@ -248,15 +240,15 @@ function FeaturesContent() {
               gap: "var(--layout-bento-gap)",
             }}
           >
-            {features.map((feature) => (
-              <StaggeredItem key={feature.id} style={{ display: "flex" }}>
-                <FeatureCard feature={feature} darkMode={darkMode} />
-              </StaggeredItem>
-            ))}
+            {features.map((feature, index) => (
+                <StaggeredItem key={feature.id} index={index} style={{ display: "flex" }}>
+                  <FeatureCard feature={feature} darkMode={darkMode} />
+                </StaggeredItem>
+              ))}
           </StaggeredContainer>
         )}
       </div>
-    </m.section>
+    </section>
   );
 }
 

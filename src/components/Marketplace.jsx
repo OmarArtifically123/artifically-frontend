@@ -415,7 +415,39 @@ export default function Marketplace({ user, openAuth }) {
   }, [resolvedStatsROI]);
 
   useEffect(() => {
-    warmupWasm();
+    let cancelled = false;
+    let idleId;
+    let timeoutId;
+
+    const runWarmup = () => {
+      if (cancelled) {
+        return;
+      }
+      try {
+        warmupWasm();
+      } catch (error) {
+        if (import.meta.env.DEV) {
+          console.warn("Failed to warm up WASM", error);
+        }
+      }
+    };
+
+    if (typeof window === "undefined") {
+      runWarmup();
+    } else if (typeof window.requestIdleCallback === "function") {
+      idleId = window.requestIdleCallback(
+        () => {
+          idleId = undefined;
+          runWarmup();
+        },
+        { timeout: 1200 },
+      );
+    } else {
+      timeoutId = window.setTimeout(() => {
+        timeoutId = undefined;
+        runWarmup();
+      }, 600);
+    }
 
     const loadAutomations = async () => {
       try {
@@ -447,6 +479,18 @@ export default function Marketplace({ user, openAuth }) {
     };
 
     loadAutomations();
+
+    return () => {
+      cancelled = true;
+      if (typeof window !== "undefined") {
+        if (idleId && typeof window.cancelIdleCallback === "function") {
+          window.cancelIdleCallback(idleId);
+        }
+        if (timeoutId) {
+          window.clearTimeout(timeoutId);
+        }
+      }
+    };
   }, []);
 
   const registerAttention = useCallback(

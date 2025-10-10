@@ -1,15 +1,11 @@
-import { Suspense, lazy, useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { Link } from "react-router-dom";
-import * as m from "framer-motion/m";
 import ThemeToggle from "./ThemeToggle";
 import MagneticButton from "./animation/MagneticButton";
 import { StaggeredContainer, StaggeredItem } from "./animation/StaggeredList";
 import useMicroInteractions from "../hooks/useMicroInteractions";
 import useScrambleText from "../hooks/useScrambleText";
-import pulseAnimation from "../assets/animations/pulse.json";
-
-const HeroScene = lazy(() => import("./HeroScene"));
-const LazyLottie = lazy(() => import("lottie-react").then((module) => ({ default: module.default ?? module })));
+import HeroScene from "./HeroScene";
 const loadGsap = () => import("../lib/gsapConfig");
 
 const HERO_MEDIA_DIMENSIONS = { width: 1280, height: 720 };
@@ -32,12 +28,16 @@ const heroCanvasFallbackStyle = {
   opacity: 0.85,
 };
 
-const heroPulseFallbackStyle = {
+const heroPulseBaseStyle = {
   width: 36,
   height: 36,
   borderRadius: "50%",
   background: "radial-gradient(circle at 50% 50%, rgba(59, 130, 246, 0.65), rgba(59, 130, 246, 0) 70%)",
   opacity: 0.85,
+};
+
+const heroPulseAnimatedStyle = {
+  ...heroPulseBaseStyle,
   animation: "pulse 1.6s ease-in-out infinite",
 };
 
@@ -170,30 +170,40 @@ function HeroMediaFallback() {
   return <div style={heroCanvasFallbackStyle} aria-hidden="true" />;
 }
 
-function useKineticHeadline(containerRef) {
+function useKineticHeadline(containerRef, prefersReducedMotion) {
   useEffect(() => {
-    if (!containerRef.current || typeof window === "undefined") return undefined;
+    if (!containerRef.current) {
+      return undefined;
+    }
 
-    const container = containerRef.current;
-    container.setAttribute("data-scroll-story", "ready");
+    const target = containerRef.current;
+    target.setAttribute("data-scroll-story", "ready");
 
-    let isActive = true;
-    let ctx;
-    let scrollTriggers = [];
+    if (prefersReducedMotion || typeof window === "undefined") {
+      return () => {
+        target.setAttribute("data-scroll-story", "ready");
+      };
+    }
 
-      const setup = async () => {
+    let isMounted = true;
+    let idleId;
+    let timeoutId;
+    let observer;
+    let cleanup = () => {
+      target.setAttribute("data-scroll-story", "ready");
+    };
+
+    const runSetup = async () => {
       try {
         const { gsap } = await loadGsap();
-        if (!isActive || !containerRef.current) {
+        if (!isMounted || !containerRef.current) {
           return;
         }
 
-        const target = containerRef.current;
-        target.setAttribute("data-scroll-story", "ready");
-
+        const current = containerRef.current;
         const triggers = [];
-        ctx = gsap.context(() => {
-          const words = gsap.utils.toArray(target.querySelectorAll("[data-kinetic-word]"));
+        const ctx = gsap.context(() => {
+          const words = gsap.utils.toArray(current.querySelectorAll("[data-kinetic-word]"));
           if (!words.length) return;
 
           const characters = words.reduce((accumulator, word) => {
@@ -235,14 +245,14 @@ function useKineticHeadline(containerRef) {
             .timeline({
               defaults: { ease: "power3.out" },
               scrollTrigger: {
-                trigger: target,
+                trigger: current,
                 start: "top center",
                 end: "bottom top",
                 scrub: true,
-                onEnter: () => target.setAttribute("data-scroll-story", "active"),
-                onEnterBack: () => target.setAttribute("data-scroll-story", "active"),
-                onLeave: () => target.setAttribute("data-scroll-story", "past"),
-                onLeaveBack: () => target.setAttribute("data-scroll-story", "ready"),
+                onEnter: () => current.setAttribute("data-scroll-story", "active"),
+                onEnterBack: () => current.setAttribute("data-scroll-story", "active"),
+                onLeave: () => current.setAttribute("data-scroll-story", "past"),
+                onLeaveBack: () => current.setAttribute("data-scroll-story", "ready"),
               },
             })
             .to(
@@ -269,23 +279,105 @@ function useKineticHeadline(containerRef) {
           if (timeline.scrollTrigger) {
             triggers.push(timeline.scrollTrigger);
           }
-        }, containerRef);
+        }, current);
 
-        scrollTriggers = triggers;
+        cleanup = () => {
+          triggers.forEach((trigger) => trigger.kill());
+          ctx?.revert();
+          current.setAttribute("data-scroll-story", "ready");
+        };
       } catch (error) {
         console.warn("Failed to load kinetic headline animations", error);
       }
     };
 
-    setup();
+    const scheduleSetup = () => {
+      if (typeof window.requestIdleCallback === "function") {
+        idleId = window.requestIdleCallback(() => {
+          idleId = undefined;
+          if (isMounted) {
+            runSetup();
+          }
+        }, { timeout: 600 });
+      } else {
+        timeoutId = window.setTimeout(() => {
+          timeoutId = undefined;
+          if (isMounted) {
+            runSetup();
+          }
+        }, heroSceneLoadDelay);
+      }
+    };
+
+    if ("IntersectionObserver" in window) {
+      observer = new IntersectionObserver(
+        (entries) => {
+          entries.forEach((entry) => {
+            if (entry.isIntersecting) {
+              scheduleSetup();
+              observer.disconnect();
+            }
+          });
+        },
+        { rootMargin: "0px 0px -20%", threshold: 0.25 },
+      );
+      observer.observe(target);
+    } else {
+      scheduleSetup();
+    }
 
     return () => {
-      isActive = false;
-      scrollTriggers.forEach((trigger) => trigger.kill());
-      ctx?.revert();
-      container.setAttribute("data-scroll-story", "ready");
+      isMounted = false;
+      cleanup();
+      if (observer) {
+        observer.disconnect();
+      }
+      if (idleId && typeof window.cancelIdleCallback === "function") {
+        window.cancelIdleCallback(idleId);
+      }
+      if (timeoutId) {
+        window.clearTimeout(timeoutId);
+      }
     };
-  }, [containerRef]);
+  }, [containerRef, prefersReducedMotion]);
+}
+
+function usePrefersReducedMotion() {
+  const [prefers, setPrefers] = useState(() => {
+    if (typeof window === "undefined") {
+      return false;
+    }
+    return window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+  });
+
+  useEffect(() => {
+    if (typeof window === "undefined") {
+      return undefined;
+    }
+
+    const mediaQuery = window.matchMedia("(prefers-reduced-motion: reduce)");
+    const handleChange = (event) => {
+      setPrefers(event.matches);
+    };
+
+    if (typeof mediaQuery.addEventListener === "function") {
+      mediaQuery.addEventListener("change", handleChange);
+    } else if (typeof mediaQuery.addListener === "function") {
+      mediaQuery.addListener(handleChange);
+    }
+
+    setPrefers(mediaQuery.matches);
+
+    return () => {
+      if (typeof mediaQuery.removeEventListener === "function") {
+        mediaQuery.removeEventListener("change", handleChange);
+      } else if (typeof mediaQuery.removeListener === "function") {
+        mediaQuery.removeListener(handleChange);
+      }
+    };
+  }, []);
+
+  return prefers;
 }
 
 export default function Hero({ openAuth }) {
@@ -301,10 +393,18 @@ export default function Hero({ openAuth }) {
   const [activePulse, setActivePulse] = useState(0);
   const [demoPreset, setDemoPreset] = useState(PRESET_DEMOS[0].id);
   const [business, setBusiness] = useState("");
-  useKineticHeadline(headlineRef);
+  const prefersReducedMotion = usePrefersReducedMotion();
+  useKineticHeadline(headlineRef, prefersReducedMotion);
 
   useEffect(() => {
-    if (shouldRenderScene) {
+    if (prefersReducedMotion) {
+      setShouldRenderScene(false);
+      setShouldRenderPulse(false);
+    }
+  }, [prefersReducedMotion]);
+
+  useEffect(() => {
+    if (prefersReducedMotion || shouldRenderScene) {
       return undefined;
     }
 
@@ -319,10 +419,10 @@ export default function Hero({ openAuth }) {
       cancelled = true;
       cancelSchedule();
     };
-  }, [shouldRenderScene]);
+  }, [prefersReducedMotion, shouldRenderScene]);
 
   useEffect(() => {
-    if (shouldRenderPulse) {
+    if (prefersReducedMotion || shouldRenderPulse) {
       return undefined;
     }
 
@@ -337,7 +437,7 @@ export default function Hero({ openAuth }) {
       cancelled = true;
       cancelSchedule();
     };
-  }, [shouldRenderPulse]);
+  }, [prefersReducedMotion, shouldRenderPulse]);
 
   useEffect(() => {
     if (typeof window === "undefined") return undefined;
@@ -450,14 +550,7 @@ export default function Hero({ openAuth }) {
   useScrambleText(tickerTitleRef, selectedTrending.title);
 
   return (
-    <m.section
-      className="hero"
-      data-animate-root
-      initial={{ opacity: 0, y: 32 }}
-      whileInView={{ opacity: 1, y: 0 }}
-      viewport={{ once: true, amount: 0.35 }}
-      transition={{ duration: 0.6, ease: [0.33, 1, 0.68, 1] }}
-    >
+    <section className="hero" data-animate-root>
       <div
         className="hero-canvas"
         aria-hidden="true"
@@ -465,9 +558,7 @@ export default function Hero({ openAuth }) {
       >
         <div style={heroMediaFrameStyle}>
           {shouldRenderScene ? (
-            <Suspense fallback={<HeroMediaFallback />}>
-              <HeroScene width={HERO_MEDIA_DIMENSIONS.width} height={HERO_MEDIA_DIMENSIONS.height} />
-            </Suspense>
+            <HeroScene width={HERO_MEDIA_DIMENSIONS.width} height={HERO_MEDIA_DIMENSIONS.height} />
           ) : (
             <HeroMediaFallback />
           )}
@@ -566,8 +657,8 @@ export default function Hero({ openAuth }) {
               data-animate="fade-up"
               data-animate-order="4"
             >
-              {HERO_BADGES.map(({ icon, label }) => (
-                <StaggeredItem key={label} className="hero-badge__item glass-pill">
+              {HERO_BADGES.map(({ icon, label }, index) => (
+                <StaggeredItem key={label} index={index} className="hero-badge__item glass-pill">
                   <span aria-hidden="true">{icon}</span>
                   <span>{label}</span>
                 </StaggeredItem>
@@ -635,13 +726,7 @@ export default function Hero({ openAuth }) {
                 ))}
                 <div className="hero-map__legend glass-pill">
                   <div className="hero-map__legend-animation" aria-hidden="true">
-                    {shouldRenderPulse ? (
-                      <Suspense fallback={<div style={heroPulseFallbackStyle} />}>
-                        <LazyLottie animationData={pulseAnimation} loop style={{ width: 36, height: 36 }} />
-                      </Suspense>
-                    ) : (
-                      <div style={heroPulseFallbackStyle} />
-                    )}
+                    <div style={shouldRenderPulse ? heroPulseAnimatedStyle : heroPulseBaseStyle} />
                   </div>
                   Automations executing in real time
                 </div>
@@ -724,6 +809,6 @@ export default function Hero({ openAuth }) {
           </div>
         </div>
       ) : null}
-    </m.section>
+    </section>
   );
 }
