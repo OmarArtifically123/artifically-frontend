@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState, useId } from "react";
 
 const COLORS = [
   "#34d399",
@@ -7,10 +7,6 @@ const COLORS = [
   "#facc15",
   "#c084fc",
 ];
-
-function randomId() {
-  return Math.random().toString(36).slice(2, 8);
-}
 
 function pickColor(seed) {
   const index = Math.abs(seed.charCodeAt(0) + seed.charCodeAt(seed.length - 1)) % COLORS.length;
@@ -26,7 +22,11 @@ export default function MarketplaceCollaborationLayer({
   const [peers, setPeers] = useState([]);
   const [discussion, setDiscussion] = useState([]);
   const channelRef = useRef(null);
-  const sessionId = useMemo(() => providedSessionId || randomId(), [providedSessionId]);
+  const fallbackSessionId = useId();
+  const sessionId = useMemo(
+    () => providedSessionId || `mp-${fallbackSessionId.replace(/[:]/g, "-")}`,
+    [fallbackSessionId, providedSessionId],
+  );
 
   useEffect(() => {
     if (typeof window === "undefined") return () => {};

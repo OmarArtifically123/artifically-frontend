@@ -9,7 +9,7 @@ import MagneticButton from "./animation/MagneticButton";
 
 export default function Footer() {
   const { darkMode } = useTheme();
-  const [currentYear] = useState(new Date().getFullYear());
+  const [currentYear, setCurrentYear] = useState(() => new Date().getFullYear());
   const [stats, setStats] = useState({
     automationsDeployed: 0,
     companiesServed: 0,
@@ -21,6 +21,13 @@ export default function Footer() {
   const messageTimeoutRef = useRef(null);
   const newsletterId = useId();
 
+  useEffect(() => {
+    const year = new Date().getFullYear();
+    if (year !== currentYear) {
+      setCurrentYear(year);
+    }
+  }, [currentYear]);
+  
   useEffect(() => {
     const finalStats = {
       automationsDeployed: 0,

@@ -1,10 +1,9 @@
 import { lazy, Suspense, useEffect, useMemo, useState } from "react";
 import { Routes, Route, useNavigate, useLocation } from "react-router-dom";
 import Header from "./components/Header";
-import Footer from "./components/Footer";
 import RouteShell from "./components/skeletons/RouteShell";
 import { ToastHost, toast } from "./components/Toast";
-import { SpeedInsights } from "@vercel/speed-insights/next";
+import { SpeedInsights } from "@vercel/speed-insights/react";
 import api, { pick } from "./api";
 import usePredictivePrefetch from "./hooks/usePredictivePrefetch";
 import "./styles/global.css";
@@ -27,6 +26,7 @@ const Marketplace = lazy(() => import("./components/Marketplace"));
 const Dashboard = lazy(() => import("./components/Dashboard"));
 const AuthModal = lazy(() => import("./components/AuthModal"));
 const Verify = lazy(() => import("./components/Verify"));
+const Footer = lazy(() => import("./components/Footer"));
 
 // Utility functions - moved outside component to prevent recreation
 const requestIdle =
@@ -251,7 +251,7 @@ export default function App() {
       )}
 
       <main className="app-shell" data-route-ready={isHydrated ? "true" : "false"}>
-        <Suspense fallback={<div style={{ height: 420 }} />}>
+        <Suspense fallback={<RouteShell rows={6} />}>
           <Routes location={location}>
             <Route
               path="/"
@@ -447,7 +447,9 @@ export default function App() {
           </Suspense>
       </main>
 
-      <Footer />
+      <Suspense fallback={<FooterSkeleton />}>
+        <Footer />
+      </Suspense>
 
       {authOpen && (
         <Suspense fallback={<RouteShell rows={4} />}>
@@ -462,5 +464,56 @@ export default function App() {
       <ToastHost />
       <SpeedInsights />
     </ExperienceLayer>
+  );
+}
+
+function FooterSkeleton() {
+  return (
+    <div
+      aria-hidden="true"
+      style={{
+        minHeight: 320,
+        padding: "4rem 1.5rem",
+        background: "linear-gradient(180deg, rgba(15,23,42,0.85) 0%, rgba(15,23,42,0.65) 100%)",
+        borderTop: "1px solid rgba(148, 163, 184, 0.18)",
+      }}
+    >
+      <div
+        style={{
+          maxWidth: "1180px",
+          margin: "0 auto",
+          display: "grid",
+          gap: "2.5rem",
+          gridTemplateColumns: "repeat(auto-fit, minmax(220px, 1fr))",
+        }}
+      >
+        {Array.from({ length: 4 }).map((_, index) => (
+          <div key={index} style={{ display: "grid", gap: "0.85rem" }}>
+            <div
+              style={{
+                width: "60%",
+                height: "1.25rem",
+                borderRadius: "0.65rem",
+                background: "linear-gradient(120deg, rgba(148,163,184,0.28), rgba(148,163,184,0.12))",
+                animation: "pulse 1.6s ease-in-out infinite",
+              }}
+            />
+            {Array.from({ length: 4 }).map((_, lineIndex) => (
+              <div
+                // eslint-disable-next-line react/no-array-index-key
+                key={lineIndex}
+                style={{
+                  height: "0.85rem",
+                  borderRadius: "0.65rem",
+                  width: `${70 - lineIndex * 10}%`,
+                  background: "linear-gradient(120deg, rgba(148,163,184,0.24), rgba(148,163,184,0.08))",
+                  animation: "pulse 1.6s ease-in-out infinite",
+                }}
+              />
+            ))}
+          </div>
+        ))}
+      </div>
+    </div>
   );
 }

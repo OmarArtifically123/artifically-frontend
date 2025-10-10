@@ -166,19 +166,46 @@ function getSmartPrefill(stored = {}) {
 
 export default function Contact() {
   const storedPreferences = useMemo(() => getStoredPreferences(), []);
-  const smartDefaults = useMemo(() => getSmartPrefill(storedPreferences), [storedPreferences]);
-  const initialFormState = useMemo(
-    () => ({ ...FORM_DEFAULTS, ...smartDefaults, ...storedPreferences }),
-    [smartDefaults, storedPreferences],
+  const [isHydrated, setIsHydrated] = useState(false);
+  const smartDefaults = useMemo(
+    () => (isHydrated ? getSmartPrefill(storedPreferences) : {}),
+    [isHydrated, storedPreferences],
+  );
+  const baseInitialState = useMemo(
+    () => ({ ...FORM_DEFAULTS, ...storedPreferences }),
+    [storedPreferences],
   );
 
-  const [formState, setFormState] = useState(initialFormState);
+  const [formState, setFormState] = useState(baseInitialState);
   const [status, setStatus] = useState("");
-  const [showAdvanced, setShowAdvanced] = useState(() => shouldOpenAdvanced(initialFormState));
+  const [showAdvanced, setShowAdvanced] = useState(() => shouldOpenAdvanced(baseInitialState));
   const [topicHistory, setTopicHistory] = useState(() => getTopicHistory());
   const [activeHint, setActiveHint] = useState(null);
   const hesitationTimers = useRef({});
 
+  useEffect(() => {
+    setIsHydrated(true);
+  }, []);
+
+  useEffect(() => {
+    if (!isHydrated || !Object.keys(smartDefaults).length) {
+      return;
+    }
+
+    setFormState((prev) => {
+      const needsUpdate = Object.entries(smartDefaults).some(
+        ([key, value]) => prev[key] !== value,
+      );
+      if (!needsUpdate) {
+        return prev;
+      }
+
+      const nextState = { ...prev, ...smartDefaults };
+      setShowAdvanced((current) => current || shouldOpenAdvanced(nextState));
+      return nextState;
+    });
+  }, [isHydrated, smartDefaults]);
+  
   const handleChange = (event) => {
     const { name, value, type, checked } = event.target;
     setFormState((prev) => ({ ...prev, [name]: type === "checkbox" ? checked : value }));

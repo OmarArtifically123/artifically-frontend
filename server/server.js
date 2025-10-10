@@ -42,7 +42,7 @@ async function createDevServer() {
 
     if (url.startsWith("/rsc/features")) {
       try {
-        const mod = await vite.ssrLoadModule("/server/entry-server.jsx");
+        const mod = await vite.ssrLoadModule("/src/entry-server.jsx");
         await mod.renderFeatureHighlightsRSC(res);
       } catch (error) {
         vite.ssrFixStacktrace(error);
@@ -63,22 +63,53 @@ async function createDevServer() {
             let template = fs.readFileSync(templatePath, "utf-8");
             template = await vite.transformIndexHtml(requestUrl, template);
             
-            // Re-enable SSR with fallback to client-only on error
             try {
-              const { render } = await vite.ssrLoadModule("/server/entry-server.jsx");
-              await render({ req, res, template, manifest: null, isProd: false });
+              const { render } = await vite.ssrLoadModule("/src/entry-server.jsx");
+              const rendered = await render(requestUrl, null);
+
+              const [htmlStart = "", htmlEndWithFallback = ""] = template.split("<!--app-html-->");
+              const htmlEnd = htmlEndWithFallback.replace("<!--app-fallback-->", "");
+
+              res.statusCode = rendered.statusCode ?? 200;
+              const headers = rendered.headers ?? {};
+              for (const [key, value] of Object.entries(headers)) {
+                if (value !== undefined) {
+                  res.setHeader(key, value);
+                }
+              }
+
+              res.write(htmlStart);
+
+              rendered.stream.on("error", (streamError) => {
+                console.error("SSR stream failure (dev):", streamError);
+                if (!res.headersSent) {
+                  res.statusCode = 500;
+                }
+                try {
+                  rendered.abort?.();
+                } catch (abortError) {
+                  console.warn("Failed to abort SSR stream", abortError);
+                }
+                res.end();
+              });
+
+              rendered.stream.on("end", () => {
+                res.write(htmlEnd);
+                res.end();
+              });
+
+              rendered.stream.pipe(res, { end: false });
               console.log(`✅ SSR successful for: ${requestUrl}`);
             } catch (ssrError) {
               console.warn(`⚠️ SSR failed for ${requestUrl}, falling back to client-only:`, ssrError.message);
-              
-              // Fallback to client-only rendering
+
               const clientOnlyTemplate = template
                 .replace(
-                  '<!--app-html-->',
+                  "<!--app-html-->",
                   '<div class="initial-loading"><div class="loading-spinner"></div><p>Loading Artifically...</p></div>'
                 )
                 .replace(
-                  '<!--app-fallback-->',
+                  "<!--app-fallback-->",
                   '<script>window.__SSR_DISABLED__ = true;</script>'
                 );
 
@@ -259,7 +290,39 @@ async function createProdServer() {
     }
 
     try {
-      await render({ req, res, template, manifest, isProd: true });
+      const rendered = await render(url, manifest);
+      const [htmlStart = "", htmlEndWithFallback = ""] = template.split("<!--app-html-->");
+      const htmlEnd = htmlEndWithFallback.replace("<!--app-fallback-->", "");
+
+      res.statusCode = rendered.statusCode ?? 200;
+      const headers = rendered.headers ?? {};
+      for (const [key, value] of Object.entries(headers)) {
+        if (value !== undefined) {
+          res.setHeader(key, value);
+        }
+      }
+
+      res.write(htmlStart);
+
+      rendered.stream.on("error", (error) => {
+        console.error("SSR stream failure (prod):", error);
+        if (!res.headersSent) {
+          res.statusCode = 500;
+        }
+        try {
+          rendered.abort?.();
+        } catch (abortError) {
+          console.warn("Failed to abort SSR stream", abortError);
+        }
+        res.end();
+      });
+
+      rendered.stream.on("end", () => {
+        res.write(htmlEnd);
+        res.end();
+      });
+
+      rendered.stream.pipe(res, { end: false });
     } catch (error) {
       console.error("SSR render failed in production, falling back to client-only", error);
       sendClientOnly(res);

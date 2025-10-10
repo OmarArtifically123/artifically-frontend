@@ -1,5 +1,5 @@
 import React, { StrictMode, startTransition } from "react";
-import { hydrateRoot, createRoot } from "react-dom/client";
+import { hydrateRoot } from "react-dom/client";
 import { BrowserRouter } from "react-router-dom";
 import { ErrorBoundary } from "react-error-boundary";
 import App from "./App";
@@ -11,6 +11,7 @@ import {
   exposePerformanceBudgets,
   initPerformanceBudgetWatchers,
 } from "./utils/performanceBudgets";
+import { onCLS, onINP, onLCP } from "web-vitals";
 
 // Enhanced fallback UI
 function ErrorFallback({ error, resetErrorBoundary }) {
@@ -76,6 +77,37 @@ function ErrorFallback({ error, resetErrorBoundary }) {
   );
 }
 
+function sendToAnalytics(metric) {
+  try {
+    const body = JSON.stringify({
+      name: metric.name,
+      value: metric.value,
+      rating: metric.rating,
+    });
+
+    if (typeof navigator !== "undefined" && navigator.sendBeacon) {
+      navigator.sendBeacon("/api/analytics", body);
+    } else if (typeof fetch === "function") {
+      fetch("/api/analytics", {
+        method: "POST",
+        body,
+        keepalive: true,
+        headers: { "Content-Type": "application/json" },
+      }).catch(() => {});
+    }
+  } catch (error) {
+    if (import.meta.env.DEV) {
+      console.warn("Failed to report web-vitals metric", error);
+    }
+  }
+}
+
+if (typeof window !== "undefined") {
+  onLCP(sendToAnalytics);
+  onCLS(sendToAnalytics);
+  onINP(sendToAnalytics);
+}
+
 if (typeof window !== "undefined") {
   exposePerformanceBudgets();
   initPerformanceBudgetWatchers();
@@ -90,6 +122,7 @@ if (!rootElement) {
 let hydrationRoot = null;
 let clientRoot = null;
 let hasForcedClientRender = false;
+let createRootFactory = null;
 
 const markReactLoaded = () => {
   const body = document.body;
@@ -102,6 +135,19 @@ const markReactLoaded = () => {
     loading.parentNode.removeChild(loading);
   }
 };
+
+async function resolveClientRoot() {
+  if (!createRootFactory) {
+    const mod = await import("react-dom/client");
+    createRootFactory = mod.createRoot;
+  }
+
+  if (!clientRoot) {
+    clientRoot = createRootFactory(rootElement);
+  }
+
+  return clientRoot;
+}
 
 function isHydrationError(error) {
   if (!error) {
@@ -206,11 +252,15 @@ function initializeApp() {
       rootElement.innerHTML = '';
     }
 
-    createClientRoot();
+    createClientRoot().catch((error) => {
+      if (import.meta.env.DEV) {
+        console.error("❌ Client rendering failed:", error);
+      }
+    });
   }
 }
 
-function fallbackToClientRender(reason) {
+async function fallbackToClientRender(reason) {
   if (hasForcedClientRender) {
     return;
   }
@@ -237,21 +287,24 @@ function fallbackToClientRender(reason) {
     console.warn("🔄 Falling back to client render due to hydration issue:", reason);
   }
 
-  // Clear existing content and create fresh root
   if (rootElement.hasChildNodes()) {
-    rootElement.innerHTML = '';
+    rootElement.innerHTML = "";
   }
 
-  createClientRoot();
+  try {
+    await createClientRoot();
+  } catch (error) {
+    if (import.meta.env.DEV) {
+      console.error("❌ Client rendering failed after hydration fallback:", error);
+    }
+  }
 }
 
-function createClientRoot() {
-  if (!clientRoot) {
-    clientRoot = createRoot(rootElement);
-  }
+async function createClientRoot() {
+  const root = await resolveClientRoot();
 
   startTransition(() => {
-    clientRoot.render(<AppWrapper />);
+    root.render(<AppWrapper />);
   });
 
   markReactLoaded();

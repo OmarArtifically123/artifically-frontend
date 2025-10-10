@@ -3,29 +3,37 @@ import { useEffect, useMemo, useRef } from "react";
 const PARTICLE_COUNT = 18;
 const BLOOM_COUNT = 8;
 
-function createParticles(count) {
+function createDeterministicRandom(seed = 42) {
+  let state = seed >>> 0;
+  return () => {
+    state = (state * 1664525 + 1013904223) >>> 0;
+    return state / 4294967296;
+  };
+}
+
+function createParticles(count, random = Math.random) {
   return Array.from({ length: count }, (_, index) => {
     const hueBase = index % 2 === 0 ? 198 : 268;
     return {
-      offset: Math.random() * Math.PI * 2,
-      varianceX: 0.35 + Math.random() * 0.2,
-      varianceY: 0.28 + Math.random() * 0.16,
-      baseX: 0.5 + (Math.random() - 0.5) * 0.12,
-      baseY: 0.48 + (Math.random() - 0.5) * 0.16,
-      size: 180 + Math.random() * 180,
-      hue: hueBase + Math.random() * 28,
-      speed: 0.12 + Math.random() * 0.08,
+      offset: random() * Math.PI * 2,
+      varianceX: 0.35 + random() * 0.2,
+      varianceY: 0.28 + random() * 0.16,
+      baseX: 0.5 + (random() - 0.5) * 0.12,
+      baseY: 0.48 + (random() - 0.5) * 0.16,
+      size: 180 + random() * 180,
+      hue: hueBase + random() * 28,
+      speed: 0.12 + random() * 0.08,
     };
   });
 }
 
-function createBlooms(count) {
+function createBlooms(count, random = Math.random) {
   return Array.from({ length: count }, () => ({
-    radius: 120 + Math.random() * 80,
-    angle: Math.random() * Math.PI * 2,
-    distance: 0.2 + Math.random() * 0.3,
-    hue: 180 + Math.random() * 40,
-    alpha: 0.25 + Math.random() * 0.25,
+    radius: 120 + random() * 80,
+    angle: random() * Math.PI * 2,
+    distance: 0.2 + random() * 0.3,
+    hue: 180 + random() * 40,
+    alpha: 0.25 + random() * 0.25,
   }));
 }
 
@@ -95,10 +103,13 @@ export default function HeroScene({ width = 1280, height = 720 }) {
   const particlesRef = useRef(null);
   const bloomsRef = useRef(null);
 
-  const { particles, blooms } = useMemo(() => ({
-    particles: createParticles(PARTICLE_COUNT),
-    blooms: createBlooms(BLOOM_COUNT),
-  }), []);
+  const { particles, blooms } = useMemo(() => {
+    const seededRandom = createDeterministicRandom(2024);
+    return {
+      particles: createParticles(PARTICLE_COUNT, seededRandom),
+      blooms: createBlooms(BLOOM_COUNT, seededRandom),
+    };
+  }, []);
 
   particlesRef.current = particles;
   bloomsRef.current = blooms;

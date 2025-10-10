@@ -1,4 +1,4 @@
-import { Suspense, lazy, useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { Suspense, lazy, useCallback, useEffect, useId, useMemo, useRef, useState } from "react";
 import { fetchAutomations } from "../data/automations";
 import { toast } from "./Toast";
 import api from "../api";
@@ -336,7 +336,11 @@ export default function Marketplace({ user, openAuth }) {
   const workerRef = useRef(null);
   const collaborationChannelRef = useRef(null);
   const [collaborationReady, setCollaborationReady] = useState(false);
-  const sessionId = useMemo(() => `mp-${Math.random().toString(36).slice(2, 8)}`, []);
+  const generatedSessionId = useId();
+  const sessionId = useMemo(
+    () => `mp-${generatedSessionId.replace(/[:]/g, "-")}`,
+    [generatedSessionId],
+  );
   const [resolvedStatsROI, setResolvedStatsROI] = useState(() => {
     const fallbackROI = FALLBACK_MARKETPLACE_STATS?.averageROI;
     return Number.isFinite(Number(fallbackROI)) ? Number(fallbackROI) : null;
