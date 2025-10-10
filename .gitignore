@@ -10,3 +10,12 @@ build/
 
 # System files
 .DS_Store
+
+reports/
+
+# Environment variables
+.env
+
+# Editor/OS cache files
+.vscode/
+*.heapsnapshot
