@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 import { motion } from "framer-motion";
-import { gsap } from "gsap";
+import { gsap } from "../../lib/gsapConfig";
 
 const baseStyles = {
   width: 20,
@@ -52,6 +52,9 @@ export default function CustomCursor() {
         element.removeEventListener("mouseenter", handleEnter);
         element.removeEventListener("mouseleave", handleLeave);
       });
+      if (cursorRef.current) {
+        gsap.killTweensOf(cursorRef.current);
+      }
     };
   }, []);
 

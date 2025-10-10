@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState, useRef } from "react";
-import gsap from "gsap";
+import { gsap } from "../lib/gsapConfig";
 import { fetchAutomations } from "../data/automations";
 import { toast } from "../components/Toast";
 import { space } from "../styles/spacing";
@@ -66,10 +66,10 @@ function useGsapAccordion(ref, isOpen) {
 
   useEffect(() => {
     if (!ref.current || typeof window === "undefined") {
-      return;
+      return undefined;
     }
 
-    if (!timelineRef.current) {
+    const ctx = gsap.context(() => {
       timelineRef.current = gsap
         .timeline({ paused: true })
         .fromTo(
@@ -77,14 +77,26 @@ function useGsapAccordion(ref, isOpen) {
           { height: 0, opacity: 0, display: "none" },
           { height: "auto", opacity: 1, display: "block", duration: 0.4, ease: "power2.out" }
         );
-    }
+        }, ref);
+
+    return () => {
+      timelineRef.current?.kill();
+      timelineRef.current = undefined;
+      ctx.revert();
+    };
+  }, [ref]);
+
+  useEffect(() => {
+    if (!timelineRef.current) return undefined;
 
     if (isOpen) {
       timelineRef.current.play();
     } else {
       timelineRef.current.reverse();
     }
-  }, [isOpen, ref]);
+
+    return undefined;
+  }, [isOpen]);
 }
 
 function FaqAccordion({ question, answer, isOpen, onToggle }) {

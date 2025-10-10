@@ -1,8 +1,7 @@
 import { Suspense, lazy, useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { Link } from "react-router-dom";
 import { motion } from "framer-motion";
-import { gsap } from "gsap";
-import { ScrollTrigger } from "gsap/ScrollTrigger";
+import { gsap } from "../lib/gsapConfig";
 import Lottie from "lottie-react";
 import ThemeToggle from "./ThemeToggle";
 import MagneticButton from "./animation/MagneticButton";
@@ -147,16 +146,13 @@ function scheduleSceneLoad(callback) {
   return () => window.clearTimeout(timeoutId);
 }
 
-if (typeof window !== "undefined") {
-  gsap.registerPlugin(ScrollTrigger);
-}
-
 function useKineticHeadline(containerRef) {
   useEffect(() => {
     if (!containerRef.current || typeof window === "undefined") return undefined;
     const container = containerRef.current;
     container.setAttribute("data-scroll-story", "ready");
 
+    const scrollTriggers = [];
     const ctx = gsap.context(() => {
       const words = gsap.utils.toArray(container.querySelectorAll("[data-kinetic-word]"));
       if (!words.length) return;
@@ -196,7 +192,7 @@ function useKineticHeadline(containerRef) {
         delay: 0.25,
       });
 
-      gsap
+      const timeline = gsap
         .timeline({
           defaults: { ease: "power3.out" },
           scrollTrigger: {
@@ -230,9 +226,14 @@ function useKineticHeadline(containerRef) {
           },
           ">+=0.8",
         );
+
+        if (timeline.scrollTrigger) {
+        scrollTriggers.push(timeline.scrollTrigger);
+      }
     }, containerRef);
 
     return () => {
+      scrollTriggers.forEach((trigger) => trigger.kill());
       ctx.revert();
       container.setAttribute("data-scroll-story", "ready");
     };

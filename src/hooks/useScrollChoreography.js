@@ -1,6 +1,5 @@
 import { useEffect } from "react";
-import { gsap } from "gsap";
-import { ScrollTrigger } from "gsap/ScrollTrigger";
+import { gsap, ScrollTrigger } from "../lib/gsapConfig";
 
 const SPEEDS = {
   micro: 0.35,
@@ -75,8 +74,6 @@ const CONTEXT_SETTINGS = {
   },
 };
 
-let pluginRegistered = false;
-
 function getContextKey(element) {
   if (!element) return "default";
   const explicit = element.dataset.animateContext;
@@ -92,11 +89,6 @@ function getContextKey(element) {
 export default function useScrollChoreography() {
   useEffect(() => {
     if (typeof window === "undefined") return undefined;
-
-    if (!pluginRegistered) {
-      gsap.registerPlugin(ScrollTrigger);
-      pluginRegistered = true;
-    }
 
     const reduceMotion = window.matchMedia?.("(prefers-reduced-motion: reduce)");
     if (reduceMotion?.matches) {
