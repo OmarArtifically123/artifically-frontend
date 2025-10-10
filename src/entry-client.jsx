@@ -7,6 +7,10 @@ import { ThemeProvider } from "./context/ThemeContext";
 import { warmupWasm } from "./lib/wasmMath";
 import "./styles/global.css";
 import { space } from "./styles/spacing";
+import {
+  exposePerformanceBudgets,
+  initPerformanceBudgetWatchers,
+} from "./utils/performanceBudgets";
 
 // Enhanced fallback UI
 function ErrorFallback({ error, resetErrorBoundary }) {
@@ -70,6 +74,11 @@ function ErrorFallback({ error, resetErrorBoundary }) {
       </ThemeProvider>
     </BrowserRouter>
   );
+}
+
+if (typeof window !== "undefined") {
+  exposePerformanceBudgets();
+  initPerformanceBudgetWatchers();
 }
 
 const rootElement = document.getElementById("root");
