@@ -3,7 +3,7 @@ import { Routes, Route, useNavigate, useLocation } from "react-router-dom";
 import Header from "./components/Header";
 import RouteShell from "./components/skeletons/RouteShell";
 import { ToastHost, toast } from "./components/Toast";
-import { SpeedInsights } from "@vercel/speed-insights/react";
+import { SpeedInsights } from '@vercel/speed-insights/react';
 import api, { pick } from "./api";
 import usePredictivePrefetch from "./hooks/usePredictivePrefetch";
 import "./styles/global.css";

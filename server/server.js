@@ -29,6 +29,36 @@ const setDefaultHeaders = (res) => {
   res.setHeader("Referrer-Policy", "strict-origin-when-cross-origin");
 };
 
+const normalizeRenderResult = (result) => {
+  if (!result) {
+    return null;
+  }
+
+  if (typeof result.pipe === "function" && typeof result.on === "function") {
+    return {
+      stream: result,
+      abort: typeof result.abort === "function" ? result.abort : null,
+      headers: result.headers || {},
+      statusCode: result.statusCode,
+    };
+  }
+
+  if (result.stream && typeof result.stream.pipe === "function") {
+    return {
+      stream: result.stream,
+      abort: typeof result.abort === "function"
+        ? result.abort
+        : typeof result.stream.abort === "function"
+        ? result.stream.abort
+        : null,
+      headers: result.headers || result.stream.headers || {},
+      statusCode: result.statusCode || result.stream.statusCode,
+    };
+  }
+
+  return null;
+};
+
 async function createDevServer() {
   const { createServer: createViteServer } = await import("vite");
   const vite = await createViteServer({
@@ -65,7 +95,11 @@ async function createDevServer() {
             
             try {
               const { render } = await vite.ssrLoadModule("/src/entry-server.jsx");
-              const rendered = await render(requestUrl, null);
+              const rendered = normalizeRenderResult(await render(requestUrl, null));
+
+              if (!rendered?.stream) {
+                throw new Error("SSR renderer did not return a stream");
+              }
 
               const [htmlStart = "", htmlEndWithFallback = ""] = template.split("<!--app-html-->");
               const htmlEnd = htmlEndWithFallback.replace("<!--app-fallback-->", "");
@@ -290,7 +324,10 @@ async function createProdServer() {
     }
 
     try {
-      const rendered = await render(url, manifest);
+      const rendered = normalizeRenderResult(await render(url, manifest));
+      if (!rendered?.stream) {
+        throw new Error("SSR renderer did not provide a stream");
+      }
       const [htmlStart = "", htmlEndWithFallback = ""] = template.split("<!--app-html-->");
       const htmlEnd = htmlEndWithFallback.replace("<!--app-fallback-->", "");
 

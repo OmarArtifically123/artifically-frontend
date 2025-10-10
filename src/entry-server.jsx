@@ -62,23 +62,24 @@ export function render(url, manifest) {
     let didError = false;
     let shellResolved = false;
 
-    const stream = new PassThrough();
+    const passThrough = new PassThrough();
     const bootstrapScripts = resolveBootstrapScripts(manifest);
 
-    const onShellReady = (abort) => {
+    const finalizeShell = (abort) => {
       if (shellResolved) return;
       shellResolved = true;
 
-      resolve({
+      const responseStream = Object.assign(passThrough, {
         statusCode: didError ? 500 : 200,
         headers: {
           "Content-Type": "text/html; charset=utf-8",
           "Transfer-Encoding": "chunked",
           "X-SSR-Mode": didError ? "partial" : "success",
         },
-        stream,
         abort,
       });
+
+      resolve(responseStream);
     };
 
     const { pipe, abort } = renderToPipeableStream(
@@ -91,10 +92,11 @@ export function render(url, manifest) {
         bootstrapScripts,
         bootstrapScriptContent: `window.__FEATURE_DATA__=${safeSerialize(featureData)};window.__SSR_SUCCESS__=true;`,
         onShellReady() {
-          onShellReady(abort);
-          pipe(stream);
+          finalizeShell(abort);
+          pipe(passThrough);
         },
         onShellError(error) {
+            passThrough.destroy(error);
           reject(error);
         },
         onAllReady() {},
@@ -107,14 +109,23 @@ export function render(url, manifest) {
 
     const abortTimer = setTimeout(() => {
       if (!shellResolved) {
-        onShellReady(abort);
+        finalizeShell(abort);
       }
       abort();
     }, ABORT_DELAY);
 
-    stream.on("end", () => clearTimeout(abortTimer));
-    stream.on("close", () => clearTimeout(abortTimer));
-    stream.on("error", () => clearTimeout(abortTimer));
+    const clearAbortTimer = () => clearTimeout(abortTimer);
+
+    passThrough.on("end", clearAbortTimer);
+    passThrough.on("close", clearAbortTimer);
+    passThrough.on("error", (error) => {
+      clearAbortTimer();
+      if (!shellResolved) {
+        didError = true;
+        finalizeShell(abort);
+      }
+      console.error("SSR stream error:", error);
+    });
   });
 }
 

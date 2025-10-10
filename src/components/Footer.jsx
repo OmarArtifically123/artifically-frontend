@@ -7,9 +7,18 @@ import { useTheme } from "../context/ThemeContext";
 import { space } from "../styles/spacing";
 import MagneticButton from "./animation/MagneticButton";
 
+const FALLBACK_YEAR = new Date().getUTCFullYear();
+
+const getInitialYear = () => {
+  if (typeof window === "undefined") {
+    return FALLBACK_YEAR;
+  }
+  return new Date().getUTCFullYear();
+};
+
 export default function Footer() {
   const { darkMode } = useTheme();
-  const [currentYear, setCurrentYear] = useState(() => new Date().getFullYear());
+  const [currentYear, setCurrentYear] = useState(getInitialYear);
   const [stats, setStats] = useState({
     automationsDeployed: 0,
     companiesServed: 0,
@@ -22,12 +31,16 @@ export default function Footer() {
   const newsletterId = useId();
 
   useEffect(() => {
-    const year = new Date().getFullYear();
+    if (typeof window === "undefined") {
+      return;
+    }
+
+    const year = new Date().getUTCFullYear();
     if (year !== currentYear) {
       setCurrentYear(year);
     }
   }, [currentYear]);
-  
+
   useEffect(() => {
     const finalStats = {
       automationsDeployed: 0,
@@ -534,7 +547,8 @@ export default function Footer() {
               </div>
 
               <div style={{ color: "var(--text-muted)", fontSize: "0.85rem" }}>
-                &copy; {currentYear} Artifically. Crafted with resilience and intent.
+                &copy; <span suppressHydrationWarning>{currentYear}</span> Artifically. Crafted with resilience and
+                intent.
               </div>
             </div>
           </div>

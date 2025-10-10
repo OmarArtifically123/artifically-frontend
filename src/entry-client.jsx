@@ -85,9 +85,14 @@ function sendToAnalytics(metric) {
       rating: metric.rating,
     });
 
-    if (typeof navigator !== "undefined" && navigator.sendBeacon) {
-      navigator.sendBeacon("/api/analytics", body);
-    } else if (typeof fetch === "function") {
+    if (typeof navigator !== "undefined") {
+      const didSend = navigator.sendBeacon?.("/api/analytics", body);
+      if (didSend) {
+        return;
+      }
+    }
+
+    if (typeof fetch === "function") {
       fetch("/api/analytics", {
         method: "POST",
         body,
