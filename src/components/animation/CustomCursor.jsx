@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from "react";
-import { motion } from "framer-motion";
+import * as m from "framer-motion/m";
 import { gsap } from "../../lib/gsapConfig";
 
 const baseStyles = {
@@ -59,7 +59,7 @@ export default function CustomCursor() {
   }, []);
 
   return (
-    <motion.div
+    <m.div
       ref={cursorRef}
       className="custom-cursor"
       animate={{

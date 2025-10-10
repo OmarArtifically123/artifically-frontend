@@ -1,5 +1,5 @@
 import { Suspense, memo, useEffect, useState } from "react";
-import { motion } from "framer-motion";
+import * as m from "framer-motion/m";
 import ThemeToggle from "./ThemeToggle";
 import ServerFeatureHighlights from "./ServerFeatureHighlights";
 import { useTheme } from "../context/ThemeContext";
@@ -17,7 +17,7 @@ import {
 const FeatureCard = memo(
   function FeatureCard({ feature, darkMode, ...props }) {
     return (
-      <motion.article
+      <m.article
         className={`feature-card glass-card ${darkMode ? "feature-card--dark" : "feature-card--light"}`}
         whileHover={{ y: -8, scale: 1.02 }}
         transition={{ type: "spring", stiffness: 260, damping: 24 }}
@@ -36,7 +36,7 @@ const FeatureCard = memo(
             <p>{feature.description}</p>
           </div>
         </div>
-      </motion.article>
+      </m.article>
     );
   },
   (prevProps, nextProps) =>
@@ -106,7 +106,7 @@ function FeaturesContent() {
   const { features, stats, loading } = state;
 
   return (
-    <motion.section
+    <m.section
       className="features"
       data-animate-root
       style={{
@@ -256,7 +256,7 @@ function FeaturesContent() {
           </StaggeredContainer>
         )}
       </div>
-    </motion.section>
+    </m.section>
   );
 }
 

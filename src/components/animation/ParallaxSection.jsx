@@ -1,5 +1,6 @@
 import { forwardRef } from "react";
-import { motion, useTransform, useScroll } from "framer-motion";
+import * as m from "framer-motion/m";
+import { useTransform, useScroll } from "framer-motion";
 
 const ParallaxSection = forwardRef(function ParallaxSection(
   { children, speed = 0.5, className, style },
@@ -12,9 +13,9 @@ const ParallaxSection = forwardRef(function ParallaxSection(
   const y = useTransform(scrollYProgress, [0, 1], ["0%", `${speed * 100}%`]);
 
   return (
-    <motion.div ref={ref} style={{ y, willChange: "transform", ...style }} className={className}>
+    <m.div ref={ref} style={{ y, willChange: "transform", ...style }} className={className}>
       {children}
-    </motion.div>
+    </m.div>
   );
 });
 

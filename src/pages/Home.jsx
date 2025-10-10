@@ -1,6 +1,6 @@
 import { lazy, Suspense, useEffect, useState } from "react";
 import { useLocation } from "react-router-dom";
-import { motion } from "framer-motion";
+import * as m from "framer-motion/m";
 import RouteShell from "../components/skeletons/RouteShell";
 import ParallaxSection from "../components/animation/ParallaxSection";
 
@@ -36,7 +36,7 @@ export default function Home({ user, scrollTo, openAuth }) {
   }, [contentReady]);
 
   return (
-    <motion.main
+    <m.main
       initial={{ opacity: 0, filter: "blur(10px)" }}
       animate={{ opacity: 1, filter: "blur(0px)" }}
       transition={{ duration: 0.6, ease: [0.33, 1, 0.68, 1] }}
@@ -73,7 +73,7 @@ export default function Home({ user, scrollTo, openAuth }) {
           </Suspense>
         </div>
       </ParallaxSection>
-    </motion.main>
+    </m.main>
     );
 }
 

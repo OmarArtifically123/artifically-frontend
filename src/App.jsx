@@ -1,6 +1,6 @@
 import { lazy, Suspense, useEffect, useMemo, useState } from "react";
 import { Routes, Route, useNavigate, useLocation } from "react-router-dom";
-import { AnimatePresence } from "framer-motion";
+import { AnimatePresence, LazyMotion } from "framer-motion";
 import Header from "./components/Header";
 import Footer from "./components/Footer";
 import RouteShell from "./components/skeletons/RouteShell";
@@ -10,6 +10,8 @@ import usePredictivePrefetch from "./hooks/usePredictivePrefetch";
 import "./styles/global.css";
 import ExperienceLayer from "./components/ExperienceLayer";
 import PageTransition from "./components/animation/PageTransition";
+
+const loadFeatures = () => import("./features.js").then((res) => res.default);
 
 const Home = lazy(() => import("./pages/Home"));
 const Pricing = lazy(() => import("./pages/Pricing"));
@@ -217,7 +219,8 @@ export default function App() {
   };
 
   return (
-    <ExperienceLayer enableExperience={enableExperience}>
+    <LazyMotion features={loadFeatures} strict>
+      <ExperienceLayer enableExperience={enableExperience}>
       <Header
         user={user}
         onSignIn={() => openAuth("signin")}
@@ -508,5 +511,6 @@ export default function App() {
 
       <ToastHost />
     </ExperienceLayer>
+    </LazyMotion>
   );
 }

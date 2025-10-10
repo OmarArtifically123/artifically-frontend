@@ -1,6 +1,6 @@
 import { Link } from "react-router-dom";
 import { useEffect, useMemo, useState, useId, useRef } from "react";
-import { motion } from "framer-motion";
+import * as m from "framer-motion/m";
 import LogoLight from "../assets/logos/1_Primary.svg";
 import LogoDark from "../assets/logos/3_Dark_Mode.svg";
 import ThemeToggle from "./ThemeToggle";
@@ -209,7 +209,7 @@ export default function Footer() {
     : "color-mix(in oklch, var(--glass-3) 94%, transparent)";
 
   return (
-    <motion.footer
+    <m.footer
       className="site-footer"
       style={{
         marginTop: space("2xl"),
@@ -537,6 +537,6 @@ export default function Footer() {
           </div>
         </div>
       </div>
-    </motion.footer>
+    </m.footer>
   );
 }

@@ -1,4 +1,4 @@
-import { motion } from "framer-motion";
+import * as m from "framer-motion/m";
 
 const transition = {
   duration: 0.45,
@@ -13,7 +13,7 @@ const variants = {
 
 export default function PageTransition({ children, className, as: Component = "div" }) {
   return (
-    <motion.div
+    <m.div
       className={className}
       initial="initial"
       animate="animate"
@@ -24,6 +24,6 @@ export default function PageTransition({ children, className, as: Component = "d
       layout
     >
       <Component className="page-transition__content">{children}</Component>
-    </motion.div>
+    </m.div>
   );
 }

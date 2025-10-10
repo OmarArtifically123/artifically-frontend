@@ -1,5 +1,6 @@
 import { forwardRef, useRef } from "react";
-import { motion, useSpring } from "framer-motion";
+import * as m from "framer-motion/m";
+import { useSpring } from "framer-motion";
 import useMicroInteractions from "../../hooks/useMicroInteractions";
 
 const springConfig = { stiffness: 220, damping: 18, mass: 0.4 };
@@ -37,7 +38,7 @@ const MagneticButton = forwardRef(function MagneticButton(
   };
 
   return (
-    <motion.button
+    <m.button
       ref={buttonRef}
       data-cursor-hover
       data-magnetic
@@ -58,7 +59,7 @@ const MagneticButton = forwardRef(function MagneticButton(
       {...props}
     >
       {children}
-    </motion.button>
+    </m.button>
   );
 });
 

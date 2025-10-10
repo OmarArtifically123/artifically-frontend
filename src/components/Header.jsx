@@ -1,6 +1,6 @@
 import { Link, useNavigate, useLocation } from "react-router-dom";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import { motion } from "framer-motion";
+import * as m from "framer-motion/m";
 import LogoLight from "../assets/logos/1_Primary.svg";
 import LogoDark from "../assets/logos/3_Dark_Mode.svg";
 import ThemeToggle from "./ThemeToggle";
@@ -158,7 +158,7 @@ export default function Header({ user, onSignIn, onSignUp, onSignOut }) {
     []
   );
 
-  const MotionLink = motion(Link);
+  const MotionLink = m.create(Link);
 
   const headerBackground = useMemo(
     () => ({
@@ -174,7 +174,7 @@ export default function Header({ user, onSignIn, onSignUp, onSignOut }) {
   );
 
   return (
-    <motion.header
+    <m.header
       className={`site-header ${scrolled ? "scrolled" : ""}`}
       style={{
         position: "fixed",
@@ -192,7 +192,7 @@ export default function Header({ user, onSignIn, onSignUp, onSignOut }) {
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.48, ease: [0.33, 1, 0.68, 1] }}
     >
-      <motion.div
+      <m.div
         className="header-inner"
         style={{
           display: "flex",
@@ -220,7 +220,7 @@ export default function Header({ user, onSignIn, onSignUp, onSignOut }) {
           }}
         />
 
-        <motion.div
+        <m.div
           className="brand"
           onClick={() => navigate("/")}
           role="button"
@@ -260,9 +260,9 @@ export default function Header({ user, onSignIn, onSignUp, onSignOut }) {
               transition: "filter var(--transition-normal)",
             }}
           />
-        </motion.div>
+        </m.div>
 
-        <motion.nav
+        <m.nav
           className="nav"
           style={{
             display: "flex",
@@ -323,7 +323,7 @@ export default function Header({ user, onSignIn, onSignUp, onSignOut }) {
                     }}
                   >
                     {label}
-                    <motion.span
+                    <m.span
                       aria-hidden="true"
                       layoutId={`nav-underline-${path}`}
                       style={{
@@ -344,7 +344,7 @@ export default function Header({ user, onSignIn, onSignUp, onSignOut }) {
               );
             })}
           </StaggeredContainer>
-        </motion.nav>
+        </m.nav>
 
         <div
           className="header-actions"
@@ -466,7 +466,7 @@ export default function Header({ user, onSignIn, onSignUp, onSignOut }) {
             </div>
           )}
         </div>
-      </motion.div>
-    </motion.header>
+      </m.div>
+    </m.header>
   );
 }

@@ -1,6 +1,6 @@
 import { Suspense, lazy, useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { Link } from "react-router-dom";
-import { motion } from "framer-motion";
+import * as m from "framer-motion/m";
 import { gsap } from "../lib/gsapConfig";
 import Lottie from "lottie-react";
 import ThemeToggle from "./ThemeToggle";
@@ -383,7 +383,7 @@ export default function Hero({ openAuth }) {
   useScrambleText(tickerTitleRef, selectedTrending.title);
 
   return (
-    <motion.section
+    <m.section
       className="hero"
       data-animate-root
       initial={{ opacity: 0, y: 32 }}
@@ -645,6 +645,6 @@ export default function Hero({ openAuth }) {
           </div>
         </div>
       ) : null}
-    </motion.section>
+    </m.section>
   );
 }

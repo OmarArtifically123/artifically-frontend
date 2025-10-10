@@ -1,4 +1,4 @@
-import { motion } from "framer-motion";
+export default ParallaxSection;
 
 const containerVariants = {
   hidden: { opacity: 0 },
@@ -29,7 +29,7 @@ const itemVariants = {
 
 export function StaggeredContainer({ children, ...props }) {
   return (
-    <motion.div
+    <m.div
       variants={containerVariants}
       initial="hidden"
       whileInView="show"
@@ -37,14 +37,14 @@ export function StaggeredContainer({ children, ...props }) {
       {...props}
     >
       {children}
-    </motion.div>
+    </m.div>
   );
 }
 
 export function StaggeredItem({ children, ...props }) {
   return (
-    <motion.div variants={itemVariants} {...props}>
+    <m.div variants={itemVariants} {...props}>
       {typeof children === "function" ? children(itemVariants) : children}
-    </motion.div>
+    </m.div>
   );
 }
