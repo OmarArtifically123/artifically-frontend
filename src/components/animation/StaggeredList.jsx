@@ -1,4 +1,4 @@
-export default ParallaxSection;
+import * as m from "framer-motion/m";
 
 const containerVariants = {
   hidden: { opacity: 0 },
