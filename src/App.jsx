@@ -256,7 +256,8 @@ export default function App() {
 
       <main className="app-shell">
         <AnimatePresence mode="wait" initial={false}>
-          <Routes location={location} key={pathname}>
+          <Suspense fallback={<div style={{ height: 420 }} />}>
+            <Routes location={location} key={pathname}>
             <Route
               path="/"
               element={
@@ -494,6 +495,7 @@ export default function App() {
               }
             />
           </Routes>
+          </Suspense>
         </AnimatePresence>
       </main>
 

@@ -1,8 +1,6 @@
 import { Suspense, lazy, useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { Link } from "react-router-dom";
 import * as m from "framer-motion/m";
-import { gsap } from "../lib/gsapConfig";
-import Lottie from "lottie-react";
 import ThemeToggle from "./ThemeToggle";
 import MagneticButton from "./animation/MagneticButton";
 import { StaggeredContainer, StaggeredItem } from "./animation/StaggeredList";
@@ -11,6 +9,8 @@ import useScrambleText from "../hooks/useScrambleText";
 import pulseAnimation from "../assets/animations/pulse.json";
 
 const HeroScene = lazy(() => import("./HeroScene"));
+const LazyLottie = lazy(() => import("lottie-react").then((module) => ({ default: module.default ?? module })));
+const loadGsap = () => import("../lib/gsapConfig");
 
 const HERO_MEDIA_DIMENSIONS = { width: 1280, height: 720 };
 
@@ -30,6 +30,15 @@ const heroCanvasFallbackStyle = {
   background:
     "radial-gradient(circle at 30% 35%, rgba(59, 130, 246, 0.28), transparent 55%), radial-gradient(circle at 70% 65%, rgba(147, 51, 234, 0.24), transparent 58%)",
   opacity: 0.85,
+};
+
+const heroPulseFallbackStyle = {
+  width: 36,
+  height: 36,
+  borderRadius: "50%",
+  background: "radial-gradient(circle at 50% 50%, rgba(59, 130, 246, 0.65), rgba(59, 130, 246, 0) 70%)",
+  opacity: 0.85,
+  animation: "pulse 1.6s ease-in-out infinite",
 };
 
 const HERO_BADGES = [
@@ -164,92 +173,116 @@ function HeroMediaFallback() {
 function useKineticHeadline(containerRef) {
   useEffect(() => {
     if (!containerRef.current || typeof window === "undefined") return undefined;
+
     const container = containerRef.current;
     container.setAttribute("data-scroll-story", "ready");
 
-    const scrollTriggers = [];
-    const ctx = gsap.context(() => {
-      const words = gsap.utils.toArray(container.querySelectorAll("[data-kinetic-word]"));
-      if (!words.length) return;
+    let isActive = true;
+    let ctx;
+    let scrollTriggers = [];
 
-      const characters = words.reduce((accumulator, word) => {
-        if (word.dataset.split === "true") {
-          accumulator.push(...gsap.utils.toArray(word.querySelectorAll("[data-kinetic-char]")));
-          return accumulator;
+      const setup = async () => {
+      try {
+        const { gsap } = await loadGsap();
+        if (!isActive || !containerRef.current) {
+          return;
         }
 
-        const text = word.textContent ?? "";
-        word.textContent = "";
-        Array.from(text).forEach((character, index) => {
-          const span = document.createElement("span");
-          span.className = "hero-kinetic-char";
-          span.dataset.kineticChar = "true";
-          span.textContent = character === " " ? "\u00A0" : character;
-          span.style.setProperty("--char-index", `${index}`);
-          word.appendChild(span);
-          accumulator.push(span);
-        });
-        word.dataset.split = "true";
-        return accumulator;
-      }, []);
+        const target = containerRef.current;
+        target.setAttribute("data-scroll-story", "ready");
 
-      if (!characters.length) return;
+        const triggers = [];
+        ctx = gsap.context(() => {
+          const words = gsap.utils.toArray(target.querySelectorAll("[data-kinetic-word]"));
+          if (!words.length) return;
 
-      gsap.set(words, { opacity: 1 });
-      gsap.set(characters, { yPercent: 120, opacity: 0 });
+          const characters = words.reduce((accumulator, word) => {
+            if (word.dataset.split === "true") {
+              accumulator.push(...gsap.utils.toArray(word.querySelectorAll("[data-kinetic-char]")));
+              return accumulator;
+            }
 
-      gsap.to(characters, {
-        yPercent: 0,
-        opacity: 1,
-        ease: "power3.out",
-        duration: 1.05,
-        stagger: 0.05,
-        delay: 0.25,
-      });
+            const text = word.textContent ?? "";
+            word.textContent = "";
+            Array.from(text).forEach((character, index) => {
+              const span = document.createElement("span");
+              span.className = "hero-kinetic-char";
+              span.dataset.kineticChar = "true";
+              span.textContent = character === " " ? "\u00A0" : character;
+              span.style.setProperty("--char-index", `${index}`);
+              word.appendChild(span);
+              accumulator.push(span);
+            });
+            word.dataset.split = "true";
+            return accumulator;
+          }, []);
 
-      const timeline = gsap
-        .timeline({
-          defaults: { ease: "power3.out" },
-          scrollTrigger: {
-            trigger: container,
-            start: "top center",
-            end: "bottom top",
-            scrub: true,
-            onEnter: () => container.setAttribute("data-scroll-story", "active"),
-            onEnterBack: () => container.setAttribute("data-scroll-story", "active"),
-            onLeave: () => container.setAttribute("data-scroll-story", "past"),
-            onLeaveBack: () => container.setAttribute("data-scroll-story", "ready"),
-          },
-        })
-        .to(
-          characters,
-          {
+          if (!characters.length) return;
+
+          gsap.set(words, { opacity: 1 });
+          gsap.set(characters, { yPercent: 120, opacity: 0 });
+
+          gsap.to(characters, {
             yPercent: 0,
             opacity: 1,
-            stagger: 0.08,
-            duration: 1,
-          },
-          0,
-        )
-        .to(
-          characters,
-          {
-            yPercent: -80,
-            opacity: 0,
-            stagger: 0.08,
-            duration: 1,
-          },
-          ">+=0.8",
-        );
+            ease: "power3.out",
+            duration: 1.05,
+            stagger: 0.05,
+            delay: 0.25,
+          });
 
-        if (timeline.scrollTrigger) {
-        scrollTriggers.push(timeline.scrollTrigger);
+          const timeline = gsap
+            .timeline({
+              defaults: { ease: "power3.out" },
+              scrollTrigger: {
+                trigger: target,
+                start: "top center",
+                end: "bottom top",
+                scrub: true,
+                onEnter: () => target.setAttribute("data-scroll-story", "active"),
+                onEnterBack: () => target.setAttribute("data-scroll-story", "active"),
+                onLeave: () => target.setAttribute("data-scroll-story", "past"),
+                onLeaveBack: () => target.setAttribute("data-scroll-story", "ready"),
+              },
+            })
+            .to(
+              characters,
+              {
+                yPercent: 0,
+                opacity: 1,
+                stagger: 0.08,
+                duration: 1,
+              },
+              0,
+            )
+            .to(
+              characters,
+              {
+                yPercent: -80,
+                opacity: 0,
+                stagger: 0.08,
+                duration: 1,
+              },
+              ">+=0.8",
+            );
+
+          if (timeline.scrollTrigger) {
+            triggers.push(timeline.scrollTrigger);
+          }
+        }, containerRef);
+
+        scrollTriggers = triggers;
+      } catch (error) {
+        console.warn("Failed to load kinetic headline animations", error);
       }
-    }, containerRef);
+    };
+
+    setup();
 
     return () => {
+      isActive = false;
       scrollTriggers.forEach((trigger) => trigger.kill());
-      ctx.revert();
+      ctx?.revert();
       container.setAttribute("data-scroll-story", "ready");
     };
   }, [containerRef]);
@@ -262,6 +295,7 @@ export default function Hero({ openAuth }) {
   const tickerTitleRef = useRef(null);
 
   const [shouldRenderScene, setShouldRenderScene] = useState(false);
+  const [shouldRenderPulse, setShouldRenderPulse] = useState(false);
   const [commandOpen, setCommandOpen] = useState(false);
   const [tickerIndex, setTickerIndex] = useState(0);
   const [activePulse, setActivePulse] = useState(0);
@@ -286,6 +320,24 @@ export default function Hero({ openAuth }) {
       cancelSchedule();
     };
   }, [shouldRenderScene]);
+
+  useEffect(() => {
+    if (shouldRenderPulse) {
+      return undefined;
+    }
+
+    let cancelled = false;
+    const cancelSchedule = scheduleSceneLoad(() => {
+      if (!cancelled) {
+        setShouldRenderPulse(true);
+      }
+    });
+
+    return () => {
+      cancelled = true;
+      cancelSchedule();
+    };
+  }, [shouldRenderPulse]);
 
   useEffect(() => {
     if (typeof window === "undefined") return undefined;
@@ -583,7 +635,13 @@ export default function Hero({ openAuth }) {
                 ))}
                 <div className="hero-map__legend glass-pill">
                   <div className="hero-map__legend-animation" aria-hidden="true">
-                    <Lottie animationData={pulseAnimation} loop style={{ width: 36, height: 36 }} />
+                    {shouldRenderPulse ? (
+                      <Suspense fallback={<div style={heroPulseFallbackStyle} />}>
+                        <LazyLottie animationData={pulseAnimation} loop style={{ width: 36, height: 36 }} />
+                      </Suspense>
+                    ) : (
+                      <div style={heroPulseFallbackStyle} />
+                    )}
                   </div>
                   Automations executing in real time
                 </div>

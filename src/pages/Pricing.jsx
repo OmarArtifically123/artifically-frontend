@@ -1,8 +1,9 @@
 import { useEffect, useMemo, useState, useRef } from "react";
-import { gsap } from "../lib/gsapConfig";
 import { fetchAutomations } from "../data/automations";
 import { toast } from "../components/Toast";
 import { space } from "../styles/spacing";
+
+const loadGsap = () => import("../lib/gsapConfig");
 
 const billingOptions = [
   { id: "monthly", label: "Monthly" },
@@ -69,20 +70,37 @@ function useGsapAccordion(ref, isOpen) {
       return undefined;
     }
 
-    const ctx = gsap.context(() => {
-      timelineRef.current = gsap
-        .timeline({ paused: true })
-        .fromTo(
-          ref.current,
-          { height: 0, opacity: 0, display: "none" },
-          { height: "auto", opacity: 1, display: "block", duration: 0.4, ease: "power2.out" }
-        );
+    let cancelled = false;
+    let ctx;
+
+    const setup = async () => {
+      try {
+        const { gsap } = await loadGsap();
+        if (cancelled || !ref.current) {
+          return;
+        }
+
+        ctx = gsap.context(() => {
+          timelineRef.current = gsap
+            .timeline({ paused: true })
+            .fromTo(
+              ref.current,
+              { height: 0, opacity: 0, display: "none" },
+              { height: "auto", opacity: 1, display: "block", duration: 0.4, ease: "power2.out" }
+            );
         }, ref);
+        } catch (error) {
+        console.warn("Failed to initialize pricing accordion animation", error);
+      }
+    };
+
+    setup();
 
     return () => {
+      cancelled = true;
       timelineRef.current?.kill();
       timelineRef.current = undefined;
-      ctx.revert();
+      ctx?.revert();
     };
   }, [ref]);
 

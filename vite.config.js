@@ -52,23 +52,9 @@ export default defineConfig((configEnv) => {
     build.rollupOptions = {
       output: {
         manualChunks: (id) => {
-          if (!id.includes('node_modules')) {
-            return undefined
-          }
-
-          if (id.includes('three') && !id.includes('react-three')) {
-            return 'three-vendor'
-          }
-
-          if (id.includes('framer-motion')) {
-            return 'framer-vendor'
-          }
-
-          if (id.includes('gsap')) {
-            return 'gsap-vendor'
-          }
-
-          return 'vendor'
+          if (id.includes('node_modules/three')) return 'three-vendor'
+          if (id.includes('node_modules/gsap')) return 'gsap-vendor'
+          if (id.includes('node_modules')) return 'vendor'
         },
         entryFileNames: 'assets/[name]-[hash].js',
         chunkFileNames: 'assets/[name]-[hash].js',

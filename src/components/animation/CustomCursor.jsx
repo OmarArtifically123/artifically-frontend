@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from "react";
 import * as m from "framer-motion/m";
-import { gsap } from "../../lib/gsapConfig";
+
+const loadGsap = () => import("../../lib/gsapConfig");
 
 const baseStyles = {
   width: 20,
@@ -20,41 +21,62 @@ export default function CustomCursor() {
   useEffect(() => {
     if (typeof window === "undefined") return undefined;
 
-    const moveCursor = (event) => {
-      gsap.to(cursorRef.current, {
-        x: event.clientX,
-        y: event.clientY,
-        duration: 0.18,
-        ease: "power2.out",
-      });
+    let cancelled = false;
+    let cleanup = () => {};
+
+    const setup = async () => {
+      try {
+        const { gsap } = await loadGsap();
+        if (cancelled || !cursorRef.current) {
+          return;
+        }
+
+        const moveCursor = (event) => {
+          gsap.to(cursorRef.current, {
+            x: event.clientX,
+            y: event.clientY,
+            duration: 0.18,
+            ease: "power2.out",
+          });
+        };
+
+        const handleDown = () => setIsActive(true);
+        const handleUp = () => setIsActive(false);
+        const handleEnter = () => setIsHovering(true);
+        const handleLeave = () => setIsHovering(false);
+
+        const hoverables = Array.from(document.querySelectorAll("a, button, [data-cursor-hover]"));
+
+        window.addEventListener("mousemove", moveCursor);
+        window.addEventListener("mousedown", handleDown);
+        window.addEventListener("mouseup", handleUp);
+        hoverables.forEach((element) => {
+          element.addEventListener("mouseenter", handleEnter);
+          element.addEventListener("mouseleave", handleLeave);
+        });
+
+        cleanup = () => {
+          window.removeEventListener("mousemove", moveCursor);
+          window.removeEventListener("mousedown", handleDown);
+          window.removeEventListener("mouseup", handleUp);
+          hoverables.forEach((element) => {
+            element.removeEventListener("mouseenter", handleEnter);
+            element.removeEventListener("mouseleave", handleLeave);
+          });
+          if (cursorRef.current) {
+            gsap.killTweensOf(cursorRef.current);
+          }
+        };
+      } catch (error) {
+        console.warn("Failed to initialize custom cursor animation", error);
+      }
     };
 
-    const handleDown = () => setIsActive(true);
-    const handleUp = () => setIsActive(false);
-    const handleEnter = () => setIsHovering(true);
-    const handleLeave = () => setIsHovering(false);
-
-    window.addEventListener("mousemove", moveCursor);
-    window.addEventListener("mousedown", handleDown);
-    window.addEventListener("mouseup", handleUp);
-
-    const hoverables = document.querySelectorAll("a, button, [data-cursor-hover]");
-    hoverables.forEach((element) => {
-      element.addEventListener("mouseenter", handleEnter);
-      element.addEventListener("mouseleave", handleLeave);
-    });
+    setup();
 
     return () => {
-      window.removeEventListener("mousemove", moveCursor);
-      window.removeEventListener("mousedown", handleDown);
-      window.removeEventListener("mouseup", handleUp);
-      hoverables.forEach((element) => {
-        element.removeEventListener("mouseenter", handleEnter);
-        element.removeEventListener("mouseleave", handleLeave);
-      });
-      if (cursorRef.current) {
-        gsap.killTweensOf(cursorRef.current);
-      }
+      cancelled = true;
+      cleanup();
     };
   }, []);
 
