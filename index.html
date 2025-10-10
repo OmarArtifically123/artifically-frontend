@@ -4,6 +4,8 @@
     <meta charset="UTF-8" />
     <link rel="icon" type="image/x-icon" href="/Artifically.ico" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <link rel="preload" href="/fonts/Inter-400-latin.woff2" as="font" type="font/woff2" crossorigin />
+    <link rel="preload" href="/fonts/Inter-600-latin.woff2" as="font" type="font/woff2" crossorigin />
     <title>Artifically - Enterprise AI Automation Platform</title>
     <meta name="description" content="Deploy Enterprise AI Automations in Minutes. Transform your business operations with battle-tested AI automations." />
     
@@ -19,10 +21,21 @@
     <link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png" />
     <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png" />
     
-    <!-- Preconnect to external domains -->
-    <link rel="preconnect" href="https://fonts.googleapis.com" />
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link rel="preconnect" href="https://api.artifically.com" />
+    <style>
+      @font-face {
+        font-family: Inter;
+        src: url(/fonts/Inter-400-latin.woff2) format("woff2");
+        font-weight: 400;
+        font-display: swap;
+      }
+      @font-face {
+        font-family: Inter;
+        src: url(/fonts/Inter-600-latin.woff2) format("woff2");
+        font-weight: 600;
+        font-display: swap;
+      }
+    </style>
     
     <!-- Open Graph / Facebook -->
     <meta property="og:type" content="website" />

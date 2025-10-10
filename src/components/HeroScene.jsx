@@ -37,13 +37,20 @@ function SparkParticles() {
   );
 }
 
-export default function HeroScene({ className }) {
+export default function HeroScene({ width = 1280, height = 720 }) {
   return (
     <Canvas
       dpr={[1, 1.8]}
       camera={{ position: [0, 0, 6], fov: 42 }}
-      style={{ position: "absolute", inset: 0, pointerEvents: "none" }}
-      className={className}
+      width={width}
+      height={height}
+      style={{
+        width: "100%",
+        height: "100%",
+        display: "block",
+        pointerEvents: "none",
+        borderRadius: "inherit",
+      }}
     >
       <color attach="background" args={["transparent"]} />
       <ambientLight intensity={0.5} />

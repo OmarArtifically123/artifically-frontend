@@ -12,9 +12,20 @@ import pulseAnimation from "../assets/animations/pulse.json";
 
 const HeroScene = lazy(() => import("./HeroScene"));
 
+const HERO_MEDIA_DIMENSIONS = { width: 1280, height: 720 };
+
+const heroMediaFrameStyle = {
+  position: "relative",
+  width: "min(1280px, 100%)",
+  maxWidth: "1280px",
+  aspectRatio: "16 / 9",
+  margin: "0 auto",
+};
+
 const heroCanvasFallbackStyle = {
-  position: "absolute",
-  inset: 0,
+  width: "100%",
+  height: "100%",
+  display: "block",
   borderRadius: "inherit",
   background:
     "radial-gradient(circle at 30% 35%, rgba(59, 130, 246, 0.28), transparent 55%), radial-gradient(circle at 70% 65%, rgba(147, 51, 234, 0.24), transparent 58%)",
@@ -144,6 +155,10 @@ function scheduleSceneLoad(callback) {
 
   const timeoutId = window.setTimeout(callback, heroSceneLoadDelay);
   return () => window.clearTimeout(timeoutId);
+}
+
+function HeroMediaFallback() {
+  return <div style={heroCanvasFallbackStyle} aria-hidden="true" />;
 }
 
 function useKineticHeadline(containerRef) {
@@ -391,15 +406,21 @@ export default function Hero({ openAuth }) {
       viewport={{ once: true, amount: 0.35 }}
       transition={{ duration: 0.6, ease: [0.33, 1, 0.68, 1] }}
     >
-      {shouldRenderScene ? (
-        <Suspense
-          fallback={<div className="hero-canvas" style={heroCanvasFallbackStyle} aria-hidden="true" />}
-        >
-          <HeroScene className="hero-canvas" />
-        </Suspense>
-      ) : (
-        <div className="hero-canvas" style={heroCanvasFallbackStyle} aria-hidden="true" />
-      )}
+      <div
+        className="hero-canvas"
+        aria-hidden="true"
+        style={{ display: "flex", alignItems: "center", justifyContent: "center" }}
+      >
+        <div style={heroMediaFrameStyle}>
+          {shouldRenderScene ? (
+            <Suspense fallback={<HeroMediaFallback />}>
+              <HeroScene width={HERO_MEDIA_DIMENSIONS.width} height={HERO_MEDIA_DIMENSIONS.height} />
+            </Suspense>
+          ) : (
+            <HeroMediaFallback />
+          )}
+        </div>
+      </div>
       <div className="hero-gradient" aria-hidden="true" />
       <div className="hero-inner">
         <header
