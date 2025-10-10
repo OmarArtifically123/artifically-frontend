@@ -33,6 +33,7 @@
     "@react-three/fiber": "^8.18.0",
     "@stripe/react-stripe-js": "^2.4.0",
     "@stripe/stripe-js": "^2.4.0",
+    "@vercel/speed-insights": "^1.2.0",
     "axios": "^1.6.0",
     "framer-motion": "^12.23.22",
     "gsap": "^3.12.5",

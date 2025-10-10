@@ -4,6 +4,7 @@ import Header from "./components/Header";
 import Footer from "./components/Footer";
 import RouteShell from "./components/skeletons/RouteShell";
 import { ToastHost, toast } from "./components/Toast";
+import { SpeedInsights } from "@vercel/speed-insights/next";
 import api, { pick } from "./api";
 import usePredictivePrefetch from "./hooks/usePredictivePrefetch";
 import "./styles/global.css";
@@ -459,6 +460,7 @@ export default function App() {
       )}
 
       <ToastHost />
+      <SpeedInsights />
     </ExperienceLayer>
   );
 }
