@@ -26,6 +26,7 @@ const HERO_FOV = 45;
 const HERO_CAMERA_DISTANCE = 8.5;
 const HERO_CAMERA_ELEVATION_DEG = 12;
 const HERO_ORB_RADIUS = 1.6; // diameter 3.2 units
+const HERO_SHELL_SPECK_COUNT = 360;
 
 const NEURAL_NODE_COUNT = 110;
 const NEURAL_CONNECTIONS_PER_NODE = 3;
@@ -36,6 +37,7 @@ const ORBITAL_NODE_COUNT = 18;
 const BACKGROUND_PARTICLE_COUNT = 96;
 const FOREGROUND_PARTICLE_COUNT = 28;
 const GOD_RAY_COUNT = 14;
+const HEIGHT_FOG_COLOR = new Color(0x14233c);
 
 const ORBITAL_RING_CONFIG = [
   {
@@ -363,7 +365,46 @@ PlasmaMaterial.key = "PlasmaMaterial";
 EnergyStreamMaterial.key = "EnergyStreamMaterial";
 EnergyGlowMaterial.key = "EnergyGlowMaterial";
 
-extend({ GridMaterial, PlasmaMaterial, EnergyStreamMaterial, EnergyGlowMaterial });
+const HeightFogMaterial = shaderMaterial(
+  {
+    uTime: 0,
+    uDensity: 0.08,
+    uHeightFalloff: 0.45,
+    uColor: HEIGHT_FOG_COLOR.clone(),
+    uStartDistance: 3.0,
+  },
+  /* glsl */ `
+    varying vec3 vWorldPosition;
+    void main() {
+      vec4 worldPosition = modelMatrix * vec4(position, 1.0);
+      vWorldPosition = worldPosition.xyz;
+      gl_Position = projectionMatrix * viewMatrix * worldPosition;
+    }
+  `,
+  /* glsl */ `
+    uniform float uTime;
+    uniform float uDensity;
+    uniform float uHeightFalloff;
+    uniform vec3 uColor;
+    uniform float uStartDistance;
+    varying vec3 vWorldPosition;
+
+    void main() {
+      float distanceToCamera = length(vWorldPosition - cameraPosition);
+      float distanceMask = smoothstep(uStartDistance, uStartDistance + 12.0, distanceToCamera);
+      float heightMask = exp(-(vWorldPosition.y + 3.0) * uHeightFalloff);
+      float timeMod = 0.5 + 0.5 * sin(uTime * 0.12 + dot(vWorldPosition.xz, vec2(0.23, 0.31)));
+      float density = uDensity * distanceMask * heightMask;
+      float fogFactor = 1.0 - exp(-density * distanceToCamera);
+      float alpha = clamp(fogFactor * mix(0.35, 0.75, timeMod), 0.0, 1.0);
+      gl_FragColor = vec4(uColor, alpha * 0.85);
+    }
+  `,
+);
+
+HeightFogMaterial.key = "HeightFogMaterial";
+
+extend({ GridMaterial, PlasmaMaterial, EnergyStreamMaterial, EnergyGlowMaterial, HeightFogMaterial });
 
 function createProceduralNormalTexture(size = 256, seed = 8128) {
   const random = createDeterministicRandom(seed);
@@ -389,6 +430,24 @@ function createProceduralNormalTexture(size = 256, seed = 8128) {
   texture.needsUpdate = true;
   texture.flipY = false;
   return texture;
+}
+
+function createShellSpecks(count = HERO_SHELL_SPECK_COUNT) {
+  const random = createDeterministicRandom(4421);
+  return Array.from({ length: count }, (_, index) => {
+    const direction = new Vector3(random() - 0.5, random() - 0.5, random() - 0.5).normalize();
+    const baseColor = new Color().setHSL(MathUtils.lerp(0.51, 0.62, random()), 0.85, MathUtils.lerp(0.7, 0.9, random()));
+    return {
+      id: `speck-${index}`,
+      position: direction.multiplyScalar(HERO_ORB_RADIUS * 0.99),
+      twinkleSpeed: 0.8 + random() * 1.4,
+      twinklePhase: random() * Math.PI * 2,
+      minIntensity: 0.65,
+      maxIntensity: 1.0,
+      baseColor,
+      scale: 0.012 + random() * 0.006,
+    };
+  });
 }
 
 function createNeuralNodes() {
@@ -670,7 +729,7 @@ function CameraRig({ reduceMotion, targetAspect = HERO_ASPECT }) {
   const target = useMemo(() => new Vector3(0, 0.2, 0), []);
   useFrame(({ clock }) => {
     const time = clock.getElapsedTime();
-    const horizontalDrift = reduceMotion ? 0 : Math.sin((time / 20) * Math.PI * 2) * 0.075;
+    const horizontalDrift = reduceMotion ? 0 : Math.sin((time / 20) * Math.PI * 2) * 0.15;
     const verticalBreath = reduceMotion ? 0 : Math.sin(time * 0.25) * 0.02;
     const distance = HERO_CAMERA_DISTANCE;
     const elevationRad = MathUtils.degToRad(HERO_CAMERA_ELEVATION_DEG);
@@ -724,6 +783,39 @@ function SceneLighting() {
       <pointLight intensity={0.68} color={new Color(0x06b6d4)} position={[-3.4, 1.1, 2.8]} distance={6.8} decay={2.4} />
       <pointLight intensity={0.6} color={new Color(0xf472b6)} position={[1.4, 2.8, 4.2]} distance={7.1} decay={2.1} />
     </>
+  );
+}
+
+function AtmosphericFog({ reduceMotion }) {
+  const materialRef = useRef();
+
+  useEffect(() => {
+    if (!materialRef.current) {
+      return;
+    }
+    materialRef.current.uTime = 0;
+    materialRef.current.uDensity = reduceMotion ? 0.05 : 0.08;
+    materialRef.current.uHeightFalloff = 0.45;
+  }, [reduceMotion]);
+
+  useFrame(({ clock }) => {
+    if (!materialRef.current) {
+      return;
+    }
+    materialRef.current.uTime = reduceMotion ? 0 : clock.getElapsedTime();
+  });
+
+  return (
+    <mesh position={[0, -1.5, -2]} scale={[34, 18, 42]}>
+      <boxGeometry args={[1, 1, 1, 1, 6, 1]} />
+      <heightFogMaterial
+        ref={materialRef}
+        transparent
+        depthWrite={false}
+        side={DoubleSide}
+        blending={AdditiveBlending}
+      />
+    </mesh>
   );
 }
 
@@ -1230,6 +1322,10 @@ function HeroOrb({ reduceMotion }) {
   const groupRef = useRef();
   const shellRef = useRef();
   const plasmaRef = useRef();
+  const speckRef = useRef();
+  const speckDummy = useMemo(() => new Object3D(), []);
+  const speckColor = useMemo(() => new Color(), []);
+  const shellSpecks = useMemo(() => createShellSpecks(), []);
   const { normalTexture, roughnessTexture } = useProceduralShellMaps();
 
   useFrame(({ clock }, delta) => {
@@ -1239,19 +1335,40 @@ function HeroOrb({ reduceMotion }) {
     const bob = reduceMotion ? 0 : Math.sin((time / 4.2) * Math.PI * 2) * 0.08;
     const wobbleX = reduceMotion ? 0 : Math.sin((time / 7) * Math.PI * 2) * 0.05;
     const wobbleZ = reduceMotion ? 0 : Math.sin((time / 7) * Math.PI * 2 + Math.PI / 2) * 0.05;
-    const pulse = reduceMotion ? 1 : 1 + Math.sin((time / 1.8) * Math.PI * 2) * 0.0175;
+    const pulse = reduceMotion
+      ? 1
+      : 1 + ((Math.sin((time / 1.8) * Math.PI * 2) + 1) * 0.5) * 0.035;
 
     groupRef.current.position.set(wobbleX, 0.2 + bob, wobbleZ);
     groupRef.current.rotation.y += rotationSpeed * delta;
-    groupRef.current.scale.setScalar(pulse * 1.0175);
+    groupRef.current.scale.setScalar(pulse);
 
     if (shellRef.current) {
-      const emissiveIntensity = 0.3 + (reduceMotion ? 0 : (Math.sin(time * Math.PI * 2 / 1.8) + 1) * 0.125);
+      const emissivePhase = (Math.sin(time * Math.PI * 2 / 1.8) + 1) * 0.5;
+      const emissiveIntensity = reduceMotion ? 0.425 : 0.3 + emissivePhase * 0.25;
       shellRef.current.emissiveIntensity = emissiveIntensity;
       shellRef.current.opacity = 0.25;
     }
     if (plasmaRef.current) {
       plasmaRef.current.uTime = time;
+    }
+    if (speckRef.current) {
+      shellSpecks.forEach((speck, index) => {
+        const phase = reduceMotion ? speck.twinklePhase : speck.twinklePhase + time * speck.twinkleSpeed;
+        const twinkle = MathUtils.lerp(speck.minIntensity, speck.maxIntensity, (Math.sin(phase) + 1) * 0.5);
+        speckDummy.position.copy(speck.position);
+        speckDummy.lookAt(HERO_ORB_CENTER);
+        const scale = speck.scale * (0.9 + twinkle * 0.4);
+        speckDummy.scale.setScalar(scale);
+        speckDummy.updateMatrix();
+        speckRef.current.setMatrixAt(index, speckDummy.matrix);
+        speckColor.copy(speck.baseColor).multiplyScalar(twinkle * 1.25);
+        speckRef.current.setColorAt(index, speckColor);
+      });
+      speckRef.current.instanceMatrix.needsUpdate = true;
+      if (speckRef.current.instanceColor) {
+        speckRef.current.instanceColor.needsUpdate = true;
+      }
     }
   });
 
@@ -1279,12 +1396,25 @@ function HeroOrb({ reduceMotion }) {
           normalScale={new Vector2(0.6, 0.6)}
           sheen={0.45}
           sheenColor={new Color(0x38bdf8)}
+          attenuationDistance={0.45}
+          attenuationColor={new Color(0x64c8dc)}
         />
       </mesh>
       <mesh>
         <icosahedronGeometry args={[HERO_ORB_RADIUS * 0.92, 5]} />
         <plasmaMaterial ref={plasmaRef} transparent depthWrite={false} />
       </mesh>
+      <instancedMesh ref={speckRef} args={[null, null, shellSpecks.length]} frustumCulled={false}>
+        <sphereGeometry args={[1, 8, 8]} />
+        <meshBasicMaterial
+          transparent
+          opacity={0.9}
+          depthWrite={false}
+          toneMapped={false}
+          vertexColors
+          blending={AdditiveBlending}
+        />
+      </instancedMesh>
       <NeuralCore reduceMotion={reduceMotion} />
       <CircuitPaths reduceMotion={reduceMotion} />
       <GodRays reduceMotion={reduceMotion} />
@@ -1509,6 +1639,7 @@ function SceneComposer({ reduceMotion }) {
   return (
     <group>
       <BackgroundLayers reduceMotion={reduceMotion} />
+      <AtmosphericFog reduceMotion={reduceMotion} />
       <HeroOrb reduceMotion={reduceMotion} />
       <OrbitalNetwork reduceMotion={reduceMotion} />
       <ForegroundBokeh reduceMotion={reduceMotion} />
