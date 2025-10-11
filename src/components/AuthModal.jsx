@@ -4,6 +4,7 @@ import { useTheme } from "../context/ThemeContext";
 import debounce from "lodash/debounce";
 import api from "../api";
 import ThemeToggle from "./ThemeToggle";
+import Button from "./ui/Button";
 
 // ✅ Move InputField outside the component to prevent remounting
 const InputField = ({
@@ -729,43 +730,26 @@ const AuthModal = ({ onClose, onAuthenticated, initialMode = "signin" }) => {
             }}
           >
             {mode === 'signup' && step > 0 && (
-              <button
+              <Button
                 type="button"
+                size="sm"
+                variant="secondary"
+                glowOnHover={false}
                 onClick={handleStepBack}
-                className="btn"
-                style={{
-                  padding: 'calc(var(--space-sm) * 0.85) var(--space-md)',
-                  borderRadius: '0.85rem',
-                  background: darkMode ? 'rgba(148,163,184,0.15)' : 'rgba(148,163,184,0.2)',
-                  color: darkMode ? '#e2e8f0' : '#1f2937',
-                  border: 'none',
-                  fontWeight: 600,
-                  cursor: 'pointer',
-                }}
               >
                 ← Back
-              </button>
+              </Button>
             )}
 
-            <button
-              className="btn btn-primary"
+            <Button
               type="submit"
+              size="md"
+              variant="primary"
               disabled={loading}
               style={{
                 width: mode === 'signup' && step > 0 ? 'auto' : '100%',
                 minWidth: '160px',
-                padding: 'calc(var(--space-sm) * 0.9) var(--space-md)',
-                fontSize: '1rem',
-                fontWeight: '600',
-                opacity: loading ? 0.7 : 1,
-                cursor: loading ? 'not-allowed' : 'pointer',
-                display: 'inline-flex',
-                alignItems: 'center',
-                justifyContent: 'center',
                 gap: 'var(--space-xs)',
-                boxShadow: darkMode
-                  ? '0 20px 35px rgba(99, 102, 241, 0.35)'
-                  : '0 20px 35px rgba(99, 102, 241, 0.25)',
               }}
             >
               {loading && (
@@ -781,7 +765,7 @@ const AuthModal = ({ onClose, onAuthenticated, initialMode = "signin" }) => {
                 />
               )}
               <span>{primaryActionLabel}</span>
-            </button>
+            </Button>
           </div>
         </form>
 

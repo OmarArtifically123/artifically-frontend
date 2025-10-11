@@ -2,6 +2,7 @@ import { useEffect, useMemo, useState } from "react";
 import api from "../api";
 import { toast } from "./Toast";
 import { useTheme } from "../context/ThemeContext";
+import Button from "./ui/Button";
 
 const clamp = (value, min, max) => Math.min(Math.max(value, min), max);
 
@@ -453,19 +454,13 @@ export default function DemoModal({ automation, user, onClose }) {
             </div>
 
             <div className="demo-experience__cta">
-              <button
-                type="button"
-                className="btn btn-primary"
-                onClick={run}
-                disabled={running}
-                aria-live="polite"
-              >
+              <Button type="button" size="lg" onClick={run} disabled={running} aria-live="polite">
                 {running ? (
                   <span className="loading" style={{ width: "1.5rem", height: "1.5rem" }} />
                 ) : (
-                  "Run safe sandbox demo"
+                  <span>Run safe sandbox demo</span>
                 )}
-              </button>
+              </Button>
               <span>Sandboxed environment. Your production data never leaves the simulation.</span>
             </div>
 

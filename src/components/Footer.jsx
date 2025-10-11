@@ -5,7 +5,8 @@ import LogoDark from "../assets/logos/3_Dark_Mode.svg";
 import ThemeToggle from "./ThemeToggle";
 import { useTheme } from "../context/ThemeContext";
 import { space } from "../styles/spacing";
-import MagneticButton from "./animation/MagneticButton";
+import Button from "./ui/Button";
+import Input from "./ui/Input";
 
 const FALLBACK_YEAR = new Date().getUTCFullYear();
 
@@ -413,51 +414,27 @@ export default function Footer() {
                   alignItems: "center",
                 }}
               >
-                <label htmlFor={newsletterId} className="sr-only">
-                  Email address
-                </label>
-                <input
+                <Input
                   id={newsletterId}
                   type="email"
+                  label="Email address"
+                  placeholder="you@company.com"
                   value={newsletterEmail}
                   onChange={(event) => setNewsletterEmail(event.target.value)}
-                  placeholder="you@company.com"
                   required
                   aria-describedby={`${newsletterId}-status`}
-                  aria-invalid={newsletterStatus === "error"}
-                  style={{
-                    minWidth: "240px",
-                    padding: `${space("xs", 1.5)} ${space("sm")}`,
-                    borderRadius: "0.85rem",
-                    border: `1px solid ${
-                      newsletterStatus === "error"
-                        ? darkMode
-                          ? "color-mix(in oklch, var(--error-sharp) 45%, transparent)"
-                          : "color-mix(in oklch, var(--error-sharp) 55%, transparent)"
-                        : darkMode
-                        ? "color-mix(in oklch, var(--glass-border-primary) 75%, transparent)"
-                        : "color-mix(in oklch, var(--glass-border-primary-light) 68%, transparent)"
-                    }`,
-                    background: "color-mix(in oklch, var(--glass-2) 85%, transparent)",
-                    color: "var(--text-primary)",
-                    transition: "border var(--transition-fast)",
-                  }}
+                  error={newsletterStatus === "error" ? newsletterMessage || "Something went wrong" : undefined}
+                  success={newsletterStatus === "success" ? newsletterMessage || "You're subscribed" : undefined}
                 />
-                <MagneticButton
+                <Button
                   type="submit"
-                  className="btn btn-primary"
+                  size="sm"
                   variant="primary"
-                  style={{
-                    padding: `${space("xs", 1.5)} ${space("sm", 1.4)}`,
-                    borderRadius: "0.85rem",
-                    display: "inline-flex",
-                    alignItems: "center",
-                    gap: space("xs"),
-                  }}
+                  magnetic
                   disabled={newsletterStatus === "loading"}
                 >
-                  {newsletterStatus === "loading" ? "Joining…" : "Join newsletter"}
-                </MagneticButton>
+                  <span>{newsletterStatus === "loading" ? "Joining…" : "Join newsletter"}</span>
+                </Button>
               </form>
             </div>
 
@@ -476,7 +453,12 @@ export default function Footer() {
                     : "var(--text-muted)",
               }}
             >
-              {newsletterMessage}
+              {newsletterMessage ||
+                (newsletterStatus === "success"
+                  ? "You're officially in the loop."
+                  : newsletterStatus === "error"
+                  ? "We couldn't add you just yet."
+                  : "We send a curated digest twice a month.")}
             </div>
 
             <div

@@ -93,9 +93,9 @@ export default function useMicroInteractionSystem({ enabled, pointerFine, reduce
       if (preferFinePointer && !motionDisabled && element.dataset.magnetic !== "false" && !element.dataset.magnetic) {
         element.dataset.magnetic = "true";
         if (!element.dataset.magneticStrength) {
-          if (element.classList.contains("btn-primary")) {
+          if (element.classList.contains("button--primary")) {
             element.dataset.magneticStrength = "1.1";
-          } else if (element.classList.contains("btn")) {
+          } else if (element.classList.contains("button")) {
             element.dataset.magneticStrength = "0.85";
           } else {
             element.dataset.magneticStrength = "0.65";
@@ -255,7 +255,7 @@ export default function useMicroInteractionSystem({ enabled, pointerFine, reduce
       prepareElement(element);
       const celebrate =
         element.dataset.microCelebrate === "true" ||
-        element.classList.contains("btn-primary") ||
+        element.classList.contains("button--primary") ||
         element.getAttribute("type") === "submit";
       const navIntent = element.closest("nav") ? "interactive-nav" : "interactive";
       const intent = element.dataset.interactionIntent || (celebrate ? "interactive-strong" : navIntent);

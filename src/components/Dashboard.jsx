@@ -8,6 +8,7 @@ import OnboardingTour from "./OnboardingTour";
 import { useAchievements } from "../hooks/useAchievements";
 import { space } from "../styles/spacing";
 import "../styles/dashboard.css";
+import Button from "./ui/Button";
 
 const statusColors = {
   active: { bg: "rgba(16,185,129,0.18)", color: "#10b981" },
@@ -501,7 +502,9 @@ export default function Dashboard({ user, openAuth }) {
     return renderGate(
       "Authentication Required",
       "Please sign in to access your dashboard.",
-      <button className="btn btn-primary" onClick={() => openAuth("signin")}>Sign In</button>
+      <Button variant="primary" onClick={() => openAuth("signin")}>
+        <span>Sign In</span>
+      </Button>
     );
   }
 
@@ -517,7 +520,9 @@ export default function Dashboard({ user, openAuth }) {
     return renderGate(
       "Unable to Load Dashboard",
       "We encountered an issue loading your deployments. Please try again.",
-      <button className="btn btn-primary" onClick={() => window.location.reload()}>Retry</button>
+      <Button variant="primary" onClick={() => window.location.reload()}>
+        <span>Retry</span>
+      </Button>
     );
   }
 
@@ -546,13 +551,15 @@ export default function Dashboard({ user, openAuth }) {
           </div>
           <div style={{ display: "flex", alignItems: "center", gap: space("xs", 1.5) }}>
             <ThemeToggle />
-            <button
-              className="btn btn-primary"
+            <Button
+              size="sm"
+              variant="primary"
               data-tour-id="dashboard-action-button"
+              magnetic
               onClick={() => navigate("/marketplace")}
             >
-              + Add Automation
-            </button>
+              <span>+ Add Automation</span>
+            </Button>
           </div>
         </div>
 
@@ -617,9 +624,15 @@ export default function Dashboard({ user, openAuth }) {
                 </span>
                 <h2 style={{ margin: `${space("2xs", 1.4)} 0 0`, fontSize: "1.35rem" }}>{aiSuggestion.name}</h2>
               </div>
-              <button className="btn btn-secondary" onClick={() => handleAutomationDrop(aiSuggestion)}>
+              <Button
+                size="sm"
+                variant="secondary"
+                magnetic
+                glowOnHover={false}
+                onClick={() => handleAutomationDrop(aiSuggestion)}
+              >
                 Load into preview
-              </button>
+              </Button>
             </div>
             <p style={{ margin: 0, color: darkMode ? "#cbd5e1" : "#475569", lineHeight: 1.6 }}>
               {aiSuggestion.description} We picked this based on your industry profile. Drop it into the playground to
@@ -706,9 +719,9 @@ export default function Dashboard({ user, openAuth }) {
                 deployment.
               </p>
             </div>
-            <button className="btn btn-primary" onClick={() => navigate("/marketplace")}>
-              Browse marketplace
-            </button>
+            <Button size="sm" variant="primary" magnetic onClick={() => navigate("/marketplace")}>
+              <span>Browse marketplace</span>
+            </Button>
           </header>
           <div
             style={{
@@ -1039,9 +1052,9 @@ export default function Dashboard({ user, openAuth }) {
             <p style={{ color: darkMode ? "#94a3b8" : "#475569", maxWidth: "400px", margin: `0 auto ${space("md")}` }}>
               Browse the marketplace to deploy your first AI automation and start transforming your business operations.
             </p>
-            <button className="btn btn-primary" onClick={() => navigate("/marketplace")}>
-              Browse Marketplace
-            </button>
+            <Button size="md" variant="primary" magnetic onClick={() => navigate("/marketplace")}>
+              <span>Browse Marketplace</span>
+            </Button>
           </div>
         ) : (
           <div

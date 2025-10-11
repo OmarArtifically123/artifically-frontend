@@ -2,6 +2,7 @@ import { memo, useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useTheme } from "../context/ThemeContext";
 import useMicroInteractions from "../hooks/useMicroInteractions";
 import { space } from "../styles/spacing";
+import Button from "./ui/Button";
 
 const SAMPLE_COMPANIES = [
   "TechCorp",
@@ -1252,41 +1253,27 @@ function AutomationCardComponent({
       </div>
 
       <div className="automation-card__actions">
-        <button
-          className="btn btn-secondary btn-small"
-          data-magnetic="true"
-          data-ripple="true"
-          data-magnetic-strength="0.75"
-          data-micro-manual="true"
-          onClick={handleDemo}
-        >
+        <Button size="sm" variant="secondary" magnetic glowOnHover={false} onClick={handleDemo}>
           Try Demo
-        </button>
-        <button
-          className="btn btn-primary btn-small"
-          data-magnetic="true"
-          data-ripple="true"
-          data-magnetic-strength="1.1"
-          data-micro-manual="true"
-          onClick={handleBuy}
-        >
-          Buy & Deploy
-        </button>
+        </Button>
+        <Button size="sm" variant="primary" magnetic onClick={handleBuy}>
+          <span>Buy & Deploy</span>
+        </Button>
       </div>
 
       {onVote && (
         <div className="automation-card__collab">
-          <button
+          <Button
             type="button"
+            variant="secondary"
+            magnetic
+            glowOnHover={false}
             className="automation-card__vote"
-            data-magnetic="true"
-            data-magnetic-strength="0.65"
-            data-micro-manual="true"
             onClick={handleVote}
           >
             <span aria-hidden="true">🗳️</span>
             <span>Vote to deploy</span>
-          </button>
+          </Button>
           <span className="automation-card__vote-count">{voteCount} team votes</span>
         </div>
       )}

@@ -3,6 +3,7 @@ import { Link } from "react-router-dom";
 import ThemeToggle from "../components/ThemeToggle";
 import { useTheme } from "../context/ThemeContext";
 import { space } from "../styles/spacing";
+import Button from "../components/ui/Button";
 
 const tooltipStyle = {
   position: "relative",
@@ -300,16 +301,17 @@ export default function Docs() {
               <h1 style={{ fontSize: "1.5rem", margin: 0 }}>Deploy production-ready automations in minutes.</h1>
             </div>
             <div style={{ display: "flex", alignItems: "center", gap: space("xs", 1.5) }}>
-              <button
-                className="btn btn-primary"
+              <Button
+                size="sm"
+                variant="primary"
                 style={{ whiteSpace: "nowrap" }}
                 onClick={() =>
                   typeof window !== "undefined" &&
                   window.scrollTo({ top: 0, behavior: "smooth" })
                 }
               >
-                Deploy Your First Automation
-              </button>
+                <span>Deploy Your First Automation</span>
+              </Button>
               <ThemeToggle />
             </div>
           </div>
@@ -535,9 +537,14 @@ artifically deploy --env production --automation ops-guardian`}
                   />
                 )}
                 <div style={{ display: "flex", gap: space("xs", 1.5), alignItems: "center" }}>
-                  <button className="btn btn-secondary" onClick={runPlayground} disabled={playgroundState.loading}>
+                  <Button
+                    size="sm"
+                    variant="secondary"
+                    onClick={runPlayground}
+                    disabled={playgroundState.loading}
+                  >
                     {playgroundState.loading ? "Running..." : "Run request"}
-                  </button>
+                  </Button>
                   <span style={{ fontSize: "0.85rem", color: "var(--gray-400)" }}>
                     Responses stream back instantly from our mocked sandbox.
                   </span>

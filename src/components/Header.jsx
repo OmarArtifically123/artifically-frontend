@@ -367,47 +367,28 @@ export default function Header({ user, onSignIn, onSignUp, onSignOut }) {
             >
               <MagneticButton
                 type="button"
-                className="btn btn-ghost"
+                size="sm"
+                variant="secondary"
                 data-prefetch-route="/dashboard"
+                glowOnHover={false}
                 onClick={(event) => {
                   dispatchInteraction("cta-secondary", { event });
                   navigate("/dashboard");
-                }}
-                style={{
-                  padding: `${space("xs")} ${space("sm", 1.15)}`,
-                  borderRadius: "0.85rem",
-                  border: `1px solid ${darkMode
-                    ? "color-mix(in oklch, var(--text-secondary) 45%, transparent)"
-                    : "color-mix(in oklch, var(--brand-primary) 35%, transparent)"}`,
-                  background: darkMode
-                    ? "color-mix(in oklch, var(--glass-2) 65%, transparent)"
-                    : "color-mix(in oklch, var(--brand-primary) 22%, transparent)",
-                  color: darkMode
-                    ? "color-mix(in oklch, var(--text-primary) 95%, transparent)"
-                    : "color-mix(in oklch, var(--brand-depth) 85%, transparent)",
-                  transition: "all var(--transition-fast)",
                 }}
               >
                 Dashboard
               </MagneticButton>
               <MagneticButton
                 type="button"
-                className="btn btn-primary"
-                data-prefetch-route="/signout"
+                size="sm"
                 variant="primary"
+                data-prefetch-route="/signout"
                 onClick={(event) => {
                   dispatchInteraction("cta-ghost", { event });
                   onSignOut?.(event);
                 }}
-                style={{
-                  padding: `${space("xs")} ${space("fluid-sm")}`,
-                  borderRadius: "0.85rem",
-                  boxShadow: darkMode
-                    ? "0 18px 30px color-mix(in srgb, var(--brand-glow) 45%, transparent)"
-                    : "0 18px 30px color-mix(in srgb, var(--brand-primary) 35%, transparent)",
-                }}
               >
-                Sign out
+                <span>Sign out</span>
               </MagneticButton>
             </div>
           ) : (
@@ -420,47 +401,28 @@ export default function Header({ user, onSignIn, onSignUp, onSignOut }) {
             >
               <MagneticButton
                 type="button"
-                className="btn btn-ghost"
+                size="sm"
+                variant="secondary"
                 data-prefetch-route="/signin"
+                glowOnHover={false}
                 onClick={(event) => {
                   dispatchInteraction("cta-secondary", { event });
                   onSignIn?.(event);
-                }}
-                style={{
-                  padding: `${space("xs")} ${space("sm", 1.1)}`,
-                  borderRadius: "0.85rem",
-                  border: `1px solid ${darkMode
-                    ? "color-mix(in oklch, var(--text-secondary) 45%, transparent)"
-                    : "color-mix(in oklch, var(--brand-primary) 35%, transparent)"}`,
-                  background: darkMode
-                    ? "color-mix(in oklch, var(--glass-2) 65%, transparent)"
-                    : "color-mix(in oklch, var(--brand-primary) 22%, transparent)",
-                  color: darkMode
-                    ? "color-mix(in oklch, var(--text-primary) 95%, transparent)"
-                    : "color-mix(in oklch, var(--brand-depth) 85%, transparent)",
-                  transition: "all var(--transition-fast)",
                 }}
               >
                 Sign in
               </MagneticButton>
               <MagneticButton
                 type="button"
-                className="btn btn-primary"
-                data-prefetch-route="/signup"
+                size="sm"
                 variant="primary"
+                data-prefetch-route="/signup"
                 onClick={(event) => {
                   dispatchInteraction("cta-primary", { event });
                   onSignUp?.(event);
                 }}
-                style={{
-                  padding: `${space("xs")} ${space("fluid-sm")}`,
-                  borderRadius: "0.85rem",
-                  boxShadow: darkMode
-                    ? "0 18px 30px color-mix(in srgb, var(--brand-glow) 45%, transparent)"
-                    : "0 18px 30px color-mix(in srgb, var(--brand-primary) 35%, transparent)",
-                }}
               >
-                Get started
+                <span>Get started</span>
               </MagneticButton>
             </div>
           )}

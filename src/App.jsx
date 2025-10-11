@@ -3,11 +3,12 @@ import { Routes, Route, useNavigate, useLocation } from "react-router-dom";
 import Header from "./components/Header";
 import RouteShell from "./components/skeletons/RouteShell";
 import { ToastHost, toast } from "./components/Toast";
-import { SpeedInsights } from '@vercel/speed-insights/react';
+import { SpeedInsights } from "@vercel/speed-insights/react";
 import api, { pick } from "./api";
 import usePredictivePrefetch from "./hooks/usePredictivePrefetch";
 import "./styles/global.css";
 import ExperienceLayer from "./components/ExperienceLayer";
+import Button from "./components/ui/Button";
 
 const Home = lazy(() => import("./pages/Home"));
 const Pricing = lazy(() => import("./pages/Pricing"));
@@ -228,8 +229,10 @@ export default function App() {
         <div className="banner warn">
           <div className="container">
             <strong>Verify your email</strong> to unlock deployments and AI features.
-            <button
-              className="btn btn-small"
+            <Button
+              size="sm"
+              variant="secondary"
+              glowOnHover={false}
               style={{ marginLeft: 12 }}
               onClick={async () => {
                 try {
@@ -245,7 +248,7 @@ export default function App() {
               }}
             >
               Resend link
-            </button>
+            </Button>
           </div>
         </div>
       )}

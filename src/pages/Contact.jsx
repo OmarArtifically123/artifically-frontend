@@ -1,5 +1,7 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { space } from "../styles/spacing";
+import Button from "../components/ui/Button";
+import Input from "../components/ui/Input";
 
 const FORM_DEFAULTS = {
   name: "",
@@ -310,23 +312,21 @@ export default function Contact() {
 
       <section className="glass" style={{ padding: space("lg"), borderRadius: "16px" }}>
         <form onSubmit={handleSubmit} style={{ display: "grid", gap: space("fluid-sm") }}>
-          <label style={{ display: "grid", gap: space("xs") }}>
-            <span>Name</span>
-            <input
-              type="text"
+          <div style={{ display: "grid", gap: space("xs") }}>
+            <Input
+              label="Name"
               name="name"
               value={formState.name}
               onChange={handleChange}
               onFocus={() => startHesitation("name", formState.name)}
               onBlur={() => stopHesitation("name")}
               required
-              style={inputStyle}
             />
             <FieldHint visible={activeHint === "name"}>{hints.name}</FieldHint>
-          </label>
-          <label style={{ display: "grid", gap: space("xs") }}>
-            <span>Email</span>
-            <input
+          </div>
+          <div style={{ display: "grid", gap: space("xs") }}>
+            <Input
+              label="Email"
               type="email"
               name="email"
               value={formState.email}
@@ -334,21 +334,18 @@ export default function Contact() {
               onFocus={() => startHesitation("email", formState.email)}
               onBlur={() => stopHesitation("email")}
               required
-              style={inputStyle}
             />
             <FieldHint visible={activeHint === "email"}>{hints.email}</FieldHint>
-          </label>
-          <label style={{ display: "grid", gap: space("xs") }}>
-            <span>Topic</span>
-            <input
-              type="text"
+          </div>
+          <div style={{ display: "grid", gap: space("xs") }}>
+            <Input
+              label="Topic"
               name="topic"
               value={formState.topic}
               onChange={handleChange}
               onFocus={() => startHesitation("topic", formState.topic)}
               onBlur={() => stopHesitation("topic")}
               placeholder="Deployment, pricing, partnership..."
-              style={inputStyle}
             />
             <FieldHint visible={activeHint === "topic"}>{hints.topic}</FieldHint>
             {!!topicHistory.length && (
@@ -356,20 +353,23 @@ export default function Contact() {
                 <span style={{ color: "var(--gray-400)", fontSize: "0.85rem" }}>Recent topics:</span>
                 <div style={{ display: "flex", flexWrap: "wrap", gap: space("xs") }}>
                   {topicHistory.map((topic) => (
-                    <button
+                    <Button
                       key={topic}
                       type="button"
-                      onClick={() => handleTopicSuggestion(topic)}
-                      className="btn"
+                      size="sm"
+                      variant="secondary"
+                      glowOnHover={false}
+                      magnetic={false}
                       style={chipStyle}
+                      onClick={() => handleTopicSuggestion(topic)}
                     >
                       {topic}
-                    </button>
+                    </Button>
                   ))}
                 </div>
               </div>
             )}
-          </label>
+          </div>
           <label style={{ display: "grid", gap: space("xs") }}>
             <span>Message</span>
             <textarea
@@ -385,10 +385,12 @@ export default function Contact() {
           </label>
 
           <div style={{ display: "grid", gap: space("xs", 1.5) }}>
-            <button
+            <Button
               type="button"
-              onClick={() => setShowAdvanced((prev) => !prev)}
-              className="btn"
+              size="sm"
+              variant="secondary"
+              glowOnHover={false}
+              magnetic={false}
               style={{
                 justifySelf: "flex-start",
                 padding: `${space("xs")} ${space("xs", 1.75)}`,
@@ -396,9 +398,10 @@ export default function Contact() {
                 background: "rgba(148, 163, 184, 0.15)",
                 color: "var(--gray-100)",
               }}
+              onClick={() => setShowAdvanced((prev) => !prev)}
             >
               {showAdvanced ? "Hide advanced planning" : "Add rollout preferences"}
-            </button>
+            </Button>
 
             {showAdvanced && (
               <div
@@ -468,14 +471,15 @@ export default function Contact() {
             )}
           </div>
 
-          <button
+          <Button
             type="submit"
-            className="btn btn-primary"
+            size="md"
+            variant="primary"
             disabled={status === "loading"}
             style={{ padding: `${space("xs", 1.5)} ${space("fluid-sm")}`, borderRadius: "12px" }}
           >
-            {status === "loading" ? "Sending..." : "Submit"}
-          </button>
+            <span>{status === "loading" ? "Sending..." : "Submit"}</span>
+          </Button>
 
           <div aria-live="polite" style={{ color: status === "success" ? "#34d399" : "var(--gray-400)" }}>
             {status === "success" && "Thanks! We'll reach out shortly."}

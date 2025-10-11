@@ -3,6 +3,7 @@ import { fetchAutomations } from "../data/automations";
 import { toast } from "./Toast";
 import api from "../api";
 import ThemeToggle from "./ThemeToggle";
+import Button from "./ui/Button";
 import { useTheme } from "../context/ThemeContext";
 import { warmupWasm, wasmAverage } from "../lib/wasmMath";
 import LivingSuccessMetrics from "./LivingSuccessMetrics";
@@ -1051,9 +1052,9 @@ export default function Marketplace({ user, openAuth }) {
             <p className="marketplace-error__description">
               We're having trouble loading the automation marketplace. Please check your connection and try again.
             </p>
-            <button className="btn btn-primary" data-ripple="true" onClick={() => window.location.reload()}>
-              Retry
-            </button>
+            <Button variant="primary" onClick={() => window.location.reload()}>
+              <span>Retry</span>
+            </Button>
           </div>
         </div>
       </section>

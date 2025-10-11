@@ -2,6 +2,8 @@ import { useEffect, useMemo, useState, useRef } from "react";
 import { fetchAutomations } from "../data/automations";
 import { toast } from "../components/Toast";
 import { space } from "../styles/spacing";
+import Button from "../components/ui/Button";
+import BentoCard from "../components/ui/BentoCard";
 
 const loadGsap = () => import("../lib/gsapConfig");
 
@@ -316,18 +318,7 @@ export default function Pricing() {
               const price = tierPrice(automation);
               const isYearly = billingCycle === "yearly";
               return (
-                <div
-                  key={automation.id}
-                  className="glass"
-                  style={{
-                    borderRadius: "1.5rem",
-                    padding: space("lg", 1.25),
-                    display: "grid",
-                    gap: space("fluid-sm"),
-                    border: "1px solid color-mix(in oklch, var(--brand-primary) 30%, transparent)",
-                    boxShadow: "0 35px 80px color-mix(in srgb, var(--brand-depth) 35%, transparent)",
-                  }}
-                >
+                <BentoCard key={automation.id} className="pricing-plan-card">
                   <div style={{ fontSize: "1.15rem", fontWeight: 700 }}>{automation.name}</div>
                   <p style={{ color: "var(--gray-400)", lineHeight: 1.7 }}>{automation.description}</p>
                   <div>
@@ -351,10 +342,14 @@ export default function Pricing() {
                       <li key={highlight}>{highlight}</li>
                     ))}
                   </ul>
-                  <button className="btn btn-primary" style={{ justifySelf: "flex-start" }}>
-                    Start for Free →
-                  </button>
-                </div>
+                  <Button
+                    size="sm"
+                    variant="primary"
+                    style={{ justifySelf: "flex-start" }}
+                  >
+                    <span>Start for Free →</span>
+                  </Button>
+                </BentoCard>
               );
             })}
       </section>
@@ -432,16 +427,12 @@ export default function Pricing() {
         <h2 style={{ fontSize: "1.75rem", fontWeight: 700 }}>Teams scaling with Artifically</h2>
         <div style={{ display: "grid", gap: space("fluid-sm"), gridTemplateColumns: "repeat(auto-fit, minmax(260px, 1fr))" }}>
           {caseStudies.map((item) => (
-            <article
-              key={item.customer}
-              className="glass"
-              style={{ borderRadius: "1.5rem", padding: space("lg"), display: "grid", gap: space("xs", 1.5) }}
-            >
+            <BentoCard key={item.customer} gradient={false} spotlight={false} className="pricing-case-card">
               <div style={{ fontWeight: 700, fontSize: "1.1rem" }}>{item.customer}</div>
               <p style={{ color: "var(--gray-400)", margin: 0 }}>{item.story}</p>
               <div style={{ color: "var(--brand-primary)", fontWeight: 600 }}>{item.automation}</div>
               <span style={{ color: "var(--success-vibrant)", fontWeight: 600 }}>{item.result}</span>
-            </article>
+            </BentoCard>
           ))}
         </div>
       </section>
@@ -476,9 +467,9 @@ export default function Pricing() {
         <p style={{ maxWidth: "560px", margin: "0 auto", fontSize: "1.05rem" }}>
           Start for free, deploy your first automation, and scale with full observability and enterprise guardrails.
         </p>
-        <button className="btn btn-primary" style={{ justifySelf: "center" }}>
-          Deploy Your First Automation
-        </button>
+        <Button size="lg" variant="primary" style={{ justifySelf: "center" }}>
+          <span>Deploy Your First Automation</span>
+        </Button>
       </section>
     </main>
   );

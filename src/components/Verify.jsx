@@ -5,6 +5,7 @@ import { toast } from "./Toast";
 import ThemeToggle from "./ThemeToggle";
 import { useTheme } from "../context/ThemeContext";
 import { space } from "../styles/spacing";
+import Button from "./ui/Button";
 
 export default function Verify({ onVerified }) {
   const { darkMode } = useTheme();
@@ -115,9 +116,9 @@ export default function Verify({ onVerified }) {
       <p style={{ color: darkMode ? "#94a3b8" : "#475569" }}>
         We couldn’t verify that link. The token may have expired.
       </p>
-      <button className="btn btn-primary" disabled={resending} onClick={resend}>
-        {resending ? "Resending…" : "Resend Verification Email"}
-      </button>
+      <Button variant="primary" onClick={resend} disabled={resending}>
+        <span>{resending ? "Resending…" : "Resend Verification Email"}</span>
+      </Button>
     </>
   );
 }

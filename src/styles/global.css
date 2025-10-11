@@ -4438,3 +4438,318 @@ main :where(section, div)[id] {
   font-size: 0.72rem;
   color: rgba(148, 163, 184, 0.88);
 }
+/* Phase 6 Component Library */
+.button {
+  --button-border: color-mix(in oklch, var(--brand-glow) 38%, transparent);
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.65rem;
+  border-radius: 0.95rem;
+  border: 1px solid transparent;
+  background: transparent;
+  color: var(--text-primary);
+  font-family: var(--font-display);
+  font-weight: 600;
+  letter-spacing: 0.01em;
+  overflow: hidden;
+  isolation: isolate;
+  cursor: pointer;
+  transition: transform 0.18s ease, box-shadow 0.28s ease, border 0.28s ease, background 0.28s ease,
+    color 0.28s ease;
+  box-shadow: inset 0 1px 0 0 color-mix(in oklch, white 8%, transparent);
+}
+
+.button::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  pointer-events: none;
+  opacity: 0;
+  transition: opacity 0.3s ease;
+  background: radial-gradient(circle at 50% 120%, color-mix(in oklch, var(--brand-glow) 24%, transparent), transparent 75%);
+}
+
+.button:hover::after,
+.button:focus-visible::after {
+  opacity: 1;
+}
+
+.button:focus-visible {
+  outline: none;
+  box-shadow: 0 0 0 3px color-mix(in oklch, var(--brand-glow) 55%, transparent);
+}
+
+.button:disabled {
+  cursor: not-allowed;
+  opacity: 0.6;
+}
+
+.button--magnetic {
+  will-change: transform;
+}
+
+.button--glow {
+  transition: box-shadow 0.22s ease, transform 0.18s ease;
+}
+
+.button--glow:hover,
+.button--glow:focus-visible {
+  box-shadow: 0 16px 45px color-mix(in oklch, var(--brand-glow) 35%, transparent);
+}
+
+.button--primary {
+  background: var(--primary-gradient);
+  border-color: color-mix(in oklch, var(--brand-glow) 30%, transparent);
+  color: var(--text-primary);
+}
+
+.button--primary:hover,
+.button--primary:focus-visible {
+  background: linear-gradient(135deg, color-mix(in oklch, var(--brand-primary) 94%, black) 0%, var(--brand-glow) 52%, var(--brand-energy) 100%);
+}
+
+.button--secondary {
+  background: color-mix(in oklch, var(--glass-2) 70%, transparent);
+  border-color: color-mix(in oklch, var(--glass-border-primary) 85%, transparent);
+  color: var(--text-primary);
+  backdrop-filter: blur(calc(var(--glass-blur) * 0.6));
+}
+
+.button--secondary:hover,
+.button--secondary:focus-visible {
+  border-color: color-mix(in oklch, var(--brand-glow) 45%, transparent);
+  background: color-mix(in oklch, var(--glass-2) 80%, transparent);
+}
+
+.button--ghost {
+  background: transparent;
+  border-color: color-mix(in oklch, var(--glass-border-primary) 65%, transparent);
+  color: var(--text-secondary);
+}
+
+.button--ghost:hover,
+.button--ghost:focus-visible {
+  color: var(--text-primary);
+  border-color: color-mix(in oklch, var(--brand-glow) 45%, transparent);
+}
+
+.button--danger {
+  background: linear-gradient(135deg, color-mix(in oklch, var(--error-sharp) 80%, black) 0%, var(--error-sharp) 60%, color-mix(in oklch, var(--error-sharp) 85%, white) 100%);
+  border-color: color-mix(in oklch, var(--error-sharp) 60%, transparent);
+}
+
+.button--danger:hover,
+.button--danger:focus-visible {
+  background: linear-gradient(135deg, color-mix(in oklch, var(--error-sharp) 88%, black) 0%, color-mix(in oklch, var(--error-sharp) 90%, white) 100%);
+}
+
+.button--sm {
+  padding: 0.55rem 1.1rem;
+  font-size: 0.925rem;
+  line-height: 1.2;
+}
+
+.button--md {
+  padding: 0.78rem 1.45rem;
+  font-size: 1rem;
+  line-height: 1.2;
+}
+
+.button--lg {
+  padding: 1rem 1.8rem;
+  font-size: 1.05rem;
+  line-height: 1.2;
+}
+
+.button--xl {
+  padding: 1.2rem 2.35rem;
+  font-size: 1.15rem;
+  line-height: 1.2;
+}
+
+.button__content {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  z-index: 2;
+}
+
+.button__icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 2;
+  color: inherit;
+}
+
+.button__icon--left {
+  margin-right: 0.35rem;
+}
+
+.button__icon--right {
+  margin-left: 0.35rem;
+}
+
+.button__shine {
+  position: absolute;
+  top: -120%;
+  left: -120%;
+  width: 220%;
+  height: 220%;
+  background: linear-gradient(120deg, transparent 20%, rgba(255, 255, 255, 0.45) 50%, transparent 80%);
+  opacity: 0.75;
+  mix-blend-mode: screen;
+  filter: blur(0.4px);
+  z-index: 1;
+  pointer-events: none;
+}
+
+.button__ripple {
+  position: absolute;
+  border-radius: 50%;
+  transform: scale(0);
+  background: color-mix(in oklch, var(--brand-glow) 55%, white / 20%);
+  animation: button-ripple 720ms ease-out;
+  z-index: 0;
+  pointer-events: none;
+}
+
+@keyframes button-ripple {
+  to {
+    transform: scale(3.25);
+    opacity: 0;
+  }
+}
+
+/* Bento Cards */
+.bento-card {
+  position: relative;
+  border-radius: 1.35rem;
+  padding: clamp(1.4rem, 1.1rem + 1vw, 2rem);
+  background: color-mix(in oklch, var(--glass-2) 82%, transparent);
+  border: 1px solid color-mix(in oklch, var(--glass-border-primary) 75%, transparent);
+  box-shadow: inset 0 1px 0 0 color-mix(in oklch, white 6%, transparent), var(--shadow-md);
+  overflow: hidden;
+  isolation: isolate;
+  backdrop-filter: blur(calc(var(--glass-blur) * 0.6));
+}
+
+.bento-card__border {
+  position: absolute;
+  inset: -1px;
+  border-radius: inherit;
+  pointer-events: none;
+  border: 1px solid color-mix(in oklch, var(--brand-glow) 45%, transparent);
+  filter: drop-shadow(0 30px 60px color-mix(in oklch, var(--brand-glow) 28%, transparent));
+}
+
+.spotlight {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  border-radius: inherit;
+  z-index: 0;
+}
+
+.bento-card__content {
+  position: relative;
+  z-index: 1;
+  display: grid;
+  gap: clamp(0.6rem, 0.45rem + 0.5vw, 1rem);
+}
+
+/* Inputs */
+.input {
+  display: grid;
+  gap: 0.35rem;
+  position: relative;
+}
+
+.input__field {
+  width: 100%;
+  border-radius: 0.9rem;
+  border: 1px solid color-mix(in oklch, var(--glass-border-primary) 75%, transparent);
+  background: color-mix(in oklch, var(--glass-2) 88%, transparent);
+  color: var(--text-primary);
+  padding: 0.9rem 1.1rem;
+  font-size: 1rem;
+  transition: border 0.2s ease, box-shadow 0.2s ease, background 0.2s ease;
+}
+
+.input__field:focus-visible {
+  outline: none;
+  border-color: color-mix(in oklch, var(--brand-glow) 55%, transparent);
+  box-shadow: 0 0 0 3px color-mix(in oklch, var(--brand-glow) 25%, transparent);
+}
+
+.input__field--error {
+  border-color: color-mix(in oklch, var(--error-sharp) 55%, transparent);
+}
+
+.input__field--success {
+  border-color: color-mix(in oklch, var(--success-vibrant) 55%, transparent);
+}
+
+.input__label {
+  position: absolute;
+  left: 1.1rem;
+  top: 0.95rem;
+  font-size: 0.95rem;
+  color: var(--text-secondary);
+  pointer-events: none;
+  transform-origin: left center;
+  transition: color 0.2s ease;
+}
+
+.input__field:focus + .input__label {
+  color: var(--text-primary);
+}
+
+.input__underline {
+  position: absolute;
+  left: 1.1rem;
+  right: 1.1rem;
+  bottom: 0.5rem;
+  height: 2px;
+  background: linear-gradient(90deg, transparent, var(--brand-glow), transparent);
+  transform-origin: center;
+}
+
+.input__message {
+  font-size: 0.825rem;
+  color: var(--text-secondary);
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+}
+
+.input__message--error {
+  color: color-mix(in oklch, var(--error-sharp) 80%, white / 10%);
+}
+
+.input__message--success {
+  color: color-mix(in oklch, var(--success-vibrant) 80%, white / 10%);
+}
+
+[data-theme="light"] .button--secondary {
+  background: color-mix(in oklch, white 92%, var(--brand-muted));
+  color: var(--gray-800);
+}
+
+[data-theme="light"] .button--ghost {
+  color: var(--gray-600);
+  border-color: color-mix(in oklch, var(--gray-200) 85%, transparent);
+}
+
+[data-theme="light"] .input__field {
+  background: color-mix(in oklch, white 95%, var(--brand-muted));
+  color: var(--gray-800);
+}
+
+[data-theme="light"] .bento-card {
+  background: color-mix(in oklch, white 95%, var(--brand-muted));
+  border-color: color-mix(in oklch, var(--brand-glow) 35%, transparent);
+}
