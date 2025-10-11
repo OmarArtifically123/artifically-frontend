@@ -392,18 +392,18 @@ function FloatingProductPreview() {
 
   useEffect(() => {
     if (prefersReducedMotion) {
-      return;
+      return () => {};
     }
 
     const container = containerRef.current;
     if (!container) {
       setShouldRenderScene(true);
-      return;
+      return () => {};
     }
 
     if (typeof IntersectionObserver !== "function") {
       setShouldRenderScene(true);
-      return;
+      return () => {};
     }
 
     const observer = new IntersectionObserver(
@@ -413,7 +413,10 @@ function FloatingProductPreview() {
           observer.disconnect();
         }
       },
-      { threshold: 0.35 },
+      {
+        threshold: 0.2,
+        rootMargin: "0px 0px 240px 0px",
+      },
     );
 
     observer.observe(container);
@@ -421,6 +424,42 @@ function FloatingProductPreview() {
     return () => observer.disconnect();
   }, [prefersReducedMotion]);
 
+  useEffect(() => {
+    if (prefersReducedMotion || shouldRenderScene) {
+      return () => {};
+    }
+
+    if (typeof window === "undefined") {
+      setShouldRenderScene(true);
+      return () => {};
+    }
+
+    let cancelled = false;
+
+    const handleTrigger = () => {
+      if (!cancelled) {
+        setShouldRenderScene(true);
+      }
+    };
+
+    if ("requestIdleCallback" in window) {
+      const idleId = window.requestIdleCallback(handleTrigger, { timeout: 1200 });
+      return () => {
+        cancelled = true;
+        if (typeof window.cancelIdleCallback === "function") {
+          window.cancelIdleCallback(idleId);
+        }
+      };
+    }
+
+    const timeoutId = window.setTimeout(handleTrigger, 1200);
+
+    return () => {
+      cancelled = true;
+      window.clearTimeout(timeoutId);
+    };
+  }, [prefersReducedMotion, shouldRenderScene]);
+  
   useEffect(() => {
     if (!shouldRenderScene || prefersReducedMotion) {
       return;
