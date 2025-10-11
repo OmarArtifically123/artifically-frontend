@@ -45,6 +45,15 @@ const GOD_RAY_COUNT = 14;
 const HEIGHT_FOG_COLOR = new Color(0x14233c);
 const LENS_DIRT_TEXTURE_SIZE = 256;
 const MOTION_BLUR_SAMPLES = 8;
+const HERO_TIMELINE_DURATION = 20;
+const HERO_TIMELINE_PHASES = [
+  { key: "awakening", start: 0, duration: 5 },
+  { key: "processing", start: 5, duration: 5 },
+  { key: "peak", start: 10, duration: 5 },
+  { key: "windDown", start: 15, duration: 5 },
+];
+const TWO_PI = Math.PI * 2;
+const BASE_CYCLE_FREQUENCY = TWO_PI / HERO_TIMELINE_DURATION;
 
 const SHADOW_FLOOR = new Vector3(5 / 255, 8 / 255, 12 / 255);
 const HERO_FOCUS_POINT = HERO_ORB_CENTER.clone();
@@ -166,6 +175,180 @@ function createLensDirtTexture(size = LENS_DIRT_TEXTURE_SIZE, seed = 3379) {
 
 function useLensDirtTexture() {
   return useMemo(() => createLensDirtTexture(), []);
+}
+
+const easingLibrary = {
+  linear: (t) => t,
+  sineInOut: (t) => 0.5 - 0.5 * Math.cos(Math.PI * MathUtils.clamp(t, 0, 1)),
+  cubicInOut: (t) => {
+    const clamped = MathUtils.clamp(t, 0, 1);
+    return clamped < 0.5
+      ? 4 * clamped * clamped * clamped
+      : 1 - Math.pow(-2 * clamped + 2, 3) / 2;
+  },
+  quadInOut: (t) => {
+    const clamped = MathUtils.clamp(t, 0, 1);
+    return clamped < 0.5 ? 2 * clamped * clamped : 1 - Math.pow(-2 * clamped + 2, 2) / 2;
+  },
+};
+
+function resolveEase(ease) {
+  if (typeof ease === "function") {
+    return ease;
+  }
+  return easingLibrary[ease] ?? easingLibrary.linear;
+}
+
+function evaluateTimelineKeyframes(cycleTime, keyframes) {
+  const time = MathUtils.euclideanModulo(cycleTime, HERO_TIMELINE_DURATION);
+  if (!keyframes.length) {
+    return 0;
+  }
+
+  for (let i = 0; i < keyframes.length - 1; i += 1) {
+    const current = keyframes[i];
+    const next = keyframes[i + 1];
+    if (time >= current.time && time <= next.time) {
+      const span = Math.max(next.time - current.time, 0.0001);
+      const progress = (time - current.time) / span;
+      const easeFn = resolveEase(next.ease ?? current.ease ?? "linear");
+      const eased = easeFn(progress);
+      return MathUtils.lerp(current.value, next.value, eased);
+    }
+  }
+
+  const first = keyframes[0];
+  const last = keyframes[keyframes.length - 1];
+  const wrappedSpan = HERO_TIMELINE_DURATION - last.time + first.time;
+  const localTime = time < first.time ? time + HERO_TIMELINE_DURATION : time;
+  const progress = MathUtils.clamp((localTime - last.time) / Math.max(wrappedSpan, 0.0001), 0, 1);
+  const easeFn = resolveEase(first.ease ?? last.ease ?? "linear");
+  const eased = easeFn(progress);
+  return MathUtils.lerp(last.value, first.value, eased);
+}
+
+const HERO_TIMELINE_KEYFRAMES = {
+  energyPulseFrequency: [
+    { time: 0, value: 1, ease: "sineInOut" },
+    { time: 5, value: 1.32, ease: "sineInOut" },
+    { time: 10, value: 1.45, ease: "sineInOut" },
+    { time: 15, value: 1.68, ease: "sineInOut" },
+    { time: 20, value: 1, ease: "sineInOut" },
+  ],
+  energyPulseAmplitude: [
+    { time: 0, value: 1, ease: "sineInOut" },
+    { time: 5, value: 1.18, ease: "sineInOut" },
+    { time: 10, value: 1.3, ease: "sineInOut" },
+    { time: 15, value: 1.5, ease: "sineInOut" },
+    { time: 20, value: 1, ease: "sineInOut" },
+  ],
+  energyPulseIntensity: [
+    { time: 0, value: 1, ease: "quadInOut" },
+    { time: 5, value: 1.12, ease: "quadInOut" },
+    { time: 10, value: 1.2, ease: "quadInOut" },
+    { time: 15, value: 1.3, ease: "quadInOut" },
+    { time: 20, value: 1, ease: "quadInOut" },
+  ],
+  energyParticleSpeed: [
+    { time: 0, value: 1, ease: "cubicInOut" },
+    { time: 5, value: 1.05, ease: "cubicInOut" },
+    { time: 10, value: 1.22, ease: "cubicInOut" },
+    { time: 15, value: 1.45, ease: "cubicInOut" },
+    { time: 20, value: 1, ease: "cubicInOut" },
+  ],
+  godRayOpacity: [
+    { time: 0, value: 1, ease: "quadInOut" },
+    { time: 5, value: 1.2, ease: "quadInOut" },
+    { time: 10, value: 1.18, ease: "quadInOut" },
+    { time: 15, value: 1.05, ease: "quadInOut" },
+    { time: 20, value: 1, ease: "quadInOut" },
+  ],
+  backgroundDrift: [
+    { time: 0, value: 1, ease: "sineInOut" },
+    { time: 5, value: 1.35, ease: "sineInOut" },
+    { time: 10, value: 1.22, ease: "sineInOut" },
+    { time: 15, value: 1.08, ease: "sineInOut" },
+    { time: 20, value: 1, ease: "sineInOut" },
+  ],
+  nodeOrbitSpeed: [
+    { time: 0, value: 1, ease: "sineInOut" },
+    { time: 5, value: 1, ease: "sineInOut" },
+    { time: 10, value: 1.1, ease: "sineInOut" },
+    { time: 15, value: 1.12, ease: "sineInOut" },
+    { time: 20, value: 1, ease: "sineInOut" },
+  ],
+  nodeSelfRotation: [
+    { time: 0, value: 1, ease: "sineInOut" },
+    { time: 5, value: 1.05, ease: "sineInOut" },
+    { time: 10, value: 1.18, ease: "sineInOut" },
+    { time: 15, value: 1.08, ease: "sineInOut" },
+    { time: 20, value: 1, ease: "sineInOut" },
+  ],
+  heroNeuralPulse: [
+    { time: 0, value: 1, ease: "sineInOut" },
+    { time: 5, value: 1.2, ease: "sineInOut" },
+    { time: 10, value: 1.35, ease: "sineInOut" },
+    { time: 15, value: 1.15, ease: "sineInOut" },
+    { time: 20, value: 1, ease: "sineInOut" },
+  ],
+  heroEmissive: [
+    { time: 0, value: 1, ease: "quadInOut" },
+    { time: 5, value: 1.08, ease: "quadInOut" },
+    { time: 10, value: 1.18, ease: "quadInOut" },
+    { time: 15, value: 1.25, ease: "quadInOut" },
+    { time: 20, value: 1, ease: "quadInOut" },
+  ],
+  heroScalePulse: [
+    { time: 0, value: 1, ease: "sineInOut" },
+    { time: 5, value: 1.12, ease: "sineInOut" },
+    { time: 10, value: 1.18, ease: "sineInOut" },
+    { time: 15, value: 1.1, ease: "sineInOut" },
+    { time: 20, value: 1, ease: "sineInOut" },
+  ],
+};
+
+function getHeroTimelineState(elapsedTime) {
+  const cycleTime = MathUtils.euclideanModulo(elapsedTime, HERO_TIMELINE_DURATION);
+  const normalizedTime = cycleTime / HERO_TIMELINE_DURATION;
+  const phase = HERO_TIMELINE_PHASES.find((entry) => cycleTime >= entry.start && cycleTime < entry.start + entry.duration) ??
+    HERO_TIMELINE_PHASES[HERO_TIMELINE_PHASES.length - 1];
+  const phaseProgress = MathUtils.clamp((cycleTime - phase.start) / phase.duration, 0, 1);
+  const gridScanProgress = MathUtils.clamp((cycleTime - 10) / 5, 0, 1);
+
+  return {
+    cycleTime,
+    normalizedTime,
+    phaseKey: phase.key,
+    phaseProgress,
+    energyPulseFrequencyMultiplier: evaluateTimelineKeyframes(
+      cycleTime,
+      HERO_TIMELINE_KEYFRAMES.energyPulseFrequency,
+    ),
+    energyPulseAmplitudeMultiplier: evaluateTimelineKeyframes(
+      cycleTime,
+      HERO_TIMELINE_KEYFRAMES.energyPulseAmplitude,
+    ),
+    energyPulseIntensityMultiplier: evaluateTimelineKeyframes(
+      cycleTime,
+      HERO_TIMELINE_KEYFRAMES.energyPulseIntensity,
+    ),
+    energyParticleSpeedMultiplier: evaluateTimelineKeyframes(
+      cycleTime,
+      HERO_TIMELINE_KEYFRAMES.energyParticleSpeed,
+    ),
+    godRayOpacityMultiplier: evaluateTimelineKeyframes(cycleTime, HERO_TIMELINE_KEYFRAMES.godRayOpacity),
+    backgroundDriftMultiplier: evaluateTimelineKeyframes(cycleTime, HERO_TIMELINE_KEYFRAMES.backgroundDrift),
+    nodeOrbitSpeedMultiplier: evaluateTimelineKeyframes(cycleTime, HERO_TIMELINE_KEYFRAMES.nodeOrbitSpeed),
+    nodeSelfRotationMultiplier: evaluateTimelineKeyframes(
+      cycleTime,
+      HERO_TIMELINE_KEYFRAMES.nodeSelfRotation,
+    ),
+    heroNeuralPulseMultiplier: evaluateTimelineKeyframes(cycleTime, HERO_TIMELINE_KEYFRAMES.heroNeuralPulse),
+    heroEmissiveMultiplier: evaluateTimelineKeyframes(cycleTime, HERO_TIMELINE_KEYFRAMES.heroEmissive),
+    heroScalePulseMultiplier: evaluateTimelineKeyframes(cycleTime, HERO_TIMELINE_KEYFRAMES.heroScalePulse),
+    gridScanStrength: MathUtils.clamp(easingLibrary.cubicInOut(gridScanProgress) * 1.4, 0, 1.4),
+    gridScanProgress: easingLibrary.sineInOut(gridScanProgress),
+  };
 }
 
 class LensDirtEffect extends Effect {
@@ -446,6 +629,8 @@ const GridMaterial = shaderMaterial(
     uColorB: new Color(0x060913),
     uGridColor: new Color(0x6366f1),
     uGlowColor: new Color(0x22d3ee),
+    uScanStrength: 0,
+    uScanProgress: 0,
   },
   /* glsl */ `
     varying vec2 vUv;
@@ -460,6 +645,8 @@ const GridMaterial = shaderMaterial(
     uniform vec3 uColorB;
     uniform vec3 uGridColor;
     uniform vec3 uGlowColor;
+    uniform float uScanStrength;
+    uniform float uScanProgress;
     varying vec2 vUv;
 
     float grid(vec2 uv, float scale, float thickness) {
@@ -497,12 +684,16 @@ const GridMaterial = shaderMaterial(
       noiseValue = noiseValue * 2.0 - 1.0;
 
       float sweepPhase = fract(uTime / 7.2);
-      float sweepWidth = 0.015 + 0.035 * sweepPhase;
-      float sweep = exp(-pow((uv.y - sweepPhase), 2.0) / sweepWidth) * 0.6;
+      float sweepWidth = 0.018;
+      float ambientSweep = exp(-pow((uv.y - sweepPhase), 2.0) / sweepWidth) * 0.25;
+
+      float scanWidth = mix(0.012, 0.045, clamp(uScanStrength, 0.0, 1.0));
+      float scanDenom = max(scanWidth, 0.001);
+      float scanSweep = exp(-pow((uv.y - uScanProgress), 2.0) / scanDenom) * uScanStrength;
 
       vec3 color = base;
       color += uGridColor * 0.45 * gridMask * mix(1.0, 0.4, uv.y);
-      color += uGlowColor * sweep;
+      color += uGlowColor * (ambientSweep + scanSweep);
       color += vec3(0.08, 0.12, 0.2) * noiseValue * 0.08;
 
       float horizonGlow = smoothstep(0.55, 0.95, uv.y);
@@ -1049,9 +1240,11 @@ function CameraRig({ reduceMotion, targetAspect = HERO_ASPECT }) {
   const { camera, viewport } = useThree();
   const target = useMemo(() => new Vector3(0, 0.2, 0), []);
   useFrame(({ clock }) => {
-    const time = clock.getElapsedTime();
-    const horizontalDrift = reduceMotion ? 0 : Math.sin((time / 20) * Math.PI * 2) * 0.15;
-    const verticalBreath = reduceMotion ? 0 : Math.sin(time * 0.25) * 0.02;
+    const elapsed = clock.getElapsedTime();
+    const timeline = getHeroTimelineState(elapsed);
+    const cycleTime = timeline.cycleTime;
+    const horizontalDrift = reduceMotion ? 0 : Math.sin(BASE_CYCLE_FREQUENCY * cycleTime) * 0.15;
+    const verticalBreath = reduceMotion ? 0 : Math.sin(BASE_CYCLE_FREQUENCY * cycleTime * 2) * 0.02;
     const distance = HERO_CAMERA_DISTANCE;
     const elevationRad = MathUtils.degToRad(HERO_CAMERA_ELEVATION_DEG);
     const y = Math.sin(elevationRad) * distance + verticalBreath;
@@ -1123,7 +1316,11 @@ function AtmosphericFog({ reduceMotion }) {
     if (!materialRef.current) {
       return;
     }
-    materialRef.current.uTime = reduceMotion ? 0 : clock.getElapsedTime();
+    const timeline = getHeroTimelineState(clock.getElapsedTime());
+    materialRef.current.uTime = reduceMotion ? 0 : timeline.cycleTime;
+    if (!reduceMotion) {
+      materialRef.current.uDensity = 0.08 * (1 + (timeline.backgroundDriftMultiplier - 1) * 0.35);
+    }
   });
 
   return (
@@ -1146,21 +1343,27 @@ function BackgroundLayers({ reduceMotion }) {
   const pointsRef = useRef();
 
   useFrame(({ clock }, delta) => {
+    const timeline = getHeroTimelineState(clock.getElapsedTime());
     if (materialRef.current) {
-      materialRef.current.uTime = clock.getElapsedTime();
+      materialRef.current.uTime = timeline.cycleTime;
+      materialRef.current.uScanStrength = reduceMotion ? 0 : timeline.gridScanStrength;
+      materialRef.current.uScanProgress = timeline.gridScanProgress;
     }
     if (reduceMotion || !pointsRef.current) {
       return;
     }
     const array = pointsRef.current.geometry.attributes.position.array;
-    const time = clock.getElapsedTime();
+    const cycleTime = timeline.cycleTime;
+    const driftMultiplier = timeline.backgroundDriftMultiplier;
     for (let i = 0; i < BACKGROUND_PARTICLE_COUNT; i += 1) {
       const index = i * 3;
       const sway = swayAxes[i];
       const offset = offsets[i];
-      array[index] += sway.x * Math.sin(time * 0.18 + offset) * 0.0009;
-      array[index + 1] += verticalSpeeds[i] * delta;
-      array[index + 2] += sway.z * Math.cos(time * 0.22 + offset) * 0.0009;
+      const swayFactor = Math.sin(BASE_CYCLE_FREQUENCY * cycleTime * 3 + offset);
+      const swayFactorZ = Math.cos(BASE_CYCLE_FREQUENCY * cycleTime * 2.6 + offset);
+      array[index] += sway.x * swayFactor * 0.0009 * driftMultiplier;
+      array[index + 1] += verticalSpeeds[i] * delta * driftMultiplier;
+      array[index + 2] += sway.z * swayFactorZ * 0.0009 * driftMultiplier;
       if (array[index + 1] > 2.5) {
         array[index + 1] = -3.2;
       }
@@ -1230,9 +1433,14 @@ function NeuralCore({ reduceMotion }) {
   useFrame(({ clock }) => {
     if (!instancedRef.current) return;
     const time = clock.getElapsedTime();
+    const timeline = getHeroTimelineState(time);
+    const cycleTime = timeline.cycleTime;
     nodes.forEach((node, index) => {
-      const pulsePhase = (time / node.pulseDuration) * Math.PI * 2 + node.pulseOffset;
-      const scaleMultiplier = reduceMotion ? 1 : MathUtils.lerp(0.82, 1.3, (Math.sin(pulsePhase) + 1) * 0.5);
+      const pulsePhase = (cycleTime / node.pulseDuration) * TWO_PI + node.pulseOffset;
+      const basePulse = MathUtils.lerp(0.82, 1.3, (Math.sin(pulsePhase) + 1) * 0.5);
+      const scaleMultiplier = reduceMotion
+        ? 1
+        : 1 + (basePulse - 1) * (1 + (timeline.heroNeuralPulseMultiplier - 1) * 0.65);
       dummy.position.copy(node.position);
       dummy.scale.setScalar(node.scale * scaleMultiplier);
       dummy.updateMatrix();
@@ -1240,8 +1448,9 @@ function NeuralCore({ reduceMotion }) {
     });
     instancedRef.current.instanceMatrix.needsUpdate = true;
     if (connectionRef.current) {
-      const flicker = reduceMotion ? 0.38 : 0.25 + Math.sin(time * 1.3) * 0.15;
-      connectionRef.current.material.opacity = 0.22 + flicker * 0.32;
+      const flickerPhase = reduceMotion ? 0 : Math.sin(BASE_CYCLE_FREQUENCY * cycleTime * 6 + 0.45);
+      const baseOpacity = reduceMotion ? 0.32 : 0.22 + timeline.heroNeuralPulseMultiplier * 0.08;
+      connectionRef.current.material.opacity = baseOpacity + flickerPhase * 0.12 * timeline.heroNeuralPulseMultiplier;
     }
   });
 
@@ -1278,10 +1487,11 @@ function CircuitPath({ curve, samples, colors, pulses, reduceMotion }) {
       return;
     }
     const time = clock.getElapsedTime();
+    const timeline = getHeroTimelineState(time);
     pulses.forEach((pulse, index) => {
       const mesh = pulseRefs.current[index];
       if (!mesh) return;
-      const progress = ((time * pulse.speed) + pulse.offset) % 1;
+      const progress = ((time * pulse.speed * timeline.heroNeuralPulseMultiplier) + pulse.offset) % 1;
       const tail = Math.max(progress - pulse.length, 0);
       const headPoint = curve.getPointAt(progress);
       const tailPoint = curve.getPointAt(tail);
@@ -1389,11 +1599,14 @@ function OrbitalNetwork({ reduceMotion }) {
 
   useFrame(({ clock }, delta) => {
     const time = clock.getElapsedTime();
+    const timeline = getHeroTimelineState(time);
+    const cycleTime = timeline.cycleTime;
     nodes.forEach((node, index) => {
       const orbitGroup = orbitRefs.current[index];
       const visualGroup = visualRefs.current[index];
       if (!orbitGroup || !visualGroup) return;
-      const angle = node.baseAngle + node.direction * node.orbitSpeed * time * Math.PI * 2;
+      const orbitSpeed = node.orbitSpeed * timeline.nodeOrbitSpeedMultiplier;
+      const angle = node.baseAngle + node.direction * orbitSpeed * cycleTime * TWO_PI;
       const basePosition = new Vector3(Math.cos(angle) * node.orbitRadius, 0, Math.sin(angle) * node.orbitRadius);
       basePosition.applyQuaternion(node.tiltQuaternion);
       basePosition.add(HERO_ORB_CENTER);
@@ -1425,29 +1638,42 @@ function OrbitalNetwork({ reduceMotion }) {
 
       const scalePulse = reduceMotion
         ? 1
-        : MathUtils.lerp(0.95, 1.05, (Math.sin(time * node.scalePulseRate + node.scalePulseOffset) + 1) * 0.5);
-      visualGroup.scale.setScalar(node.baseScale * scalePulse);
-      visualGroup.rotateOnAxis(node.selfRotationAxis, node.selfRotationSpeed * delta);
+        : MathUtils.lerp(
+            0.95,
+            1.05,
+            (Math.sin(cycleTime * node.scalePulseRate * TWO_PI + node.scalePulseOffset) + 1) * 0.5,
+          );
+      const timelineScale = 1 + (timeline.heroNeuralPulseMultiplier - 1) * 0.35;
+      visualGroup.scale.setScalar(node.baseScale * scalePulse * timelineScale);
+      visualGroup.rotateOnAxis(
+        node.selfRotationAxis,
+        node.selfRotationSpeed * delta * timeline.nodeSelfRotationMultiplier,
+      );
 
       const material = materialRefs.current[index];
       if (node.type === "A" && material) {
-        const cycle = ((time / 8 + node.colorCycleOffset) % TYPE_A_TINT_COLORS.length + TYPE_A_TINT_COLORS.length) %
+        const cycle = ((cycleTime / 8 + node.colorCycleOffset) % TYPE_A_TINT_COLORS.length + TYPE_A_TINT_COLORS.length) %
           TYPE_A_TINT_COLORS.length;
         const baseIndex = Math.floor(cycle);
         const nextIndex = (baseIndex + 1) % TYPE_A_TINT_COLORS.length;
         const localT = cycle - baseIndex;
         const emissive = TYPE_A_TINT_COLORS[baseIndex].clone().lerp(TYPE_A_TINT_COLORS[nextIndex], localT);
         material.emissive.copy(emissive);
-        material.emissiveIntensity = 0.6;
+        material.emissiveIntensity = 0.6 * timeline.heroEmissiveMultiplier;
       }
 
       if (node.type === "B" && edgeRefs.current[index]) {
         const edgeMaterial = edgeRefs.current[index].material;
-        edgeMaterial.opacity = reduceMotion ? 0.9 : 0.8 + Math.sin(time * 1.2 + node.scalePulseOffset) * 0.2;
+        edgeMaterial.opacity = reduceMotion
+          ? 0.9
+          : 0.8 + Math.sin(BASE_CYCLE_FREQUENCY * cycleTime * 4 + node.scalePulseOffset) * 0.2 * timeline.heroNeuralPulseMultiplier;
       }
 
       if (node.type === "C" && coreRefs.current[index]) {
-        const intensity = reduceMotion ? 5.0 : 5 + Math.sin(time * 1.6 + node.scalePulseOffset) * 1.2;
+        const intensity = reduceMotion
+          ? 5.0
+          : (5 + Math.sin(BASE_CYCLE_FREQUENCY * cycleTime * 5 + node.scalePulseOffset) * 1.2) *
+            timeline.heroEmissiveMultiplier;
         coreRefs.current[index].material.emissiveIntensity = intensity;
       }
     });
@@ -1665,7 +1891,9 @@ function GodRays({ reduceMotion }) {
   useFrame(({ clock }) => {
     if (!instancedRef.current) return;
     const time = clock.getElapsedTime();
-    const rotationOffset = reduceMotion ? 0 : time * Math.PI * 2 * 0.01;
+    const timeline = getHeroTimelineState(time);
+    const cycleTime = timeline.cycleTime;
+    const rotationOffset = reduceMotion ? 0 : timeline.normalizedTime * TWO_PI * 0.5;
     rays.forEach((ray, index) => {
       const groupRotation = ray.angle + rotationOffset;
       dummy.position.set(Math.cos(groupRotation) * 0.2, 0.2, Math.sin(groupRotation) * 0.2);
@@ -1675,6 +1903,9 @@ function GodRays({ reduceMotion }) {
       instancedRef.current.setMatrixAt(index, dummy.matrix);
     });
     instancedRef.current.instanceMatrix.needsUpdate = true;
+    if (instancedRef.current.material) {
+      instancedRef.current.material.opacity = (reduceMotion ? 0.16 : 0.16 * timeline.godRayOpacityMultiplier);
+    }
   });
 
   return (
@@ -1703,41 +1934,47 @@ function HeroOrb({ reduceMotion }) {
   const shellSpecks = useMemo(() => createShellSpecks(), []);
   const { normalTexture, roughnessTexture } = useProceduralShellMaps();
 
-  useFrame(({ clock }, delta) => {
+  useFrame(({ clock }) => {
     if (!groupRef.current) return;
     const time = clock.getElapsedTime();
-    const rotationSpeed = (Math.PI * 2) / 20; // 0.05 rotations per second
-    const bob = reduceMotion ? 0 : Math.sin((time / 4.2) * Math.PI * 2) * 0.08;
-    const wobbleX = reduceMotion ? 0 : Math.sin((time / 7) * Math.PI * 2) * 0.05;
-    const wobbleZ = reduceMotion ? 0 : Math.sin((time / 7) * Math.PI * 2 + Math.PI / 2) * 0.05;
+    const timeline = getHeroTimelineState(time);
+    const cycleTime = timeline.cycleTime;
+    const normalized = timeline.normalizedTime;
+    const bob = reduceMotion ? 0 : Math.sin(BASE_CYCLE_FREQUENCY * cycleTime * 3) * 0.08;
+    const wobbleX = reduceMotion ? 0 : Math.sin(BASE_CYCLE_FREQUENCY * cycleTime * 5) * 0.05;
+    const wobbleZ = reduceMotion ? 0 : Math.sin(BASE_CYCLE_FREQUENCY * cycleTime * 5 + Math.PI / 2) * 0.05;
     const pulse = reduceMotion
       ? 1
-      : 1 + ((Math.sin((time / 1.8) * Math.PI * 2) + 1) * 0.5) * 0.035;
+      : 1 + ((Math.sin(BASE_CYCLE_FREQUENCY * cycleTime * 7) + 1) * 0.5) * 0.035 * timeline.heroScalePulseMultiplier;
 
     groupRef.current.position.set(wobbleX, 0.2 + bob, wobbleZ);
-    groupRef.current.rotation.y += rotationSpeed * delta;
+    groupRef.current.rotation.y = normalized * TWO_PI;
     groupRef.current.scale.setScalar(pulse);
 
     if (shellRef.current) {
-      const emissivePhase = (Math.sin(time * Math.PI * 2 / 1.8) + 1) * 0.5;
-      const emissiveIntensity = reduceMotion ? 0.425 : 0.3 + emissivePhase * 0.25;
+      const emissivePhase = (Math.sin(BASE_CYCLE_FREQUENCY * cycleTime * 7) + 1) * 0.5;
+      const emissiveIntensity = reduceMotion
+        ? 0.425
+        : (0.3 + emissivePhase * 0.25) * timeline.heroEmissiveMultiplier;
       shellRef.current.emissiveIntensity = emissiveIntensity;
       shellRef.current.opacity = 0.25;
     }
     if (plasmaRef.current) {
-      plasmaRef.current.uTime = time;
+      plasmaRef.current.uTime = cycleTime;
     }
     if (speckRef.current) {
       shellSpecks.forEach((speck, index) => {
-        const phase = reduceMotion ? speck.twinklePhase : speck.twinklePhase + time * speck.twinkleSpeed;
+        const phase = reduceMotion
+          ? speck.twinklePhase
+          : speck.twinklePhase + cycleTime * speck.twinkleSpeed * BASE_CYCLE_FREQUENCY;
         const twinkle = MathUtils.lerp(speck.minIntensity, speck.maxIntensity, (Math.sin(phase) + 1) * 0.5);
         speckDummy.position.copy(speck.position);
         speckDummy.lookAt(HERO_ORB_CENTER);
-        const scale = speck.scale * (0.9 + twinkle * 0.4);
+        const scale = speck.scale * (0.9 + twinkle * 0.4) * timeline.heroScalePulseMultiplier;
         speckDummy.scale.setScalar(scale);
         speckDummy.updateMatrix();
         speckRef.current.setMatrixAt(index, speckDummy.matrix);
-        speckColor.copy(speck.baseColor).multiplyScalar(twinkle * 1.25);
+        speckColor.copy(speck.baseColor).multiplyScalar(twinkle * 1.25 * timeline.heroEmissiveMultiplier);
         speckRef.current.setColorAt(index, speckColor);
       });
       speckRef.current.instanceMatrix.needsUpdate = true;
@@ -1865,6 +2102,8 @@ function EnergyStreams({ streams, reduceMotion, nodePositions }) {
 
   useFrame(({ clock }) => {
     const time = clock.getElapsedTime();
+    const timeline = getHeroTimelineState(time);
+    const cycleTime = timeline.cycleTime;
     streams.forEach((stream, index) => {
       const coreMesh = coreRefs.current[index];
       const glowMesh = glowRefs.current[index];
@@ -1897,8 +2136,8 @@ function EnergyStreams({ streams, reduceMotion, nodePositions }) {
 
       const wobbleValue = reduceMotion
         ? 0
-        : stream.wobbleAmplitude * Math.sin(time * stream.wobbleFrequency + stream.gradientOffset * Math.PI * 2);
-      const twistAngle = reduceMotion ? 0 : time * 0.35 + stream.gradientOffset * Math.PI * 2;
+        : stream.wobbleAmplitude * Math.sin(cycleTime * stream.wobbleFrequency + stream.gradientOffset * Math.PI * 2);
+      const twistAngle = reduceMotion ? 0 : cycleTime * 0.35 + stream.gradientOffset * Math.PI * 2;
       const twistQuaternion = new Quaternion().setFromAxisAngle(directionNormal, twistAngle);
 
       const controlA = startPosition
@@ -1941,14 +2180,18 @@ function EnergyStreams({ streams, reduceMotion, nodePositions }) {
       }
 
       if (coreMaterial) {
+        const pulseFrequency = stream.pulseFrequency * timeline.energyPulseFrequencyMultiplier;
         const intensity =
-          stream.pulseBase +
-          (reduceMotion ? 0 : stream.pulseAmplitude * Math.sin(time * stream.pulseFrequency + stream.gradientOffset * Math.PI * 2));
-        coreMaterial.uniforms.uTime.value = time;
+          (stream.pulseBase * timeline.energyPulseIntensityMultiplier) +
+          (reduceMotion
+            ? 0
+            : stream.pulseAmplitude * timeline.energyPulseAmplitudeMultiplier *
+              Math.sin(cycleTime * pulseFrequency + stream.gradientOffset * Math.PI * 2));
+        coreMaterial.uniforms.uTime.value = cycleTime;
         coreMaterial.uniforms.uFlowDirection.value = stream.flowDirection;
         coreMaterial.uniforms.uGradientShift.value = reduceMotion
           ? stream.gradientOffset
-          : stream.gradientOffset + time * stream.gradientSpeed * stream.flowDirection;
+          : stream.gradientOffset + cycleTime * stream.gradientSpeed * stream.flowDirection;
         coreMaterial.uniforms.uIntensity.value = intensity;
         coreMaterial.uniforms.uOpacity.value = reduceMotion ? 0.8 : 0.9;
       }
@@ -1957,8 +2200,8 @@ function EnergyStreams({ streams, reduceMotion, nodePositions }) {
         glowMaterial.uniforms.uFlowDirection.value = stream.flowDirection;
         glowMaterial.uniforms.uGradientShift.value = reduceMotion
           ? stream.gradientOffset
-          : stream.gradientOffset + time * stream.gradientSpeed * 0.65 * stream.flowDirection;
-        glowMaterial.uniforms.uOpacity.value = reduceMotion ? 0.16 : 0.25;
+          : stream.gradientOffset + cycleTime * stream.gradientSpeed * 0.65 * stream.flowDirection;
+        glowMaterial.uniforms.uOpacity.value = reduceMotion ? 0.16 : 0.25 * timeline.energyPulseAmplitudeMultiplier;
       }
 
       const pathLength = Math.max(curve.getLength(), 0.0001);
@@ -1968,7 +2211,9 @@ function EnergyStreams({ streams, reduceMotion, nodePositions }) {
       particles.forEach((particle, particleIndex) => {
         if (!particle) return;
         const offset = stream.particleOffsets[particleIndex] ?? 0;
-        const travel = reduceMotion ? offset : offset + (time * stream.particleSpeed) / pathLength;
+        const travel = reduceMotion
+          ? offset
+          : offset + ((time * stream.particleSpeed * timeline.energyParticleSpeedMultiplier) / pathLength);
         let t = ((travel % 1) + 1) % 1;
         if (directionSign < 0) {
           t = 1 - t;
