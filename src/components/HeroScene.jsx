@@ -1987,10 +1987,12 @@ function OrbitalNetwork({ reduceMotion, quality }) {
           position={[0, 0, 0]}
         >
           <sphereGeometry args={[0.18, 24, 24]} />
-          <meshBasicMaterial
+          <meshStandardMaterial
             color={new Color(0xffffff)}
             emissive={new Color(0xffffff)}
             emissiveIntensity={5}
+            metalness={0}
+            roughness={1}
             toneMapped={false}
           />
         </mesh>
