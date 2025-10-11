@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { useTheme } from "../context/ThemeContext";
 import { MicroInteractionProvider } from "../context/MicroInteractionContext";
 import useInteractiveEffects from "../hooks/useInteractiveEffects";
@@ -170,11 +170,88 @@ export default function ExperienceLayer({ children, enableExperience = false }) 
   const { darkMode } = useTheme();
   const theme = useThemeTokens(darkMode);
   const { eligible, activated, pointerFine, reducedMotion } = useExperienceActivation(enableExperience);
+  const containerRef = useRef(null);
+  const timelineRef = useRef(null);
+  const gsapRef = useRef(null);
 
   useInteractiveEffects(activated);
   useInteractiveEffects();
   useScrollChoreography();
   useKineticTypography();
+
+  useEffect(() => {
+    let isMounted = true;
+    let ctx;
+    let ScrollTriggerModule;
+
+    const setup = async () => {
+      if (!containerRef.current) return;
+      try {
+        const { gsap, ScrollTrigger } = await import("../lib/gsapConfig");
+        if (!isMounted || !containerRef.current) {
+          return;
+        }
+
+        gsapRef.current = gsap;
+        ScrollTriggerModule = ScrollTrigger;
+
+        ctx = gsap.context(() => {
+          const base = containerRef.current;
+          const elements = gsap.utils.toArray(base.querySelectorAll("[data-experience-animate]"));
+
+          if (!elements.length) {
+            return;
+          }
+
+          timelineRef.current = gsap.timeline({
+            defaults: { ease: "power3.out" },
+            scrollTrigger: {
+              trigger: base,
+              start: "top center",
+              end: "bottom center",
+              scrub: 1,
+              once: false,
+            },
+          });
+
+          elements.forEach((element, index) => {
+            timelineRef.current?.fromTo(
+              element,
+              { autoAlpha: 0, y: 42 },
+              { autoAlpha: 1, y: 0, duration: 0.9, delay: index * 0.08 },
+              0,
+            );
+          });
+        }, containerRef);
+      } catch (error) {
+        if (import.meta.env.DEV) {
+          console.warn("Failed to initialize experience timeline", error);
+        }
+      }
+    };
+
+    setup();
+
+    return () => {
+      isMounted = false;
+
+      if (timelineRef.current) {
+        timelineRef.current.kill();
+        timelineRef.current = null;
+      }
+
+      ctx?.revert();
+
+      if (ScrollTriggerModule) {
+        ScrollTriggerModule.getAll().forEach((instance) => instance.kill());
+      }
+
+      if (gsapRef.current && containerRef.current) {
+        const targets = containerRef.current.querySelectorAll("[data-experience-animate]");
+        gsapRef.current.killTweensOf(targets);
+      }
+    };
+  }, []);
 
   return (
     <MicroInteractionProvider enabled={eligible}>
@@ -184,9 +261,11 @@ export default function ExperienceLayer({ children, enableExperience = false }) 
         pointerFine={pointerFine}
         reducedMotion={reducedMotion}
       />
-      <div className="experience-shell" data-theme-key={theme.themeKey}>
-        <div className="experience-backdrop" aria-hidden="true" />
-        <div className="experience-content">{children}</div>
+      <div ref={containerRef} className="experience-shell" data-theme-key={theme.themeKey}>
+        <div className="experience-backdrop" aria-hidden="true" data-experience-animate />
+        <div className="experience-content" data-experience-animate>
+          {children}
+        </div>
       </div>
     </MicroInteractionProvider>
   );

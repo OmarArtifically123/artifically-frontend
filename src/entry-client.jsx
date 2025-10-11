@@ -118,6 +118,18 @@ if (typeof window !== "undefined") {
   initPerformanceBudgetWatchers();
 }
 
+if (import.meta.env.DEV) {
+  import("./utils/memoryMonitor")
+    .then(({ setupMemoryMonitoring }) => {
+      setupMemoryMonitoring();
+    })
+    .catch((error) => {
+      if (import.meta.env.DEV) {
+        console.warn("Failed to start memory monitor", error);
+      }
+    });
+}
+
 const rootElement = document.getElementById("root");
 
 if (!rootElement) {
