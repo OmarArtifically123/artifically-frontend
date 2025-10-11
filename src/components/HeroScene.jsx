@@ -59,6 +59,8 @@ const HERO_TIMELINE_PHASES = [
 const TWO_PI = Math.PI * 2;
 const BASE_CYCLE_FREQUENCY = TWO_PI / HERO_TIMELINE_DURATION;
 
+const HERO_BASE_FOG_DENSITY = 0.024;
+
 const SHADOW_FLOOR = new Vector3(5 / 255, 8 / 255, 12 / 255);
 const HERO_FOCUS_POINT = HERO_ORB_CENTER.clone();
 
@@ -90,8 +92,8 @@ const HERO_QUALITY_PRESETS = {
     enableFilmGrain: true,
     filmGrainStrength: 0.07,
     gridScanStrength: 1,
-    fogBaseDensity: 0.075,
-    fogPulseMultiplier: 0.35,
+    fogBaseDensity: 0.024,
+    fogPulseMultiplier: 0.18,
     cameraDrift: 1,
     godRayOpacity: 0.16,
   },
@@ -122,8 +124,8 @@ const HERO_QUALITY_PRESETS = {
     enableFilmGrain: true,
     filmGrainStrength: 0.06,
     gridScanStrength: 0.85,
-    fogBaseDensity: 0.07,
-    fogPulseMultiplier: 0.28,
+    fogBaseDensity: 0.022,
+    fogPulseMultiplier: 0.16,
     cameraDrift: 0.85,
     godRayOpacity: 0.14,
   },
@@ -154,8 +156,8 @@ const HERO_QUALITY_PRESETS = {
     enableFilmGrain: true,
     filmGrainStrength: 0.045,
     gridScanStrength: 0.65,
-    fogBaseDensity: 0.062,
-    fogPulseMultiplier: 0.22,
+    fogBaseDensity: 0.02,
+    fogPulseMultiplier: 0.14,
     cameraDrift: 0.65,
     godRayOpacity: 0.12,
   },
@@ -1490,7 +1492,7 @@ function AtmosphericFog({ reduceMotion, quality }) {
       return;
     }
     materialRef.current.uTime = 0;
-    const baseDensity = quality.fogBaseDensity ?? 0.08;
+    const baseDensity = quality.fogBaseDensity ?? HERO_BASE_FOG_DENSITY;
     materialRef.current.uDensity = reduceMotion ? Math.min(baseDensity, 0.06) : baseDensity;
     materialRef.current.uHeightFalloff = 0.45;
   }, [quality.fogBaseDensity, reduceMotion]);
@@ -1502,8 +1504,8 @@ function AtmosphericFog({ reduceMotion, quality }) {
     const timeline = getHeroTimelineState(clock.getElapsedTime());
     materialRef.current.uTime = reduceMotion ? 0 : timeline.cycleTime;
     if (!reduceMotion) {
-      const baseDensity = quality.fogBaseDensity ?? 0.08;
-      const pulseStrength = quality.fogPulseMultiplier ?? 0.3;
+      const baseDensity = quality.fogBaseDensity ?? HERO_BASE_FOG_DENSITY;
+      const pulseStrength = quality.fogPulseMultiplier ?? 0.18;
       materialRef.current.uDensity = baseDensity * (1 + (timeline.backgroundDriftMultiplier - 1) * pulseStrength);
     }
   }, [quality.fogBaseDensity, quality.fogPulseMultiplier, reduceMotion]);
@@ -2616,7 +2618,7 @@ function SceneComposer({ reduceMotion, quality }) {
     const previousFog = scene.fog ?? null;
     environmentSnapshot.current = { background: previousBackground, fog: previousFog };
     scene.background = backgroundColor.clone();
-    const fogInstance = new FogExp2(fogColor.clone(), quality.fogBaseDensity ?? 0.08);
+    const fogInstance = new FogExp2(fogColor.clone(), quality.fogBaseDensity ?? HERO_BASE_FOG_DENSITY);
     fogRef.current = fogInstance;
     scene.fog = fogInstance;
     return () => {
@@ -2671,8 +2673,8 @@ function SceneComposer({ reduceMotion, quality }) {
     const time = clock.getElapsedTime();
     const timeline = getHeroTimelineState(time);
     if (fogRef.current) {
-      const baseDensity = (quality.fogBaseDensity ?? 0.08) *
-        (reduceMotion ? 1 : 1 + (timeline.backgroundDriftMultiplier - 1) * (quality.fogPulseMultiplier ?? 0.3));
+      const baseDensity = (quality.fogBaseDensity ?? HERO_BASE_FOG_DENSITY) *
+        (reduceMotion ? 1 : 1 + (timeline.backgroundDriftMultiplier - 1) * (quality.fogPulseMultiplier ?? 0.18));
       fogRef.current.density = MathUtils.lerp(fogRef.current.density, baseDensity, 0.1);
       fogRef.current.color.copy(fogColor);
     }
@@ -2871,7 +2873,7 @@ export default function HeroScene({ width = 1280, height = 720 }) {
         gl.shadowMap.type = PCFSoftShadowMap;
         gl.setClearColor(new Color(0x0f172a), 1);
         scene.background = new Color(0x0f172a);
-        scene.fog = new FogExp2(0x142337, 0.08);
+        scene.fog = new FogExp2(0x142337, HERO_BASE_FOG_DENSITY);
       }}
     >
       <Suspense fallback={null}>
