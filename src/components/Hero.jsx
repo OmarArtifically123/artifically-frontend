@@ -3,6 +3,7 @@ import { Link } from "react-router-dom";
 import ThemeToggle from "./ThemeToggle";
 import MagneticButton from "./animation/MagneticButton";
 import { StaggeredContainer, StaggeredItem } from "./animation/StaggeredList";
+import heroFallbackMedia from "../assets/hero-fallback.svg?url";
 import useMicroInteractions from "../hooks/useMicroInteractions";
 import useScrambleText from "../hooks/useScrambleText";
 let heroSceneModulePromise;
@@ -24,16 +25,6 @@ const heroMediaFrameStyle = {
   maxWidth: "1280px",
   aspectRatio: "16 / 9",
   margin: "0 auto",
-};
-
-const heroCanvasFallbackStyle = {
-  width: "100%",
-  height: "100%",
-  display: "block",
-  borderRadius: "inherit",
-  background:
-    "radial-gradient(circle at 30% 35%, rgba(59, 130, 246, 0.28), transparent 55%), radial-gradient(circle at 70% 65%, rgba(147, 51, 234, 0.24), transparent 58%)",
-  opacity: 0.85,
 };
 
 const heroPulseBaseStyle = {
@@ -175,7 +166,26 @@ function scheduleSceneLoad(callback) {
 }
 
 function HeroMediaFallback() {
-  return <div style={heroCanvasFallbackStyle} aria-hidden="true" />;
+  return (
+    <picture>
+      <img
+        src={heroFallbackMedia}
+        alt=""
+        role="presentation"
+        loading="lazy"
+        decoding="async"
+        draggable="false"
+        style={{
+          width: "100%",
+          height: "100%",
+          objectFit: "cover",
+          display: "block",
+          borderRadius: "inherit",
+          backgroundColor: "#0f172a",
+        }}
+      />
+    </picture>
+  );
 }
 
 function useKineticHeadline(containerRef, prefersReducedMotion) {

@@ -28,6 +28,7 @@ import { Line, shaderMaterial } from "@react-three/drei";
 import { EffectComposer, Bloom, DepthOfField } from "@react-three/postprocessing";
 import { BlendFunction, Effect, EffectAttribute } from "postprocessing";
 import Stats from "three/examples/jsm/libs/stats.module.js";
+import heroFallbackMedia from "../assets/hero-fallback.svg?url";
 
 const HERO_ASPECT = 16 / 9;
 const HERO_FOV = 45;
@@ -60,6 +61,105 @@ const BASE_CYCLE_FREQUENCY = TWO_PI / HERO_TIMELINE_DURATION;
 
 const SHADOW_FLOOR = new Vector3(5 / 255, 8 / 255, 12 / 255);
 const HERO_FOCUS_POINT = HERO_ORB_CENTER.clone();
+
+const HERO_QUALITY_PRESETS = {
+  high: {
+    level: "high",
+    neuralNodeCount: 110,
+    neuralConnectionsPerNode: 3,
+    circuitPathCount: 14,
+    circuitPulsesPerPath: 7,
+    orbitalNodeDensity: 1,
+    energyStreamDensity: 1,
+    backgroundParticleCount: 96,
+    backgroundDriftScale: 1,
+    foregroundParticleCount: 28,
+    godRayCount: 14,
+    bloomIntensity: 0.78,
+    bloomRadius: 0.35,
+    bloomThreshold: 1.0,
+    enableDepthOfField: true,
+    depthOfFieldBokehScale: 0.9,
+    enableLensDirt: true,
+    lensDirtStrength: 1,
+    enableChromaticAberration: true,
+    chromaticAberrationOffset: 0.002,
+    enableMotionBlur: true,
+    motionBlurIntensity: 0.46,
+    motionBlurSamples: MOTION_BLUR_SAMPLES,
+    enableFilmGrain: true,
+    filmGrainStrength: 0.07,
+    gridScanStrength: 1,
+    fogBaseDensity: 0.075,
+    fogPulseMultiplier: 0.35,
+    cameraDrift: 1,
+    godRayOpacity: 0.16,
+  },
+  medium: {
+    level: "medium",
+    neuralNodeCount: 85,
+    neuralConnectionsPerNode: 3,
+    circuitPathCount: 10,
+    circuitPulsesPerPath: 6,
+    orbitalNodeDensity: 0.78,
+    energyStreamDensity: 0.82,
+    backgroundParticleCount: 72,
+    backgroundDriftScale: 0.85,
+    foregroundParticleCount: 20,
+    godRayCount: 10,
+    bloomIntensity: 0.7,
+    bloomRadius: 0.32,
+    bloomThreshold: 1.05,
+    enableDepthOfField: true,
+    depthOfFieldBokehScale: 0.78,
+    enableLensDirt: true,
+    lensDirtStrength: 0.7,
+    enableChromaticAberration: true,
+    chromaticAberrationOffset: 0.0016,
+    enableMotionBlur: true,
+    motionBlurIntensity: 0.4,
+    motionBlurSamples: Math.max(4, MOTION_BLUR_SAMPLES - 2),
+    enableFilmGrain: true,
+    filmGrainStrength: 0.06,
+    gridScanStrength: 0.85,
+    fogBaseDensity: 0.07,
+    fogPulseMultiplier: 0.28,
+    cameraDrift: 0.85,
+    godRayOpacity: 0.14,
+  },
+  low: {
+    level: "low",
+    neuralNodeCount: 60,
+    neuralConnectionsPerNode: 2,
+    circuitPathCount: 7,
+    circuitPulsesPerPath: 5,
+    orbitalNodeDensity: 0.58,
+    energyStreamDensity: 0.65,
+    backgroundParticleCount: 48,
+    backgroundDriftScale: 0.68,
+    foregroundParticleCount: 14,
+    godRayCount: 7,
+    bloomIntensity: 0.62,
+    bloomRadius: 0.28,
+    bloomThreshold: 1.1,
+    enableDepthOfField: false,
+    depthOfFieldBokehScale: 0.65,
+    enableLensDirt: false,
+    lensDirtStrength: 0.4,
+    enableChromaticAberration: false,
+    chromaticAberrationOffset: 0,
+    enableMotionBlur: false,
+    motionBlurIntensity: 0.32,
+    motionBlurSamples: Math.max(4, MOTION_BLUR_SAMPLES - 4),
+    enableFilmGrain: true,
+    filmGrainStrength: 0.045,
+    gridScanStrength: 0.65,
+    fogBaseDensity: 0.062,
+    fogPulseMultiplier: 0.22,
+    cameraDrift: 0.65,
+    godRayOpacity: 0.12,
+  },
+};
 
 const ORBITAL_RING_CONFIG = [
   {
@@ -102,6 +202,67 @@ const ENERGY_GRADIENT = {
   middle: new Color(0x22d3ee),
   end: new Color(0xa855f7),
 };
+
+function determineQualityLevel() {
+  if (typeof window === "undefined") {
+    return "high";
+  }
+  const nav = typeof navigator !== "undefined" ? navigator : undefined;
+  const userAgent = nav?.userAgent?.toLowerCase?.() ?? "";
+  const touchPoints = nav?.maxTouchPoints ?? 0;
+  const isTouchDevice = "ontouchstart" in window || touchPoints > 1 || userAgent.includes("mobile");
+  const prefersLowPower = (nav?.hardwareConcurrency ?? 8) <= 4;
+  const limitedMemory = (nav?.deviceMemory ?? 8) <= 4;
+  if (isTouchDevice || prefersLowPower || limitedMemory) {
+    return "low";
+  }
+  if ((nav?.hardwareConcurrency ?? 8) <= 6) {
+    return "medium";
+  }
+  if (window.matchMedia && window.matchMedia("(max-width: 1024px)").matches) {
+    return "medium";
+  }
+  return "high";
+}
+
+function useHeroQualitySettings(reduceMotion) {
+  const [qualityLevel, setQualityLevel] = useState(() => determineQualityLevel());
+
+  useEffect(() => {
+    if (typeof window === "undefined") {
+      return undefined;
+    }
+    const handleUpdate = () => {
+      setQualityLevel(determineQualityLevel());
+    };
+    window.addEventListener("resize", handleUpdate);
+    window.addEventListener("orientationchange", handleUpdate);
+    return () => {
+      window.removeEventListener("resize", handleUpdate);
+      window.removeEventListener("orientationchange", handleUpdate);
+    };
+  }, []);
+
+  return useMemo(() => {
+    const base = HERO_QUALITY_PRESETS[qualityLevel] ?? HERO_QUALITY_PRESETS.high;
+    if (reduceMotion) {
+      return {
+        ...HERO_QUALITY_PRESETS.low,
+        level: "low",
+        gridScanStrength: 0,
+        backgroundDriftScale: 0,
+        enableDepthOfField: false,
+        enableLensDirt: false,
+        enableChromaticAberration: false,
+        enableMotionBlur: false,
+        enableFilmGrain: false,
+        bloomIntensity: Math.min(base.bloomIntensity, 0.58),
+        fogBaseDensity: Math.min(base.fogBaseDensity, 0.06),
+      };
+    }
+    return { ...base };
+  }, [qualityLevel, reduceMotion]);
+}
 
 function createDeterministicRandom(seed = 2024) {
   let state = seed >>> 0;
@@ -965,9 +1126,9 @@ function createShellSpecks(count = HERO_SHELL_SPECK_COUNT) {
   });
 }
 
-function createNeuralNodes() {
+function createNeuralNodes(count = NEURAL_NODE_COUNT, connectionsPerNode = NEURAL_CONNECTIONS_PER_NODE) {
   const random = createDeterministicRandom(1181);
-  const nodes = Array.from({ length: NEURAL_NODE_COUNT }, () => {
+  const nodes = Array.from({ length: count }, () => {
     const radius = Math.pow(random(), 0.72) * 0.48;
     const theta = random() * Math.PI * 2;
     const phi = Math.acos(2 * random() - 1);
@@ -987,7 +1148,7 @@ function createNeuralNodes() {
       }))
       .filter(({ index: targetIndex }) => targetIndex !== index)
       .sort((a, b) => a.distance - b.distance)
-      .slice(0, NEURAL_CONNECTIONS_PER_NODE + 2);
+      .slice(0, connectionsPerNode + 2);
 
     distances.forEach(({ index: targetIndex }) => {
       if (index < targetIndex) {
@@ -999,9 +1160,9 @@ function createNeuralNodes() {
   return { nodes, connections };
 }
 
-function createCircuitPaths() {
+function createCircuitPaths(pathCount = CIRCUIT_PATH_COUNT, pulsesPerPath = CIRCUIT_PULSES_PER_PATH) {
   const random = createDeterministicRandom(3412);
-  return Array.from({ length: CIRCUIT_PATH_COUNT }, (_, index) => {
+  return Array.from({ length: pathCount }, (_, index) => {
     const dir = new Vector3(random() - 0.5, random() - 0.2, random() - 0.5).normalize();
     const bend = new Vector3(random() - 0.5, random() - 0.5, random() - 0.5).multiplyScalar(0.4);
     const start = dir.clone().multiplyScalar(0.12 + random() * 0.15);
@@ -1022,7 +1183,7 @@ function createCircuitPaths() {
       return color;
     });
 
-    const pulses = Array.from({ length: CIRCUIT_PULSES_PER_PATH }, () => ({
+    const pulses = Array.from({ length: pulsesPerPath }, () => ({
       offset: random(),
       speed: 1.1 + random() * 0.55,
       length: 0.18 + random() * 0.08,
@@ -1032,7 +1193,7 @@ function createCircuitPaths() {
   });
 }
 
-function createOrbitalNetwork() {
+function createOrbitalNetwork({ orbitalNodeDensity = 1, energyStreamDensity = 1 } = {}) {
   const random = createDeterministicRandom(7128);
   const nodes = [];
   const ringBuckets = new Map();
@@ -1040,9 +1201,18 @@ function createOrbitalNetwork() {
   ORBITAL_RING_CONFIG.forEach((ring, ringOrder) => {
     const tiltQuaternion = new Quaternion().setFromAxisAngle(ring.tiltAxis, MathUtils.degToRad(ring.tiltDeg));
     const typeCount = ring.typeSequence.length;
+    const density = MathUtils.clamp(orbitalNodeDensity, 0.2, 1);
+    const targetCount = Math.max(1, Math.round(typeCount * density));
+    const step = typeCount / targetCount;
+    const activeIndices = [];
+    for (let i = 0; i < targetCount; i += 1) {
+      activeIndices.push(Math.floor(i * step));
+    }
+    const uniqueActiveIndices = Array.from(new Set(activeIndices)).sort((a, b) => a - b);
+    const sequence = density >= 0.999 ? ring.typeSequence : uniqueActiveIndices.map((index) => ring.typeSequence[index % typeCount]);
     ringBuckets.set(ring.id, []);
-    ring.typeSequence.forEach((type, index) => {
-      const baseAngle = (index / typeCount) * Math.PI * 2 + random() * Math.PI * 0.08;
+    sequence.forEach((type, index) => {
+      const baseAngle = (index / sequence.length) * Math.PI * 2 + random() * Math.PI * 0.08;
       const baseScale =
         type === "A"
           ? MathUtils.lerp(0.28, 0.35, random())
@@ -1152,7 +1322,15 @@ function createOrbitalNetwork() {
     );
   });
 
-  return { nodes: nodes.map((node, index) => ({ ...node, index })), streams };
+  const heroStreams = streams.slice(0, heroConnectionTargets.length);
+  let connectionStreams = streams.slice(heroConnectionTargets.length);
+  if (energyStreamDensity < 0.999 && connectionStreams.length > 0) {
+    const density = MathUtils.clamp(energyStreamDensity, 0.25, 1);
+    const stride = Math.max(1, Math.round(1 / density));
+    connectionStreams = connectionStreams.filter((_, index) => index % stride === 0);
+  }
+
+  return { nodes: nodes.map((node, index) => ({ ...node, index })), streams: [...heroStreams, ...connectionStreams] };
 }
 
 function createEnergyStreamDescriptor(random, startIndex, endIndex, options = {}) {
@@ -1188,15 +1366,15 @@ function createEnergyStreamDescriptor(random, startIndex, endIndex, options = {}
   };
 }
 
-function createBackgroundParticles() {
+function createBackgroundParticles(count = BACKGROUND_PARTICLE_COUNT) {
   const random = createDeterministicRandom(9813);
-  const positions = new Float32Array(BACKGROUND_PARTICLE_COUNT * 3);
-  const verticalSpeeds = new Float32Array(BACKGROUND_PARTICLE_COUNT);
-  const swayAxes = Array.from({ length: BACKGROUND_PARTICLE_COUNT }, () =>
+  const positions = new Float32Array(count * 3);
+  const verticalSpeeds = new Float32Array(count);
+  const swayAxes = Array.from({ length: count }, () =>
     new Vector3(random() - 0.5, random() - 0.2, random() - 0.5).normalize(),
   );
-  const offsets = new Float32Array(BACKGROUND_PARTICLE_COUNT);
-  for (let i = 0; i < BACKGROUND_PARTICLE_COUNT; i += 1) {
+  const offsets = new Float32Array(count);
+  for (let i = 0; i < count; i += 1) {
     const index = i * 3;
     const radius = 4 + random() * 11;
     const angle = random() * Math.PI * 2;
@@ -1210,9 +1388,9 @@ function createBackgroundParticles() {
   return { positions, verticalSpeeds, swayAxes, offsets };
 }
 
-function createForegroundParticles() {
+function createForegroundParticles(count = FOREGROUND_PARTICLE_COUNT) {
   const random = createDeterministicRandom(5172);
-  return Array.from({ length: FOREGROUND_PARTICLE_COUNT }, (_, index) => {
+  return Array.from({ length: count }, (_, index) => {
     const radius = 2.4 + random() * 2.8;
     const angle = random() * Math.PI * 2;
     const height = -0.15 + random() * 0.3;
@@ -1239,15 +1417,16 @@ function useProceduralShellMaps() {
   }, []);
 }
 
-function CameraRig({ reduceMotion, targetAspect = HERO_ASPECT }) {
+function CameraRig({ reduceMotion, targetAspect = HERO_ASPECT, quality }) {
   const { camera, viewport } = useThree();
   const target = useMemo(() => new Vector3(0, 0.2, 0), []);
   useFrame(({ clock }) => {
     const elapsed = clock.getElapsedTime();
     const timeline = getHeroTimelineState(elapsed);
     const cycleTime = timeline.cycleTime;
-    const horizontalDrift = reduceMotion ? 0 : Math.sin(BASE_CYCLE_FREQUENCY * cycleTime) * 0.15;
-    const verticalBreath = reduceMotion ? 0 : Math.sin(BASE_CYCLE_FREQUENCY * cycleTime * 2) * 0.02;
+    const driftScale = quality?.cameraDrift ?? 1;
+    const horizontalDrift = reduceMotion ? 0 : Math.sin(BASE_CYCLE_FREQUENCY * cycleTime) * 0.15 * driftScale;
+    const verticalBreath = reduceMotion ? 0 : Math.sin(BASE_CYCLE_FREQUENCY * cycleTime * 2) * 0.02 * driftScale;
     const distance = HERO_CAMERA_DISTANCE;
     const elevationRad = MathUtils.degToRad(HERO_CAMERA_ELEVATION_DEG);
     const y = Math.sin(elevationRad) * distance + verticalBreath;
@@ -1303,7 +1482,7 @@ function SceneLighting() {
   );
 }
 
-function AtmosphericFog({ reduceMotion }) {
+function AtmosphericFog({ reduceMotion, quality }) {
   const materialRef = useRef();
 
   useEffect(() => {
@@ -1311,9 +1490,10 @@ function AtmosphericFog({ reduceMotion }) {
       return;
     }
     materialRef.current.uTime = 0;
-    materialRef.current.uDensity = reduceMotion ? 0.05 : 0.08;
+    const baseDensity = quality.fogBaseDensity ?? 0.08;
+    materialRef.current.uDensity = reduceMotion ? Math.min(baseDensity, 0.06) : baseDensity;
     materialRef.current.uHeightFalloff = 0.45;
-  }, [reduceMotion]);
+  }, [quality.fogBaseDensity, reduceMotion]);
 
   useFrame(({ clock }) => {
     if (!materialRef.current) {
@@ -1322,9 +1502,11 @@ function AtmosphericFog({ reduceMotion }) {
     const timeline = getHeroTimelineState(clock.getElapsedTime());
     materialRef.current.uTime = reduceMotion ? 0 : timeline.cycleTime;
     if (!reduceMotion) {
-      materialRef.current.uDensity = 0.08 * (1 + (timeline.backgroundDriftMultiplier - 1) * 0.35);
+      const baseDensity = quality.fogBaseDensity ?? 0.08;
+      const pulseStrength = quality.fogPulseMultiplier ?? 0.3;
+      materialRef.current.uDensity = baseDensity * (1 + (timeline.backgroundDriftMultiplier - 1) * pulseStrength);
     }
-  });
+  }, [quality.fogBaseDensity, quality.fogPulseMultiplier, reduceMotion]);
 
   return (
     <mesh position={[0, -1.5, -2]} scale={[34, 18, 42]}>
@@ -1340,16 +1522,21 @@ function AtmosphericFog({ reduceMotion }) {
   );
 }
 
-function BackgroundLayers({ reduceMotion }) {
+function BackgroundLayers({ reduceMotion, quality }) {
   const materialRef = useRef();
-  const { positions, verticalSpeeds, swayAxes, offsets } = useMemo(() => createBackgroundParticles(), []);
+  const { positions, verticalSpeeds, swayAxes, offsets } = useMemo(
+    () => createBackgroundParticles(quality.backgroundParticleCount ?? BACKGROUND_PARTICLE_COUNT),
+    [quality.backgroundParticleCount],
+  );
   const pointsRef = useRef();
+  const particleCount = positions.length / 3;
 
   useFrame(({ clock }, delta) => {
     const timeline = getHeroTimelineState(clock.getElapsedTime());
     if (materialRef.current) {
       materialRef.current.uTime = timeline.cycleTime;
-      materialRef.current.uScanStrength = reduceMotion ? 0 : timeline.gridScanStrength;
+      const scanStrength = (quality.gridScanStrength ?? 1) * timeline.gridScanStrength;
+      materialRef.current.uScanStrength = reduceMotion ? 0 : scanStrength;
       materialRef.current.uScanProgress = timeline.gridScanProgress;
     }
     if (reduceMotion || !pointsRef.current) {
@@ -1357,8 +1544,8 @@ function BackgroundLayers({ reduceMotion }) {
     }
     const array = pointsRef.current.geometry.attributes.position.array;
     const cycleTime = timeline.cycleTime;
-    const driftMultiplier = timeline.backgroundDriftMultiplier;
-    for (let i = 0; i < BACKGROUND_PARTICLE_COUNT; i += 1) {
+    const driftMultiplier = timeline.backgroundDriftMultiplier * (quality.backgroundDriftScale ?? 1);
+    for (let i = 0; i < particleCount; i += 1) {
       const index = i * 3;
       const sway = swayAxes[i];
       const offset = offsets[i];
@@ -1391,7 +1578,7 @@ function BackgroundLayers({ reduceMotion }) {
           color={new Color(0x9ca3af)}
           size={0.05}
           transparent
-          opacity={0.18}
+          opacity={reduceMotion ? 0.12 : 0.16 * (quality.gridScanStrength ?? 1)}
           depthWrite={false}
           sizeAttenuation
         />
@@ -1400,12 +1587,20 @@ function BackgroundLayers({ reduceMotion }) {
   );
 }
 
-function NeuralCore({ reduceMotion }) {
-  const { nodes, connections } = useMemo(() => createNeuralNodes(), []);
+function NeuralCore({ reduceMotion, quality }) {
+  const { nodes, connections } = useMemo(
+    () =>
+      createNeuralNodes(
+        quality.neuralNodeCount ?? NEURAL_NODE_COUNT,
+        quality.neuralConnectionsPerNode ?? NEURAL_CONNECTIONS_PER_NODE,
+      ),
+    [quality.neuralConnectionsPerNode, quality.neuralNodeCount],
+  );
   const instancedRef = useRef();
   const connectionRef = useRef();
   const dummy = useMemo(() => new Object3D(), []);
   const colorsRef = useRef(nodes.map(() => new Color(0x9333ea)));
+  const trailSampleCount = quality.motionBlurSamples ?? MOTION_BLUR_SAMPLES;
 
   const connectionPositions = useMemo(() => {
     const array = new Float32Array(connections.length * 6);
@@ -1475,7 +1670,7 @@ function NeuralCore({ reduceMotion }) {
         <bufferGeometry>
           <bufferAttribute attach="attributes-position" args={[connectionPositions, 3]} />
         </bufferGeometry>
-        <lineBasicMaterial color={new Color(0x60a5fa)} transparent opacity={0.28} linewidth={1} toneMapped={false} />
+        <lineBasicMaterial color={new Color(0x60a5fa)} transparent opacity={0.32} linewidth={1} toneMapped={false} />
       </lineSegments>
     </group>
   );
@@ -1538,8 +1733,15 @@ function CircuitPath({ curve, samples, colors, pulses, reduceMotion }) {
   );
 }
 
-function CircuitPaths({ reduceMotion }) {
-  const paths = useMemo(() => createCircuitPaths(), []);
+function CircuitPaths({ reduceMotion, quality }) {
+  const paths = useMemo(
+    () =>
+      createCircuitPaths(
+        quality.circuitPathCount ?? CIRCUIT_PATH_COUNT,
+        quality.circuitPulsesPerPath ?? CIRCUIT_PULSES_PER_PATH,
+      ),
+    [quality.circuitPathCount, quality.circuitPulsesPerPath],
+  );
   return (
     <group>
       {paths.map((path) => (
@@ -1549,8 +1751,15 @@ function CircuitPaths({ reduceMotion }) {
   );
 }
 
-function OrbitalNetwork({ reduceMotion }) {
-  const { nodes, streams } = useMemo(() => createOrbitalNetwork(), []);
+function OrbitalNetwork({ reduceMotion, quality }) {
+  const { nodes, streams } = useMemo(
+    () =>
+      createOrbitalNetwork({
+        orbitalNodeDensity: quality.orbitalNodeDensity ?? 1,
+        energyStreamDensity: quality.energyStreamDensity ?? 1,
+      }),
+    [quality.energyStreamDensity, quality.orbitalNodeDensity],
+  );
   const orbitRefs = useRef([]);
   const visualRefs = useRef([]);
   const materialRefs = useRef([]);
@@ -1558,10 +1767,9 @@ function OrbitalNetwork({ reduceMotion }) {
   const coreRefs = useRef([]);
   const nodePositions = useRef(nodes.map(() => new Vector3()));
   const nodeTrailRefs = useRef(nodes.map(() => null));
-  const nodeTrailBuffers = useRef(nodes.map(() => new Float32Array(MOTION_BLUR_SAMPLES * 3)));
-  const nodeHistories = useRef(
-    nodes.map(() => Array.from({ length: MOTION_BLUR_SAMPLES }, () => HERO_ORB_CENTER.clone())),
-  );
+  const trailSampleCount = quality.motionBlurSamples ?? MOTION_BLUR_SAMPLES;
+  const nodeTrailBuffers = useRef(nodes.map(() => new Float32Array(trailSampleCount * 3)));
+  const nodeHistories = useRef(nodes.map(() => Array.from({ length: trailSampleCount }, () => HERO_ORB_CENTER.clone())));
   const typeBGeometries = useMemo(
     () =>
       nodes.map((node) => {
@@ -1586,19 +1794,19 @@ function OrbitalNetwork({ reduceMotion }) {
     nodeTrailRefs.current = nodeTrailRefs.current.slice(0, nodes.length);
     nodeTrailBuffers.current = nodes.map((_, index) => {
       const existing = nodeTrailBuffers.current[index];
-      if (existing && existing.length === MOTION_BLUR_SAMPLES * 3) {
+      if (existing && existing.length === trailSampleCount * 3) {
         return existing;
       }
-      return new Float32Array(MOTION_BLUR_SAMPLES * 3);
+      return new Float32Array(trailSampleCount * 3);
     });
     nodeHistories.current = nodes.map((_, index) => {
       const existing = nodeHistories.current[index];
-      if (existing && existing.length === MOTION_BLUR_SAMPLES) {
+      if (existing && existing.length === trailSampleCount) {
         return existing;
       }
-      return Array.from({ length: MOTION_BLUR_SAMPLES }, () => HERO_ORB_CENTER.clone());
+      return Array.from({ length: trailSampleCount }, () => HERO_ORB_CENTER.clone());
     });
-  }, [nodes.length]);
+  }, [nodes.length, trailSampleCount]);
 
   useFrame(({ clock }, delta) => {
     const time = clock.getElapsedTime();
@@ -1662,14 +1870,14 @@ function OrbitalNetwork({ reduceMotion }) {
         const localT = cycle - baseIndex;
         const emissive = TYPE_A_TINT_COLORS[baseIndex].clone().lerp(TYPE_A_TINT_COLORS[nextIndex], localT);
         material.emissive.copy(emissive);
-        material.emissiveIntensity = 0.6 * timeline.heroEmissiveMultiplier;
+        material.emissiveIntensity = 0.68 * timeline.heroEmissiveMultiplier;
       }
 
       if (node.type === "B" && edgeRefs.current[index]) {
         const edgeMaterial = edgeRefs.current[index].material;
-        edgeMaterial.opacity = reduceMotion
-          ? 0.9
-          : 0.8 + Math.sin(BASE_CYCLE_FREQUENCY * cycleTime * 4 + node.scalePulseOffset) * 0.2 * timeline.heroNeuralPulseMultiplier;
+        const opacityBase = reduceMotion ? 0.88 : 0.82;
+        edgeMaterial.opacity =
+          opacityBase + Math.sin(BASE_CYCLE_FREQUENCY * cycleTime * 4 + node.scalePulseOffset) * 0.18 * timeline.heroNeuralPulseMultiplier;
       }
 
       if (node.type === "C" && coreRefs.current[index]) {
@@ -1811,19 +2019,27 @@ function OrbitalNetwork({ reduceMotion }) {
             points={nodeHistories.current[index] ?? []}
             color="#38bdf8"
             transparent
-            opacity={reduceMotion ? 0.12 : 0.32}
+            opacity={reduceMotion ? 0.1 : 0.28 * MathUtils.clamp(quality.energyStreamDensity ?? 1, 0.55, 1)}
             lineWidth={1.4}
             toneMapped={false}
           />
         </group>
       ))}
-      <EnergyStreams streams={streams} reduceMotion={reduceMotion} nodePositions={nodePositions} />
+      <EnergyStreams
+        streams={streams}
+        reduceMotion={reduceMotion}
+        nodePositions={nodePositions}
+        quality={quality}
+      />
     </group>
   );
 }
 
-function ForegroundBokeh({ reduceMotion }) {
-  const particles = useMemo(() => createForegroundParticles(), []);
+function ForegroundBokeh({ reduceMotion, quality }) {
+  const particles = useMemo(
+    () => createForegroundParticles(quality.foregroundParticleCount ?? FOREGROUND_PARTICLE_COUNT),
+    [quality.foregroundParticleCount],
+  );
   const instancedRef = useRef();
   const dummy = useMemo(() => new Object3D(), []);
 
@@ -1857,7 +2073,7 @@ function ForegroundBokeh({ reduceMotion }) {
       <planeGeometry args={[1, 1, 1, 1]} />
       <meshBasicMaterial
         transparent
-        opacity={0.45}
+        opacity={reduceMotion ? 0.3 : 0.4 * (quality.backgroundDriftScale ?? 1)}
         depthWrite={false}
         toneMapped={false}
         color={new Color(0xffffff)}
@@ -1867,19 +2083,21 @@ function ForegroundBokeh({ reduceMotion }) {
   );
 }
 
-function GodRays({ reduceMotion }) {
+function createGodRayDescriptors(count = GOD_RAY_COUNT) {
+  const random = createDeterministicRandom(6412);
+  return Array.from({ length: count }, (_, index) => ({
+    angle: (index / count) * Math.PI * 2,
+    length: 6 + random() * 2,
+    width: 0.28 + random() * 0.12,
+    offset: random() * Math.PI * 2,
+    tilt: MathUtils.degToRad(-6 + random() * 12),
+  }));
+}
+
+function GodRays({ reduceMotion, quality }) {
   const instancedRef = useRef();
   const dummy = useMemo(() => new Object3D(), []);
-  const rays = useMemo(() => {
-    const random = createDeterministicRandom(6412);
-    return Array.from({ length: GOD_RAY_COUNT }, (_, index) => ({
-      angle: (index / GOD_RAY_COUNT) * Math.PI * 2,
-      length: 6 + random() * 2,
-      width: 0.28 + random() * 0.12,
-      offset: random() * Math.PI * 2,
-      tilt: MathUtils.degToRad(-6 + random() * 12),
-    }));
-  }, []);
+  const rays = useMemo(() => createGodRayDescriptors(quality.godRayCount ?? GOD_RAY_COUNT), [quality.godRayCount]);
 
   useEffect(() => {
     if (!instancedRef.current) {
@@ -1907,7 +2125,10 @@ function GodRays({ reduceMotion }) {
     });
     instancedRef.current.instanceMatrix.needsUpdate = true;
     if (instancedRef.current.material) {
-      instancedRef.current.material.opacity = (reduceMotion ? 0.16 : 0.16 * timeline.godRayOpacityMultiplier);
+      const opacityBase = quality.godRayOpacity ?? 0.16;
+      instancedRef.current.material.opacity = reduceMotion
+        ? opacityBase
+        : opacityBase * timeline.godRayOpacityMultiplier;
     }
   });
 
@@ -1916,7 +2137,7 @@ function GodRays({ reduceMotion }) {
       <planeGeometry args={[1, 1]} />
       <meshBasicMaterial
         transparent
-        opacity={0.16}
+        opacity={quality.godRayOpacity ?? 0.16}
         depthWrite={false}
         toneMapped={false}
         color={new Color(0x38bdf8)}
@@ -1927,7 +2148,7 @@ function GodRays({ reduceMotion }) {
   );
 }
 
-function HeroOrb({ reduceMotion }) {
+function HeroOrb({ reduceMotion, quality }) {
   const groupRef = useRef();
   const shellRef = useRef();
   const plasmaRef = useRef();
@@ -1956,11 +2177,12 @@ function HeroOrb({ reduceMotion }) {
 
     if (shellRef.current) {
       const emissivePhase = (Math.sin(BASE_CYCLE_FREQUENCY * cycleTime * 7) + 1) * 0.5;
+      const emissiveScale = quality?.level === "low" ? 0.92 : quality?.level === "medium" ? 1 : 1.08;
       const emissiveIntensity = reduceMotion
         ? 0.425
-        : (0.3 + emissivePhase * 0.25) * timeline.heroEmissiveMultiplier;
+        : (0.3 + emissivePhase * 0.25) * timeline.heroEmissiveMultiplier * emissiveScale;
       shellRef.current.emissiveIntensity = emissiveIntensity;
-      shellRef.current.opacity = 0.25;
+      shellRef.current.opacity = 0.24 * emissiveScale;
     }
     if (plasmaRef.current) {
       plasmaRef.current.uTime = cycleTime;
@@ -2030,14 +2252,14 @@ function HeroOrb({ reduceMotion }) {
           blending={AdditiveBlending}
         />
       </instancedMesh>
-      <NeuralCore reduceMotion={reduceMotion} />
-      <CircuitPaths reduceMotion={reduceMotion} />
-      <GodRays reduceMotion={reduceMotion} />
+      <NeuralCore reduceMotion={reduceMotion} quality={quality} />
+      <CircuitPaths reduceMotion={reduceMotion} quality={quality} />
+      <GodRays reduceMotion={reduceMotion} quality={quality} />
     </group>
   );
 }
 
-function EnergyStreams({ streams, reduceMotion, nodePositions }) {
+function EnergyStreams({ streams, reduceMotion, nodePositions, quality }) {
   const streamCurves = useMemo(
     () => streams.map(() => new CubicBezierCurve3(new Vector3(), new Vector3(), new Vector3(), new Vector3())),
     [streams],
@@ -2048,12 +2270,13 @@ function EnergyStreams({ streams, reduceMotion, nodePositions }) {
   const glowMaterials = useRef([]);
   const particleRefs = useRef(streams.map((stream) => new Array(stream.particleOffsets.length).fill(null)));
   const particleTrailRefs = useRef(streams.map((stream) => new Array(stream.particleOffsets.length).fill(null)));
+  const motionTrailSamples = quality.motionBlurSamples ?? MOTION_BLUR_SAMPLES;
   const particleTrailBuffers = useRef(
-    streams.map((stream) => stream.particleOffsets.map(() => new Float32Array(MOTION_BLUR_SAMPLES * 3))),
+    streams.map((stream) => stream.particleOffsets.map(() => new Float32Array(motionTrailSamples * 3))),
   );
   const particleHistories = useRef(
     streams.map((stream) =>
-      stream.particleOffsets.map(() => Array.from({ length: MOTION_BLUR_SAMPLES }, () => new Vector3())),
+      stream.particleOffsets.map(() => Array.from({ length: motionTrailSamples }, () => new Vector3())),
     ),
   );
 
@@ -2085,28 +2308,29 @@ function EnergyStreams({ streams, reduceMotion, nodePositions }) {
       const existing = particleTrailBuffers.current[streamIndex] ?? [];
       return stream.particleOffsets.map((_, particleIndex) => {
         const buffer = existing[particleIndex];
-        if (buffer && buffer.length === MOTION_BLUR_SAMPLES * 3) {
+        if (buffer && buffer.length === motionTrailSamples * 3) {
           return buffer;
         }
-        return new Float32Array(MOTION_BLUR_SAMPLES * 3);
+        return new Float32Array(motionTrailSamples * 3);
       });
     });
     particleHistories.current = streams.map((stream, streamIndex) => {
       const existing = particleHistories.current?.[streamIndex] ?? [];
       return stream.particleOffsets.map((_, particleIndex) => {
         const history = existing[particleIndex];
-        if (history && history.length === MOTION_BLUR_SAMPLES) {
+        if (history && history.length === motionTrailSamples) {
           return history;
         }
-        return Array.from({ length: MOTION_BLUR_SAMPLES }, () => new Vector3());
+        return Array.from({ length: motionTrailSamples }, () => new Vector3());
       });
     });
-  }, [streams.length, streams]);
+  }, [motionTrailSamples, streams]);
 
   useFrame(({ clock }) => {
     const time = clock.getElapsedTime();
     const timeline = getHeroTimelineState(time);
     const cycleTime = timeline.cycleTime;
+    const energyMultiplier = MathUtils.clamp(quality.energyStreamDensity ?? 1, 0.55, 1.05);
     streams.forEach((stream, index) => {
       const coreMesh = coreRefs.current[index];
       const glowMesh = glowRefs.current[index];
@@ -2185,7 +2409,7 @@ function EnergyStreams({ streams, reduceMotion, nodePositions }) {
       if (coreMaterial) {
         const pulseFrequency = stream.pulseFrequency * timeline.energyPulseFrequencyMultiplier;
         const intensity =
-          (stream.pulseBase * timeline.energyPulseIntensityMultiplier) +
+          (stream.pulseBase * timeline.energyPulseIntensityMultiplier * energyMultiplier) +
           (reduceMotion
             ? 0
             : stream.pulseAmplitude * timeline.energyPulseAmplitudeMultiplier *
@@ -2196,7 +2420,7 @@ function EnergyStreams({ streams, reduceMotion, nodePositions }) {
           ? stream.gradientOffset
           : stream.gradientOffset + cycleTime * stream.gradientSpeed * stream.flowDirection;
         coreMaterial.uniforms.uIntensity.value = intensity;
-        coreMaterial.uniforms.uOpacity.value = reduceMotion ? 0.8 : 0.9;
+        coreMaterial.uniforms.uOpacity.value = reduceMotion ? 0.78 : 0.86 * energyMultiplier;
       }
 
       if (glowMaterial) {
@@ -2204,7 +2428,9 @@ function EnergyStreams({ streams, reduceMotion, nodePositions }) {
         glowMaterial.uniforms.uGradientShift.value = reduceMotion
           ? stream.gradientOffset
           : stream.gradientOffset + cycleTime * stream.gradientSpeed * 0.65 * stream.flowDirection;
-        glowMaterial.uniforms.uOpacity.value = reduceMotion ? 0.16 : 0.25 * timeline.energyPulseAmplitudeMultiplier;
+        glowMaterial.uniforms.uOpacity.value = reduceMotion
+          ? 0.14
+          : 0.22 * timeline.energyPulseAmplitudeMultiplier * energyMultiplier;
       }
 
       const pathLength = Math.max(curve.getLength(), 0.0001);
@@ -2229,7 +2455,7 @@ function EnergyStreams({ streams, reduceMotion, nodePositions }) {
           const alignment = new Quaternion().setFromUnitVectors(up, tangent);
           particle.quaternion.copy(alignment);
         }
-        const particleScale = stream.coreRadius * 1.8;
+        const particleScale = stream.coreRadius * 1.6 * energyMultiplier;
         particle.scale.set(particleScale * 0.75, particleScale, particleScale);
 
         const histories = particleHistories.current[index];
@@ -2302,7 +2528,7 @@ function EnergyStreams({ streams, reduceMotion, nodePositions }) {
           {stream.particleOffsets.map((_, particleIndex) => {
             const history =
               particleHistories.current[index]?.[particleIndex] ??
-              Array.from({ length: MOTION_BLUR_SAMPLES }, () => new Vector3());
+              Array.from({ length: motionTrailSamples }, () => new Vector3());
             return (
               <group key={`${stream.id}-particle-${particleIndex}`}>
                 <mesh
@@ -2327,7 +2553,7 @@ function EnergyStreams({ streams, reduceMotion, nodePositions }) {
                   points={history}
                   color="#66f7ff"
                   transparent
-                  opacity={reduceMotion ? 0.1 : 0.28}
+                  opacity={reduceMotion ? 0.08 : 0.24 * MathUtils.clamp(quality.energyStreamDensity ?? 1, 0.5, 1)}
                   lineWidth={1.1}
                   dashed={false}
                   toneMapped={false}
@@ -2341,7 +2567,7 @@ function EnergyStreams({ streams, reduceMotion, nodePositions }) {
   );
 }
 
-function SceneComposer({ reduceMotion }) {
+function SceneComposer({ reduceMotion, quality }) {
   const { camera, size, scene } = useThree();
   const backgroundColor = useMemo(() => new Color(0x0f172a), []);
   const fogColor = useMemo(() => new Color(0x142337), []);
@@ -2350,15 +2576,30 @@ function SceneComposer({ reduceMotion }) {
   const lensDirtTexture = useLensDirtTexture();
   const dofRef = useRef();
   const colorGradeEffect = useMemo(() => new ColorGradeEffect(), []);
-  const lensDirtEffect = useMemo(() => new LensDirtEffect(lensDirtTexture, 0.15, 1.0), [lensDirtTexture]);
-  const filmGrainEffect = useMemo(
-    () => new FilmGrainEffect(reduceMotion ? 0.05 : 0.08, 1.5, 1.45),
-    [reduceMotion],
+  const lensDirtEffect = useMemo(
+    () => new LensDirtEffect(lensDirtTexture, quality.lensDirtStrength ?? 0.15, 1.0),
+    [lensDirtTexture, quality.lensDirtStrength],
   );
-  const chromaticEffect = useMemo(() => new SplitChromaticAberrationEffect(0.4, 0.002, -0.002), []);
+  const filmGrainEffect = useMemo(
+    () => new FilmGrainEffect(quality.enableFilmGrain ? quality.filmGrainStrength : 0, 1.5, 1.45),
+    [quality.enableFilmGrain, quality.filmGrainStrength],
+  );
+  const chromaticEffect = useMemo(
+    () =>
+      new SplitChromaticAberrationEffect(
+        0.4,
+        quality.chromaticAberrationOffset ?? 0.002,
+        -(quality.chromaticAberrationOffset ?? 0.002),
+      ),
+    [quality.chromaticAberrationOffset],
+  );
   const motionBlurEffect = useMemo(
-    () => new HeroMotionBlurEffect(reduceMotion ? 0.35 : 0.5, reduceMotion ? 4 : MOTION_BLUR_SAMPLES),
-    [reduceMotion],
+    () =>
+      new HeroMotionBlurEffect(
+        quality.enableMotionBlur ? quality.motionBlurIntensity : 0,
+        quality.enableMotionBlur ? quality.motionBlurSamples ?? MOTION_BLUR_SAMPLES : 4,
+      ),
+    [quality.enableMotionBlur, quality.motionBlurIntensity, quality.motionBlurSamples],
   );
   const previousCameraPosition = useRef(new Vector3());
   const cameraVelocity = useRef(new Vector3());
@@ -2375,7 +2616,7 @@ function SceneComposer({ reduceMotion }) {
     const previousFog = scene.fog ?? null;
     environmentSnapshot.current = { background: previousBackground, fog: previousFog };
     scene.background = backgroundColor.clone();
-    const fogInstance = new FogExp2(fogColor.clone(), 0.08);
+    const fogInstance = new FogExp2(fogColor.clone(), quality.fogBaseDensity ?? 0.08);
     fogRef.current = fogInstance;
     scene.fog = fogInstance;
     return () => {
@@ -2386,7 +2627,7 @@ function SceneComposer({ reduceMotion }) {
       }
       scene.fog = environmentSnapshot.current.fog ?? null;
     };
-  }, [backgroundColor, fogColor, scene]);
+  }, [backgroundColor, fogColor, quality.fogBaseDensity, scene]);
 
   useEffect(() => {
     previousCameraPosition.current.copy(camera.position);
@@ -2409,32 +2650,37 @@ function SceneComposer({ reduceMotion }) {
   useEffect(() => {
     const intensityUniform = filmGrainEffect.uniforms.get("uIntensity");
     if (intensityUniform) {
-      intensityUniform.value = reduceMotion ? 0.05 : 0.08;
+      intensityUniform.value = quality.enableFilmGrain ? quality.filmGrainStrength : 0;
     }
-  }, [filmGrainEffect, reduceMotion]);
+  }, [filmGrainEffect, quality.enableFilmGrain, quality.filmGrainStrength]);
 
   useEffect(() => {
     const intensityUniform = motionBlurEffect.uniforms.get("uIntensity");
     if (intensityUniform) {
-      intensityUniform.value = reduceMotion ? 0.35 : 0.5;
+      intensityUniform.value = quality.enableMotionBlur ? quality.motionBlurIntensity : 0;
     }
     const samplesUniform = motionBlurEffect.uniforms.get("uSampleCount");
     if (samplesUniform) {
-      samplesUniform.value = reduceMotion ? 4 : MOTION_BLUR_SAMPLES;
+      samplesUniform.value = quality.enableMotionBlur
+        ? quality.motionBlurSamples ?? MOTION_BLUR_SAMPLES
+        : 4;
     }
-  }, [motionBlurEffect, reduceMotion]);
+  }, [motionBlurEffect, quality.enableMotionBlur, quality.motionBlurIntensity, quality.motionBlurSamples]);
 
   useFrame(({ clock }) => {
     const time = clock.getElapsedTime();
     const timeline = getHeroTimelineState(time);
     if (fogRef.current) {
-      const baseDensity = reduceMotion ? 0.08 : 0.08 * (1 + (timeline.backgroundDriftMultiplier - 1) * 0.4);
+      const baseDensity = (quality.fogBaseDensity ?? 0.08) *
+        (reduceMotion ? 1 : 1 + (timeline.backgroundDriftMultiplier - 1) * (quality.fogPulseMultiplier ?? 0.3));
       fogRef.current.density = MathUtils.lerp(fogRef.current.density, baseDensity, 0.1);
       fogRef.current.color.copy(fogColor);
     }
-    const grainTimeUniform = filmGrainEffect.uniforms.get("uTime");
-    if (grainTimeUniform) {
-      grainTimeUniform.value = time;
+    if (quality.enableFilmGrain) {
+      const grainTimeUniform = filmGrainEffect.uniforms.get("uTime");
+      if (grainTimeUniform) {
+        grainTimeUniform.value = time;
+      }
     }
 
     if (dofRef.current) {
@@ -2455,7 +2701,8 @@ function SceneComposer({ reduceMotion }) {
       dofRef.current.focusDistance = normalizedFocus;
       dofRef.current.focusRange = normalizedRange;
       dofRef.current.focalLength = 0.02;
-      dofRef.current.bokehScale = 0.15 * (reduceMotion ? 0.7 : 1.0) * 6.0;
+      dofRef.current.bokehScale =
+        (quality.depthOfFieldBokehScale ?? 0.9) * (reduceMotion ? 0.7 : 1.0);
     }
 
     cameraVelocity.current.copy(camera.position).sub(previousCameraPosition.current);
@@ -2479,40 +2726,47 @@ function SceneComposer({ reduceMotion }) {
         blurDirection.current.set(0, 0);
       }
     }
-    const blurUniform = motionBlurEffect.uniforms.get("uBlurDirection");
-    if (blurUniform) {
-      blurUniform.value.copy(blurDirection.current);
+    if (quality.enableMotionBlur) {
+      const blurUniform = motionBlurEffect.uniforms.get("uBlurDirection");
+      if (blurUniform) {
+        blurUniform.value.copy(blurDirection.current);
+      }
     }
   });
 
   return (
     <group>
-      <BackgroundLayers reduceMotion={reduceMotion} />
-      <AtmosphericFog reduceMotion={reduceMotion} />
-      <HeroOrb reduceMotion={reduceMotion} />
-      <OrbitalNetwork reduceMotion={reduceMotion} />
-      <ForegroundBokeh reduceMotion={reduceMotion} />
+      <BackgroundLayers reduceMotion={reduceMotion} quality={quality} />
+      <AtmosphericFog reduceMotion={reduceMotion} quality={quality} />
+      <HeroOrb reduceMotion={reduceMotion} quality={quality} />
+      <OrbitalNetwork reduceMotion={reduceMotion} quality={quality} />
+      <ForegroundBokeh reduceMotion={reduceMotion} quality={quality} />
       <SceneLighting />
-      <EffectComposer multisampling={reduceMotion ? 0 : 8} enabled>
+      <EffectComposer
+        multisampling={reduceMotion ? 0 : quality.level === "high" ? 8 : quality.level === "medium" ? 4 : 0}
+        enabled
+      >
         <Bloom
-          intensity={0.85}
-          luminanceThreshold={1.0}
+          intensity={quality.bloomIntensity}
+          luminanceThreshold={quality.bloomThreshold}
           luminanceSmoothing={0.18}
-          radius={0.35}
+          radius={quality.bloomRadius}
           mipmapBlur
         />
-        <DepthOfField
-          ref={dofRef}
-          focusDistance={0.45}
-          focalLength={0.02}
-          bokehScale={0.9}
-          height={720}
-        />
-        <primitive object={lensDirtEffect} />
-        <primitive object={chromaticEffect} />
-        <primitive object={motionBlurEffect} />
+        {quality.enableDepthOfField ? (
+          <DepthOfField
+            ref={dofRef}
+            focusDistance={0.45}
+            focalLength={0.02}
+            bokehScale={quality.depthOfFieldBokehScale}
+            height={720}
+          />
+        ) : null}
+        {quality.enableLensDirt ? <primitive object={lensDirtEffect} /> : null}
+        {quality.enableChromaticAberration ? <primitive object={chromaticEffect} /> : null}
+        {quality.enableMotionBlur ? <primitive object={motionBlurEffect} /> : null}
         <primitive object={colorGradeEffect} />
-        <primitive object={filmGrainEffect} />
+        {quality.enableFilmGrain ? <primitive object={filmGrainEffect} /> : null}
       </EffectComposer>
     </group>
   );
@@ -2554,26 +2808,38 @@ function PerformanceStatsMonitor() {
 export default function HeroScene({ width = 1280, height = 720 }) {
   if (typeof window === "undefined") {
     return (
-      <div
+      <img
+        src={heroFallbackMedia}
+        alt=""
+        role="presentation"
         style={{
           width: "100%",
           height: "100%",
           borderRadius: "inherit",
-          background:
-            "radial-gradient(circle at 30% 35%, rgba(59, 130, 246, 0.25), transparent 55%), radial-gradient(circle at 70% 65%, rgba(147, 51, 234, 0.22), transparent 58%)",
+          objectFit: "cover",
+          display: "block",
         }}
-        aria-hidden="true"
       />
     );
   }
 
   const prefersReducedMotion = usePrefersReducedMotionScene();
   const targetAspect = width / height || HERO_ASPECT;
-
+  const quality = useHeroQualitySettings(prefersReducedMotion);
+  const shouldRenderStats =
+    typeof import.meta !== "undefined" && typeof import.meta.env !== "undefined"
+      ? import.meta.env.MODE !== "production"
+      : false;
+  const maxDpr = quality.level === "high" ? 2 : quality.level === "medium" ? 1.75 : 1.5;
+  
   return (
     <Canvas
     shadows
-      gl={{ antialias: true, alpha: false, powerPreference: "high-performance" }}
+      gl={{
+        antialias: true,
+        alpha: false,
+        powerPreference: quality.level === "low" ? "low-power" : "high-performance",
+      }}
       frameloop={prefersReducedMotion ? "demand" : "always"}
       camera={{
         fov: HERO_FOV,
@@ -2585,7 +2851,7 @@ export default function HeroScene({ width = 1280, height = 720 }) {
         near: 0.1,
         far: 60,
       }}
-      dpr={[1, 2]}
+      dpr={[1, maxDpr]}
       style={{
         width: "100%",
         height: "100%",
@@ -2595,7 +2861,7 @@ export default function HeroScene({ width = 1280, height = 720 }) {
         backgroundColor: "#0f172a",
       }}
       onCreated={({ gl, scene }) => {
-        const pixelRatio = typeof window !== "undefined" ? Math.min(window.devicePixelRatio, 2) : 1;
+        const pixelRatio = typeof window !== "undefined" ? Math.min(window.devicePixelRatio, maxDpr) : 1;
         gl.setPixelRatio(pixelRatio);
         gl.setSize(width, height, false);
         gl.outputColorSpace = SRGBColorSpace;
@@ -2609,9 +2875,9 @@ export default function HeroScene({ width = 1280, height = 720 }) {
       }}
     >
       <Suspense fallback={null}>
-        <CameraRig reduceMotion={prefersReducedMotion} targetAspect={targetAspect} />
-        <SceneComposer reduceMotion={prefersReducedMotion} />
-        <PerformanceStatsMonitor />
+        <CameraRig reduceMotion={prefersReducedMotion} targetAspect={targetAspect} quality={quality} />
+        <SceneComposer reduceMotion={prefersReducedMotion} quality={quality} />
+        {shouldRenderStats ? <PerformanceStatsMonitor /> : null}
       </Suspense>
     </Canvas>
   );
