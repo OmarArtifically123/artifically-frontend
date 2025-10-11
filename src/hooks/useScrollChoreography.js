@@ -32,8 +32,8 @@ const PRESETS = {
     to: { opacity: 1, scale: 1 },
   },
   "blur-up": {
-    from: { opacity: 0, y: 28, filter: "blur(14px)" },
-    to: { opacity: 1, y: 0, filter: "blur(0px)" },
+    from: { opacity: 0, y: 28 },
+    to: { opacity: 1, y: 0 },
   },
   lift: {
     from: { opacity: 0, y: 48, rotateX: -8 },
