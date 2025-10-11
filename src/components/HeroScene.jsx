@@ -64,6 +64,15 @@ const HERO_BASE_FOG_DENSITY = 0.006;
 const SHADOW_FLOOR = new Vector3(5 / 255, 8 / 255, 12 / 255);
 const HERO_FOCUS_POINT = HERO_ORB_CENTER.clone();
 
+function resolveMotionBlurSampleCount(quality) {
+  const raw = quality?.motionBlurSamples ?? MOTION_BLUR_SAMPLES;
+  const numeric = Number(raw);
+  if (!Number.isFinite(numeric)) {
+    return MOTION_BLUR_SAMPLES;
+  }
+  return Math.max(2, Math.floor(numeric));
+}
+
 const HERO_QUALITY_PRESETS = {
   high: {
     level: "high",
@@ -1602,7 +1611,7 @@ function NeuralCore({ reduceMotion, quality }) {
   const connectionRef = useRef();
   const dummy = useMemo(() => new Object3D(), []);
   const colorsRef = useRef(nodes.map(() => new Color(0x9333ea)));
-  const trailSampleCount = quality.motionBlurSamples ?? MOTION_BLUR_SAMPLES;
+  const trailSampleCount = resolveMotionBlurSampleCount(quality);
 
   const connectionPositions = useMemo(() => {
     const array = new Float32Array(connections.length * 6);
@@ -1769,7 +1778,7 @@ function OrbitalNetwork({ reduceMotion, quality }) {
   const coreRefs = useRef([]);
   const nodePositions = useRef(nodes.map(() => new Vector3()));
   const nodeTrailRefs = useRef(nodes.map(() => null));
-  const trailSampleCount = quality.motionBlurSamples ?? MOTION_BLUR_SAMPLES;
+  const trailSampleCount = resolveMotionBlurSampleCount(quality);
   const nodeTrailBuffers = useRef(nodes.map(() => new Float32Array(trailSampleCount * 3)));
   const nodeHistories = useRef(nodes.map(() => Array.from({ length: trailSampleCount }, () => HERO_ORB_CENTER.clone())));
   const typeBGeometries = useMemo(
@@ -2274,7 +2283,7 @@ function EnergyStreams({ streams, reduceMotion, nodePositions, quality }) {
   const glowMaterials = useRef([]);
   const particleRefs = useRef(streams.map((stream) => new Array(stream.particleOffsets.length).fill(null)));
   const particleTrailRefs = useRef(streams.map((stream) => new Array(stream.particleOffsets.length).fill(null)));
-  const motionTrailSamples = quality.motionBlurSamples ?? MOTION_BLUR_SAMPLES;
+  const motionTrailSamples = resolveMotionBlurSampleCount(quality);
   const particleTrailBuffers = useRef(
     streams.map((stream) => stream.particleOffsets.map(() => new Float32Array(motionTrailSamples * 3))),
   );
@@ -2597,13 +2606,14 @@ function SceneComposer({ reduceMotion, quality }) {
       ),
     [quality.chromaticAberrationOffset],
   );
+  const motionBlurSamples = resolveMotionBlurSampleCount(quality);
   const motionBlurEffect = useMemo(
     () =>
       new HeroMotionBlurEffect(
         quality.enableMotionBlur ? quality.motionBlurIntensity : 0,
-        quality.enableMotionBlur ? quality.motionBlurSamples ?? MOTION_BLUR_SAMPLES : 4,
+        quality.enableMotionBlur ? motionBlurSamples : 4,
       ),
-    [quality.enableMotionBlur, quality.motionBlurIntensity, quality.motionBlurSamples],
+    [motionBlurSamples, quality.enableMotionBlur, quality.motionBlurIntensity],
   );
   const previousCameraPosition = useRef(new Vector3());
   const cameraVelocity = useRef(new Vector3());
@@ -2665,11 +2675,9 @@ function SceneComposer({ reduceMotion, quality }) {
     }
     const samplesUniform = motionBlurEffect.uniforms.get("uSampleCount");
     if (samplesUniform) {
-      samplesUniform.value = quality.enableMotionBlur
-        ? quality.motionBlurSamples ?? MOTION_BLUR_SAMPLES
-        : 4;
+      samplesUniform.value = quality.enableMotionBlur ? motionBlurSamples : 4;
     }
-  }, [motionBlurEffect, quality.enableMotionBlur, quality.motionBlurIntensity, quality.motionBlurSamples]);
+  }, [motionBlurEffect, motionBlurSamples, quality.enableMotionBlur, quality.motionBlurIntensity]);
 
   useFrame(({ clock }) => {
     const time = clock.getElapsedTime();
