@@ -10,10 +10,12 @@ import {
   DoubleSide,
   EdgesGeometry,
   DodecahedronGeometry,
+  FogExp2,
   IcosahedronGeometry,
   LinearFilter,
   MathUtils,
   Object3D,
+  PCFSoftShadowMap,
   Quaternion,
   RGBAFormat,
   SRGBColorSpace,
@@ -25,6 +27,7 @@ import {
 import { Line, shaderMaterial } from "@react-three/drei";
 import { EffectComposer, Bloom, DepthOfField } from "@react-three/postprocessing";
 import { BlendFunction, Effect, EffectAttribute } from "postprocessing";
+import Stats from "three/examples/jsm/libs/stats.module.js";
 
 const HERO_ASPECT = 16 / 9;
 const HERO_FOV = 45;
@@ -2339,7 +2342,11 @@ function EnergyStreams({ streams, reduceMotion, nodePositions }) {
 }
 
 function SceneComposer({ reduceMotion }) {
-  const { camera, size } = useThree();
+  const { camera, size, scene } = useThree();
+  const backgroundColor = useMemo(() => new Color(0x0f172a), []);
+  const fogColor = useMemo(() => new Color(0x142337), []);
+  const environmentSnapshot = useRef({ background: null, fog: null });
+  const fogRef = useRef();
   const lensDirtTexture = useLensDirtTexture();
   const dofRef = useRef();
   const colorGradeEffect = useMemo(() => new ColorGradeEffect(), []);
@@ -2358,6 +2365,28 @@ function SceneComposer({ reduceMotion }) {
   const blurDirection = useRef(new Vector2());
   const rightVector = useRef(new Vector3());
   const upVector = useRef(new Vector3());
+
+  useEffect(() => {
+    if (!scene) {
+      return undefined;
+    }
+    const previousBackground =
+      scene.background instanceof Color ? scene.background.clone() : scene.background ?? null;
+    const previousFog = scene.fog ?? null;
+    environmentSnapshot.current = { background: previousBackground, fog: previousFog };
+    scene.background = backgroundColor.clone();
+    const fogInstance = new FogExp2(fogColor.clone(), 0.08);
+    fogRef.current = fogInstance;
+    scene.fog = fogInstance;
+    return () => {
+      if (environmentSnapshot.current.background instanceof Color) {
+        scene.background = environmentSnapshot.current.background;
+      } else {
+        scene.background = environmentSnapshot.current.background ?? null;
+      }
+      scene.fog = environmentSnapshot.current.fog ?? null;
+    };
+  }, [backgroundColor, fogColor, scene]);
 
   useEffect(() => {
     previousCameraPosition.current.copy(camera.position);
@@ -2397,6 +2426,12 @@ function SceneComposer({ reduceMotion }) {
 
   useFrame(({ clock }) => {
     const time = clock.getElapsedTime();
+    const timeline = getHeroTimelineState(time);
+    if (fogRef.current) {
+      const baseDensity = reduceMotion ? 0.08 : 0.08 * (1 + (timeline.backgroundDriftMultiplier - 1) * 0.4);
+      fogRef.current.density = MathUtils.lerp(fogRef.current.density, baseDensity, 0.1);
+      fogRef.current.color.copy(fogColor);
+    }
     const grainTimeUniform = filmGrainEffect.uniforms.get("uTime");
     if (grainTimeUniform) {
       grainTimeUniform.value = time;
@@ -2483,6 +2518,39 @@ function SceneComposer({ reduceMotion }) {
   );
 }
 
+function PerformanceStatsMonitor() {
+  const statsRef = useRef();
+
+  useEffect(() => {
+    if (typeof window === "undefined") {
+      return undefined;
+    }
+    const stats = new Stats();
+    stats.showPanel(0);
+    stats.dom.style.position = "fixed";
+    stats.dom.style.right = "16px";
+    stats.dom.style.bottom = "16px";
+    stats.dom.style.zIndex = "1000";
+    stats.dom.style.pointerEvents = "none";
+    document.body.appendChild(stats.dom);
+    statsRef.current = stats;
+    return () => {
+      if (stats.dom.parentNode) {
+        stats.dom.parentNode.removeChild(stats.dom);
+      }
+      statsRef.current = undefined;
+    };
+  }, []);
+
+  useFrame(() => {
+    if (statsRef.current) {
+      statsRef.current.update();
+    }
+  });
+
+  return null;
+}
+
 export default function HeroScene({ width = 1280, height = 720 }) {
   if (typeof window === "undefined") {
     return (
@@ -2504,31 +2572,46 @@ export default function HeroScene({ width = 1280, height = 720 }) {
 
   return (
     <Canvas
+    shadows
+      gl={{ antialias: true, alpha: false, powerPreference: "high-performance" }}
       frameloop={prefersReducedMotion ? "demand" : "always"}
       camera={{
         fov: HERO_FOV,
-        position: [0, Math.sin(MathUtils.degToRad(HERO_CAMERA_ELEVATION_DEG)) * HERO_CAMERA_DISTANCE, HERO_CAMERA_DISTANCE],
+        position: [
+          0,
+          Math.sin(MathUtils.degToRad(HERO_CAMERA_ELEVATION_DEG)) * HERO_CAMERA_DISTANCE,
+          HERO_CAMERA_DISTANCE,
+        ],
         near: 0.1,
         far: 60,
       }}
-      dpr={[1.5, 2.2]}
+      dpr={[1, 2]}
       style={{
         width: "100%",
         height: "100%",
         display: "block",
         borderRadius: "inherit",
         pointerEvents: "none",
+        backgroundColor: "#0f172a",
       }}
-      onCreated={({ gl }) => {
-        gl.setClearAlpha(0);
+      onCreated={({ gl, scene }) => {
+        const pixelRatio = typeof window !== "undefined" ? Math.min(window.devicePixelRatio, 2) : 1;
+        gl.setPixelRatio(pixelRatio);
+        gl.setSize(width, height, false);
         gl.outputColorSpace = SRGBColorSpace;
         gl.toneMapping = ACESFilmicToneMapping;
-        gl.toneMappingExposure = 1.15;
+        gl.toneMappingExposure = 1.0;
+        gl.shadowMap.enabled = true;
+        gl.shadowMap.type = PCFSoftShadowMap;
+        gl.setClearColor(new Color(0x0f172a), 1);
+        scene.background = new Color(0x0f172a);
+        scene.fog = new FogExp2(0x142337, 0.08);
       }}
     >
       <Suspense fallback={null}>
         <CameraRig reduceMotion={prefersReducedMotion} targetAspect={targetAspect} />
         <SceneComposer reduceMotion={prefersReducedMotion} />
+        <PerformanceStatsMonitor />
       </Suspense>
     </Canvas>
   );
