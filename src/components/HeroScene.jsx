@@ -1778,7 +1778,7 @@ function OrbitalNetwork({ reduceMotion, quality }) {
   const coreRefs = useRef([]);
   const nodePositions = useRef(nodes.map(() => new Vector3()));
   const nodeTrailRefs = useRef(nodes.map(() => null));
-  const trailSampleCount = resolveMotionBlurSampleCount(quality);
+  const trailSampleCount = Math.max(2, resolveMotionBlurSampleCount(quality));
   const nodeTrailBuffers = useRef(nodes.map(() => new Float32Array(trailSampleCount * 3)));
   const nodeHistories = useRef(nodes.map(() => Array.from({ length: trailSampleCount }, () => HERO_ORB_CENTER.clone())));
   const typeBGeometries = useMemo(
@@ -1849,7 +1849,8 @@ function OrbitalNetwork({ reduceMotion, quality }) {
           buffer[base + 1] = vec.y;
           buffer[base + 2] = vec.z;
         });
-        if (trail?.geometry) {
+        const hasSufficientSamples = history.length >= 2 && buffer.length >= 6;
+        if (trail?.geometry && hasSufficientSamples) {
           if (typeof trail.geometry.setPositions === "function") {
             trail.geometry.setPositions(buffer);
           } else if (typeof trail.geometry.setFromPoints === "function") {
