@@ -22,7 +22,8 @@ export default function Header({ user, onSignIn, onSignUp, onSignOut }) {
   });
   const observerRef = useRef(null);
   const { dispatchInteraction } = useMicroInteractions();
-  const [headerReady, setHeaderReady] = useState(false);
+  const isServer = typeof window === "undefined";
+  const [headerReady, setHeaderReady] = useState(isServer);
 
   const syncHeaderOffset = useCallback(() => {
     const header = document.querySelector(".site-header");
@@ -38,13 +39,11 @@ export default function Header({ user, onSignIn, onSignUp, onSignOut }) {
   }, []);
 
   useEffect(() => {
-    const frame = typeof window !== "undefined" ? window.requestAnimationFrame(() => setHeaderReady(true)) : null;
-    return () => {
-      if (frame && typeof window !== "undefined") {
-        window.cancelAnimationFrame(frame);
-      }
-    };
-  }, []);
+    if (isServer) return undefined;
+
+    const timer = window.setTimeout(() => setHeaderReady(true), 0);
+    return () => window.clearTimeout(timer);
+  }, [isServer]);
 
   const commitPrediction = useCallback(
     (path, ttl = 1600) => {

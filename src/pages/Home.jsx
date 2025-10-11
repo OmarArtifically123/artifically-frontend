@@ -9,8 +9,9 @@ const Marketplace = lazy(() => import("../components/Marketplace"));
 
 export default function Home({ user, scrollTo, openAuth }) {
   const location = useLocation();
-  const [contentReady, setContentReady] = useState(typeof window === "undefined");
-  const [pageReady, setPageReady] = useState(false);
+  const isServer = typeof window === "undefined";
+  const [contentReady, setContentReady] = useState(isServer);
+  const [pageReady, setPageReady] = useState(isServer);
 
   useEffect(() => {
     let target = scrollTo;
@@ -36,13 +37,11 @@ export default function Home({ user, scrollTo, openAuth }) {
   }, [contentReady]);
 
   useEffect(() => {
-    const frame = typeof window !== "undefined" ? window.requestAnimationFrame(() => setPageReady(true)) : null;
-    return () => {
-      if (frame && typeof window !== "undefined") {
-        window.cancelAnimationFrame(frame);
-      }
-    };
-  }, []);
+    if (isServer) return undefined;
+
+    const timer = window.setTimeout(() => setPageReady(true), 0);
+    return () => window.clearTimeout(timer);
+  }, [isServer]);
 
   return (
     <main className="home-shell" data-ready={pageReady ? "true" : "false"}>
