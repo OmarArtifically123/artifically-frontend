@@ -5,11 +5,17 @@ import {
   AdditiveBlending,
   CatmullRomCurve3,
   Color,
+  CubicBezierCurve3,
   DataTexture,
   DoubleSide,
+  EdgesGeometry,
+  DodecahedronGeometry,
+  IcosahedronGeometry,
   MathUtils,
   Object3D,
+  Quaternion,
   SRGBColorSpace,
+  TubeGeometry,
   Vector2,
   Vector3,
 } from "three";
@@ -25,9 +31,53 @@ const NEURAL_NODE_COUNT = 110;
 const NEURAL_CONNECTIONS_PER_NODE = 3;
 const CIRCUIT_PATH_COUNT = 14;
 const CIRCUIT_PULSES_PER_PATH = 7;
+const HERO_ORB_CENTER = new Vector3(0, 0.2, 0);
 const ORBITAL_NODE_COUNT = 18;
-const FOG_PARTICLE_COUNT = 1500;
-const FOREGROUND_PARTICLE_COUNT = 24;
+const BACKGROUND_PARTICLE_COUNT = 96;
+const FOREGROUND_PARTICLE_COUNT = 28;
+const GOD_RAY_COUNT = 14;
+
+const ORBITAL_RING_CONFIG = [
+  {
+    id: "inner",
+    radius: 2.2,
+    tiltDeg: 15,
+    tiltAxis: new Vector3(1, 0, 0),
+    orbitSpeed: 0.03,
+    direction: -1,
+    typeSequence: ["A", "A", "B", "B", "C", "C"],
+  },
+  {
+    id: "middle",
+    radius: 3.1,
+    tiltDeg: 25,
+    tiltAxis: new Vector3(0.45, 0, 0.89).normalize(),
+    orbitSpeed: 0.022,
+    direction: 1,
+    typeSequence: ["A", "A", "A", "A", "B", "B", "B", "B"],
+  },
+  {
+    id: "outer",
+    radius: 4.0,
+    tiltDeg: 8,
+    tiltAxis: new Vector3(0.2, 0, -0.98).normalize(),
+    orbitSpeed: 0.018,
+    direction: -1,
+    typeSequence: ["C", "C", "B", "B"],
+  },
+];
+
+const TYPE_A_TINT_COLORS = [
+  new Color(0x3b82f6),
+  new Color(0xa855f7),
+  new Color(0x2dd4bf),
+];
+
+const ENERGY_GRADIENT = {
+  start: new Color(0x3b82f6),
+  middle: new Color(0x22d3ee),
+  end: new Color(0xa855f7),
+};
 
 function createDeterministicRandom(seed = 2024) {
   let state = seed >>> 0;
@@ -69,10 +119,10 @@ function usePrefersReducedMotionScene() {
 const GridMaterial = shaderMaterial(
   {
     uTime: 0,
-    uColorA: new Color(0x030712),
-    uColorB: new Color(0x0b1120),
-    uGridColor: new Color(0x172554),
-    uGlowColor: new Color(0x0ea5e9),
+    uColorA: new Color(0x1a2440),
+    uColorB: new Color(0x060913),
+    uGridColor: new Color(0x6366f1),
+    uGlowColor: new Color(0x22d3ee),
   },
   /* glsl */ `
     varying vec2 vUv;
@@ -108,23 +158,34 @@ const GridMaterial = shaderMaterial(
 
     void main() {
       vec2 uv = vUv;
-      vec3 base = mix(uColorA, uColorB, smoothstep(0.0, 1.0, uv.y));
+      vec2 centered = uv - 0.5;
+      float radial = clamp(length(centered) * 1.5, 0.0, 1.0);
+      float vignette = smoothstep(1.0, 0.2, radial);
+      vec3 base = mix(uColorB, uColorA, vignette);
 
-      float fineGrid = grid(uv + uTime * 0.0015, 32.0, 1.2);
-      float coarseGrid = grid(uv + vec2(uTime * 0.0006, -uTime * 0.0008), 8.0, 1.6);
-      float glowMask = pow(smoothstep(0.35, 1.0, uv.y), 1.6);
-      float glow = glowMask * (0.35 + 0.65 * fineGrid);
+      float depth = mix(-15.0, 2.0, uv.y);
+      float perspective = 1.0 / (1.0 + max(depth + 15.0, 0.0) * 0.09);
 
-      float star = starfield(uv);
+      float gridX = grid(vec2(uv.x * mix(32.0, 8.0, uv.y), uv.y), 40.0 * perspective, 1.4);
+      float gridZ = grid(vec2(uv.x, uv.y * mix(220.0, 40.0, uv.y)), 60.0 * perspective, 1.4);
+      float gridMask = max(gridX, gridZ);
+
+      float noiseValue = fract(sin(dot(uv * vec2(412.32, 236.52), vec2(12.9898, 78.233))) * 43758.5453);
+      noiseValue = noiseValue * 2.0 - 1.0;
+
+      float sweepPhase = fract(uTime / 7.2);
+      float sweepWidth = 0.015 + 0.035 * sweepPhase;
+      float sweep = exp(-pow((uv.y - sweepPhase), 2.0) / sweepWidth) * 0.6;
 
       vec3 color = base;
-      color += uGridColor * 0.35 * coarseGrid;
-      color += uGlowColor * glow * 0.45;
-      color += uGlowColor * 0.2 * fineGrid;
-      color += vec3(0.65, 0.75, 0.95) * star * 0.35;
-      color = mix(color, vec3(0.02, 0.04, 0.1), 0.18);
+      color += uGridColor * 0.45 * gridMask * mix(1.0, 0.4, uv.y);
+      color += uGlowColor * sweep;
+      color += vec3(0.08, 0.12, 0.2) * noiseValue * 0.08;
 
-      gl_FragColor = vec4(color, 0.96);
+      float horizonGlow = smoothstep(0.55, 0.95, uv.y);
+      color += uGlowColor * 0.18 * horizonGlow;
+
+      gl_FragColor = vec4(color, 0.92);
     }
   `,
 );
@@ -196,7 +257,113 @@ const PlasmaMaterial = shaderMaterial(
 GridMaterial.key = "GridMaterial";
 PlasmaMaterial.key = "PlasmaMaterial";
 
-extend({ GridMaterial, PlasmaMaterial });
+const EnergyStreamMaterial = shaderMaterial(
+  {
+    uTime: 0,
+    uFlowDirection: 1,
+    uGradientShift: 0,
+    uIntensity: 4.8,
+    uOpacity: 0.9,
+    uColorStart: ENERGY_GRADIENT.start.clone(),
+    uColorMid: ENERGY_GRADIENT.middle.clone(),
+    uColorEnd: ENERGY_GRADIENT.end.clone(),
+  },
+  /* glsl */ `
+    varying vec2 vUv;
+    varying vec3 vNormal;
+    varying vec3 vViewDir;
+    void main() {
+      vUv = uv;
+      vec4 mvPosition = modelViewMatrix * vec4(position, 1.0);
+      vViewDir = normalize(-mvPosition.xyz);
+      vNormal = normalize(normalMatrix * normal);
+      gl_Position = projectionMatrix * mvPosition;
+    }
+  `,
+  /* glsl */ `
+    uniform float uTime;
+    uniform float uFlowDirection;
+    uniform float uGradientShift;
+    uniform float uIntensity;
+    uniform float uOpacity;
+    uniform vec3 uColorStart;
+    uniform vec3 uColorMid;
+    uniform vec3 uColorEnd;
+    varying vec2 vUv;
+    varying vec3 vNormal;
+    varying vec3 vViewDir;
+
+    vec3 energyGradient(float t) {
+      float segment = clamp(t, 0.0, 1.0);
+      vec3 a = mix(uColorStart, uColorMid, smoothstep(0.0, 0.5, segment));
+      vec3 b = mix(uColorMid, uColorEnd, smoothstep(0.5, 1.0, segment));
+      return mix(a, b, smoothstep(0.45, 1.0, segment));
+    }
+
+    void main() {
+      float flow = fract(vUv.x + uGradientShift * uFlowDirection);
+      vec3 baseColor = energyGradient(flow);
+      vec3 normal = normalize(vNormal);
+      vec3 viewDir = normalize(vViewDir);
+      float fresnel = pow(1.0 - max(dot(normal, viewDir), 0.0), 1.5);
+      float headOn = abs(dot(normal, viewDir));
+      float alpha = uOpacity * mix(0.35, 1.0, pow(fresnel, 0.85));
+      float intensity = uIntensity;
+      vec3 color = baseColor * (1.2 + 0.8 * fresnel) * intensity;
+      gl_FragColor = vec4(color, alpha * (1.0 - 0.45 * pow(headOn, 2.2)));
+    }
+  `,
+);
+
+const EnergyGlowMaterial = shaderMaterial(
+  {
+    uTime: 0,
+    uFlowDirection: 1,
+    uGradientShift: 0,
+    uOpacity: 0.25,
+    uColorStart: ENERGY_GRADIENT.start.clone(),
+    uColorMid: ENERGY_GRADIENT.middle.clone(),
+    uColorEnd: ENERGY_GRADIENT.end.clone(),
+  },
+  /* glsl */ `
+    varying vec2 vUv;
+    void main() {
+      vUv = uv;
+      gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);
+    }
+  `,
+  /* glsl */ `
+    uniform float uFlowDirection;
+    uniform float uGradientShift;
+    uniform float uOpacity;
+    uniform vec3 uColorStart;
+    uniform vec3 uColorMid;
+    uniform vec3 uColorEnd;
+    varying vec2 vUv;
+
+    vec3 gradient(float t) {
+      float segment = clamp(t, 0.0, 1.0);
+      vec3 a = mix(uColorStart, uColorMid, smoothstep(0.0, 0.5, segment));
+      vec3 b = mix(uColorMid, uColorEnd, smoothstep(0.5, 1.0, segment));
+      vec3 base = mix(a, b, smoothstep(0.45, 1.0, segment));
+      float luminance = dot(base, vec3(0.299, 0.587, 0.114));
+      return mix(base, vec3(luminance), 0.5);
+    }
+
+    void main() {
+      float flow = fract(vUv.x + uGradientShift * uFlowDirection);
+      vec3 color = gradient(flow) * 1.5;
+      gl_FragColor = vec4(color, uOpacity * smoothstep(0.0, 1.0, 1.0 - abs(vUv.y - 0.5) * 2.0));
+    }
+  `,
+);
+
+GridMaterial.key = "GridMaterial";
+PlasmaMaterial.key = "PlasmaMaterial";
+EnergyStreamMaterial.key = "EnergyStreamMaterial";
+EnergyGlowMaterial.key = "EnergyGlowMaterial";
+
+extend({ GridMaterial, PlasmaMaterial, EnergyStreamMaterial, EnergyGlowMaterial });
 
 function createProceduralNormalTexture(size = 256, seed = 8128) {
   const random = createDeterministicRandom(seed);
@@ -291,44 +458,192 @@ function createCircuitPaths() {
   });
 }
 
-function createOrbitalNodes() {
+function createOrbitalNetwork() {
   const random = createDeterministicRandom(7128);
-  return Array.from({ length: ORBITAL_NODE_COUNT }, (_, index) => {
-    const radius = 2.4 + random() * 1.6;
-    const inclination = MathUtils.degToRad(18 + random() * 48);
-    const azimuth = random() * Math.PI * 2;
-    const speed = 0.08 + random() * 0.05;
-    const size = 0.16 + random() * 0.22;
-    const colorShift = random();
-    return { id: `orbital-${index}`, radius, inclination, azimuth, speed, size, colorShift };
+  const nodes = [];
+  const ringBuckets = new Map();
+
+  ORBITAL_RING_CONFIG.forEach((ring, ringOrder) => {
+    const tiltQuaternion = new Quaternion().setFromAxisAngle(ring.tiltAxis, MathUtils.degToRad(ring.tiltDeg));
+    const typeCount = ring.typeSequence.length;
+    ringBuckets.set(ring.id, []);
+    ring.typeSequence.forEach((type, index) => {
+      const baseAngle = (index / typeCount) * Math.PI * 2 + random() * Math.PI * 0.08;
+      const baseScale =
+        type === "A"
+          ? MathUtils.lerp(0.28, 0.35, random())
+          : type === "B"
+            ? MathUtils.lerp(0.18, 0.25, random())
+            : MathUtils.lerp(0.22, 0.3, random());
+      const node = {
+        id: `${ring.id}-${type}-${index}`,
+        type,
+        ringId: ring.id,
+        ringOrder,
+        orderIndex: index,
+        orbitRadius: ring.radius,
+        orbitSpeed: ring.orbitSpeed,
+        direction: ring.direction,
+        baseAngle,
+        tiltQuaternion: tiltQuaternion.clone(),
+        selfRotationAxis: new Vector3(random() - 0.5, random() - 0.5, random() - 0.5).normalize(),
+        selfRotationSpeed: MathUtils.lerp(0.08, 0.15, random()) * Math.PI * 2,
+        scalePulseRate: MathUtils.lerp(0.6, 1.15, random()),
+        scalePulseOffset: random() * Math.PI * 2,
+        baseScale,
+        colorCycleOffset: random(),
+        shape: type === "B" ? (random() > 0.45 ? "dodeca" : "icosa") : undefined,
+      };
+      nodes.push(node);
+      ringBuckets.get(ring.id).push(nodes.length - 1);
+    });
   });
+
+  const pairKeySet = new Set();
+  const connectionPairs = [];
+
+  const addPair = (a, b) => {
+    const key = a < b ? `${a}-${b}` : `${b}-${a}`;
+    if (pairKeySet.has(key)) return;
+    pairKeySet.add(key);
+    connectionPairs.push([a, b]);
+  };
+
+  const innerNodes = ringBuckets.get("inner") ?? [];
+  const middleNodes = ringBuckets.get("middle") ?? [];
+  const outerNodes = ringBuckets.get("outer") ?? [];
+
+  innerNodes.forEach((innerIndex, index) => {
+    const anchor = Math.round((index / innerNodes.length) * middleNodes.length) % middleNodes.length;
+    const targets = [anchor, (anchor + 1) % middleNodes.length];
+    targets.forEach((offset) => {
+      addPair(innerIndex, middleNodes[offset]);
+    });
+  });
+
+  outerNodes.forEach((outerIndex, index) => {
+    const base = Math.round((index / outerNodes.length) * middleNodes.length) % middleNodes.length;
+    const targets = [base, (base + 1) % middleNodes.length, (base + middleNodes.length - 1) % middleNodes.length];
+    targets.forEach((offset) => {
+      addPair(outerIndex, middleNodes[offset]);
+    });
+  });
+
+  for (let i = 0; i < 3; i += 1) {
+    const innerIndex = innerNodes[Math.floor(random() * innerNodes.length)];
+    const outerIndex = outerNodes[Math.floor(random() * outerNodes.length)];
+    if (typeof innerIndex === "number" && typeof outerIndex === "number") {
+      addPair(innerIndex, outerIndex);
+    }
+  }
+
+  const heroConnectionTargets = [
+    innerNodes[Math.floor(random() * innerNodes.length)],
+    middleNodes[Math.floor(random() * middleNodes.length)],
+    outerNodes[Math.floor(random() * outerNodes.length)],
+  ].filter((value, index, array) => typeof value === "number" && array.indexOf(value) === index);
+
+  const streams = [];
+
+  heroConnectionTargets.forEach((nodeIndex, idx) => {
+    const flowTowardHero = idx < 2;
+    streams.push(
+      createEnergyStreamDescriptor(random, flowTowardHero ? nodeIndex : "hero", flowTowardHero ? "hero" : nodeIndex, {
+        flowDirection: flowTowardHero ? 1 : -1,
+        includeHero: true,
+      }),
+    );
+  });
+
+  const totalConnectionsEstimate = connectionPairs.length + streams.length;
+  const targetInbound = Math.round(totalConnectionsEstimate * 0.6);
+  let inboundCount = streams.filter((stream) => stream.flowDirection > 0).length;
+
+  connectionPairs.forEach(([indexA, indexB], pairIndex) => {
+    const nodeA = nodes[indexA];
+    const nodeB = nodes[indexB];
+    const preferOuter = nodeA.orbitRadius >= nodeB.orbitRadius ? indexA : indexB;
+    const preferInner = preferOuter === indexA ? indexB : indexA;
+    const flowTowardHero = inboundCount < targetInbound;
+    const startIndex = flowTowardHero ? preferOuter : preferInner;
+    const endIndex = flowTowardHero ? preferInner : preferOuter;
+    if (flowTowardHero) {
+      inboundCount += 1;
+    }
+    streams.push(
+      createEnergyStreamDescriptor(random, startIndex, endIndex, {
+        flowDirection: flowTowardHero ? 1 : -1,
+        pairIndex,
+      }),
+    );
+  });
+
+  return { nodes: nodes.map((node, index) => ({ ...node, index })), streams };
 }
 
-function createFogParticles() {
+function createEnergyStreamDescriptor(random, startIndex, endIndex, options = {}) {
+  const flowDirection = options.flowDirection ?? 1;
+  const wobblePeriod = 6 + random() * 4;
+  const pulsePeriod = 0.8 + random() * 0.7;
+  const coreRadius = MathUtils.lerp(0.012, 0.018, random());
+  const outerRadius = MathUtils.lerp(0.035, 0.045, random());
+  const particleCount = 3 + Math.floor(random() * 3);
+  const wobbleAxis = new Vector3(random() - 0.5, random() - 0.5, random() - 0.5).normalize();
+  const spiralAxis = new Vector3(random() - 0.5, random() - 0.5, random() - 0.5).normalize();
+
+  return {
+    id: `stream-${options.includeHero ? "hero" : options.pairIndex ?? 0}-${Math.floor(random() * 100000)}`,
+    startIndex,
+    endIndex,
+    flowDirection,
+    controlMagnitude: MathUtils.lerp(0.3, 0.5, random()),
+    spiralStrength: MathUtils.lerp(0.18, 0.32, random()),
+    wobbleAmplitude: MathUtils.lerp(0.02, 0.05, random()),
+    wobbleFrequency: (Math.PI * 2) / wobblePeriod,
+    gradientOffset: random(),
+    gradientSpeed: 1 / 3,
+    coreRadius,
+    outerRadius,
+    particleSpeed: 1.2,
+    particleOffsets: Array.from({ length: particleCount }, () => random()),
+    pulseFrequency: (Math.PI * 2) / pulsePeriod,
+    pulseBase: 3.5,
+    pulseAmplitude: 3.0,
+    wobbleAxis,
+    spiralAxis,
+  };
+}
+
+function createBackgroundParticles() {
   const random = createDeterministicRandom(9813);
-  const positions = new Float32Array(FOG_PARTICLE_COUNT * 3);
-  const velocities = new Float32Array(FOG_PARTICLE_COUNT);
-  for (let i = 0; i < FOG_PARTICLE_COUNT; i += 1) {
+  const positions = new Float32Array(BACKGROUND_PARTICLE_COUNT * 3);
+  const verticalSpeeds = new Float32Array(BACKGROUND_PARTICLE_COUNT);
+  const swayAxes = Array.from({ length: BACKGROUND_PARTICLE_COUNT }, () =>
+    new Vector3(random() - 0.5, random() - 0.2, random() - 0.5).normalize(),
+  );
+  const offsets = new Float32Array(BACKGROUND_PARTICLE_COUNT);
+  for (let i = 0; i < BACKGROUND_PARTICLE_COUNT; i += 1) {
     const index = i * 3;
-    const radius = 4 + random() * 10;
+    const radius = 4 + random() * 11;
     const angle = random() * Math.PI * 2;
-    const height = -3 + random() * 4;
-    positions[index] = Math.cos(angle) * radius * 0.6;
+    const height = -2.5 + random() * 5.5;
+    positions[index] = Math.cos(angle) * radius * 0.72;
     positions[index + 1] = height;
-    positions[index + 2] = -4 - random() * 6;
-    velocities[i] = 0.12 + random() * 0.18;
+    positions[index + 2] = -5 - random() * 10;
+    verticalSpeeds[i] = 0.04 + random() * 0.06;
+    offsets[i] = random() * Math.PI * 2;
   }
-  return { positions, velocities };
+  return { positions, verticalSpeeds, swayAxes, offsets };
 }
 
 function createForegroundParticles() {
   const random = createDeterministicRandom(5172);
   return Array.from({ length: FOREGROUND_PARTICLE_COUNT }, (_, index) => {
-    const radius = 2.2 + random() * 2.6;
+    const radius = 2.4 + random() * 2.8;
     const angle = random() * Math.PI * 2;
-    const height = -0.3 + random() * 0.6;
-    const depth = 2.2 + random() * 2.8;
-    const size = 0.45 + random() * 0.65;
+    const height = -0.15 + random() * 0.3;
+    const depth = 2.0 + random() * 2.0;
+    const size = 0.12 + random() * 0.13;
     const speed = 0.08 + random() * 0.05;
     return {
       id: `bokeh-${index}`,
@@ -337,7 +652,7 @@ function createForegroundParticles() {
       size,
       speed,
       offset: random() * Math.PI * 2,
-      opacity: 0.3 + random() * 0.4,
+      opacity: 0.08 + random() * 0.04,
     };
   });
 }
@@ -384,30 +699,37 @@ function SceneLighting() {
 
   return (
     <>
-      <ambientLight intensity={0.24} color={0x1e293b} />
+      <hemisphereLight
+        intensity={0.4}
+        color={new Color(0x3c5078)}
+        groundColor={new Color(0x0f1523)}
+      />
       <directionalLight
-        intensity={1.8}
-        color={new Color(0xc8dcff)}
-        position={[2.1, 4.2, 3.1]}
+        intensity={1.5}
+        color={new Color(0xb4c8ff)}
+        position={[5.2, 6.6, 4.2]}
         castShadow={false}
       />
       <spotLight
         ref={rimLightRef}
-        intensity={1.2}
-        color={new Color(0xffbe96)}
+        intensity={1}
+        color={new Color(0xff8c64)}
         angle={MathUtils.degToRad(45)}
         penumbra={0.65}
-        position={[-1.6, 2.2, -2.4]}
-        distance={18}
+        position={[-4.2, 2.4, -3.4]}
+        distance={22}
       />
-      <pointLight intensity={2.5} color={new Color(0x22d3ee)} position={[0, 0.2, 0]} distance={8.5} decay={2.2} />
+      <pointLight intensity={2.6} color={new Color(0x22d3ee)} position={[0, 0.2, 0]} distance={9.5} decay={2.1} />
+      <pointLight intensity={0.72} color={new Color(0x8b5cf6)} position={[3.6, 1.4, -3.2]} distance={6.5} decay={2.3} />
+      <pointLight intensity={0.68} color={new Color(0x06b6d4)} position={[-3.4, 1.1, 2.8]} distance={6.8} decay={2.4} />
+      <pointLight intensity={0.6} color={new Color(0xf472b6)} position={[1.4, 2.8, 4.2]} distance={7.1} decay={2.1} />
     </>
   );
 }
 
 function BackgroundLayers({ reduceMotion }) {
   const materialRef = useRef();
-  const { positions, velocities } = useMemo(() => createFogParticles(), []);
+  const { positions, verticalSpeeds, swayAxes, offsets } = useMemo(() => createBackgroundParticles(), []);
   const pointsRef = useRef();
 
   useFrame(({ clock }, delta) => {
@@ -418,13 +740,19 @@ function BackgroundLayers({ reduceMotion }) {
       return;
     }
     const array = pointsRef.current.geometry.attributes.position.array;
-    for (let i = 0; i < FOG_PARTICLE_COUNT; i += 1) {
+    const time = clock.getElapsedTime();
+    for (let i = 0; i < BACKGROUND_PARTICLE_COUNT; i += 1) {
       const index = i * 3;
-      array[index] += Math.sin(clock.elapsedTime * 0.08 + i) * 0.0008;
-      array[index + 1] += Math.cos(clock.elapsedTime * 0.12 + i * 0.3) * 0.0006;
-      array[index + 2] += velocities[i] * delta * 0.02;
-      if (array[index + 2] > -1.5) {
-        array[index + 2] = -6 - Math.random() * 6;
+      const sway = swayAxes[i];
+      const offset = offsets[i];
+      array[index] += sway.x * Math.sin(time * 0.18 + offset) * 0.0009;
+      array[index + 1] += verticalSpeeds[i] * delta;
+      array[index + 2] += sway.z * Math.cos(time * 0.22 + offset) * 0.0009;
+      if (array[index + 1] > 2.5) {
+        array[index + 1] = -3.2;
+      }
+      if (array[index + 2] > -2.5) {
+        array[index + 2] = -11.5 - Math.random() * 4;
       }
     }
     pointsRef.current.geometry.attributes.position.needsUpdate = true;
@@ -432,23 +760,19 @@ function BackgroundLayers({ reduceMotion }) {
 
   return (
     <group>
-      <mesh
-        position={[0, -1.6, -9.5]}
-        rotation={[-Math.PI / 2, 0, 0]}
-        scale={[34, 34, 1]}
-      >
+      <mesh position={[0, -3, -7.5]} rotation={[-Math.PI / 2, 0, 0]} scale={[26, 20, 1]}>
         <planeGeometry args={[1, 1, 1, 1]} />
         <gridMaterial ref={materialRef} side={DoubleSide} transparent depthWrite={false} />
       </mesh>
-      <points ref={pointsRef} position={[0, 0, -1]}> 
+      <points ref={pointsRef} position={[0, 0, -2]}>
         <bufferGeometry>
           <bufferAttribute attach="attributes-position" args={[positions, 3]} />
         </bufferGeometry>
         <pointsMaterial
-          color={new Color(0x3b82f6)}
-          size={0.085}
+          color={new Color(0x9ca3af)}
+          size={0.05}
           transparent
-          opacity={0.32}
+          opacity={0.18}
           depthWrite={false}
           sizeAttenuation
         />
@@ -600,69 +924,204 @@ function CircuitPaths({ reduceMotion }) {
 }
 
 function OrbitalNetwork({ reduceMotion }) {
-  const nodes = useMemo(() => createOrbitalNodes(), []);
-  const instancedRef = useRef();
-  const connectionsRef = useRef();
-  const dummy = useMemo(() => new Object3D(), []);
-  const connectionPositions = useRef(new Float32Array(nodes.length * 6));
-
-  useFrame(({ clock }) => {
-    if (!instancedRef.current) return;
-    const time = clock.getElapsedTime();
-    nodes.forEach((node, index) => {
-      const angle = node.azimuth + time * node.speed;
-      const radius = node.radius;
-      const inclination = node.inclination;
-      const pos = new Vector3(
-        Math.cos(angle) * radius * Math.sin(inclination),
-        Math.cos(inclination) * radius * 0.6,
-        Math.sin(angle) * radius * Math.sin(inclination)
-      );
-      dummy.position.copy(pos);
-      const scale = node.size * (reduceMotion ? 1 : 0.85 + Math.sin(time * 0.8 + node.colorShift * Math.PI * 2) * 0.25);
-      dummy.scale.setScalar(scale);
-      dummy.lookAt(0, 0, 0);
-      dummy.updateMatrix();
-      instancedRef.current.setMatrixAt(index, dummy.matrix);
-
-      const offset = index * 6;
-      connectionPositions.current[offset] = pos.x;
-      connectionPositions.current[offset + 1] = pos.y;
-      connectionPositions.current[offset + 2] = pos.z;
-      connectionPositions.current[offset + 3] = 0;
-      connectionPositions.current[offset + 4] = 0.2;
-      connectionPositions.current[offset + 5] = 0;
-    });
-    instancedRef.current.instanceMatrix.needsUpdate = true;
-    if (connectionsRef.current) {
-      connectionsRef.current.geometry.attributes.position.array.set(connectionPositions.current);
-      connectionsRef.current.geometry.attributes.position.needsUpdate = true;
-      const baseOpacity = reduceMotion ? 0.18 : 0.22 + Math.sin(time * 0.4) * 0.08;
-      connectionsRef.current.material.opacity = baseOpacity;
-    }
-  });
+  const { nodes, streams } = useMemo(() => createOrbitalNetwork(), []);
+  const orbitRefs = useRef([]);
+  const visualRefs = useRef([]);
+  const materialRefs = useRef([]);
+  const edgeRefs = useRef([]);
+  const coreRefs = useRef([]);
+  const nodePositions = useRef(nodes.map(() => new Vector3()));
+  const typeBGeometries = useMemo(
+    () =>
+      nodes.map((node) => {
+        if (node.type !== "B") {
+          return null;
+        }
+        return node.shape === "dodeca" ? new DodecahedronGeometry(0.5, 0) : new IcosahedronGeometry(0.5, 0);
+      }),
+    [nodes],
+  );
+  const typeBEdgeGeometries = useMemo(
+    () => typeBGeometries.map((geometry) => (geometry ? new EdgesGeometry(geometry, 10) : null)),
+    [typeBGeometries],
+  );
 
   useEffect(() => {
-    if (!instancedRef.current) return;
+    orbitRefs.current = orbitRefs.current.slice(0, nodes.length);
+    visualRefs.current = visualRefs.current.slice(0, nodes.length);
+    materialRefs.current = materialRefs.current.slice(0, nodes.length);
+    edgeRefs.current = edgeRefs.current.slice(0, nodes.length);
+    coreRefs.current = coreRefs.current.slice(0, nodes.length);
+  }, [nodes.length]);
+
+  useFrame(({ clock }, delta) => {
+    const time = clock.getElapsedTime();
     nodes.forEach((node, index) => {
-      const color = new Color().setHSL(MathUtils.lerp(0.52, 0.92, node.colorShift), 0.75, 0.6);
-      instancedRef.current.setColorAt(index, color);
+      const orbitGroup = orbitRefs.current[index];
+      const visualGroup = visualRefs.current[index];
+      if (!orbitGroup || !visualGroup) return;
+      const angle = node.baseAngle + node.direction * node.orbitSpeed * time * Math.PI * 2;
+      const basePosition = new Vector3(Math.cos(angle) * node.orbitRadius, 0, Math.sin(angle) * node.orbitRadius);
+      basePosition.applyQuaternion(node.tiltQuaternion);
+      basePosition.add(HERO_ORB_CENTER);
+      orbitGroup.position.copy(basePosition);
+      nodePositions.current[index].copy(basePosition);
+
+      const scalePulse = reduceMotion
+        ? 1
+        : MathUtils.lerp(0.95, 1.05, (Math.sin(time * node.scalePulseRate + node.scalePulseOffset) + 1) * 0.5);
+      visualGroup.scale.setScalar(node.baseScale * scalePulse);
+      visualGroup.rotateOnAxis(node.selfRotationAxis, node.selfRotationSpeed * delta);
+
+      const material = materialRefs.current[index];
+      if (node.type === "A" && material) {
+        const cycle = ((time / 8 + node.colorCycleOffset) % TYPE_A_TINT_COLORS.length + TYPE_A_TINT_COLORS.length) %
+          TYPE_A_TINT_COLORS.length;
+        const baseIndex = Math.floor(cycle);
+        const nextIndex = (baseIndex + 1) % TYPE_A_TINT_COLORS.length;
+        const localT = cycle - baseIndex;
+        const emissive = TYPE_A_TINT_COLORS[baseIndex].clone().lerp(TYPE_A_TINT_COLORS[nextIndex], localT);
+        material.emissive.copy(emissive);
+        material.emissiveIntensity = 0.6;
+      }
+
+      if (node.type === "B" && edgeRefs.current[index]) {
+        const edgeMaterial = edgeRefs.current[index].material;
+        edgeMaterial.opacity = reduceMotion ? 0.9 : 0.8 + Math.sin(time * 1.2 + node.scalePulseOffset) * 0.2;
+      }
+
+      if (node.type === "C" && coreRefs.current[index]) {
+        const intensity = reduceMotion ? 5.0 : 5 + Math.sin(time * 1.6 + node.scalePulseOffset) * 1.2;
+        coreRefs.current[index].material.emissiveIntensity = intensity;
+      }
     });
-    instancedRef.current.instanceColor.needsUpdate = true;
-  }, [nodes]);
+  });
+
+  const renderNode = (node, index) => {
+    if (node.type === "A") {
+      return (
+        <mesh
+          key={`${node.id}-mesh`}
+          ref={(value) => {
+            materialRefs.current[index] = value?.material ?? materialRefs.current[index];
+          }}
+          castShadow
+          receiveShadow
+        >
+          <icosahedronGeometry args={[0.5, 4]} />
+          <meshPhysicalMaterial
+            color={new Color(0x282d34)}
+            metalness={0.95}
+            roughness={0.15}
+            clearcoat={0.8}
+            clearcoatRoughness={0.12}
+            emissive={TYPE_A_TINT_COLORS[0].clone()}
+            emissiveIntensity={0.6}
+            reflectivity={0.85}
+            envMapIntensity={1.35}
+            transparent={false}
+          />
+        </mesh>
+      );
+    }
+    if (node.type === "B") {
+      const angularGeometry = typeBGeometries[index];
+      const edgeGeometry = typeBEdgeGeometries[index];
+      return (
+        <group key={`${node.id}-mesh`}>
+          <mesh
+            ref={(value) => {
+              materialRefs.current[index] = value?.material ?? materialRefs.current[index];
+            }}
+            castShadow
+            receiveShadow
+          >
+            {angularGeometry ? <primitive object={angularGeometry} attach="geometry" /> : <icosahedronGeometry args={[0.5, 0]} />}
+            <meshStandardMaterial
+              color={new Color(0x1e2330)}
+              metalness={0.75}
+              roughness={0.45}
+              emissive={new Color(0x0f172a)}
+              envMapIntensity={0.65}
+            />
+          </mesh>
+          {edgeGeometry && (
+            <lineSegments
+              ref={(value) => {
+                edgeRefs.current[index] = value ?? edgeRefs.current[index];
+              }}
+            >
+              <primitive object={edgeGeometry} attach="geometry" />
+              <lineBasicMaterial
+                color={new Color(0x22d3ee)}
+                transparent
+                opacity={0.85}
+                toneMapped={false}
+              />
+            </lineSegments>
+          )}
+        </group>
+      );
+    }
+
+    return (
+      <group key={`${node.id}-mesh`}>
+        <mesh
+          ref={(value) => {
+            materialRefs.current[index] = value?.material ?? materialRefs.current[index];
+          }}
+          castShadow
+          receiveShadow
+        >
+          <torusGeometry args={[0.5, 0.18, 36, 72]} />
+          <meshPhysicalMaterial
+            color={new Color(0xc8dcff)}
+            transparent
+            opacity={0.85}
+            transmission={0.88}
+            ior={1.5}
+            roughness={0.05}
+            metalness={0}
+            thickness={0.25}
+          />
+        </mesh>
+        <mesh
+          ref={(value) => {
+            coreRefs.current[index] = value ?? coreRefs.current[index];
+          }}
+          position={[0, 0, 0]}
+        >
+          <sphereGeometry args={[0.18, 24, 24]} />
+          <meshBasicMaterial
+            color={new Color(0xffffff)}
+            emissive={new Color(0xffffff)}
+            emissiveIntensity={5}
+            toneMapped={false}
+          />
+        </mesh>
+      </group>
+    );
+  };
 
   return (
     <group>
-      <instancedMesh ref={instancedRef} args={[null, null, nodes.length]}>
-        <icosahedronGeometry args={[1, 2]} />
-        <meshBasicMaterial toneMapped={false} transparent opacity={0.85} vertexColors />
-      </instancedMesh>
-      <lineSegments ref={connectionsRef}>
-        <bufferGeometry>
-          <bufferAttribute attach="attributes-position" args={[connectionPositions.current, 3]} />
-        </bufferGeometry>
-        <lineBasicMaterial color={new Color(0x60a5fa)} transparent opacity={0.2} toneMapped={false} />
-      </lineSegments>
+      {nodes.map((node, index) => (
+        <group
+          key={node.id}
+          ref={(value) => {
+            orbitRefs.current[index] = value ?? orbitRefs.current[index];
+          }}
+        >
+          <group
+            ref={(value) => {
+              visualRefs.current[index] = value ?? visualRefs.current[index];
+            }}
+          >
+            {renderNode(node, index)}
+          </group>
+        </group>
+      ))}
+      <EnergyStreams streams={streams} reduceMotion={reduceMotion} nodePositions={nodePositions} />
     </group>
   );
 }
@@ -706,6 +1165,61 @@ function ForegroundBokeh({ reduceMotion }) {
         depthWrite={false}
         toneMapped={false}
         color={new Color(0xffffff)}
+        vertexColors
+      />
+    </instancedMesh>
+  );
+}
+
+function GodRays({ reduceMotion }) {
+  const instancedRef = useRef();
+  const dummy = useMemo(() => new Object3D(), []);
+  const rays = useMemo(() => {
+    const random = createDeterministicRandom(6412);
+    return Array.from({ length: GOD_RAY_COUNT }, (_, index) => ({
+      angle: (index / GOD_RAY_COUNT) * Math.PI * 2,
+      length: 6 + random() * 2,
+      width: 0.28 + random() * 0.12,
+      offset: random() * Math.PI * 2,
+      tilt: MathUtils.degToRad(-6 + random() * 12),
+    }));
+  }, []);
+
+  useEffect(() => {
+    if (!instancedRef.current) {
+      return;
+    }
+    rays.forEach((ray, index) => {
+      instancedRef.current.setColorAt(index, new Color(0x38bdf8));
+    });
+    instancedRef.current.instanceColor.needsUpdate = true;
+  }, [rays]);
+
+  useFrame(({ clock }) => {
+    if (!instancedRef.current) return;
+    const time = clock.getElapsedTime();
+    const rotationOffset = reduceMotion ? 0 : time * Math.PI * 2 * 0.01;
+    rays.forEach((ray, index) => {
+      const groupRotation = ray.angle + rotationOffset;
+      dummy.position.set(Math.cos(groupRotation) * 0.2, 0.2, Math.sin(groupRotation) * 0.2);
+      dummy.rotation.set(ray.tilt, groupRotation, 0);
+      dummy.scale.set(ray.width, ray.length, 1);
+      dummy.updateMatrix();
+      instancedRef.current.setMatrixAt(index, dummy.matrix);
+    });
+    instancedRef.current.instanceMatrix.needsUpdate = true;
+  });
+
+  return (
+    <instancedMesh ref={instancedRef} args={[null, null, rays.length]} frustumCulled={false} position={[0, 0, 0]}>
+      <planeGeometry args={[1, 1]} />
+      <meshBasicMaterial
+        transparent
+        opacity={0.16}
+        depthWrite={false}
+        toneMapped={false}
+        color={new Color(0x38bdf8)}
+        blending={AdditiveBlending}
         vertexColors
       />
     </instancedMesh>
@@ -773,6 +1287,220 @@ function HeroOrb({ reduceMotion }) {
       </mesh>
       <NeuralCore reduceMotion={reduceMotion} />
       <CircuitPaths reduceMotion={reduceMotion} />
+      <GodRays reduceMotion={reduceMotion} />
+    </group>
+  );
+}
+
+function EnergyStreams({ streams, reduceMotion, nodePositions }) {
+  const streamCurves = useMemo(
+    () => streams.map(() => new CubicBezierCurve3(new Vector3(), new Vector3(), new Vector3(), new Vector3())),
+    [streams],
+  );
+  const coreRefs = useRef([]);
+  const glowRefs = useRef([]);
+  const coreMaterials = useRef([]);
+  const glowMaterials = useRef([]);
+  const particleRefs = useRef(streams.map((stream) => new Array(stream.particleOffsets.length).fill(null)));
+
+  const initialCoreGeometries = useMemo(
+    () => streams.map((stream, index) => new TubeGeometry(streamCurves[index], 32, stream.coreRadius, 12, false)),
+    [streams, streamCurves],
+  );
+  const initialGlowGeometries = useMemo(
+    () => streams.map((stream, index) => new TubeGeometry(streamCurves[index], 32, stream.outerRadius, 12, false)),
+    [streams, streamCurves],
+  );
+
+  useEffect(() => {
+    coreRefs.current = coreRefs.current.slice(0, streams.length);
+    glowRefs.current = glowRefs.current.slice(0, streams.length);
+    coreMaterials.current = coreMaterials.current.slice(0, streams.length);
+    glowMaterials.current = glowMaterials.current.slice(0, streams.length);
+    particleRefs.current = streams.map((stream, streamIndex) => {
+      const existing = particleRefs.current[streamIndex] ?? [];
+      const next = new Array(stream.particleOffsets.length).fill(null);
+      return next.map((_, particleIndex) => existing[particleIndex] ?? null);
+    });
+  }, [streams.length, streams]);
+
+  useFrame(({ clock }) => {
+    const time = clock.getElapsedTime();
+    streams.forEach((stream, index) => {
+      const coreMesh = coreRefs.current[index];
+      const glowMesh = glowRefs.current[index];
+      const coreMaterial = coreMaterials.current[index];
+      const glowMaterial = glowMaterials.current[index];
+      const curve = streamCurves[index];
+      if (!curve) return;
+
+      const startPosition =
+        stream.startIndex === "hero"
+          ? HERO_ORB_CENTER.clone()
+          : nodePositions.current[stream.startIndex]?.clone() ?? HERO_ORB_CENTER.clone();
+      const endPosition =
+        stream.endIndex === "hero"
+          ? HERO_ORB_CENTER.clone()
+          : nodePositions.current[stream.endIndex]?.clone() ?? HERO_ORB_CENTER.clone();
+
+      const direction = endPosition.clone().sub(startPosition);
+      const length = direction.length();
+      if (length < 0.001) {
+        return;
+      }
+
+      const directionNormal = direction.clone().normalize();
+      let perpendicular = direction.clone().cross(stream.spiralAxis);
+      if (perpendicular.lengthSq() < 1e-6) {
+        perpendicular = directionNormal.clone().cross(stream.wobbleAxis);
+      }
+      perpendicular.normalize();
+
+      const wobbleValue = reduceMotion
+        ? 0
+        : stream.wobbleAmplitude * Math.sin(time * stream.wobbleFrequency + stream.gradientOffset * Math.PI * 2);
+      const twistAngle = reduceMotion ? 0 : time * 0.35 + stream.gradientOffset * Math.PI * 2;
+      const twistQuaternion = new Quaternion().setFromAxisAngle(directionNormal, twistAngle);
+
+      const controlA = startPosition
+        .clone()
+        .addScaledVector(directionNormal, length * 0.33)
+        .add(
+          perpendicular
+            .clone()
+            .applyQuaternion(twistQuaternion)
+            .multiplyScalar(stream.controlMagnitude + wobbleValue),
+        );
+      const controlB = startPosition
+        .clone()
+        .addScaledVector(directionNormal, length * 0.66)
+        .add(
+          perpendicular
+            .clone()
+            .applyQuaternion(twistQuaternion.clone().invert())
+            .multiplyScalar(-stream.controlMagnitude * 0.75 + wobbleValue),
+        );
+
+      curve.v0.copy(startPosition);
+      curve.v1.copy(controlA);
+      curve.v2.copy(controlB);
+      curve.v3.copy(endPosition);
+      curve.updateArcLengths();
+
+      const tubularSegments = reduceMotion ? 64 : 96;
+
+      if (coreMesh) {
+        const newGeometry = new TubeGeometry(curve, tubularSegments, stream.coreRadius, 16, false);
+        coreMesh.geometry.dispose();
+        coreMesh.geometry = newGeometry;
+      }
+
+      if (glowMesh) {
+        const newGeometry = new TubeGeometry(curve, tubularSegments, stream.outerRadius, 12, false);
+        glowMesh.geometry.dispose();
+        glowMesh.geometry = newGeometry;
+      }
+
+      if (coreMaterial) {
+        const intensity =
+          stream.pulseBase +
+          (reduceMotion ? 0 : stream.pulseAmplitude * Math.sin(time * stream.pulseFrequency + stream.gradientOffset * Math.PI * 2));
+        coreMaterial.uniforms.uTime.value = time;
+        coreMaterial.uniforms.uFlowDirection.value = stream.flowDirection;
+        coreMaterial.uniforms.uGradientShift.value = reduceMotion
+          ? stream.gradientOffset
+          : stream.gradientOffset + time * stream.gradientSpeed * stream.flowDirection;
+        coreMaterial.uniforms.uIntensity.value = intensity;
+        coreMaterial.uniforms.uOpacity.value = reduceMotion ? 0.8 : 0.9;
+      }
+
+      if (glowMaterial) {
+        glowMaterial.uniforms.uFlowDirection.value = stream.flowDirection;
+        glowMaterial.uniforms.uGradientShift.value = reduceMotion
+          ? stream.gradientOffset
+          : stream.gradientOffset + time * stream.gradientSpeed * 0.65 * stream.flowDirection;
+        glowMaterial.uniforms.uOpacity.value = reduceMotion ? 0.16 : 0.25;
+      }
+
+      const pathLength = Math.max(curve.getLength(), 0.0001);
+      const directionSign = stream.flowDirection >= 0 ? 1 : -1;
+      const particles = particleRefs.current[index] ?? [];
+
+      particles.forEach((particle, particleIndex) => {
+        if (!particle) return;
+        const offset = stream.particleOffsets[particleIndex] ?? 0;
+        const travel = reduceMotion ? offset : offset + (time * stream.particleSpeed) / pathLength;
+        let t = ((travel % 1) + 1) % 1;
+        if (directionSign < 0) {
+          t = 1 - t;
+        }
+        const point = curve.getPointAt(t);
+        particle.position.copy(point);
+        const tangent = curve.getTangentAt(t).normalize();
+        const up = new Vector3(0, 1, 0);
+        if (tangent.lengthSq() > 0) {
+          const alignment = new Quaternion().setFromUnitVectors(up, tangent);
+          particle.quaternion.copy(alignment);
+        }
+        const particleScale = stream.coreRadius * 1.8;
+        particle.scale.set(particleScale * 0.75, particleScale, particleScale);
+      });
+    });
+  });
+
+  return (
+    <group>
+      {streams.map((stream, index) => (
+        <group key={stream.id} frustumCulled={false}>
+          <mesh
+            ref={(value) => {
+              coreRefs.current[index] = value ?? coreRefs.current[index];
+            }}
+            geometry={initialCoreGeometries[index]}
+            frustumCulled={false}
+          >
+            <energyStreamMaterial
+              ref={(value) => {
+                coreMaterials.current[index] = value ?? coreMaterials.current[index];
+              }}
+              transparent
+              toneMapped={false}
+            />
+          </mesh>
+          <mesh
+            ref={(value) => {
+              glowRefs.current[index] = value ?? glowRefs.current[index];
+            }}
+            geometry={initialGlowGeometries[index]}
+            frustumCulled={false}
+          >
+            <energyGlowMaterial
+              ref={(value) => {
+                glowMaterials.current[index] = value ?? glowMaterials.current[index];
+              }}
+              transparent
+              toneMapped={false}
+              blending={AdditiveBlending}
+              depthWrite={false}
+            />
+          </mesh>
+          {stream.particleOffsets.map((_, particleIndex) => (
+            <mesh
+              key={`${stream.id}-particle-${particleIndex}`}
+              ref={(value) => {
+                if (!particleRefs.current[index]) {
+                  particleRefs.current[index] = [];
+                }
+                particleRefs.current[index][particleIndex] = value ?? particleRefs.current[index][particleIndex];
+              }}
+              frustumCulled={false}
+            >
+              <sphereGeometry args={[0.0125, 12, 12]} />
+              <meshBasicMaterial color={new Color(0xffffff)} toneMapped={false} transparent opacity={0.95} />
+            </mesh>
+          ))}
+        </group>
+      ))}
     </group>
   );
 }
