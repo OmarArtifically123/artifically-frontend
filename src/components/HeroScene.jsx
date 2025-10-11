@@ -11,16 +11,20 @@ import {
   EdgesGeometry,
   DodecahedronGeometry,
   IcosahedronGeometry,
+  LinearFilter,
   MathUtils,
   Object3D,
   Quaternion,
+  RGBAFormat,
   SRGBColorSpace,
   TubeGeometry,
+  Uniform,
   Vector2,
   Vector3,
 } from "three";
 import { Line, shaderMaterial } from "@react-three/drei";
-import { EffectComposer, Bloom, ChromaticAberration, Noise, Vignette } from "@react-three/postprocessing";
+import { EffectComposer, Bloom, DepthOfField } from "@react-three/postprocessing";
+import { BlendFunction, Effect, EffectAttribute } from "postprocessing";
 
 const HERO_ASPECT = 16 / 9;
 const HERO_FOV = 45;
@@ -39,6 +43,11 @@ const BACKGROUND_PARTICLE_COUNT = 96;
 const FOREGROUND_PARTICLE_COUNT = 28;
 const GOD_RAY_COUNT = 14;
 const HEIGHT_FOG_COLOR = new Color(0x14233c);
+const LENS_DIRT_TEXTURE_SIZE = 256;
+const MOTION_BLUR_SAMPLES = 8;
+
+const SHADOW_FLOOR = new Vector3(5 / 255, 8 / 255, 12 / 255);
+const HERO_FOCUS_POINT = HERO_ORB_CENTER.clone();
 
 const ORBITAL_RING_CONFIG = [
   {
@@ -88,6 +97,317 @@ function createDeterministicRandom(seed = 2024) {
     state = (state * 1664525 + 1013904223) >>> 0;
     return state / 4294967296;
   };
+}
+
+function createLensDirtTexture(size = LENS_DIRT_TEXTURE_SIZE, seed = 3379) {
+  const random = createDeterministicRandom(seed);
+  const data = new Uint8Array(size * size * 4);
+  const smudgeCount = 18;
+  const smudges = Array.from({ length: smudgeCount }, () => {
+    const center = new Vector2(random(), random());
+    const rotation = random() * Math.PI * 2;
+    const cos = Math.cos(rotation);
+    const sin = Math.sin(rotation);
+    return {
+      center,
+      cos,
+      sin,
+      radiusX: 0.08 + random() * 0.18,
+      radiusY: 0.04 + random() * 0.12,
+      softness: 0.35 + random() * 0.3,
+      intensity: 0.35 + random() * 0.4,
+    };
+  });
+
+  for (let y = 0; y < size; y += 1) {
+    for (let x = 0; x < size; x += 1) {
+      const nx = x / (size - 1);
+      const ny = y / (size - 1);
+      const dx = nx - 0.5;
+      const dy = ny - 0.5;
+      const radial = Math.sqrt(dx * dx + dy * dy);
+      const vignette = Math.max(0, 1 - Math.pow(radial * 1.45, 1.8));
+      const noise = (random() * 0.65 + random() * 0.35) * 0.35;
+      let value = vignette * 0.18 + noise * 0.25;
+
+      smudges.forEach((smudge) => {
+        const localX = nx - smudge.center.x;
+        const localY = ny - smudge.center.y;
+        const rotatedX = localX * smudge.cos - localY * smudge.sin;
+        const rotatedY = localX * smudge.sin + localY * smudge.cos;
+        const distance = Math.sqrt(
+          (rotatedX / smudge.radiusX) * (rotatedX / smudge.radiusX) +
+            (rotatedY / smudge.radiusY) * (rotatedY / smudge.radiusY),
+        );
+        const contribution = Math.exp(-Math.pow(distance, 2.6) / Math.max(smudge.softness, 0.001));
+        value += contribution * smudge.intensity * 0.22;
+      });
+
+      const dust = Math.pow(random(), 8) * 0.9;
+      value += dust * 0.6;
+
+      const baseIndex = (y * size + x) * 4;
+      const clamped = Math.min(1, Math.max(0, value));
+      const channel = Math.floor(clamped * 255);
+      data[baseIndex] = channel;
+      data[baseIndex + 1] = channel;
+      data[baseIndex + 2] = channel;
+      data[baseIndex + 3] = 255;
+    }
+  }
+
+  const texture = new DataTexture(data, size, size, RGBAFormat);
+  texture.needsUpdate = true;
+  texture.magFilter = LinearFilter;
+  texture.minFilter = LinearFilter;
+  texture.colorSpace = SRGBColorSpace;
+  return texture;
+}
+
+function useLensDirtTexture() {
+  return useMemo(() => createLensDirtTexture(), []);
+}
+
+class LensDirtEffect extends Effect {
+  constructor(texture, opacity = 0.15, threshold = 1.0) {
+    super("LensDirtEffect", /* glsl */ `
+        uniform sampler2D uDirtTexture;
+        uniform float uOpacity;
+        uniform float uThreshold;
+        vec3 applyDirt(vec2 uv, vec3 color) {
+          float luminance = dot(color, vec3(0.2126, 0.7152, 0.0722));
+          float mask = clamp((luminance - uThreshold) / max(1.0 - uThreshold, 0.0001), 0.0, 1.0);
+          float dirt = texture(uDirtTexture, uv).r;
+          return color + color * dirt * mask * uOpacity;
+        }
+
+        void mainImage(const in vec4 inputColor, const in vec2 uv, out vec4 outputColor) {
+          vec3 color = inputColor.rgb;
+          color = applyDirt(uv, color);
+          outputColor = vec4(color, inputColor.a);
+        }
+      `,
+      {
+        blendFunction: BlendFunction.NORMAL,
+        uniforms: new Map([
+          ["uDirtTexture", new Uniform(texture)],
+          ["uOpacity", new Uniform(opacity)],
+          ["uThreshold", new Uniform(threshold)],
+        ]),
+      },
+    );
+  }
+}
+
+class ColorGradeEffect extends Effect {
+  constructor() {
+    super("ColorGradeEffect", /* glsl */ `
+        uniform vec3 uShadowFloor;
+        uniform vec3 uShadowTint;
+        uniform vec3 uHighlightTint;
+        uniform float uMidToneContrast;
+        uniform float uHighlightRollOff;
+        uniform float uGlobalSaturation;
+        uniform float uBlueCyanSaturation;
+        uniform float uPurpleSaturation;
+        uniform float uCoolBloomBoost;
+        uniform vec2 uResolution;
+        uniform float uVignetteIntensity;
+        uniform float uVignetteRoundness;
+        uniform float uVignetteFeather;
+
+        vec3 rgb2hsv(vec3 c) {
+          vec4 K = vec4(0.0, -1.0 / 3.0, 2.0 / 3.0, -1.0);
+          vec4 p = mix(vec4(c.bg, K.wz), vec4(c.gb, K.xy), step(c.b, c.g));
+          vec4 q = mix(vec4(p.xyw, c.r), vec4(c.r, p.yzx), step(p.x, c.r));
+
+          float d = q.x - min(q.w, q.y);
+          float e = 1.0e-10;
+          return vec3(abs(q.z + (q.w - q.y) / (6.0 * d + e)), d / (q.x + e), q.x);
+        }
+
+        vec3 hsv2rgb(vec3 c) {
+          vec3 rgb = clamp(abs(mod(c.x * 6.0 + vec3(0.0, 4.0, 2.0), 6.0) - 3.0) - 1.0, 0.0, 1.0);
+          return c.z * mix(vec3(1.0), rgb, c.y);
+        }
+
+        float vignetteMask(vec2 uv, vec2 resolution, float intensity, float roundness, float feather) {
+          vec2 aspect = vec2(resolution.x / resolution.y, 1.0);
+          vec2 centered = (uv - 0.5) * aspect;
+          float dist = length(centered * vec2(1.0, mix(1.0, aspect.x, 1.0 - roundness)));
+          float feathered = smoothstep(intensity, intensity - feather * 0.6, dist);
+          return clamp(feathered, 0.0, 1.0);
+        }
+
+        void mainImage(const in vec4 inputColor, const in vec2 uv, out vec4 outputColor) {
+          vec3 color = clamp(inputColor.rgb, vec3(0.0), vec3(1.0));
+          color = max(color, uShadowFloor);
+
+          vec3 mid = smoothstep(vec3(0.15), vec3(0.85), color);
+          color = mix(color, mid, uMidToneContrast);
+
+          vec3 highlightCurve = 1.0 - exp(-color * uHighlightRollOff);
+          color = mix(color, highlightCurve, 0.45);
+
+          float luminance = dot(color, vec3(0.2126, 0.7152, 0.0722));
+          float shadowWeight = smoothstep(0.55, 0.05, luminance);
+          float highlightWeight = smoothstep(0.45, 0.95, luminance);
+          color += uShadowTint * shadowWeight;
+          color += uHighlightTint * highlightWeight;
+
+          vec3 hsv = rgb2hsv(color);
+          hsv.y = clamp(hsv.y * uGlobalSaturation, 0.0, 1.0);
+          float hue = hsv.x;
+
+          float blueCyanMask = exp(-pow(min(abs(hue - 0.5), abs(hue - 1.0 - 0.5)) / 0.09, 2.2));
+          float purpleMask = exp(-pow(min(abs(hue - 0.78), abs(hue + 0.22)) / 0.07, 2.5));
+          hsv.y = clamp(hsv.y * mix(1.0, uBlueCyanSaturation, blueCyanMask), 0.0, 1.0);
+          hsv.y = clamp(hsv.y * mix(1.0, uPurpleSaturation, purpleMask), 0.0, 1.0);
+          float bloomSatBoost = smoothstep(0.6, 1.0, hsv.z);
+          hsv.y = clamp(hsv.y * (1.0 + bloomSatBoost * 0.15), 0.0, 1.0);
+          color = hsv2rgb(hsv);
+
+          color = mix(color, color * vec3(0.8, 0.92, 1.05), uCoolBloomBoost);
+
+          float vignette = vignetteMask(uv, uResolution, uVignetteIntensity, uVignetteRoundness, uVignetteFeather);
+          color = mix(vec3(0.0), color, vignette);
+
+          outputColor = vec4(clamp(color, 0.0, 1.0), inputColor.a);
+        }
+      `,
+      {
+        blendFunction: BlendFunction.NORMAL,
+        attributes: EffectAttribute.CONVOLUTION,
+        uniforms: new Map([
+          ["uShadowFloor", new Uniform(new Vector3().copy(SHADOW_FLOOR))],
+          ["uShadowTint", new Uniform(new Vector3(0.02, 0.06, 0.12))],
+          ["uHighlightTint", new Uniform(new Vector3(0.05, 0.1, -0.02))],
+          ["uMidToneContrast", new Uniform(0.28)],
+          ["uHighlightRollOff", new Uniform(1.4)],
+          ["uGlobalSaturation", new Uniform(1.08)],
+          ["uBlueCyanSaturation", new Uniform(1.15)],
+          ["uPurpleSaturation", new Uniform(1.12)],
+          ["uCoolBloomBoost", new Uniform(0.15)],
+          ["uResolution", new Uniform(new Vector2(1280, 720))],
+          ["uVignetteIntensity", new Uniform(0.28)],
+          ["uVignetteRoundness", new Uniform(0.7)],
+          ["uVignetteFeather", new Uniform(0.5)],
+        ]),
+      },
+    );
+  }
+}
+
+class FilmGrainEffect extends Effect {
+  constructor(intensity = 0.08, grainSize = 1.5, highlightResponse = 1.2) {
+    super("FilmGrainEffect", /* glsl */ `
+        uniform float uTime;
+        uniform float uIntensity;
+        uniform float uGrainSize;
+        uniform float uHighlightResponse;
+
+        float hash(vec2 p) {
+          return fract(sin(dot(p, vec2(127.1, 311.7))) * 43758.5453123);
+        }
+
+        void mainImage(const in vec4 inputColor, const in vec2 uv, out vec4 outputColor) {
+          float time = uTime * 0.5;
+          vec2 grainUV = uv * uGrainSize + vec2(time, time * 1.27);
+          float noise = hash(grainUV);
+          noise = mix(noise, fract(noise * 1.215 + time * 0.07), 0.45);
+          float luminance = dot(inputColor.rgb, vec3(0.299, 0.587, 0.114));
+          float weight = pow(clamp(luminance + 0.15, 0.0, 1.0), uHighlightResponse);
+          float grain = (noise - 0.5) * uIntensity * (0.45 + weight);
+          vec3 color = inputColor.rgb + grain;
+          outputColor = vec4(clamp(color, 0.0, 1.0), inputColor.a);
+        }
+      `,
+      {
+        blendFunction: BlendFunction.NORMAL,
+        uniforms: new Map([
+          ["uTime", new Uniform(0)],
+          ["uIntensity", new Uniform(intensity)],
+          ["uGrainSize", new Uniform(grainSize)],
+          ["uHighlightResponse", new Uniform(highlightResponse)],
+        ]),
+      },
+    );
+  }
+}
+
+class SplitChromaticAberrationEffect extends Effect {
+  constructor(edgeIntensity = 0.4, redOffset = 0.002, blueOffset = -0.002) {
+    super("SplitChromaticAberrationEffect", /* glsl */ `
+        uniform float uEdgeIntensity;
+        uniform float uRedOffset;
+        uniform float uBlueOffset;
+
+        vec3 sampleColor(sampler2D buffer, vec2 uv, vec2 offset, float redShift, float blueShift) {
+          float red = texture(buffer, uv + offset * redShift).r;
+          float green = texture(buffer, uv).g;
+          float blue = texture(buffer, uv + offset * blueShift).b;
+          return vec3(red, green, blue);
+        }
+
+        void mainImage(const in vec4 inputColor, const in vec2 uv, out vec4 outputColor) {
+          vec2 center = uv - 0.5;
+          float distance = length(center);
+          float falloff = smoothstep(0.25, 0.95, distance);
+          vec2 direction = distance > 0.0001 ? normalize(center) : vec2(0.0);
+          vec2 offset = direction * falloff * uEdgeIntensity;
+          vec3 color = sampleColor(inputBuffer, uv, offset, uRedOffset, uBlueOffset);
+          outputColor = vec4(color, inputColor.a);
+        }
+      `,
+      {
+        blendFunction: BlendFunction.NORMAL,
+        uniforms: new Map([
+          ["uEdgeIntensity", new Uniform(edgeIntensity)],
+          ["uRedOffset", new Uniform(redOffset)],
+          ["uBlueOffset", new Uniform(blueOffset)],
+        ]),
+      },
+    );
+  }
+}
+
+class HeroMotionBlurEffect extends Effect {
+  constructor(intensity = 0.5, sampleCount = MOTION_BLUR_SAMPLES) {
+    super("HeroMotionBlurEffect", /* glsl */ `
+        uniform vec2 uBlurDirection;
+        uniform float uIntensity;
+        uniform float uSampleCount;
+
+        void mainImage(const in vec4 inputColor, const in vec2 uv, out vec4 outputColor) {
+          vec2 dir = uBlurDirection * uIntensity;
+          float samples = max(uSampleCount, 1.0);
+          vec3 accum = vec3(0.0);
+          float total = 0.0;
+          for (float i = 0.0; i < ${MOTION_BLUR_SAMPLES.toFixed(1)}; i += 1.0) {
+            float t = (i / max(samples - 1.0, 1.0)) - 0.5;
+            vec2 sampleUv = uv + dir * t;
+            vec3 sampleColor = texture(inputBuffer, sampleUv).rgb;
+            float weight = 1.0 - abs(t);
+            accum += sampleColor * weight;
+            total += weight;
+            if (i >= samples - 1.0) {
+              break;
+            }
+          }
+          vec3 color = accum / max(total, 0.0001);
+          outputColor = vec4(color, inputColor.a);
+        }
+      `,
+      {
+        blendFunction: BlendFunction.NORMAL,
+        uniforms: new Map([
+          ["uBlurDirection", new Uniform(new Vector2(0, 0))],
+          ["uIntensity", new Uniform(intensity)],
+          ["uSampleCount", new Uniform(sampleCount)],
+        ]),
+      },
+    );
+  }
 }
 
 function usePrefersReducedMotionScene() {
@@ -1024,6 +1344,11 @@ function OrbitalNetwork({ reduceMotion }) {
   const edgeRefs = useRef([]);
   const coreRefs = useRef([]);
   const nodePositions = useRef(nodes.map(() => new Vector3()));
+  const nodeTrailRefs = useRef(nodes.map(() => null));
+  const nodeTrailBuffers = useRef(nodes.map(() => new Float32Array(MOTION_BLUR_SAMPLES * 3)));
+  const nodeHistories = useRef(
+    nodes.map(() => Array.from({ length: MOTION_BLUR_SAMPLES }, () => HERO_ORB_CENTER.clone())),
+  );
   const typeBGeometries = useMemo(
     () =>
       nodes.map((node) => {
@@ -1045,6 +1370,21 @@ function OrbitalNetwork({ reduceMotion }) {
     materialRefs.current = materialRefs.current.slice(0, nodes.length);
     edgeRefs.current = edgeRefs.current.slice(0, nodes.length);
     coreRefs.current = coreRefs.current.slice(0, nodes.length);
+    nodeTrailRefs.current = nodeTrailRefs.current.slice(0, nodes.length);
+    nodeTrailBuffers.current = nodes.map((_, index) => {
+      const existing = nodeTrailBuffers.current[index];
+      if (existing && existing.length === MOTION_BLUR_SAMPLES * 3) {
+        return existing;
+      }
+      return new Float32Array(MOTION_BLUR_SAMPLES * 3);
+    });
+    nodeHistories.current = nodes.map((_, index) => {
+      const existing = nodeHistories.current[index];
+      if (existing && existing.length === MOTION_BLUR_SAMPLES) {
+        return existing;
+      }
+      return Array.from({ length: MOTION_BLUR_SAMPLES }, () => HERO_ORB_CENTER.clone());
+    });
   }, [nodes.length]);
 
   useFrame(({ clock }, delta) => {
@@ -1059,6 +1399,29 @@ function OrbitalNetwork({ reduceMotion }) {
       basePosition.add(HERO_ORB_CENTER);
       orbitGroup.position.copy(basePosition);
       nodePositions.current[index].copy(basePosition);
+
+      const history = nodeHistories.current[index];
+      const buffer = nodeTrailBuffers.current[index];
+      const trail = nodeTrailRefs.current[index];
+      if (history && buffer) {
+        for (let i = history.length - 1; i > 0; i -= 1) {
+          history[i].copy(history[i - 1]);
+        }
+        history[0].copy(basePosition);
+        history.forEach((vec, historyIndex) => {
+          const base = historyIndex * 3;
+          buffer[base] = vec.x;
+          buffer[base + 1] = vec.y;
+          buffer[base + 2] = vec.z;
+        });
+        if (trail?.geometry) {
+          if (typeof trail.geometry.setPositions === "function") {
+            trail.geometry.setPositions(buffer);
+          } else if (typeof trail.geometry.setFromPoints === "function") {
+            trail.geometry.setFromPoints(history);
+          }
+        }
+      }
 
       const scalePulse = reduceMotion
         ? 1
@@ -1212,6 +1575,17 @@ function OrbitalNetwork({ reduceMotion }) {
           >
             {renderNode(node, index)}
           </group>
+          <Line
+            ref={(value) => {
+              nodeTrailRefs.current[index] = value ?? nodeTrailRefs.current[index];
+            }}
+            points={nodeHistories.current[index] ?? []}
+            color="#38bdf8"
+            transparent
+            opacity={reduceMotion ? 0.12 : 0.32}
+            lineWidth={1.4}
+            toneMapped={false}
+          />
         </group>
       ))}
       <EnergyStreams streams={streams} reduceMotion={reduceMotion} nodePositions={nodePositions} />
@@ -1433,6 +1807,15 @@ function EnergyStreams({ streams, reduceMotion, nodePositions }) {
   const coreMaterials = useRef([]);
   const glowMaterials = useRef([]);
   const particleRefs = useRef(streams.map((stream) => new Array(stream.particleOffsets.length).fill(null)));
+  const particleTrailRefs = useRef(streams.map((stream) => new Array(stream.particleOffsets.length).fill(null)));
+  const particleTrailBuffers = useRef(
+    streams.map((stream) => stream.particleOffsets.map(() => new Float32Array(MOTION_BLUR_SAMPLES * 3))),
+  );
+  const particleHistories = useRef(
+    streams.map((stream) =>
+      stream.particleOffsets.map(() => Array.from({ length: MOTION_BLUR_SAMPLES }, () => new Vector3())),
+    ),
+  );
 
   const initialCoreGeometries = useMemo(
     () => streams.map((stream, index) => new TubeGeometry(streamCurves[index], 32, stream.coreRadius, 12, false)),
@@ -1452,6 +1835,31 @@ function EnergyStreams({ streams, reduceMotion, nodePositions }) {
       const existing = particleRefs.current[streamIndex] ?? [];
       const next = new Array(stream.particleOffsets.length).fill(null);
       return next.map((_, particleIndex) => existing[particleIndex] ?? null);
+    });
+    particleTrailRefs.current = streams.map((stream, streamIndex) => {
+      const existing = particleTrailRefs.current[streamIndex] ?? [];
+      const next = new Array(stream.particleOffsets.length).fill(null);
+      return next.map((_, particleIndex) => existing[particleIndex] ?? null);
+    });
+    particleTrailBuffers.current = streams.map((stream, streamIndex) => {
+      const existing = particleTrailBuffers.current[streamIndex] ?? [];
+      return stream.particleOffsets.map((_, particleIndex) => {
+        const buffer = existing[particleIndex];
+        if (buffer && buffer.length === MOTION_BLUR_SAMPLES * 3) {
+          return buffer;
+        }
+        return new Float32Array(MOTION_BLUR_SAMPLES * 3);
+      });
+    });
+    particleHistories.current = streams.map((stream, streamIndex) => {
+      const existing = particleHistories.current?.[streamIndex] ?? [];
+      return stream.particleOffsets.map((_, particleIndex) => {
+        const history = existing[particleIndex];
+        if (history && history.length === MOTION_BLUR_SAMPLES) {
+          return history;
+        }
+        return Array.from({ length: MOTION_BLUR_SAMPLES }, () => new Vector3());
+      });
     });
   }, [streams.length, streams]);
 
@@ -1575,6 +1983,34 @@ function EnergyStreams({ streams, reduceMotion, nodePositions }) {
         }
         const particleScale = stream.coreRadius * 1.8;
         particle.scale.set(particleScale * 0.75, particleScale, particleScale);
+
+        const histories = particleHistories.current[index];
+        const buffers = particleTrailBuffers.current[index];
+        const trails = particleTrailRefs.current[index];
+        if (histories && buffers && trails) {
+          const history = histories[particleIndex];
+          const buffer = buffers[particleIndex];
+          const trail = trails[particleIndex];
+          if (history && buffer) {
+            for (let i = history.length - 1; i > 0; i -= 1) {
+              history[i].copy(history[i - 1]);
+            }
+            history[0].copy(point);
+            history.forEach((vec, historyIndex) => {
+              const base = historyIndex * 3;
+              buffer[base] = vec.x;
+              buffer[base + 1] = vec.y;
+              buffer[base + 2] = vec.z;
+            });
+            if (trail?.geometry) {
+              if (typeof trail.geometry.setPositions === "function") {
+                trail.geometry.setPositions(buffer);
+              } else if (typeof trail.geometry.setFromPoints === "function") {
+                trail.geometry.setFromPoints(history);
+              }
+            }
+          }
+        }
       });
     });
   });
@@ -1615,21 +2051,42 @@ function EnergyStreams({ streams, reduceMotion, nodePositions }) {
               depthWrite={false}
             />
           </mesh>
-          {stream.particleOffsets.map((_, particleIndex) => (
-            <mesh
-              key={`${stream.id}-particle-${particleIndex}`}
-              ref={(value) => {
-                if (!particleRefs.current[index]) {
-                  particleRefs.current[index] = [];
-                }
-                particleRefs.current[index][particleIndex] = value ?? particleRefs.current[index][particleIndex];
-              }}
-              frustumCulled={false}
-            >
-              <sphereGeometry args={[0.0125, 12, 12]} />
-              <meshBasicMaterial color={new Color(0xffffff)} toneMapped={false} transparent opacity={0.95} />
-            </mesh>
-          ))}
+          {stream.particleOffsets.map((_, particleIndex) => {
+            const history =
+              particleHistories.current[index]?.[particleIndex] ??
+              Array.from({ length: MOTION_BLUR_SAMPLES }, () => new Vector3());
+            return (
+              <group key={`${stream.id}-particle-${particleIndex}`}>
+                <mesh
+                  ref={(value) => {
+                    if (!particleRefs.current[index]) {
+                      particleRefs.current[index] = [];
+                    }
+                    particleRefs.current[index][particleIndex] = value ?? particleRefs.current[index][particleIndex];
+                  }}
+                  frustumCulled={false}
+                >
+                  <sphereGeometry args={[0.0125, 12, 12]} />
+                  <meshBasicMaterial color={new Color(0xffffff)} toneMapped={false} transparent opacity={0.95} />
+                </mesh>
+                <Line
+                  ref={(value) => {
+                    if (!particleTrailRefs.current[index]) {
+                      particleTrailRefs.current[index] = [];
+                    }
+                    particleTrailRefs.current[index][particleIndex] = value ?? particleTrailRefs.current[index][particleIndex];
+                  }}
+                  points={history}
+                  color="#66f7ff"
+                  transparent
+                  opacity={reduceMotion ? 0.1 : 0.28}
+                  lineWidth={1.1}
+                  dashed={false}
+                  toneMapped={false}
+                />
+              </group>
+            );
+          })}
         </group>
       ))}
     </group>
@@ -1637,6 +2094,117 @@ function EnergyStreams({ streams, reduceMotion, nodePositions }) {
 }
 
 function SceneComposer({ reduceMotion }) {
+  const { camera, size } = useThree();
+  const lensDirtTexture = useLensDirtTexture();
+  const dofRef = useRef();
+  const colorGradeEffect = useMemo(() => new ColorGradeEffect(), []);
+  const lensDirtEffect = useMemo(() => new LensDirtEffect(lensDirtTexture, 0.15, 1.0), [lensDirtTexture]);
+  const filmGrainEffect = useMemo(
+    () => new FilmGrainEffect(reduceMotion ? 0.05 : 0.08, 1.5, 1.45),
+    [reduceMotion],
+  );
+  const chromaticEffect = useMemo(() => new SplitChromaticAberrationEffect(0.4, 0.002, -0.002), []);
+  const motionBlurEffect = useMemo(
+    () => new HeroMotionBlurEffect(reduceMotion ? 0.35 : 0.5, reduceMotion ? 4 : MOTION_BLUR_SAMPLES),
+    [reduceMotion],
+  );
+  const previousCameraPosition = useRef(new Vector3());
+  const cameraVelocity = useRef(new Vector3());
+  const blurDirection = useRef(new Vector2());
+  const rightVector = useRef(new Vector3());
+  const upVector = useRef(new Vector3());
+
+  useEffect(() => {
+    previousCameraPosition.current.copy(camera.position);
+  }, [camera]);
+
+  useEffect(() => {
+    const resolutionUniform = colorGradeEffect.uniforms.get("uResolution");
+    if (resolutionUniform) {
+      resolutionUniform.value.set(size.width, size.height);
+    }
+  }, [colorGradeEffect, size.height, size.width]);
+
+  useEffect(() => {
+    const dirtUniform = lensDirtEffect.uniforms.get("uDirtTexture");
+    if (dirtUniform) {
+      dirtUniform.value = lensDirtTexture;
+    }
+  }, [lensDirtEffect, lensDirtTexture]);
+
+  useEffect(() => {
+    const intensityUniform = filmGrainEffect.uniforms.get("uIntensity");
+    if (intensityUniform) {
+      intensityUniform.value = reduceMotion ? 0.05 : 0.08;
+    }
+  }, [filmGrainEffect, reduceMotion]);
+
+  useEffect(() => {
+    const intensityUniform = motionBlurEffect.uniforms.get("uIntensity");
+    if (intensityUniform) {
+      intensityUniform.value = reduceMotion ? 0.35 : 0.5;
+    }
+    const samplesUniform = motionBlurEffect.uniforms.get("uSampleCount");
+    if (samplesUniform) {
+      samplesUniform.value = reduceMotion ? 4 : MOTION_BLUR_SAMPLES;
+    }
+  }, [motionBlurEffect, reduceMotion]);
+
+  useFrame(({ clock }) => {
+    const time = clock.getElapsedTime();
+    const grainTimeUniform = filmGrainEffect.uniforms.get("uTime");
+    if (grainTimeUniform) {
+      grainTimeUniform.value = time;
+    }
+
+    if (dofRef.current) {
+      const focusBreathing = reduceMotion ? 0 : Math.sin((time / 6) * Math.PI * 2) * 0.05;
+      const focusDistanceWorld = camera.position.distanceTo(HERO_FOCUS_POINT) + focusBreathing;
+      const nearWorld = Math.max(camera.near + 0.05, focusDistanceWorld - 2);
+      const farWorld = Math.min(camera.far - 0.05, focusDistanceWorld + 2);
+      const normalizedFocus = MathUtils.clamp(
+        (focusDistanceWorld - camera.near) / (camera.far - camera.near),
+        0,
+        1,
+      );
+      const normalizedRange = MathUtils.clamp(
+        (farWorld - nearWorld) / (camera.far - camera.near),
+        0.001,
+        1,
+      );
+      dofRef.current.focusDistance = normalizedFocus;
+      dofRef.current.focusRange = normalizedRange;
+      dofRef.current.focalLength = 0.02;
+      dofRef.current.bokehScale = 0.15 * (reduceMotion ? 0.7 : 1.0) * 6.0;
+    }
+
+    cameraVelocity.current.copy(camera.position).sub(previousCameraPosition.current);
+    previousCameraPosition.current.copy(camera.position);
+
+    rightVector.current.set(1, 0, 0).applyQuaternion(camera.quaternion);
+    upVector.current.set(0, 1, 0).applyQuaternion(camera.quaternion);
+    blurDirection.current.set(
+      rightVector.current.dot(cameraVelocity.current),
+      upVector.current.dot(cameraVelocity.current),
+    );
+    const velocityMagnitude = cameraVelocity.current.length();
+    if (velocityMagnitude < 1e-5) {
+      blurDirection.current.set(0, 0);
+    } else {
+      const blurStrength = Math.min(velocityMagnitude * 14, 1.0);
+      const currentLength = blurDirection.current.length();
+      if (currentLength > 0.0001) {
+        blurDirection.current.multiplyScalar((blurStrength / currentLength) * 0.5);
+      } else {
+        blurDirection.current.set(0, 0);
+      }
+    }
+    const blurUniform = motionBlurEffect.uniforms.get("uBlurDirection");
+    if (blurUniform) {
+      blurUniform.value.copy(blurDirection.current);
+    }
+  });
+
   return (
     <group>
       <BackgroundLayers reduceMotion={reduceMotion} />
@@ -1647,14 +2215,24 @@ function SceneComposer({ reduceMotion }) {
       <SceneLighting />
       <EffectComposer multisampling={reduceMotion ? 0 : 8} enabled>
         <Bloom
-          intensity={reduceMotion ? 0.85 : 1.25}
-          luminanceThreshold={0.24}
-          luminanceSmoothing={0.32}
-          radius={0.85}
+          intensity={0.85}
+          luminanceThreshold={1.0}
+          luminanceSmoothing={0.18}
+          radius={0.35}
+          mipmapBlur
         />
-        <ChromaticAberration offset={[0.0009, 0.0012]} />
-        <Noise premultiply opacity={reduceMotion ? 0.08 : 0.12} />
-        <Vignette eskil={false} offset={0.22} darkness={0.75} />
+        <DepthOfField
+          ref={dofRef}
+          focusDistance={0.45}
+          focalLength={0.02}
+          bokehScale={0.9}
+          height={720}
+        />
+        <primitive object={lensDirtEffect} />
+        <primitive object={chromaticEffect} />
+        <primitive object={motionBlurEffect} />
+        <primitive object={colorGradeEffect} />
+        <primitive object={filmGrainEffect} />
       </EffectComposer>
     </group>
   );
