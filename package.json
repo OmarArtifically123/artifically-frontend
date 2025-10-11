@@ -56,7 +56,7 @@
     "eslint-plugin-react": "^7.33.2",
     "eslint-plugin-react-hooks": "^4.6.0",
     "eslint-plugin-react-refresh": "^0.4.5",
-    "lighthouse": "^13.0.0",
+    "lighthouse": "^12.1.0",
     "puppeteer": "^24.23.0",
     "rollup-plugin-visualizer": "^6.0.4",
     "terser": "^5.26.0",
