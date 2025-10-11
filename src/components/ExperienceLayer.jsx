@@ -5,7 +5,6 @@ import useInteractiveEffects from "../hooks/useInteractiveEffects";
 import useScrollChoreography from "../hooks/useScrollChoreography";
 import useMicroInteractionSystem from "../hooks/useMicroInteractionSystem";
 import useKineticTypography from "../hooks/useKineticTypography";
-import CustomCursor from "./animation/CustomCursor";
 
 const THEME_PRESETS = {
   light: {
@@ -255,7 +254,6 @@ export default function ExperienceLayer({ children, enableExperience = false }) 
 
   return (
     <MicroInteractionProvider enabled={eligible}>
-      {activated ? <CustomCursor /> : null}
       <MicroInteractionOrchestrator
         enabled={activated}
         pointerFine={pointerFine}

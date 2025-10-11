@@ -48,75 +48,6 @@ function schedulePrefetch(anchor) {
   return () => canceler(id);
 }
 
-function createPointerProxy() {
-  const el = document.createElement("div");
-  el.className = "micro-cursor";
-  el.dataset.active = "false";
-  el.dataset.pressed = "false";
-  el.setAttribute("aria-hidden", "true");
-  el.style.setProperty("--micro-cursor-scale", "0.45");
-  el.style.setProperty("--micro-cursor-x", "-100px");
-  el.style.setProperty("--micro-cursor-y", "-100px");
-  document.body.appendChild(el);
-
-  const state = {
-    scale: 0.45,
-  };
-
-  const clamp = (value, min, max) => Math.min(Math.max(value, min), max);
-
-  const api = {
-    move(x, y) {
-      el.style.setProperty("--micro-cursor-x", `${x}px`);
-      el.style.setProperty("--micro-cursor-y", `${y}px`);
-    },
-    setScale(value) {
-      state.scale = clamp(Number.isFinite(value) ? value : state.scale, 0.35, 1.25);
-      el.style.setProperty("--micro-cursor-scale", `${state.scale}`);
-    },
-    activate(target) {
-      el.dataset.active = "true";
-      if (target) {
-        const attrScale = target.dataset.microCursorScale;
-        const inferredScale = target.dataset.interactionIntent === "primary" || target.classList.contains("btn-primary")
-          ? 0.92
-          : target.classList.contains("btn")
-            ? 0.78
-            : 0.65;
-        api.setScale(attrScale ? Number(attrScale) : inferredScale);
-        if (target.dataset.microCursorColor) {
-          el.style.setProperty("--micro-cursor-color", target.dataset.microCursorColor);
-        } else {
-          el.style.removeProperty("--micro-cursor-color");
-        }
-      } else {
-        api.setScale(0.65);
-      }
-    },
-    rest() {
-      el.dataset.active = "false";
-      api.setScale(0.45);
-    },
-    press() {
-      el.dataset.pressed = "true";
-    },
-    release() {
-      el.dataset.pressed = "false";
-    },
-    celebrate() {
-      el.dataset.celebrate = "true";
-      window.requestAnimationFrame(() => {
-        el.dataset.celebrate = "false";
-      });
-    },
-    destroy() {
-      el.remove();
-    },
-  };
-
-  return api;
-}
-
 function isMouseLike(event) {
   return event.pointerType === "mouse" || event.pointerType === "pen" || event.pointerType === "";
 }
@@ -131,7 +62,7 @@ export default function useMicroInteractionSystem({ enabled, pointerFine, reduce
     }
 
     const preferFinePointer = Boolean(pointerFine);
-    const cursor = preferFinePointer && !motionDisabled ? createPointerProxy() : null;
+    const cursor = null;
 
     const hoverTimers = new Map();
     const focusTimers = new Map();
@@ -374,8 +305,8 @@ export default function useMicroInteractionSystem({ enabled, pointerFine, reduce
     document.addEventListener("keyup", handleKeyUp, true);
     document.addEventListener("click", handleClick, true);
     document.addEventListener("submit", handleSubmit, true);
-    window.addEventListener("pointermove", handlePointerMove, { passive: true });
-    if (cursor) {
+    if (cursor) { 
+      window.addEventListener("pointermove", handlePointerMove, { passive: true });
       window.addEventListener("blur", handleWindowBlur);
     }
 
@@ -391,8 +322,8 @@ export default function useMicroInteractionSystem({ enabled, pointerFine, reduce
       document.removeEventListener("keyup", handleKeyUp, true);
       document.removeEventListener("click", handleClick, true);
       document.removeEventListener("submit", handleSubmit, true);
-      window.removeEventListener("pointermove", handlePointerMove);
       if (cursor) {
+        window.removeEventListener("pointermove", handlePointerMove);
         window.removeEventListener("blur", handleWindowBlur);
       }
       hoverTimers.forEach((timer) => window.clearTimeout(timer));
