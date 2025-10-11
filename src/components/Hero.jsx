@@ -5,7 +5,15 @@ import MagneticButton from "./animation/MagneticButton";
 import { StaggeredContainer, StaggeredItem } from "./animation/StaggeredList";
 import useMicroInteractions from "../hooks/useMicroInteractions";
 import useScrambleText from "../hooks/useScrambleText";
-import HeroScene from "./HeroScene";
+let heroSceneModulePromise;
+
+const loadHeroScene = async () => {
+  if (!heroSceneModulePromise) {
+    heroSceneModulePromise = import("./HeroScene.jsx");
+  }
+  const module = await heroSceneModulePromise;
+  return module?.default ?? module;
+};
 const loadGsap = () => import("../lib/gsapConfig");
 
 const HERO_MEDIA_DIMENSIONS = { width: 1280, height: 720 };
@@ -388,6 +396,7 @@ export default function Hero({ openAuth }) {
 
   const [shouldRenderScene, setShouldRenderScene] = useState(false);
   const [shouldRenderPulse, setShouldRenderPulse] = useState(false);
+  const [HeroSceneComponent, setHeroSceneComponent] = useState(null);
   const [commandOpen, setCommandOpen] = useState(false);
   const [tickerIndex, setTickerIndex] = useState(0);
   const [activePulse, setActivePulse] = useState(0);
@@ -400,6 +409,7 @@ export default function Hero({ openAuth }) {
     if (prefersReducedMotion) {
       setShouldRenderScene(false);
       setShouldRenderPulse(false);
+      setHeroSceneComponent(null);
     }
   }, [prefersReducedMotion]);
 
@@ -410,9 +420,13 @@ export default function Hero({ openAuth }) {
 
     let cancelled = false;
     const cancelSchedule = scheduleSceneLoad(() => {
-      if (!cancelled) {
-        setShouldRenderScene(true);
+      if (cancelled) {
+        return;
       }
+      loadHeroScene().catch((error) => {
+        console.error("Failed to preload hero scene", error);
+      });
+      setShouldRenderScene(true);
     });
 
     return () => {
@@ -420,6 +434,31 @@ export default function Hero({ openAuth }) {
       cancelSchedule();
     };
   }, [prefersReducedMotion, shouldRenderScene]);
+
+  useEffect(() => {
+    if (!shouldRenderScene) {
+      return undefined;
+    }
+
+    let cancelled = false;
+
+    loadHeroScene()
+      .then((Component) => {
+        if (!cancelled) {
+          setHeroSceneComponent(() => Component);
+        }
+      })
+      .catch((error) => {
+        console.error("Failed to load hero scene", error);
+        if (!cancelled) {
+          setHeroSceneComponent(null);
+        }
+      });
+
+    return () => {
+      cancelled = true;
+    };
+  }, [shouldRenderScene]);
 
   useEffect(() => {
     if (prefersReducedMotion || shouldRenderPulse) {
@@ -557,8 +596,8 @@ export default function Hero({ openAuth }) {
         style={{ display: "flex", alignItems: "center", justifyContent: "center" }}
       >
         <div style={heroMediaFrameStyle}>
-          {shouldRenderScene ? (
-            <HeroScene width={HERO_MEDIA_DIMENSIONS.width} height={HERO_MEDIA_DIMENSIONS.height} />
+          {shouldRenderScene && HeroSceneComponent ? (
+            <HeroSceneComponent width={HERO_MEDIA_DIMENSIONS.width} height={HERO_MEDIA_DIMENSIONS.height} />
           ) : (
             <HeroMediaFallback />
           )}

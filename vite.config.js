@@ -29,9 +29,14 @@ const bundleBudgetPlugin = ({
 
       const imports = [...(chunk.imports ?? []), ...(chunk.implicitlyLoadedBefore ?? [])]
       for (const imported of imports) {
-        if (!visited.has(imported)) {
-          stack.push(imported)
+        if (visited.has(imported)) continue
+
+        const importedChunk = bundle[imported]
+        if (importedChunk && importedChunk.type === 'chunk' && importedChunk.isDynamicEntry) {
+          continue
         }
+
+        stack.push(imported)
       }
     }
 
@@ -167,7 +172,15 @@ export default defineConfig((configEnv) => {
     build.rollupOptions = {
       output: {
         manualChunks: (id) => {
-          if (id.includes('node_modules/three')) return 'three-vendor'
+          if (id.includes('src/components/HeroScene')) return 'hero-scene'
+          if (
+            id.includes('node_modules/@react-three/') ||
+            id.includes('node_modules/three') ||
+            id.includes('node_modules/postprocessing') ||
+            id.includes('node_modules/@react-three/postprocessing')
+          ) {
+            return 'hero-scene'
+          }
           if (id.includes('node_modules/gsap')) return 'gsap-vendor'
           if (id.includes('node_modules')) return 'vendor'
         },

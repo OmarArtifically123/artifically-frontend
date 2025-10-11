@@ -19,7 +19,8 @@ import {
   Vector2,
   Vector3,
 } from "three";
-import { Line, shaderMaterial, EffectComposer, Bloom, ChromaticAberration, Noise, Vignette } from "@react-three/drei";
+import { Line, shaderMaterial } from "@react-three/drei";
+import { EffectComposer, Bloom, ChromaticAberration, Noise, Vignette } from "@react-three/postprocessing";
 
 const HERO_ASPECT = 16 / 9;
 const HERO_FOV = 45;
