@@ -14,8 +14,6 @@ export default function useScrollChoreography() {
     let rafId = null;
 
     const clearAnimatedStyles = () => {
-      body.removeAttribute("data-motion-ready");
-
       const animatedElements = body.querySelectorAll("[data-animate]");
       animatedElements.forEach((element) => {
         element.dataset.animateInitialized = "true";
@@ -26,6 +24,8 @@ export default function useScrollChoreography() {
         element.style.removeProperty("-webkit-backdrop-filter");
         element.style.removeProperty("will-change");
       });
+
+      body.dataset.motionReady = "true";
     };
 
     const scheduleClear = () => {
@@ -68,6 +68,8 @@ export default function useScrollChoreography() {
       animatedElements.forEach((element) => {
         delete element.dataset.animateInitialized;
       });
+
+      body.removeAttribute("data-motion-ready");
     };
   }, []);
 }

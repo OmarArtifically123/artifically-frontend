@@ -2666,8 +2666,8 @@ main :where(section, div)[id] {
   margin: 0 auto;
   display: grid;
   gap: clamp(2.5rem, 6vw, 4rem);
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-  align-items: center;
+  grid-template-columns: minmax(0, 1.05fr) minmax(0, 1.35fr);
+  align-items: stretch;
 }
 
 .hero[data-hero-version="reimagined"] .hero-background {
@@ -2685,6 +2685,7 @@ main :where(section, div)[id] {
   display: grid;
   gap: clamp(1.5rem, 4vw, 2.5rem);
   align-content: start;
+  align-self: center;
 }
 
 .hero[data-hero-version="reimagined"] .hero-eyebrow {
@@ -2829,12 +2830,21 @@ main :where(section, div)[id] {
 
 .hero[data-hero-version="reimagined"] .hero-preview {
   position: relative;
-  width: min(560px, 100%);
-  justify-self: end;
+  width: 100%;
+  max-width: none;
+  justify-self: stretch;
+  align-self: stretch;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: clamp(320px, 62vh, 680px);
 }
 
 .hero[data-hero-version="reimagined"] .hero-preview__inner {
   position: relative;
+  width: 100%;
+  max-width: clamp(640px, 48vw, 880px);
+  aspect-ratio: 16 / 9;
   padding: clamp(1rem, 3vw, 1.75rem);
   border-radius: 2.25rem;
   background: linear-gradient(160deg, rgba(15, 23, 42, 0.82), rgba(37, 99, 235, 0.18));
@@ -2842,6 +2852,10 @@ main :where(section, div)[id] {
   box-shadow: 0 40px 80px rgba(15, 23, 42, 0.55);
   backdrop-filter: blur(18px);
   -webkit-backdrop-filter: blur(18px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-sizing: border-box;
 }
 
 .hero[data-hero-version="reimagined"] .hero-preview__inner::after {
@@ -2861,9 +2875,11 @@ main :where(section, div)[id] {
   display: block;
   width: 100%;
   height: auto;
+  max-height: 100%;
   border-radius: 1.4rem;
   overflow: hidden;
   box-shadow: 0 30px 60px rgba(15, 23, 42, 0.55);
+  object-fit: contain;
 }
 
 .hero[data-hero-version="reimagined"] .hero-scroll-indicator {
@@ -2944,6 +2960,8 @@ main :where(section, div)[id] {
 
   .hero[data-hero-version="reimagined"] .hero-preview {
     justify-self: center;
+    width: min(100%, clamp(320px, 90vw, 760px));
+    min-height: clamp(280px, 58vh, 600px);
   }
 }
 
