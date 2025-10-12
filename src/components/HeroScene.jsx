@@ -1,4 +1,4 @@
-import { Suspense, useEffect, useMemo, useRef, useState } from "react";
+import { Suspense, useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { Canvas, extend, useFrame, useThree } from "@react-three/fiber";
 import {
   ACESFilmicToneMapping,
@@ -2876,15 +2876,103 @@ export default function HeroScene({ width = 1280, height = 720 }) {
   const prefersReducedMotion = usePrefersReducedMotionScene();
   const targetAspect = width / height || HERO_ASPECT;
   const quality = useHeroQualitySettings(prefersReducedMotion);
-  const shouldRenderStats =
+  const env =
     typeof import.meta !== "undefined" && typeof import.meta.env !== "undefined"
-      ? import.meta.env.MODE !== "production"
-      : false;
+      ? import.meta.env
+      : { MODE: "production", DEV: false };
+  const shouldRenderStats = env.MODE !== "production";
+  const isDevEnvironment = Boolean(env.DEV);
   const maxDpr = quality.level === "high" ? 2 : quality.level === "medium" ? 1.75 : 1.5;
-  
+  const [contextLost, setContextLost] = useState(false);
+  const [canvasResetKey, setCanvasResetKey] = useState(0);
+  const glRef = useRef(null);
+  const contextCleanupRef = useRef(null);
+
+  useEffect(() => () => {
+    if (typeof contextCleanupRef.current === "function") {
+      contextCleanupRef.current();
+      contextCleanupRef.current = null;
+    }
+  }, []);
+
+  const handleRetry = useCallback(() => {
+    if (typeof contextCleanupRef.current === "function") {
+      contextCleanupRef.current();
+      contextCleanupRef.current = null;
+    }
+    setContextLost(false);
+    setCanvasResetKey((key) => key + 1);
+  }, []);
+
+  if (contextLost) {
+    return (
+      <div
+        role="status"
+        aria-live="polite"
+        style={{
+          width: "100%",
+          height: "100%",
+          borderRadius: "inherit",
+          background: "linear-gradient(135deg, rgba(15, 23, 42, 0.9), rgba(30, 41, 59, 0.92))",
+          display: "flex",
+          flexDirection: "column",
+          alignItems: "center",
+          justifyContent: "center",
+          gap: "1.5rem",
+          padding: "2.5rem 1.5rem",
+          textAlign: "center",
+          color: "#e2e8f0",
+          boxShadow: "inset 0 0 0 1px rgba(148, 163, 184, 0.15)",
+        }}
+      >
+        <img
+          src={heroFallbackMedia}
+          alt=""
+          role="presentation"
+          style={{
+            maxWidth: "420px",
+            width: "100%",
+            height: "auto",
+            opacity: 0.85,
+            filter: "drop-shadow(0 22px 65px rgba(15, 23, 42, 0.65))",
+          }}
+        />
+        <div style={{ maxWidth: "520px" }}>
+          <h3 style={{ margin: "0 0 0.75rem", fontSize: "1.5rem", fontWeight: 600 }}>
+            Interactive preview paused
+          </h3>
+          <p style={{ margin: 0, lineHeight: 1.55, color: "#cbd5f5" }}>
+            Your browser reported a brief graphics issue, so we&apos;ve paused the 3D hero to keep the
+            page responsive. You can reload it at any time.
+          </p>
+        </div>
+        <button
+          type="button"
+          onClick={handleRetry}
+          style={{
+            padding: "0.85rem 1.6rem",
+            borderRadius: "0.75rem",
+            border: "1px solid rgba(99, 102, 241, 0.35)",
+            background:
+              "linear-gradient(120deg, rgba(99, 102, 241, 0.2), rgba(59, 130, 246, 0.24), rgba(14, 165, 233, 0.18))",
+            color: "#f8fafc",
+            fontWeight: 600,
+            cursor: "pointer",
+            letterSpacing: "0.01em",
+            transition: "transform 160ms ease, box-shadow 160ms ease",
+            boxShadow: "0 18px 45px rgba(15, 23, 42, 0.55)",
+          }}
+        >
+          Reload interactive preview
+        </button>
+      </div>
+    );
+  }
+
   return (
     <Canvas
-    shadows
+    key={canvasResetKey}
+      shadows
       gl={{
         antialias: true,
         alpha: false,
@@ -2911,6 +2999,54 @@ export default function HeroScene({ width = 1280, height = 720 }) {
         backgroundColor: "#0f172a",
       }}
       onCreated={({ gl, scene }) => {
+        if (typeof contextCleanupRef.current === "function") {
+          contextCleanupRef.current();
+          contextCleanupRef.current = null;
+        }
+        glRef.current = gl;
+        const canvas = gl.domElement;
+        if (canvas) {
+          const handleContextLost = (event) => {
+            event.preventDefault();
+            if (typeof gl.forceContextLoss === "function") {
+              try {
+                gl.forceContextLoss();
+              } catch (error) {
+                if (isDevEnvironment) {
+                  console.warn("Failed to force WebGL context loss", error);
+                }
+              }
+            }
+            if (typeof gl.dispose === "function") {
+              try {
+                gl.dispose();
+              } catch (error) {
+                if (isDevEnvironment) {
+                  console.warn("Failed to dispose WebGL renderer", error);
+                }
+              }
+            }
+            if (typeof contextCleanupRef.current === "function") {
+              contextCleanupRef.current();
+              contextCleanupRef.current = null;
+            }
+            setContextLost(true);
+          };
+          const handleContextRestored = () => {
+            setContextLost(false);
+            setCanvasResetKey((key) => key + 1);
+          };
+          canvas.addEventListener("webglcontextlost", handleContextLost, { passive: false });
+          canvas.addEventListener("webglcontextrestored", handleContextRestored);
+          contextCleanupRef.current = () => {
+            canvas.removeEventListener("webglcontextlost", handleContextLost);
+            canvas.removeEventListener("webglcontextrestored", handleContextRestored);
+            if (glRef.current === gl) {
+              glRef.current = null;
+            }
+          };
+        }
+        
         const pixelRatio = typeof window !== "undefined" ? Math.min(window.devicePixelRatio, maxDpr) : 1;
         gl.setPixelRatio(pixelRatio);
         gl.setSize(width, height, false);

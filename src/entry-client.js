@@ -1,8 +1,7 @@
-import React, { StrictMode, startTransition } from "react";
+import React, { StrictMode, createElement, startTransition } from "react";
 import { hydrateRoot } from "react-dom/client";
 import { BrowserRouter } from "react-router-dom";
 import { ErrorBoundary } from "react-error-boundary";
-import { track } from "@vercel/analytics";
 import App from "./App";
 import { ThemeProvider } from "./context/ThemeContext";
 import { warmupWasm } from "./lib/wasmMath";
@@ -14,67 +13,108 @@ import {
 } from "./utils/performanceBudgets";
 import { reportWebVitals } from "./lib/webVitals";
 
+let analyticsTrackPromise = null;
+
+function ensureAnalyticsLoaded() {
+  if (analyticsTrackPromise) {
+    return analyticsTrackPromise;
+  }
+
+  const moduleId = ["@vercel", "analytics"].join("/");
+
+  analyticsTrackPromise = import(/* @vite-ignore */ moduleId)
+    .then((module) => (typeof module.track === "function" ? module.track : null))
+    .catch((error) => {
+      if (import.meta.env.DEV) {
+        console.warn("Vercel analytics unavailable", error);
+      }
+      return null;
+    });
+
+  return analyticsTrackPromise;
+}
+
 // Enhanced fallback UI
 function ErrorFallback({ error, resetErrorBoundary }) {
   if (import.meta.env.DEV) {
     console.error("App Error:", error);
   }
-  
-  return (
-    <BrowserRouter>
-      <ThemeProvider>
-        <div style={{ 
-          padding: space("lg"), 
-          textAlign: "center",
-          minHeight: "100vh",
-          display: "flex",
-          flexDirection: "column",
-          justifyContent: "center",
-          alignItems: "center",
-          background: "#0f172a",
-          color: "#f8fafc"
-        }}>
-          <h1 style={{ fontSize: "2rem", marginBottom: space("sm") }}>Something went wrong</h1>
-          <p style={{ 
-            color: "#94a3b8", 
-            marginBottom: space("lg"),
-            maxWidth: "500px"
-          }}>
-            {error?.message || "An unexpected error occurred. Please try refreshing the page."}
-          </p>
-          <div style={{ display: "flex", gap: space("sm") }}>
-            <button
-              onClick={() => window.location.reload()}
-              style={{
-                padding: `${space("xs", 1.5)} ${space("md")}`,
-                borderRadius: "0.5rem",
-                border: "none",
-                background: "#6366f1",
-                color: "white",
-                cursor: "pointer",
-                fontWeight: "600"
-              }}
-            >
-              Refresh Page
-            </button>
-            <button 
-              onClick={resetErrorBoundary}
-              style={{
-                padding: "0.75rem 1.5rem",
-                borderRadius: "0.5rem",
-                border: "1px solid #374151",
-                background: "transparent",
-                color: "#f8fafc",
-                cursor: "pointer",
-                fontWeight: "600"
-              }}
-            >
-              Try Again
-            </button>
-          </div>
-        </div>
-      </ThemeProvider>
-    </BrowserRouter>
+
+  const containerStyles = {
+    padding: space("lg"),
+    textAlign: "center",
+    minHeight: "100vh",
+    display: "flex",
+    flexDirection: "column",
+    justifyContent: "center",
+    alignItems: "center",
+    background: "#0f172a",
+    color: "#f8fafc",
+  };
+
+  const titleStyles = { fontSize: "2rem", marginBottom: space("sm") };
+  const descriptionStyles = {
+    color: "#94a3b8",
+    marginBottom: space("lg"),
+    maxWidth: "500px",
+  };
+  const actionsStyles = { display: "flex", gap: space("sm") };
+
+  const reloadButtonStyles = {
+    padding: `${space("xs", 1.5)} ${space("md")}`,
+    borderRadius: "0.5rem",
+    border: "none",
+    background: "#6366f1",
+    color: "white",
+    cursor: "pointer",
+    fontWeight: "600",
+  };
+
+  const retryButtonStyles = {
+    padding: "0.75rem 1.5rem",
+    borderRadius: "0.5rem",
+    border: "1px solid #374151",
+    background: "transparent",
+    color: "#f8fafc",
+    cursor: "pointer",
+    fontWeight: "600",
+  };
+
+  const description = error?.message || "An unexpected error occurred. Please try refreshing the page.";
+
+  return createElement(
+    BrowserRouter,
+    null,
+    createElement(
+      ThemeProvider,
+      null,
+      createElement(
+        "div",
+        { style: containerStyles },
+        createElement("h1", { style: titleStyles }, "Something went wrong"),
+        createElement("p", { style: descriptionStyles }, description),
+        createElement(
+          "div",
+          { style: actionsStyles },
+          createElement(
+            "button",
+            {
+              onClick: () => window.location.reload(),
+              style: reloadButtonStyles,
+            },
+            "Refresh Page",
+          ),
+          createElement(
+            "button",
+            {
+              onClick: resetErrorBoundary,
+              style: retryButtonStyles,
+            },
+            "Try Again",
+          ),
+        ),
+      ),
+    ),
   );
 }
 
@@ -109,18 +149,31 @@ function sendToAnalytics(metric) {
 }
 
 if (typeof window !== "undefined") {
+  ensureAnalyticsLoaded().catch(() => {});
+
   reportWebVitals((metric) => {
-    try {
-      track?.("web-vitals", {
-        name: metric.name,
-        value: metric.value,
-        rating: metric.rating,
+    ensureAnalyticsLoaded()
+      .then((trackFn) => {
+        if (!trackFn) {
+          return;
+        }
+        try {
+          trackFn("web-vitals", {
+            name: metric.name,
+            value: metric.value,
+            rating: metric.rating,
+          });
+        } catch (error) {
+          if (import.meta.env.DEV) {
+            console.warn("Failed to send analytics metric", error);
+          }
+        }
+      })
+      .catch((error) => {
+        if (import.meta.env.DEV) {
+          console.warn("Analytics tracking unavailable", error);
+        }
       });
-    } catch (error) {
-      if (import.meta.env.DEV) {
-        console.warn("Failed to send analytics metric", error);
-      }
-    }
 
     sendToAnalytics(metric);
 
@@ -205,41 +258,43 @@ function detectRenderingMode() {
   };
 }
 
-const AppWrapper = () => (
-  <StrictMode>
-    <ErrorBoundary
-      FallbackComponent={ErrorFallback}
-      onError={(error, errorInfo) => {
-        if (import.meta.env.DEV) {
-          console.error("React Error Boundary caught an error:", error, errorInfo);
-        }
-      }}
-      onReset={() => {
-        // Clear any problematic cached state
-        if (typeof window !== "undefined") {
-          try {
-            localStorage.removeItem("route-history");
-          } catch (e) {
-            if (import.meta.env.DEV) {
-              console.warn("Could not clear localStorage:", e);
+const AppWrapper = () =>
+  createElement(
+    StrictMode,
+    null,
+    createElement(
+      ErrorBoundary,
+      {
+        FallbackComponent: ErrorFallback,
+        onError: (error, errorInfo) => {
+          if (import.meta.env.DEV) {
+            console.error("React Error Boundary caught an error:", error, errorInfo);
+          }
+        },
+        onReset: () => {
+          if (typeof window !== "undefined") {
+            try {
+              localStorage.removeItem("route-history");
+            } catch (e) {
+              if (import.meta.env.DEV) {
+                console.warn("Could not clear localStorage:", e);
+              }
             }
           }
-        }
-      }}
-    >
-      <BrowserRouter
-        future={{
-          v7_startTransition: true,
-          v7_relativeSplatPath: true,
-        }}
-      >
-        <ThemeProvider>
-          <App />
-        </ThemeProvider>
-      </BrowserRouter>
-    </ErrorBoundary>
-  </StrictMode>
-);
+        },
+      },
+      createElement(
+        BrowserRouter,
+        {
+          future: {
+            v7_startTransition: true,
+            v7_relativeSplatPath: true,
+          },
+        },
+        createElement(ThemeProvider, null, createElement(App, null)),
+      ),
+    ),
+  );
 
 // Hybrid rendering strategy
 function initializeApp() {
@@ -251,7 +306,7 @@ function initializeApp() {
     }
 
     try {
-      hydrationRoot = hydrateRoot(rootElement, <AppWrapper />, {
+      hydrationRoot = hydrateRoot(rootElement, createElement(AppWrapper), {
         onRecoverableError(error, errorInfo) {
           if (import.meta.env.DEV) {
             console.warn("⚠️ Recoverable hydration error detected:", error, errorInfo);
@@ -338,7 +393,7 @@ async function createClientRoot() {
   const root = await resolveClientRoot();
 
   startTransition(() => {
-    root.render(<AppWrapper />);
+    root.render(createElement(AppWrapper));
   });
 
   markReactLoaded();

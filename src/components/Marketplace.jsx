@@ -12,6 +12,7 @@ import { warmupWasm, wasmAverage } from "../lib/wasmMath";
 import LivingSuccessMetrics from "./LivingSuccessMetrics";
 import MarketplaceCollaborationLayer from "./MarketplaceCollaborationLayer";
 import { space } from "../styles/spacing";
+import AutomationCard from "./AutomationCard.jsx";
 import {
   FALLBACK_MARKETPLACE_STATS,
   loadMarketplaceStats,

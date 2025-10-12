@@ -12,11 +12,11 @@ const toPublicPath = (asset) => (asset?.startsWith("/") ? asset : `/${asset}`);
 
 const resolveBootstrapScripts = (manifest) => {
   if (!manifest) {
-    return ["/src/entry-client.jsx"];
+    return ["/src/entry-client.js"];
   }
 
   const entry =
-    manifest["src/entry-client.jsx"] || manifest["entry-client.jsx"] || manifest["/src/entry-client.jsx"];
+    manifest["src/entry-client.js"] || manifest["entry-client.js"] || manifest["/src/entry-client.js"];
 
   if (!entry) {
     return [];

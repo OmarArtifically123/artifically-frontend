@@ -36,6 +36,20 @@ export default function useScrollChoreography() {
     };
 
     scheduleClear();
+    body.dataset.motionReady = "false";
+
+    const handleLoad = () => {
+      scheduleClear();
+    };
+    window.addEventListener("load", handleLoad);
+
+    let observer;
+    if (typeof MutationObserver === "function") {
+      observer = new MutationObserver(() => {
+        scheduleClear();
+      });
+      observer.observe(body, { childList: true, subtree: true });
+    }
 
     window.addEventListener("resize", scheduleClear);
     window.addEventListener("orientationchange", scheduleClear);
@@ -47,6 +61,8 @@ export default function useScrollChoreography() {
 
       window.removeEventListener("resize", scheduleClear);
       window.removeEventListener("orientationchange", scheduleClear);
+      window.removeEventListener("load", handleLoad);
+      observer?.disconnect();
 
       const animatedElements = body.querySelectorAll("[data-animate]");
       animatedElements.forEach((element) => {

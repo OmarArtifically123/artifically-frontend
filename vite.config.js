@@ -59,7 +59,7 @@ const bundleBudgetPlugin = ({
           ? chunk.facadeModuleId.replace(/\\/g, '/')
           : ''
         return (
-          facade.endsWith('src/entry-client.jsx') ||
+          facade.endsWith('src/entry-client.js') ||
           facade.endsWith('/index.html') ||
           chunk.name === 'index'
         )
@@ -245,7 +245,7 @@ export default defineConfig((configEnv) => {
           ) {
             return 'three'
           }
-          
+
           if (id.includes('/node_modules/gsap')) {
             return 'animations-deferred'
           }
