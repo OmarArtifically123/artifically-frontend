@@ -3,6 +3,7 @@ import {
   isValidElement,
   useCallback,
   useEffect,
+  useLayoutEffect,
   useMemo,
   useRef,
   useState,
@@ -395,9 +396,84 @@ function StatCounter({ end, label, suffix = "", decimals = 0 }) {
 
 function FloatingProductPreview() {
   const containerRef = useRef(null);
+  const innerRef = useRef(null);
   const prefersReducedMotion = usePrefersReducedMotion();
   const [shouldRenderScene, setShouldRenderScene] = useState(false);
   const [SceneComponent, setSceneComponent] = useState(null);
+  const [sceneDimensions, setSceneDimensions] = useState({ width: 1280, height: 720 });
+
+  useLayoutEffect(() => {
+    if (typeof window === "undefined") {
+      return () => {};
+    }
+
+    const target = innerRef.current;
+    if (!target) {
+      return () => {};
+    }
+
+    let animationFrame = null;
+    const updateSize = (width, height) => {
+      if (!Number.isFinite(width) || !Number.isFinite(height)) {
+        return;
+      }
+      setSceneDimensions((previous) => {
+        const nextWidth = Math.max(1, Math.round(width));
+        const nextHeight = Math.max(1, Math.round(height));
+        if (previous.width === nextWidth && previous.height === nextHeight) {
+          return previous;
+        }
+        return { width: nextWidth, height: nextHeight };
+      });
+    };
+
+    const measure = () => {
+      animationFrame = null;
+      const rect = target.getBoundingClientRect();
+      updateSize(rect.width, rect.height);
+    };
+
+    const queueMeasure = () => {
+      if (animationFrame !== null) {
+        cancelAnimationFrame(animationFrame);
+      }
+      animationFrame = requestAnimationFrame(measure);
+    };
+
+    queueMeasure();
+
+    let resizeObserver;
+
+    if (typeof ResizeObserver === "function") {
+      resizeObserver = new ResizeObserver((entries) => {
+        for (const entry of entries) {
+          if (entry.target !== target) {
+            continue;
+          }
+          const { width, height } = entry.contentRect ?? {};
+          if (width && height) {
+            updateSize(width, height);
+          } else {
+            queueMeasure();
+          }
+        }
+      });
+      resizeObserver.observe(target);
+    } else {
+      window.addEventListener("resize", queueMeasure);
+    }
+
+    return () => {
+      if (animationFrame !== null) {
+        cancelAnimationFrame(animationFrame);
+      }
+      if (resizeObserver) {
+        resizeObserver.disconnect();
+      } else {
+        window.removeEventListener("resize", queueMeasure);
+      }
+    };
+  }, []);
 
   useEffect(() => {
     if (prefersReducedMotion) {
@@ -492,9 +568,9 @@ function FloatingProductPreview() {
 
   return (
     <div className="hero-preview" id="product-preview" ref={containerRef} aria-hidden="true">
-      <div className="hero-preview__inner">
+      <div className="hero-preview__inner" ref={innerRef}>
         {SceneComponent && !prefersReducedMotion ? (
-          <SceneComponent width={960} height={540} />
+          <SceneComponent width={sceneDimensions.width} height={sceneDimensions.height} />
         ) : (
           <BlurImage
             src={HERO_PREVIEW_IMAGE}
@@ -504,7 +580,10 @@ function FloatingProductPreview() {
             className="hero-preview__fallback"
             loading="eager"
             decoding="sync"
-            wrapperProps={{ "data-enhanced": "true" }}
+            wrapperProps={{
+              "data-enhanced": "true",
+              style: { width: "100%", height: "100%" },
+            }}
           />
         )}
       </div>

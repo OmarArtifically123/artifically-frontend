@@ -30,6 +30,17 @@ import { BlendFunction, Effect, EffectAttribute } from "postprocessing";
 import Stats from "three/examples/jsm/libs/stats.module.js";
 import heroFallbackMedia from "../assets/hero-fallback.svg?url";
 
+const HERO_SCENE_WRAPPER_STYLE = Object.freeze({
+  position: "relative",
+  width: "100%",
+  height: "100%",
+  borderRadius: "inherit",
+  overflow: "hidden",
+  display: "flex",
+  alignItems: "stretch",
+  justifyContent: "stretch",
+});
+
 const HERO_ASPECT = 16 / 9;
 const HERO_FOV = 45;
 const HERO_CAMERA_DISTANCE = 8.5;
@@ -2858,18 +2869,20 @@ function PerformanceStatsMonitor() {
 export default function HeroScene({ width = 1280, height = 720 }) {
   if (typeof window === "undefined") {
     return (
-      <img
-        src={heroFallbackMedia}
-        alt=""
-        role="presentation"
-        style={{
-          width: "100%",
-          height: "100%",
-          borderRadius: "inherit",
-          objectFit: "cover",
-          display: "block",
-        }}
-      />
+      <div style={HERO_SCENE_WRAPPER_STYLE}>
+        <img
+          src={heroFallbackMedia}
+          alt=""
+          role="presentation"
+          style={{
+            width: "100%",
+            height: "100%",
+            objectFit: "cover",
+            display: "block",
+            flex: "1 1 auto",
+          }}
+        />
+      </div>
     );
   }
 
@@ -2906,71 +2919,73 @@ export default function HeroScene({ width = 1280, height = 720 }) {
 
   if (contextLost) {
     return (
-      <div
-        role="status"
-        aria-live="polite"
-        style={{
-          width: "100%",
-          height: "100%",
-          borderRadius: "inherit",
-          background: "linear-gradient(135deg, rgba(15, 23, 42, 0.9), rgba(30, 41, 59, 0.92))",
-          display: "flex",
-          flexDirection: "column",
-          alignItems: "center",
-          justifyContent: "center",
-          gap: "1.5rem",
-          padding: "2.5rem 1.5rem",
-          textAlign: "center",
-          color: "#e2e8f0",
-          boxShadow: "inset 0 0 0 1px rgba(148, 163, 184, 0.15)",
-        }}
-      >
-        <img
-          src={heroFallbackMedia}
-          alt=""
-          role="presentation"
+      <div style={HERO_SCENE_WRAPPER_STYLE}>
+        <div
+          role="status"
+          aria-live="polite"
           style={{
-            maxWidth: "420px",
             width: "100%",
-            height: "auto",
-            opacity: 0.85,
-            filter: "drop-shadow(0 22px 65px rgba(15, 23, 42, 0.65))",
-          }}
-        />
-        <div style={{ maxWidth: "520px" }}>
-          <h3 style={{ margin: "0 0 0.75rem", fontSize: "1.5rem", fontWeight: 600 }}>
-            Interactive preview paused
-          </h3>
-          <p style={{ margin: 0, lineHeight: 1.55, color: "#cbd5f5" }}>
-            Your browser reported a brief graphics issue, so we&apos;ve paused the 3D hero to keep the
-            page responsive. You can reload it at any time.
-          </p>
-        </div>
-        <button
-          type="button"
-          onClick={handleRetry}
-          style={{
-            padding: "0.85rem 1.6rem",
-            borderRadius: "0.75rem",
-            border: "1px solid rgba(99, 102, 241, 0.35)",
-            background:
-              "linear-gradient(120deg, rgba(99, 102, 241, 0.2), rgba(59, 130, 246, 0.24), rgba(14, 165, 233, 0.18))",
-            color: "#f8fafc",
-            fontWeight: 600,
-            cursor: "pointer",
-            letterSpacing: "0.01em",
-            transition: "transform 160ms ease, box-shadow 160ms ease",
-            boxShadow: "0 18px 45px rgba(15, 23, 42, 0.55)",
+            height: "100%",
+            background: "linear-gradient(135deg, rgba(15, 23, 42, 0.9), rgba(30, 41, 59, 0.92))",
+            display: "flex",
+            flexDirection: "column",
+            alignItems: "center",
+            justifyContent: "center",
+            gap: "1.5rem",
+            padding: "2.5rem 1.5rem",
+            textAlign: "center",
+            color: "#e2e8f0",
+            boxShadow: "inset 0 0 0 1px rgba(148, 163, 184, 0.15)",
           }}
         >
-          Reload interactive preview
-        </button>
+          <img
+            src={heroFallbackMedia}
+            alt=""
+            role="presentation"
+            style={{
+              maxWidth: "420px",
+              width: "100%",
+              height: "auto",
+              opacity: 0.85,
+              filter: "drop-shadow(0 22px 65px rgba(15, 23, 42, 0.65))",
+            }}
+          />
+          <div style={{ maxWidth: "520px" }}>
+            <h3 style={{ margin: "0 0 0.75rem", fontSize: "1.5rem", fontWeight: 600 }}>
+              Interactive preview paused
+            </h3>
+            <p style={{ margin: 0, lineHeight: 1.55, color: "#cbd5f5" }}>
+              Your browser reported a brief graphics issue, so we&apos;ve paused the 3D hero to keep the
+              page responsive. You can reload it at any time.
+            </p>
+          </div>
+          <button
+            type="button"
+            onClick={handleRetry}
+            style={{
+              padding: "0.85rem 1.6rem",
+              borderRadius: "0.75rem",
+              border: "1px solid rgba(99, 102, 241, 0.35)",
+              background:
+                "linear-gradient(120deg, rgba(99, 102, 241, 0.2), rgba(59, 130, 246, 0.24), rgba(14, 165, 233, 0.18))",
+              color: "#f8fafc",
+              fontWeight: 600,
+              cursor: "pointer",
+              letterSpacing: "0.01em",
+              transition: "transform 160ms ease, box-shadow 160ms ease",
+              boxShadow: "0 18px 45px rgba(15, 23, 42, 0.55)",
+            }}
+          >
+            Reload interactive preview
+          </button>
+        </div>
       </div>
     );
   }
 
   return (
-    <Canvas
+    <div style={HERO_SCENE_WRAPPER_STYLE}>
+      <Canvas
     key={canvasResetKey}
       shadows
       gl={{
@@ -2991,13 +3006,15 @@ export default function HeroScene({ width = 1280, height = 720 }) {
       }}
       dpr={[1, maxDpr]}
       style={{
-        width: "100%",
-        height: "100%",
-        display: "block",
-        borderRadius: "inherit",
-        pointerEvents: "none",
-        backgroundColor: "#0f172a",
-      }}
+          position: "absolute",
+          inset: 0,
+          width: "100%",
+          height: "100%",
+          display: "block",
+          borderRadius: "inherit",
+          pointerEvents: "none",
+          backgroundColor: "#0f172a",
+        }}
       onCreated={({ gl, scene }) => {
         if (typeof contextCleanupRef.current === "function") {
           contextCleanupRef.current();
@@ -3046,7 +3063,7 @@ export default function HeroScene({ width = 1280, height = 720 }) {
             }
           };
         }
-        
+
         const pixelRatio = typeof window !== "undefined" ? Math.min(window.devicePixelRatio, maxDpr) : 1;
         gl.setPixelRatio(pixelRatio);
         gl.setSize(width, height, false);
@@ -3066,5 +3083,6 @@ export default function HeroScene({ width = 1280, height = 720 }) {
         {shouldRenderStats ? <PerformanceStatsMonitor /> : null}
       </Suspense>
     </Canvas>
+    </div>
   );
 }
