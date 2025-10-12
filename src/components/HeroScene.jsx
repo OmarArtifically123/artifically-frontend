@@ -1780,7 +1780,50 @@ function OrbitalNetwork({ reduceMotion, quality }) {
   const nodeTrailRefs = useRef(nodes.map(() => null));
   const trailSampleCount = Math.max(2, resolveMotionBlurSampleCount(quality));
   const nodeTrailBuffers = useRef(nodes.map(() => new Float32Array(trailSampleCount * 3)));
-  const nodeHistories = useRef(nodes.map(() => Array.from({ length: trailSampleCount }, () => HERO_ORB_CENTER.clone())));
+  const nodeHistories = useRef(
+    nodes.map(() => Array.from({ length: trailSampleCount }, () => HERO_ORB_CENTER.clone())),
+  );
+
+  {
+    const previousOrbitRefs = orbitRefs.current;
+    orbitRefs.current = nodes.map((_, index) => previousOrbitRefs[index] ?? null);
+
+    const previousVisualRefs = visualRefs.current;
+    visualRefs.current = nodes.map((_, index) => previousVisualRefs[index] ?? null);
+
+    const previousMaterialRefs = materialRefs.current;
+    materialRefs.current = nodes.map((_, index) => previousMaterialRefs[index] ?? null);
+
+    const previousEdgeRefs = edgeRefs.current;
+    edgeRefs.current = nodes.map((_, index) => previousEdgeRefs[index] ?? null);
+
+    const previousCoreRefs = coreRefs.current;
+    coreRefs.current = nodes.map((_, index) => previousCoreRefs[index] ?? null);
+
+    const previousNodePositions = nodePositions.current;
+    nodePositions.current = nodes.map((_, index) => previousNodePositions[index] ?? new Vector3());
+
+    const previousTrailRefs = nodeTrailRefs.current;
+    nodeTrailRefs.current = nodes.map((_, index) => previousTrailRefs[index] ?? null);
+
+    const previousTrailBuffers = nodeTrailBuffers.current;
+    nodeTrailBuffers.current = nodes.map((_, index) => {
+      const existing = previousTrailBuffers[index];
+      if (existing && existing.length === trailSampleCount * 3) {
+        return existing;
+      }
+      return new Float32Array(trailSampleCount * 3);
+    });
+
+    const previousHistories = nodeHistories.current;
+    nodeHistories.current = nodes.map((_, index) => {
+      const existing = previousHistories[index];
+      if (existing && existing.length === trailSampleCount) {
+        return existing;
+      }
+      return Array.from({ length: trailSampleCount }, () => HERO_ORB_CENTER.clone());
+    });
+  }
   const typeBGeometries = useMemo(
     () =>
       nodes.map((node) => {
@@ -1795,29 +1838,6 @@ function OrbitalNetwork({ reduceMotion, quality }) {
     () => typeBGeometries.map((geometry) => (geometry ? new EdgesGeometry(geometry, 10) : null)),
     [typeBGeometries],
   );
-
-  useEffect(() => {
-    orbitRefs.current = orbitRefs.current.slice(0, nodes.length);
-    visualRefs.current = visualRefs.current.slice(0, nodes.length);
-    materialRefs.current = materialRefs.current.slice(0, nodes.length);
-    edgeRefs.current = edgeRefs.current.slice(0, nodes.length);
-    coreRefs.current = coreRefs.current.slice(0, nodes.length);
-    nodeTrailRefs.current = nodeTrailRefs.current.slice(0, nodes.length);
-    nodeTrailBuffers.current = nodes.map((_, index) => {
-      const existing = nodeTrailBuffers.current[index];
-      if (existing && existing.length === trailSampleCount * 3) {
-        return existing;
-      }
-      return new Float32Array(trailSampleCount * 3);
-    });
-    nodeHistories.current = nodes.map((_, index) => {
-      const existing = nodeHistories.current[index];
-      if (existing && existing.length === trailSampleCount) {
-        return existing;
-      }
-      return Array.from({ length: trailSampleCount }, () => HERO_ORB_CENTER.clone());
-    });
-  }, [nodes.length, trailSampleCount]);
 
   useFrame(({ clock }, delta) => {
     const time = clock.getElapsedTime();
@@ -2294,6 +2314,56 @@ function EnergyStreams({ streams, reduceMotion, nodePositions, quality }) {
     ),
   );
 
+  {
+    const previousCoreRefs = coreRefs.current;
+    coreRefs.current = streams.map((_, index) => previousCoreRefs[index] ?? null);
+
+  const previousGlowRefs = glowRefs.current;
+    glowRefs.current = streams.map((_, index) => previousGlowRefs[index] ?? null);
+
+    const previousCoreMaterials = coreMaterials.current;
+    coreMaterials.current = streams.map((_, index) => previousCoreMaterials[index] ?? null);
+
+    const previousGlowMaterials = glowMaterials.current;
+    glowMaterials.current = streams.map((_, index) => previousGlowMaterials[index] ?? null);
+
+    const previousParticleRefs = particleRefs.current;
+    particleRefs.current = streams.map((stream, streamIndex) => {
+      const existing = previousParticleRefs[streamIndex] ?? [];
+      return stream.particleOffsets.map((_, particleIndex) => existing[particleIndex] ?? null);
+    });
+
+    const previousTrailRefs = particleTrailRefs.current;
+    particleTrailRefs.current = streams.map((stream, streamIndex) => {
+      const existing = previousTrailRefs[streamIndex] ?? [];
+      return stream.particleOffsets.map((_, particleIndex) => existing[particleIndex] ?? null);
+    });
+
+    const previousTrailBuffers = particleTrailBuffers.current;
+    particleTrailBuffers.current = streams.map((stream, streamIndex) => {
+      const existingBuffers = previousTrailBuffers[streamIndex] ?? [];
+      return stream.particleOffsets.map((_, particleIndex) => {
+        const buffer = existingBuffers[particleIndex];
+        if (buffer && buffer.length === motionTrailSamples * 3) {
+          return buffer;
+        }
+        return new Float32Array(motionTrailSamples * 3);
+      });
+    });
+
+    const previousHistories = particleHistories.current;
+    particleHistories.current = streams.map((stream, streamIndex) => {
+      const existingHistories = previousHistories?.[streamIndex] ?? [];
+      return stream.particleOffsets.map((_, particleIndex) => {
+        const history = existingHistories[particleIndex];
+        if (history && history.length === motionTrailSamples) {
+          return history;
+        }
+        return Array.from({ length: motionTrailSamples }, () => new Vector3());
+      });
+    });
+  }
+
   const initialCoreGeometries = useMemo(
     () => streams.map((stream, index) => new TubeGeometry(streamCurves[index], 32, stream.coreRadius, 12, false)),
     [streams, streamCurves],
@@ -2302,43 +2372,6 @@ function EnergyStreams({ streams, reduceMotion, nodePositions, quality }) {
     () => streams.map((stream, index) => new TubeGeometry(streamCurves[index], 32, stream.outerRadius, 12, false)),
     [streams, streamCurves],
   );
-
-  useEffect(() => {
-    coreRefs.current = coreRefs.current.slice(0, streams.length);
-    glowRefs.current = glowRefs.current.slice(0, streams.length);
-    coreMaterials.current = coreMaterials.current.slice(0, streams.length);
-    glowMaterials.current = glowMaterials.current.slice(0, streams.length);
-    particleRefs.current = streams.map((stream, streamIndex) => {
-      const existing = particleRefs.current[streamIndex] ?? [];
-      const next = new Array(stream.particleOffsets.length).fill(null);
-      return next.map((_, particleIndex) => existing[particleIndex] ?? null);
-    });
-    particleTrailRefs.current = streams.map((stream, streamIndex) => {
-      const existing = particleTrailRefs.current[streamIndex] ?? [];
-      const next = new Array(stream.particleOffsets.length).fill(null);
-      return next.map((_, particleIndex) => existing[particleIndex] ?? null);
-    });
-    particleTrailBuffers.current = streams.map((stream, streamIndex) => {
-      const existing = particleTrailBuffers.current[streamIndex] ?? [];
-      return stream.particleOffsets.map((_, particleIndex) => {
-        const buffer = existing[particleIndex];
-        if (buffer && buffer.length === motionTrailSamples * 3) {
-          return buffer;
-        }
-        return new Float32Array(motionTrailSamples * 3);
-      });
-    });
-    particleHistories.current = streams.map((stream, streamIndex) => {
-      const existing = particleHistories.current?.[streamIndex] ?? [];
-      return stream.particleOffsets.map((_, particleIndex) => {
-        const history = existing[particleIndex];
-        if (history && history.length === motionTrailSamples) {
-          return history;
-        }
-        return Array.from({ length: motionTrailSamples }, () => new Vector3());
-      });
-    });
-  }, [motionTrailSamples, streams]);
 
   useFrame(({ clock }) => {
     const time = clock.getElapsedTime();
