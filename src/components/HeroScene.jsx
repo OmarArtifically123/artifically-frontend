@@ -59,7 +59,7 @@ const HERO_TIMELINE_PHASES = [
 const TWO_PI = Math.PI * 2;
 const BASE_CYCLE_FREQUENCY = TWO_PI / HERO_TIMELINE_DURATION;
 
-const HERO_BASE_FOG_DENSITY = 0.006;
+const HERO_BASE_FOG_DENSITY = 0.012;
 
 const SHADOW_FLOOR = new Vector3(5 / 255, 8 / 255, 12 / 255);
 const HERO_FOCUS_POINT = HERO_ORB_CENTER.clone();
@@ -101,7 +101,7 @@ const HERO_QUALITY_PRESETS = {
     enableFilmGrain: true,
     filmGrainStrength: 0.07,
     gridScanStrength: 1,
-    fogBaseDensity: 0.008,
+    fogBaseDensity: 0.016,
     fogPulseMultiplier: 0.18,
     cameraDrift: 1,
     godRayOpacity: 0.16,
@@ -133,7 +133,7 @@ const HERO_QUALITY_PRESETS = {
     enableFilmGrain: true,
     filmGrainStrength: 0.06,
     gridScanStrength: 0.85,
-    fogBaseDensity: 0.006,
+    fogBaseDensity: 0.012,
     fogPulseMultiplier: 0.16,
     cameraDrift: 0.85,
     godRayOpacity: 0.14,
@@ -165,7 +165,7 @@ const HERO_QUALITY_PRESETS = {
     enableFilmGrain: true,
     filmGrainStrength: 0.045,
     gridScanStrength: 0.65,
-    fogBaseDensity: 0.004,
+    fogBaseDensity: 0.008,
     fogPulseMultiplier: 0.14,
     cameraDrift: 0.65,
     godRayOpacity: 0.12,
