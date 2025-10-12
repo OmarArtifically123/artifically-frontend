@@ -10,24 +10,30 @@ import "./styles/global.css";
 import ExperienceLayer from "./components/ExperienceLayer";
 import Button from "./components/ui/Button";
 
-const Home = lazy(() => import("./pages/Home"));
-const Pricing = lazy(() => import("./pages/Pricing"));
-const Docs = lazy(() => import("./pages/Docs"));
-const ApiReference = lazy(() => import("./pages/ApiReference"));
-const Blog = lazy(() => import("./pages/Blog"));
-const CaseStudies = lazy(() => import("./pages/CaseStudies"));
-const Changelog = lazy(() => import("./pages/Changelog"));
-const HelpCenter = lazy(() => import("./pages/HelpCenter"));
-const StatusPage = lazy(() => import("./pages/Status"));
-const Security = lazy(() => import("./pages/Security"));
-const Privacy = lazy(() => import("./pages/Privacy"));
-const Terms = lazy(() => import("./pages/Terms"));
-const Contact = lazy(() => import("./pages/Contact"));
-const Marketplace = lazy(() => import("./components/Marketplace"));
-const Dashboard = lazy(() => import("./components/Dashboard"));
-const AuthModal = lazy(() => import("./components/AuthModal"));
-const Verify = lazy(() => import("./components/Verify"));
-const Footer = lazy(() => import("./components/Footer"));
+const Home = lazy(() => import(/* webpackChunkName: "home", webpackPrefetch: true */ "./pages/Home"));
+const Pricing = lazy(() => import(/* webpackChunkName: "pricing", webpackPrefetch: true */ "./pages/Pricing"));
+const Docs = lazy(() => import(/* webpackChunkName: "docs", webpackPrefetch: true */ "./pages/Docs"));
+const ApiReference = lazy(() =>
+  import(/* webpackChunkName: "api-reference", webpackPrefetch: true */ "./pages/ApiReference")
+);
+const Blog = lazy(() => import(/* webpackChunkName: "blog", webpackPrefetch: true */ "./pages/Blog"));
+const CaseStudies = lazy(() =>
+  import(/* webpackChunkName: "case-studies", webpackPrefetch: true */ "./pages/CaseStudies")
+);
+const Changelog = lazy(() => import(/* webpackChunkName: "changelog" */ "./pages/Changelog"));
+const HelpCenter = lazy(() => import(/* webpackChunkName: "help-center" */ "./pages/HelpCenter"));
+const StatusPage = lazy(() => import(/* webpackChunkName: "status" */ "./pages/Status"));
+const Security = lazy(() => import(/* webpackChunkName: "security" */ "./pages/Security"));
+const Privacy = lazy(() => import(/* webpackChunkName: "privacy" */ "./pages/Privacy"));
+const Terms = lazy(() => import(/* webpackChunkName: "terms" */ "./pages/Terms"));
+const Contact = lazy(() => import(/* webpackChunkName: "contact" */ "./pages/Contact"));
+const Marketplace = lazy(() =>
+  import(/* webpackChunkName: "marketplace", webpackPrefetch: true */ "./components/Marketplace")
+);
+const Dashboard = lazy(() => import(/* webpackChunkName: "dashboard", webpackPrefetch: true */ "./components/Dashboard"));
+const AuthModal = lazy(() => import(/* webpackChunkName: "auth-modal" */ "./components/AuthModal"));
+const Verify = lazy(() => import(/* webpackChunkName: "verify" */ "./components/Verify"));
+const Footer = lazy(() => import(/* webpackChunkName: "footer" */ "./components/Footer"));
 
 // Utility functions - moved outside component to prevent recreation
 const requestIdle =

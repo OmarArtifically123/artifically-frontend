@@ -37,6 +37,103 @@
   opacity: 0.5;
 }
 
+.marketplace-results {
+  display: grid;
+  gap: var(--space-md);
+}
+
+.marketplace-results__toolbar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-md);
+  padding: var(--space-md);
+}
+
+.marketplace-results__summary {
+  margin: var(--space-2xs) 0 0;
+  font-size: 0.95rem;
+  color: var(--gray-300);
+}
+
+.marketplace-search {
+  position: relative;
+  flex: 1;
+  max-width: 360px;
+}
+
+.marketplace-search input {
+  width: 100%;
+  padding: var(--space-sm) var(--space-md);
+  border-radius: var(--rounded-full);
+  border: 1px solid color-mix(in oklch, var(--brand-primary) 35%, transparent);
+  background: rgba(15, 23, 42, 0.75);
+  color: var(--white);
+  font-size: 0.95rem;
+  outline: none;
+  transition: border-color var(--transition-fast), box-shadow var(--transition-fast);
+}
+
+.marketplace-search input:focus {
+  border-color: color-mix(in oklch, var(--brand-glow) 75%, transparent);
+  box-shadow: 0 0 0 3px color-mix(in oklch, var(--brand-glow) 18%, transparent);
+}
+
+[data-theme="light"] .marketplace-search input {
+  background: rgba(255, 255, 255, 0.9);
+  color: #0f172a;
+}
+
+.marketplace-results__scroller {
+  max-height: clamp(420px, 70vh, 760px);
+  overflow-y: auto;
+  position: relative;
+  border-radius: var(--rounded-2xl);
+  background: rgba(15, 23, 42, 0.35);
+  border: 1px solid color-mix(in oklch, var(--brand-primary) 18%, transparent);
+  padding: var(--space-sm);
+  scrollbar-width: thin;
+}
+
+.marketplace-results__scroller::-webkit-scrollbar {
+  width: 8px;
+}
+
+.marketplace-results__scroller::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.marketplace-results__scroller::-webkit-scrollbar-thumb {
+  background: rgba(99, 102, 241, 0.35);
+  border-radius: 999px;
+}
+
+.marketplace-results__item {
+  padding: var(--space-sm);
+}
+
+.marketplace-results__meta {
+  display: inline-block;
+  font-size: 0.8rem;
+  color: rgba(148, 163, 184, 0.8);
+  margin-left: var(--space-sm);
+}
+
+.marketplace-results__empty {
+  text-align: center;
+  padding: var(--space-lg);
+}
+
+.marketplace-results__empty h4 {
+  margin-bottom: var(--space-xs);
+}
+
+.marketplace-results__empty p {
+  margin: 0;
+  color: var(--gray-300);
+}
+
 [data-theme="light"] .marketplace[data-glass="true"] {
   background: radial-gradient(circle at 18% -12%, oklch(0.78 0.08 264 / 0.55), transparent 60%),
     radial-gradient(circle at 85% -10%, oklch(0.74 0.08 310 / 0.45), transparent 68%),

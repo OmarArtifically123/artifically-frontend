@@ -385,6 +385,42 @@ body::before {
   z-index: 0;
 }
 
+.blur-image-wrapper {
+  position: relative;
+  display: inline-flex;
+  overflow: hidden;
+  border-radius: inherit;
+  isolation: isolate;
+}
+
+.blur-image__placeholder {
+  width: 100%;
+  height: auto;
+  transform: scale(1.08);
+  filter: blur(18px);
+  transition: opacity 280ms ease;
+  opacity: 1;
+}
+
+.blur-image__placeholder--hidden {
+  opacity: 0;
+}
+
+.blur-image {
+  width: 100%;
+  height: auto;
+  display: block;
+  opacity: 0;
+  filter: saturate(120%);
+  transition: opacity 320ms ease, transform 360ms ease;
+  transform: scale(1.015);
+}
+
+.blur-image--loaded {
+  opacity: 1;
+  transform: scale(1);
+}
+
 .home-shell {
   min-height: 100vh;
   opacity: 0;

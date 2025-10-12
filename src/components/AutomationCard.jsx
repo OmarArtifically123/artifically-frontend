@@ -1281,4 +1281,22 @@ function AutomationCardComponent({
   );
 }
 
-export default memo(AutomationCardComponent);
+const areAutomationPropsEqual = (prevProps, nextProps) => {
+  const prevItem = prevProps.item;
+  const nextItem = nextProps.item;
+
+  if (prevItem?.id !== nextItem?.id) return false;
+  if (prevItem?.updatedAt !== nextItem?.updatedAt) return false;
+
+  return (
+    prevProps.matchStrength === nextProps.matchStrength &&
+    prevProps.industryMatch === nextProps.industryMatch &&
+    prevProps.browsingMatch === nextProps.browsingMatch &&
+    prevProps.attentionScore === nextProps.attentionScore &&
+    prevProps.spotlighted === nextProps.spotlighted &&
+    prevProps.predicted === nextProps.predicted &&
+    prevProps.activeNeed === nextProps.activeNeed
+  );
+};
+
+export default memo(AutomationCardComponent, areAutomationPropsEqual);

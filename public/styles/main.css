@@ -1,0 +1,58 @@
+:root {
+  --deferred-hero-glow: radial-gradient(circle at 35% 20%, rgba(99, 102, 241, 0.35), transparent 55%),
+    radial-gradient(circle at 75% 25%, rgba(236, 72, 153, 0.22), transparent 60%),
+    radial-gradient(circle at 50% 80%, rgba(14, 165, 233, 0.18), transparent 70%);
+}
+
+.hero[data-animate-root="true"],
+.hero[data-animate-root] {
+  position: relative;
+}
+
+.hero[data-animate-root="true"]::after,
+.hero[data-animate-root]::after {
+  content: "";
+  position: absolute;
+  inset: -12% -10% 10%;
+  pointer-events: none;
+  background: var(--deferred-hero-glow);
+  opacity: 0.75;
+  filter: blur(36px);
+  z-index: -1;
+  transition: opacity 280ms ease;
+}
+
+.hero[data-animate-root="true"][data-ready="false"]::after,
+.hero[data-animate-root][data-ready="false"]::after {
+  opacity: 0.4;
+}
+
+.marketplace[data-glass="true"] {
+  position: relative;
+  isolation: isolate;
+}
+
+.marketplace[data-glass="true"]::before {
+  content: "";
+  position: absolute;
+  inset: 6% 4% auto;
+  height: 280px;
+  border-radius: 48px;
+  background: linear-gradient(135deg, rgba(99, 102, 241, 0.16), rgba(236, 72, 153, 0.12));
+  filter: blur(40px);
+  opacity: 0.75;
+  z-index: -2;
+}
+
+.blur-image-wrapper[data-enhanced="true"] .blur-image {
+  filter: saturate(130%) contrast(1.05);
+}
+
+.blur-image-wrapper[data-enhanced="true"] .blur-image__placeholder {
+  transition-duration: 180ms;
+}
+
+.glass-card {
+  backdrop-filter: saturate(140%) blur(18px);
+  -webkit-backdrop-filter: saturate(140%) blur(18px);
+}

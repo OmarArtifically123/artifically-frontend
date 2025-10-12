@@ -123,6 +123,35 @@ const bundleBudgetPlugin = ({
   }
 }
 
+const performanceBudgetPlugin = ({ entryLimitKB = 300 } = {}) => {
+  let trackedChunks = []
+
+  return {
+    name: 'performance-budget',
+    apply: 'build',
+    enforce: 'post',
+    generateBundle(_options, bundle) {
+      trackedChunks = Object.values(bundle)
+        .filter((chunk) => chunk.type === 'chunk' && chunk.isEntry)
+        .map((chunk) => ({
+          name: chunk.name,
+          size: chunk.code.length,
+        }))
+    },
+    closeBundle() {
+      trackedChunks.forEach((chunk) => {
+        const sizeKb = chunk.size / KB
+        if (sizeKb > entryLimitKB) {
+          this.warn(
+            `[performance-budget] Main bundle "${chunk.name}" exceeds budget: ${sizeKb.toFixed(1)}KB (limit ${entryLimitKB}KB)`,
+          )
+        }
+      })
+      trackedChunks = []
+    },
+  }
+}
+
 // https://vitejs.dev/config/
 export default defineConfig((configEnv) => {
   const ssrBuild = configEnv.isSsrBuild
@@ -156,14 +185,25 @@ export default defineConfig((configEnv) => {
     )
   }
 
+  const manualChunkGroups = {
+    'react-core': ['react', 'react-dom'],
+    router: ['react-router-dom'],
+    apollo: ['@apollo/client', 'graphql'],
+    'animations-critical': ['framer-motion'],
+    'animations-deferred': ['gsap', '@gsap/react'],
+    'ui-utils': ['lodash', 'date-fns'],
+    three: ['three', '@react-three/fiber', '@react-three/drei', '@react-three/postprocessing'],
+    analytics: ['@vercel/analytics', '@builder.io/partytown'],
+  }
+
   const build = {
     target: 'es2015',
     minify: 'esbuild',
     cssCodeSplit: true,
     cssMinify: 'esbuild',
     sourcemap: false,
-    chunkSizeWarningLimit: 1000,
-    reportCompressedSize: true
+    chunkSizeWarningLimit: 500,
+    reportCompressedSize: true,
   }
 
   if (!ssrBuild) {
@@ -171,18 +211,30 @@ export default defineConfig((configEnv) => {
     build.ssrManifest = true
     build.rollupOptions = {
       output: {
-        manualChunks: (id) => {
-          if (id.includes('src/components/HeroScene')) return 'hero-scene'
-          if (
-            id.includes('node_modules/@react-three/') ||
-            id.includes('node_modules/three') ||
-            id.includes('node_modules/postprocessing') ||
-            id.includes('node_modules/@react-three/postprocessing')
-          ) {
-            return 'hero-scene'
+        manualChunks(id) {
+          if (id.includes('src/components/HeroScene')) {
+            return 'three'
           }
-          if (id.includes('node_modules/gsap')) return 'gsap-vendor'
-          if (id.includes('node_modules')) return 'vendor'
+
+          if (!id.includes('node_modules')) {
+            return undefined
+          }
+
+          for (const [chunkName, modules] of Object.entries(manualChunkGroups)) {
+            if (modules.some((moduleId) => id.includes(`/node_modules/${moduleId}/`))) {
+              return chunkName
+            }
+          }
+
+          if (id.includes('/node_modules/three') || id.includes('/node_modules/@react-three/')) {
+            return 'three'
+          }
+          
+          if (id.includes('/node_modules/gsap')) {
+            return 'animations-deferred'
+          }
+
+          return 'vendor'
         },
         entryFileNames: 'assets/[name]-[hash].js',
         chunkFileNames: 'assets/[name]-[hash].js',
@@ -196,13 +248,26 @@ export default defineConfig((configEnv) => {
         cssBudgetBytes: 20 * KB,
       })
     )
+
+    plugins.push(
+      performanceBudgetPlugin({
+        entryLimitKB: 300,
+      }),
+    )
   }
 
   return {
     plugins,
     build,
     optimizeDeps: {
-      include: ['react', 'react-dom', 'react-router-dom']
+      include: [
+        'react',
+        'react-dom',
+        'react-router-dom',
+        '@tanstack/react-virtual',
+        'use-debounce',
+        '@vercel/analytics',
+      ],
     }
   }
 })

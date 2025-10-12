@@ -9,14 +9,23 @@ import {
 } from "react";
 import { motion, useReducedMotion } from "framer-motion";
 import MagneticButton from "./animation/MagneticButton";
-import heroFallbackMedia from "../assets/hero-fallback.svg?url";
 import useMicroInteractions from "../hooks/useMicroInteractions";
+import { BlurImage } from "./media/OptimizedImage";
+
+const HERO_PREVIEW_IMAGE = "/images/hero-preview.jpg";
+const HERO_PREVIEW_SOURCES = [
+  { type: "image/avif", srcSet: "/images/hero-preview.avif" },
+  { type: "image/webp", srcSet: "/images/hero-preview.webp" },
+];
+const HERO_PREVIEW_BLUR = "/images/hero-preview-blur.jpg";
 
 let heroSceneModulePromise;
 
 const loadHeroScene = async () => {
   if (!heroSceneModulePromise) {
-    heroSceneModulePromise = import("./HeroScene.jsx");
+    heroSceneModulePromise = import(
+      /* webpackChunkName: "hero-scene" */ "./HeroScene.jsx",
+    );
   }
   const module = await heroSceneModulePromise;
   return module?.default ?? module;
@@ -487,7 +496,14 @@ function FloatingProductPreview() {
         {SceneComponent && !prefersReducedMotion ? (
           <SceneComponent width={960} height={540} />
         ) : (
-          <img src={heroFallbackMedia} alt="" className="hero-preview__fallback" loading="lazy" decoding="async" />
+          <BlurImage
+            src={HERO_PREVIEW_IMAGE}
+            blurDataURL={HERO_PREVIEW_BLUR}
+            sources={HERO_PREVIEW_SOURCES}
+            alt="Artifically automation workspace preview"
+            className="hero-preview__fallback"
+            wrapperProps={{ "data-enhanced": "true" }}
+          />
         )}
       </div>
     </div>

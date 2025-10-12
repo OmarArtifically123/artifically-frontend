@@ -1,4 +1,7 @@
 import { Suspense, lazy, useCallback, useEffect, useId, useMemo, useRef, useState } from "react";
+import { useVirtualizer } from "@tanstack/react-virtual";
+import { useDebouncedCallback } from "use-debounce";
+import { formatDistanceToNow } from "date-fns";
 import { fetchAutomations } from "../data/automations";
 import { toast } from "./Toast";
 import api from "../api";
@@ -332,8 +335,11 @@ export default function Marketplace({ user, openAuth }) {
     combo: [],
   });
   const [attentionScores, setAttentionScores] = useState(() => loadAttentionScores());
+  const [searchQuery, setSearchQuery] = useState("");
+  const [debouncedQuery, setDebouncedQuery] = useState("");
   const attentionQueueRef = useRef(new Map());
   const attentionRafRef = useRef(null);
+  const listParentRef = useRef(null);
   const workerRef = useRef(null);
   const collaborationChannelRef = useRef(null);
   const [collaborationReady, setCollaborationReady] = useState(false);
@@ -346,6 +352,38 @@ export default function Marketplace({ user, openAuth }) {
     const fallbackROI = FALLBACK_MARKETPLACE_STATS?.averageROI;
     return Number.isFinite(Number(fallbackROI)) ? Number(fallbackROI) : null;
   });
+
+  const debouncedSearch = useDebouncedCallback(
+    (value) => {
+      setDebouncedQuery(value.trim().toLowerCase());
+    },
+    300,
+    { leading: false, trailing: true },
+  );
+
+  useEffect(() => () => debouncedSearch.cancel(), [debouncedSearch]);
+
+  const handleSearchChange = useCallback(
+    (event) => {
+      const value = event.target.value;
+      setSearchQuery(value);
+      debouncedSearch(value);
+    },
+    [debouncedSearch],
+  );
+
+  const formatLastViewedLabel = useCallback(
+    (id) => {
+      const entry = attentionScores?.[id];
+      if (!entry?.lastViewed) return null;
+      try {
+        return formatDistanceToNow(entry.lastViewed, { addSuffix: true });
+      } catch (error) {
+        return null;
+      }
+    },
+    [attentionScores],
+  );
 
   useEffect(() => {
     let isMounted = true;
@@ -744,6 +782,39 @@ export default function Marketplace({ user, openAuth }) {
     attentionScores,
   ]);
 
+  const filteredAutomations = useMemo(() => {
+    if (!debouncedQuery) {
+      return scoredAutomations;
+    }
+
+    const query = debouncedQuery.trim();
+    if (!query) {
+      return scoredAutomations;
+    }
+
+    return scoredAutomations.filter(({ item }) => {
+      if (!item) return false;
+      const fields = [
+        item.name,
+        item.description,
+        item.category,
+        item.vertical,
+        ...(item.tags || []),
+      ]
+        .filter(Boolean)
+        .join(" ")
+        .toLowerCase();
+      return fields.includes(query);
+    });
+  }, [debouncedQuery, scoredAutomations]);
+
+  const virtualizer = useVirtualizer({
+    count: filteredAutomations.length,
+    getScrollElement: () => listParentRef.current,
+    estimateSize: () => 420,
+    overscan: 6,
+  });
+
   const automationMap = useMemo(() => {
     return new Map(automations.map((item) => [item.id, item]));
   }, [automations]);
@@ -778,7 +849,7 @@ export default function Marketplace({ user, openAuth }) {
 
   const activeCombination = workerComboHighlight || combinationHighlight;
 
-  const recordBrowsingSignal = (item, updateState) => {
+  const recordBrowsingSignal = useCallback((item, updateState) => {
     if (typeof window === "undefined" || !item) return;
     try {
       const raw = window.localStorage.getItem(BROWSING_STORAGE_KEY);
@@ -814,9 +885,16 @@ export default function Marketplace({ user, openAuth }) {
     } catch (err) {
       console.warn("Failed to persist browsing signals", err);
     }
-  };
+  }, []);
 
-  const buy = async (item) => {
+  const totalResults = scoredAutomations.length;
+  const visibleResults = filteredAutomations.length;
+  const searchActive = debouncedQuery.length > 0;
+  const resultsLabel = searchActive
+    ? `${visibleResults} of ${totalResults} automations match your search`
+    : `${totalResults} automations ready for evaluation`;
+
+  const buy = useCallback(async (item) => {
     if (!item || !item.id) {
       toast("Invalid automation selected", { type: "error" });
       return;
@@ -856,16 +934,16 @@ export default function Marketplace({ user, openAuth }) {
         toast(errorMessage, { type: "error" });
       }
     }
-  };
+  }, [user, openAuth, recordBrowsingSignal]);
 
-  const handleDemo = (item) => {
+  const handleDemo = useCallback((item) => {
     if (!item || !item.id) {
       toast("Invalid automation selected", { type: "error" });
       return;
     }
     recordBrowsingSignal(item, setBrowsingSignals);
     setDemo(item);
-  };
+  }, [recordBrowsingSignal]);
 
   const sectionHeader = (
     <div
@@ -1084,11 +1162,95 @@ export default function Marketplace({ user, openAuth }) {
           />
         </div>
 
+        <div
+          className="marketplace-results"
+          data-animate="fade-up"
+          data-animate-order="4"
+          data-animate-context="dashboard"
+        >
+          <header className="marketplace-results__toolbar glass-card glass-card--subtle">
+            <div>
+              <h3 style={{ margin: 0 }}>Automation catalog</h3>
+              <p className="marketplace-results__summary">{resultsLabel}</p>
+            </div>
+            <label className="marketplace-search">
+              <span className="sr-only">Search automations</span>
+              <input
+                type="search"
+                value={searchQuery}
+                onChange={handleSearchChange}
+                placeholder="Search automations, industries, or outcomes"
+                autoComplete="off"
+              />
+            </label>
+          </header>
+          <div
+            ref={listParentRef}
+            className="marketplace-results__scroller"
+            role="list"
+            aria-label="Marketplace automation results"
+          >
+            <div
+              style={{
+                height: `${virtualizer.getTotalSize()}px`,
+                position: "relative",
+                width: "100%",
+              }}
+            >
+              {virtualizer.getVirtualItems().map((virtualItem) => {
+                const entry = filteredAutomations[virtualItem.index];
+                if (!entry) return null;
+
+                const { item, matchStrength, industryMatch, browsingMatch, attentionBonus, attentionScore } = entry;
+                const lastViewedLabel = item?.id ? formatLastViewedLabel(item.id) : null;
+
+                return (
+                  <div
+                    key={item?.id ?? virtualItem.key}
+                    role="listitem"
+                    className="marketplace-results__item"
+                    style={{
+                      position: "absolute",
+                      top: 0,
+                      left: 0,
+                      width: "100%",
+                      transform: `translateY(${virtualItem.start}px)`,
+                    }}
+                  >
+                    <AutomationCard
+                      item={item}
+                      activeNeed={activeNeed}
+                      matchStrength={matchStrength}
+                      industryMatch={industryMatch}
+                      browsingMatch={browsingMatch}
+                      attentionScore={attentionScore}
+                      predicted={Boolean(attentionBonus && attentionBonus > 0)}
+                      spotlighted={!searchActive && virtualItem.index < 2}
+                      onDemo={handleDemo}
+                      onBuy={buy}
+                      onDwell={handleAttentionDwell}
+                    />
+                    {lastViewedLabel ? (
+                      <span className="marketplace-results__meta">Last viewed {lastViewedLabel}</span>
+                    ) : null}
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+          {visibleResults === 0 ? (
+            <div className="marketplace-results__empty glass-card glass-card--subtle">
+              <h4>No automations match "{searchQuery.trim()}"</h4>
+              <p>Try a different keyword or explore the recommended needs above.</p>
+            </div>
+          ) : null}
+        </div>
+
         {error && automations.length > 0 && (
           <div
             role="alert"
             data-animate="fade-up"
-            data-animate-order="4"
+            data-animate-order="5"
             className="marketplace-alert glass-card glass-card--warning"
           >
             Some automations may not be displayed due to a connection issue.

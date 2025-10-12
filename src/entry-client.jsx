@@ -2,6 +2,7 @@ import React, { StrictMode, startTransition } from "react";
 import { hydrateRoot } from "react-dom/client";
 import { BrowserRouter } from "react-router-dom";
 import { ErrorBoundary } from "react-error-boundary";
+import { track } from "@vercel/analytics";
 import App from "./App";
 import { ThemeProvider } from "./context/ThemeContext";
 import { warmupWasm } from "./lib/wasmMath";
@@ -11,7 +12,7 @@ import {
   exposePerformanceBudgets,
   initPerformanceBudgetWatchers,
 } from "./utils/performanceBudgets";
-import { onCLS, onINP, onLCP } from "web-vitals";
+import { reportWebVitals } from "./lib/webVitals";
 
 // Enhanced fallback UI
 function ErrorFallback({ error, resetErrorBoundary }) {
@@ -108,9 +109,25 @@ function sendToAnalytics(metric) {
 }
 
 if (typeof window !== "undefined") {
-  onLCP(sendToAnalytics);
-  onCLS(sendToAnalytics);
-  onINP(sendToAnalytics);
+  reportWebVitals((metric) => {
+    try {
+      track?.("web-vitals", {
+        name: metric.name,
+        value: metric.value,
+        rating: metric.rating,
+      });
+    } catch (error) {
+      if (import.meta.env.DEV) {
+        console.warn("Failed to send analytics metric", error);
+      }
+    }
+
+    sendToAnalytics(metric);
+
+    if (import.meta.env.DEV && metric.rating === "poor") {
+      console.warn(`Poor ${metric.name}:`, metric.value);
+    }
+  });
 }
 
 if (typeof window !== "undefined") {
