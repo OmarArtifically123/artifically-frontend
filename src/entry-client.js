@@ -509,6 +509,44 @@ if (typeof window !== "undefined" && import.meta.env.DEV) {
   console.log("🔧 Debug Info:", debugInfo);
 }
 
+// Force repaint on viewport changes to fix backdrop-filter blur issues
+if (typeof window !== "undefined") {
+  let resizeTimeout;
+  
+  const forceRepaint = () => {
+    // Force a repaint by temporarily modifying a CSS property
+    document.body.style.transform = 'translateZ(0)';
+    requestAnimationFrame(() => {
+      document.body.style.transform = '';
+    });
+  };
+
+  // Handle window resize (includes zoom)
+  window.addEventListener('resize', () => {
+    clearTimeout(resizeTimeout);
+    resizeTimeout = setTimeout(forceRepaint, 100);
+  });
+
+  // Handle DevTools open/close
+  let devToolsOpen = false;
+  const checkDevTools = () => {
+    const widthThreshold = window.outerWidth - window.innerWidth > 160;
+    const heightThreshold = window.outerHeight - window.innerHeight > 160;
+    const wasOpen = devToolsOpen;
+    devToolsOpen = widthThreshold || heightThreshold;
+    
+    if (wasOpen !== devToolsOpen) {
+      setTimeout(forceRepaint, 50);
+    }
+  };
+
+  window.addEventListener('resize', checkDevTools);
+  setInterval(checkDevTools, 500);
+
+  // Initial check
+  setTimeout(forceRepaint, 100);
+}
+
 // Cleanup on page unload
 if (typeof window !== "undefined") {
   window.addEventListener("beforeunload", () => {
