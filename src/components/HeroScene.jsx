@@ -2492,9 +2492,13 @@ function EnergyStreams({ streams, reduceMotion, nodePositions, quality }) {
             });
             if (trail?.geometry) {
               if (typeof trail.geometry.setPositions === "function") {
-                trail.geometry.setPositions(buffer);
+                if (buffer.length >= 6) {
+                  trail.geometry.setPositions(buffer);
+                }
               } else if (typeof trail.geometry.setFromPoints === "function") {
-                trail.geometry.setFromPoints(history);
+                if (history.length >= 2) {
+                  trail.geometry.setFromPoints(history);
+                }
               }
             }
           }

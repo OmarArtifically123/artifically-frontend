@@ -19,6 +19,8 @@ export default function useScrollChoreography() {
       element.style.removeProperty("opacity");
       element.style.removeProperty("transform");
       element.style.removeProperty("filter");
+      element.style.removeProperty("backdrop-filter");
+      element.style.removeProperty("-webkit-backdrop-filter");
       element.style.removeProperty("will-change");
     });
 
