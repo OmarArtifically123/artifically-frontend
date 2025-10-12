@@ -47,6 +47,7 @@ public/images/hero-preview-blur.jpg
 
 # Fonts generated/added manually
 public/fonts/*.woff2
+!public/fonts/inter-var.woff2
 
 # Always keep folder structure placeholders
 !public/images/.gitkeep

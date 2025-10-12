@@ -10,6 +10,7 @@ const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const mimeTypes = {
   ".js": "application/javascript",
   ".mjs": "application/javascript",
+  ".jsx": "application/javascript",
   ".css": "text/css",
   ".json": "application/json",
   ".webmanifest": "application/manifest+json",

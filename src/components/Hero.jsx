@@ -502,6 +502,8 @@ function FloatingProductPreview() {
             sources={HERO_PREVIEW_SOURCES}
             alt="Artifically automation workspace preview"
             className="hero-preview__fallback"
+            loading="eager"
+            decoding="sync"
             wrapperProps={{ "data-enhanced": "true" }}
           />
         )}

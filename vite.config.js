@@ -192,7 +192,16 @@ export default defineConfig((configEnv) => {
     'animations-critical': ['framer-motion'],
     'animations-deferred': ['gsap', '@gsap/react'],
     'ui-utils': ['lodash', 'date-fns'],
-    three: ['three', '@react-three/fiber', '@react-three/drei', '@react-three/postprocessing'],
+    three: [
+      'three',
+      '@react-three/fiber',
+      '@react-three/drei',
+      '@react-three/postprocessing',
+      'postprocessing',
+      'three-stdlib',
+      'troika-three-text',
+      'maath',
+    ],
     analytics: ['@vercel/analytics', '@builder.io/partytown'],
   }
 
@@ -226,7 +235,14 @@ export default defineConfig((configEnv) => {
             }
           }
 
-          if (id.includes('/node_modules/three') || id.includes('/node_modules/@react-three/')) {
+          if (
+            id.includes('/node_modules/three') ||
+            id.includes('/node_modules/@react-three/') ||
+            id.includes('/node_modules/postprocessing') ||
+            id.includes('/node_modules/three-stdlib') ||
+            id.includes('/node_modules/troika-three-text') ||
+            id.includes('/node_modules/maath')
+          ) {
             return 'three'
           }
           
