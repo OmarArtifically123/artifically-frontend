@@ -10,6 +10,7 @@ import {
   DoubleSide,
   EdgesGeometry,
   DodecahedronGeometry,
+  Euler,
   FogExp2,
   IcosahedronGeometry,
   LinearFilter,
@@ -18,6 +19,7 @@ import {
   PCFSoftShadowMap,
   Quaternion,
   RGBAFormat,
+  RepeatWrapping,
   SRGBColorSpace,
   TubeGeometry,
   Uniform,
@@ -61,6 +63,14 @@ const HEIGHT_FOG_COLOR = new Color(0x14233c);
 const LENS_DIRT_TEXTURE_SIZE = 256;
 const MOTION_BLUR_SAMPLES = 8;
 const HERO_TIMELINE_DURATION = 20;
+const PARTICLE_TRAIL_DURATION = 0.3;
+const PARTICLE_TRAIL_SAMPLE_RATE = 60;
+const PARTICLE_TRAIL_MIN_SAMPLES = 12;
+const PARTICLE_TRAIL_MAX_SAMPLES = 36;
+const PARTICLE_TRAIL_SAMPLES = Math.max(
+  PARTICLE_TRAIL_MIN_SAMPLES,
+  Math.min(PARTICLE_TRAIL_MAX_SAMPLES, Math.round(PARTICLE_TRAIL_DURATION * PARTICLE_TRAIL_SAMPLE_RATE)),
+);
 const HERO_TIMELINE_PHASES = [
   { key: "awakening", start: 0, duration: 5 },
   { key: "processing", start: 5, duration: 5 },
@@ -491,6 +501,13 @@ const HERO_TIMELINE_KEYFRAMES = {
     { time: 15, value: 1.1, ease: "sineInOut" },
     { time: 20, value: 1, ease: "sineInOut" },
   ],
+  colorTemperature: [
+    { time: 0, value: 0, ease: "sineInOut" },
+    { time: 5, value: 55, ease: "sineInOut" },
+    { time: 10, value: -85, ease: "sineInOut" },
+    { time: 15, value: 40, ease: "sineInOut" },
+    { time: 20, value: 0, ease: "sineInOut" },
+  ],
 };
 
 function getHeroTimelineState(elapsedTime) {
@@ -534,6 +551,7 @@ function getHeroTimelineState(elapsedTime) {
     heroScalePulseMultiplier: evaluateTimelineKeyframes(cycleTime, HERO_TIMELINE_KEYFRAMES.heroScalePulse),
     gridScanStrength: MathUtils.clamp(easingLibrary.cubicInOut(gridScanProgress) * 1.4, 0, 1.4),
     gridScanProgress: easingLibrary.sineInOut(gridScanProgress),
+    colorTemperatureShift: evaluateTimelineKeyframes(cycleTime, HERO_TIMELINE_KEYFRAMES.colorTemperature),
   };
 }
 
@@ -584,6 +602,7 @@ class ColorGradeEffect extends Effect {
         uniform float uVignetteIntensity;
         uniform float uVignetteRoundness;
         uniform float uVignetteFeather;
+        uniform float uTemperatureShift;
 
         vec3 rgb2hsv(vec3 c) {
           vec4 K = vec4(0.0, -1.0 / 3.0, 2.0 / 3.0, -1.0);
@@ -638,6 +657,13 @@ class ColorGradeEffect extends Effect {
 
           color = mix(color, color * vec3(0.8, 0.92, 1.05), uCoolBloomBoost);
 
+          float normalizedShift = clamp(uTemperatureShift, -1.0, 1.0);
+          vec3 warmTint = vec3(1.02, 1.0, 0.96);
+          vec3 coolTint = vec3(0.96, 1.0, 1.04);
+          vec3 temperatureTint = mix(coolTint, warmTint, normalizedShift * 0.5 + 0.5);
+          float temperatureWeight = abs(normalizedShift) * 0.35;
+          color = mix(color, color * temperatureTint, temperatureWeight);
+
           float vignette = vignetteMask(uv, uResolution, uVignetteIntensity, uVignetteRoundness, uVignetteFeather);
           color = mix(vec3(0.0), color, vignette);
 
@@ -661,6 +687,7 @@ class ColorGradeEffect extends Effect {
           ["uVignetteIntensity", new Uniform(0.28)],
           ["uVignetteRoundness", new Uniform(0.7)],
           ["uVignetteFeather", new Uniform(0.5)],
+          ["uTemperatureShift", new Uniform(0)],
         ]),
       },
     );
@@ -817,6 +844,8 @@ const GridMaterial = shaderMaterial(
     uGlowColor: new Color(0x22d3ee),
     uScanStrength: 0,
     uScanProgress: 0,
+    uCausticStrength: 0.22,
+    uConstellationIntensity: 0.18,
   },
   /* glsl */ `
     varying vec2 vUv;
@@ -833,6 +862,8 @@ const GridMaterial = shaderMaterial(
     uniform vec3 uGlowColor;
     uniform float uScanStrength;
     uniform float uScanProgress;
+    uniform float uCausticStrength;
+    uniform float uConstellationIntensity;
     varying vec2 vUv;
 
     float grid(vec2 uv, float scale, float thickness) {
@@ -850,6 +881,27 @@ const GridMaterial = shaderMaterial(
       star = smoothstep(0.0, 0.005, star);
       float twinkle = 0.5 + 0.5 * sin(uTime * 0.6 + n);
       return star * twinkle;
+    }
+
+    float causticWave(vec2 uv, float time) {
+      float waveA = sin((uv.x + time * 0.35) * 36.0) * 0.6;
+      float waveB = cos((uv.y - time * 0.27) * 32.0) * 0.4;
+      float waveC = sin((uv.x + uv.y) * 18.0 - time * 0.45) * 0.3;
+      float waveD = cos((uv.x - uv.y) * 14.0 + time * 0.32) * 0.25;
+      return (waveA + waveB + waveC + waveD) * 0.5 + 0.5;
+    }
+
+    float constellationMask(vec2 uv, vec2 cell, float seed) {
+      float selector = step(0.985, fract(seed));
+      vec2 local = fract(uv * cell) - 0.5;
+      vec2 base = vec2(fract(seed * 13.37), fract(seed * 7.31)) - 0.5;
+      float angle = fract(seed * 0.915) * 6.2831853;
+      vec2 dir = normalize(vec2(cos(angle), sin(angle)));
+      float star = exp(-dot(local - base, local - base) * 220.0);
+      float perpendicular = dot(local - base, vec2(-dir.y, dir.x));
+      float along = dot(local - base, dir);
+      float line = exp(-perpendicular * perpendicular * 420.0) * smoothstep(-0.18, 0.22, along) * (1.0 - smoothstep(0.22, 0.38, along));
+      return selector * (star * 0.7 + line * 0.45);
     }
 
     void main() {
@@ -884,6 +936,21 @@ const GridMaterial = shaderMaterial(
 
       float horizonGlow = smoothstep(0.55, 0.95, uv.y);
       color += uGlowColor * 0.18 * horizonGlow;
+
+      vec2 causticUV = centered * vec2(2.1, 3.4) + vec2(0.0, 0.3);
+      float causticPattern = causticWave(causticUV + vec2(sin(uTime * 0.12), cos(uTime * 0.1)) * 0.08, uTime);
+      float causticFalloff = exp(-dot(causticUV * vec2(1.2, 0.75), causticUV * vec2(1.2, 0.75)) * 3.6);
+      float caustics = causticPattern * causticFalloff * uCausticStrength;
+      color += vec3(0.24, 0.42, 0.62) * caustics * mix(1.0, 0.6, uv.y);
+
+      float starGlow = starfield(uv * 1.25) * 0.35;
+      color += vec3(0.18, 0.24, 0.46) * starGlow * uConstellationIntensity;
+
+      vec2 cellCount = vec2(12.0, 6.0);
+      vec2 cell = floor(uv * cellCount);
+      float seed = sin(dot(cell, vec2(12.9898, 78.233))) * 43758.5453;
+      float constellation = constellationMask(uv, cellCount, seed) * uConstellationIntensity;
+      color += vec3(0.14, 0.28, 0.6) * constellation;
 
       gl_FragColor = vec4(color, 0.92);
     }
@@ -1130,6 +1197,60 @@ function createProceduralNormalTexture(size = 256, seed = 8128) {
   return texture;
 }
 
+function createBinaryCircuitTexture(size = 256, seed = 5311) {
+  const random = createDeterministicRandom(seed);
+  const data = new Uint8Array(size * size * 4);
+  const charWidth = 6;
+  const charHeight = 10;
+  const columnSpacing = charWidth + 6;
+  const rowSpacing = charHeight + 8;
+  for (let y = 0; y < size; y += 1) {
+    for (let x = 0; x < size; x += 1) {
+      const stride = (y * size + x) * 4;
+      let value = 18;
+      const localX = x % columnSpacing;
+      const localY = y % rowSpacing;
+      if (localX < charWidth && localY < charHeight) {
+        const cellX = Math.floor(x / columnSpacing);
+        const cellY = Math.floor(y / rowSpacing);
+        const seedValue = cellX * 92821 + cellY * 68917;
+        const noise = Math.sin(seedValue * 12.37 + seed * 0.13) * 43758.5453;
+        const fraction = noise - Math.floor(noise);
+        const bit = fraction > 0.48 ? 1 : 0;
+        const fx = (localX + 0.5) / charWidth;
+        const fy = (localY + 0.5) / charHeight;
+        if (bit === 1) {
+          const column = Math.exp(-Math.pow((fx - 0.5) * 5.6, 2));
+          const capTop = Math.exp(-Math.pow(fy * 4.2, 2)) * 0.45;
+          const capBottom = Math.exp(-Math.pow((1.0 - fy) * 4.2, 2)) * 0.45;
+          value = Math.min(180, 65 + (column * 120 + (capTop + capBottom) * 70));
+        } else {
+          const dx = fx - 0.5;
+          const dy = fy - 0.5;
+          const radius = Math.sqrt(dx * dx + dy * dy);
+          const ring = Math.exp(-Math.pow((radius - 0.38) * 10.8, 2));
+          const core = Math.exp(-Math.pow(radius * 3.6, 2));
+          value = Math.min(165, 58 + ring * 110 + core * 40);
+        }
+        value *= 0.5 + random() * 0.1 + 0.2;
+      }
+      const tint = Math.max(0, Math.min(1, value / 255));
+      data[stride] = value;
+      data[stride + 1] = Math.round(value * 0.92);
+      data[stride + 2] = Math.round(value * 0.84);
+      data[stride + 3] = Math.round(MathUtils.lerp(36, 96, tint));
+    }
+  }
+  const texture = new DataTexture(data, size, size, RGBAFormat);
+  texture.needsUpdate = true;
+  texture.wrapS = RepeatWrapping;
+  texture.wrapT = RepeatWrapping;
+  texture.repeat.set(4, 4);
+  texture.anisotropy = 4;
+  texture.colorSpace = SRGBColorSpace;
+  return texture;
+}
+
 function createShellSpecks(count = HERO_SHELL_SPECK_COUNT) {
   const random = createDeterministicRandom(4421);
   return Array.from({ length: count }, (_, index) => {
@@ -1156,9 +1277,24 @@ function createNeuralNodes(count = NEURAL_NODE_COUNT, connectionsPerNode = NEURA
     const phi = Math.acos(2 * random() - 1);
     const position = new Vector3().setFromSphericalCoords(radius, phi, theta);
     const scale = 0.05 + random() * 0.07;
+    const scaleVariance = MathUtils.lerp(0.85, 1.25, random());
     const pulseDuration = 0.8 + random() * 1.7;
     const pulseOffset = random() * Math.PI * 2;
-    return { position, scale, pulseDuration, pulseOffset };
+    const rotationAxis = new Vector3(random() - 0.5, random() - 0.5, random() - 0.5).normalize();
+    const rotationSpeed = MathUtils.lerp(0.08, 0.18, random());
+    const rotationOffset = random() * Math.PI * 2;
+    const emissiveBias = MathUtils.lerp(0.85, 1.2, random());
+    return {
+      position,
+      scale,
+      scaleVariance,
+      pulseDuration,
+      pulseOffset,
+      rotationAxis,
+      rotationSpeed,
+      rotationOffset,
+      emissiveBias,
+    };
   });
 
   const connections = [];
@@ -1241,6 +1377,7 @@ function createOrbitalNetwork({ orbitalNodeDensity = 1, energyStreamDensity = 1 
           : type === "B"
             ? MathUtils.lerp(0.18, 0.25, random())
             : MathUtils.lerp(0.22, 0.3, random());
+        const initialEuler = new Euler(random() * Math.PI, random() * Math.PI, random() * Math.PI);
       const node = {
         id: `${ring.id}-${type}-${index}`,
         type,
@@ -1259,6 +1396,10 @@ function createOrbitalNetwork({ orbitalNodeDensity = 1, energyStreamDensity = 1 
         baseScale,
         colorCycleOffset: random(),
         shape: type === "B" ? (random() > 0.45 ? "dodeca" : "icosa") : undefined,
+        initialQuaternion: new Quaternion().setFromEuler(initialEuler),
+        emissiveBias: MathUtils.lerp(0.85, 1.18, random()),
+        scaleVariance: MathUtils.lerp(0.9, 1.2, random()),
+        trailOpacityBias: MathUtils.lerp(0.75, 1.25, random()),
       };
       nodes.push(node);
       ringBuckets.get(ring.id).push(nodes.length - 1);
@@ -1385,6 +1526,16 @@ function createEnergyStreamDescriptor(random, startIndex, endIndex, options = {}
     pulseAmplitude: 3.0,
     wobbleAxis,
     spiralAxis,
+    burstInterval: 4.5 + random() * 6.5,
+    burstStrength: MathUtils.lerp(0.35, 0.7, random()),
+    burstSharpness: MathUtils.lerp(6, 11, random()),
+    burstOffset: random() * Math.PI * 2,
+    dataBurstInterval: 7.5 + random() * 9.5,
+    dataBurstVariance: MathUtils.lerp(0.35, 0.65, random()),
+    dataBurstTravelTime: MathUtils.lerp(0.8, 1.4, random()),
+    dataBurstGlow: MathUtils.lerp(1.6, 2.4, random()),
+    dataBurstTail: MathUtils.lerp(0.22, 0.32, random()),
+    dataBurstSeed: Math.floor(random() * 104729),
   };
 }
 
@@ -1435,7 +1586,8 @@ function useProceduralShellMaps() {
   return useMemo(() => {
     const normalTexture = createProceduralNormalTexture(256, 9091);
     const roughnessTexture = createProceduralNormalTexture(256, 12041);
-    return { normalTexture, roughnessTexture };
+    const detailTexture = createBinaryCircuitTexture(256, 11271);
+    return { normalTexture, roughnessTexture, detailTexture };
   }, []);
 }
 
@@ -1560,6 +1712,14 @@ function BackgroundLayers({ reduceMotion, quality }) {
       const scanStrength = (quality.gridScanStrength ?? 1) * timeline.gridScanStrength;
       materialRef.current.uScanStrength = reduceMotion ? 0 : scanStrength;
       materialRef.current.uScanProgress = timeline.gridScanProgress;
+      const emissiveStrength = MathUtils.clamp((timeline.heroEmissiveMultiplier - 0.9) / 0.5, 0, 1);
+      materialRef.current.uCausticStrength = reduceMotion
+        ? 0.12
+        : MathUtils.lerp(0.16, 0.32, emissiveStrength);
+      const constellationStrength = MathUtils.clamp((timeline.backgroundDriftMultiplier - 0.8) / 0.6, 0, 1);
+      materialRef.current.uConstellationIntensity = reduceMotion
+        ? 0.12
+        : MathUtils.lerp(0.14, 0.26, constellationStrength);
     }
     if (reduceMotion || !pointsRef.current) {
       return;
@@ -1622,6 +1782,7 @@ function NeuralCore({ reduceMotion, quality }) {
   const connectionRef = useRef();
   const dummy = useMemo(() => new Object3D(), []);
   const colorsRef = useRef(nodes.map(() => new Color(0x9333ea)));
+  const colorScratch = useMemo(() => new Color(), []);
   const trailSampleCount = resolveMotionBlurSampleCount(quality);
 
   const connectionPositions = useMemo(() => {
@@ -1644,8 +1805,12 @@ function NeuralCore({ reduceMotion, quality }) {
     if (!instancedRef.current) return;
     nodes.forEach((node, index) => {
       const gradientColor = new Color().setHSL(0.62 + node.position.length() * 0.12, 0.85, 0.58);
+      gradientColor.multiplyScalar(node.emissiveBias);
+      gradientColor.r = Math.min(gradientColor.r, 1.25);
+      gradientColor.g = Math.min(gradientColor.g, 1.25);
+      gradientColor.b = Math.min(gradientColor.b, 1.25);
       instancedRef.current.setColorAt(index, gradientColor);
-      colorsRef.current[index] = gradientColor;
+      colorsRef.current[index] = gradientColor.clone();
     });
     instancedRef.current.instanceColor.needsUpdate = true;
   }, [nodes]);
@@ -1661,12 +1826,26 @@ function NeuralCore({ reduceMotion, quality }) {
       const scaleMultiplier = reduceMotion
         ? 1
         : 1 + (basePulse - 1) * (1 + (timeline.heroNeuralPulseMultiplier - 1) * 0.65);
+        const rotationAngle = reduceMotion
+        ? node.rotationOffset
+        : node.rotationOffset + cycleTime * node.rotationSpeed * timeline.nodeSelfRotationMultiplier;
       dummy.position.copy(node.position);
-      dummy.scale.setScalar(node.scale * scaleMultiplier);
+      dummy.quaternion.setFromAxisAngle(node.rotationAxis, rotationAngle);
+      dummy.scale.setScalar(node.scale * node.scaleVariance * scaleMultiplier);
       dummy.updateMatrix();
       instancedRef.current.setMatrixAt(index, dummy.matrix);
+      if (instancedRef.current.instanceColor) {
+        const baseColor = colorsRef.current[index] ?? colorScratch;
+        colorScratch.copy(baseColor);
+        const emissiveLift = reduceMotion ? 0 : Math.max(timeline.heroEmissiveMultiplier - 1, 0);
+        colorScratch.multiplyScalar(1 + emissiveLift * node.emissiveBias * 0.6);
+        instancedRef.current.setColorAt(index, colorScratch);
+      }
     });
     instancedRef.current.instanceMatrix.needsUpdate = true;
+    if (instancedRef.current.instanceColor) {
+      instancedRef.current.instanceColor.needsUpdate = true;
+    }
     if (connectionRef.current) {
       const flickerPhase = reduceMotion ? 0 : Math.sin(BASE_CYCLE_FREQUENCY * cycleTime * 6 + 0.45);
       const baseOpacity = reduceMotion ? 0.32 : 0.22 + timeline.heroNeuralPulseMultiplier * 0.08;
@@ -1858,6 +2037,12 @@ function OrbitalNetwork({ reduceMotion, quality }) {
       const orbitGroup = orbitRefs.current[index];
       const visualGroup = visualRefs.current[index];
       if (!orbitGroup || !visualGroup) return;
+      if (!visualGroup.userData.initialized) {
+        if (node.initialQuaternion) {
+          visualGroup.quaternion.copy(node.initialQuaternion);
+        }
+        visualGroup.userData.initialized = true;
+      }
       const orbitSpeed = node.orbitSpeed * timeline.nodeOrbitSpeedMultiplier;
       const angle = node.baseAngle + node.direction * orbitSpeed * cycleTime * TWO_PI;
       const basePosition = new Vector3(Math.cos(angle) * node.orbitRadius, 0, Math.sin(angle) * node.orbitRadius);
@@ -1898,7 +2083,7 @@ function OrbitalNetwork({ reduceMotion, quality }) {
             (Math.sin(cycleTime * node.scalePulseRate * TWO_PI + node.scalePulseOffset) + 1) * 0.5,
           );
       const timelineScale = 1 + (timeline.heroNeuralPulseMultiplier - 1) * 0.35;
-      visualGroup.scale.setScalar(node.baseScale * scalePulse * timelineScale);
+      visualGroup.scale.setScalar(node.baseScale * node.scaleVariance * scalePulse * timelineScale);
       visualGroup.rotateOnAxis(
         node.selfRotationAxis,
         node.selfRotationSpeed * delta * timeline.nodeSelfRotationMultiplier,
@@ -1913,14 +2098,16 @@ function OrbitalNetwork({ reduceMotion, quality }) {
         const localT = cycle - baseIndex;
         const emissive = TYPE_A_TINT_COLORS[baseIndex].clone().lerp(TYPE_A_TINT_COLORS[nextIndex], localT);
         material.emissive.copy(emissive);
-        material.emissiveIntensity = 0.68 * timeline.heroEmissiveMultiplier;
+        material.emissiveIntensity = 0.68 * timeline.heroEmissiveMultiplier * node.emissiveBias;
       }
 
       if (node.type === "B" && edgeRefs.current[index]) {
         const edgeMaterial = edgeRefs.current[index].material;
         const opacityBase = reduceMotion ? 0.88 : 0.82;
         edgeMaterial.opacity =
-          opacityBase + Math.sin(BASE_CYCLE_FREQUENCY * cycleTime * 4 + node.scalePulseOffset) * 0.18 * timeline.heroNeuralPulseMultiplier;
+          (opacityBase + Math.sin(BASE_CYCLE_FREQUENCY * cycleTime * 4 + node.scalePulseOffset) * 0.18 *
+            timeline.heroNeuralPulseMultiplier) *
+          node.emissiveBias;
       }
 
       if (node.type === "C" && coreRefs.current[index]) {
@@ -1928,7 +2115,7 @@ function OrbitalNetwork({ reduceMotion, quality }) {
           ? 5.0
           : (5 + Math.sin(BASE_CYCLE_FREQUENCY * cycleTime * 5 + node.scalePulseOffset) * 1.2) *
             timeline.heroEmissiveMultiplier;
-        coreRefs.current[index].material.emissiveIntensity = intensity;
+        coreRefs.current[index].material.emissiveIntensity = intensity * node.emissiveBias;
       }
     });
   });
@@ -1952,7 +2139,7 @@ function OrbitalNetwork({ reduceMotion, quality }) {
             clearcoat={0.8}
             clearcoatRoughness={0.12}
             emissive={TYPE_A_TINT_COLORS[0].clone()}
-            emissiveIntensity={0.6}
+            emissiveIntensity={0.45 + node.emissiveBias * 0.25}
             reflectivity={0.85}
             envMapIntensity={1.35}
             transparent={false}
@@ -1991,7 +2178,7 @@ function OrbitalNetwork({ reduceMotion, quality }) {
               <lineBasicMaterial
                 color={new Color(0x22d3ee)}
                 transparent
-                opacity={0.85}
+                opacity={0.85 * node.emissiveBias}
                 toneMapped={false}
               />
             </lineSegments>
@@ -2031,7 +2218,7 @@ function OrbitalNetwork({ reduceMotion, quality }) {
           <meshStandardMaterial
             color={new Color(0xffffff)}
             emissive={new Color(0xffffff)}
-            emissiveIntensity={5}
+            emissiveIntensity={5 * node.emissiveBias}
             metalness={0}
             roughness={1}
             toneMapped={false}
@@ -2064,7 +2251,11 @@ function OrbitalNetwork({ reduceMotion, quality }) {
             points={nodeHistories.current[index] ?? []}
             color="#38bdf8"
             transparent
-            opacity={reduceMotion ? 0.1 : 0.28 * MathUtils.clamp(quality.energyStreamDensity ?? 1, 0.55, 1)}
+            opacity={Math.min(
+              1,
+              (reduceMotion ? 0.1 : 0.28 * MathUtils.clamp(quality.energyStreamDensity ?? 1, 0.55, 1)) *
+                (node.trailOpacityBias ?? 1),
+            )}
             lineWidth={1.4}
             toneMapped={false}
           />
@@ -2201,7 +2392,7 @@ function HeroOrb({ reduceMotion, quality }) {
   const speckDummy = useMemo(() => new Object3D(), []);
   const speckColor = useMemo(() => new Color(), []);
   const shellSpecks = useMemo(() => createShellSpecks(), []);
-  const { normalTexture, roughnessTexture } = useProceduralShellMaps();
+  const { normalTexture, roughnessTexture, detailTexture } = useProceduralShellMaps();
 
   useFrame(({ clock }) => {
     if (!groupRef.current) return;
@@ -2263,6 +2454,7 @@ function HeroOrb({ reduceMotion, quality }) {
           color={new Color(0x0f1e3c)}
           emissive={new Color(0x22d3ee)}
           emissiveIntensity={0.4}
+          emissiveMap={detailTexture}
           roughness={0.08}
           metalness={0}
           thickness={0.42}
@@ -2315,21 +2507,25 @@ function EnergyStreams({ streams, reduceMotion, nodePositions, quality }) {
   const glowMaterials = useRef([]);
   const particleRefs = useRef(streams.map((stream) => new Array(stream.particleOffsets.length).fill(null)));
   const particleTrailRefs = useRef(streams.map((stream) => new Array(stream.particleOffsets.length).fill(null)));
-  const motionTrailSamples = resolveMotionBlurSampleCount(quality);
+  const particleTrailSamples = reduceMotion
+    ? Math.max(PARTICLE_TRAIL_MIN_SAMPLES, Math.floor(PARTICLE_TRAIL_SAMPLES * 0.6))
+    : PARTICLE_TRAIL_SAMPLES;
   const particleTrailBuffers = useRef(
-    streams.map((stream) => stream.particleOffsets.map(() => new Float32Array(motionTrailSamples * 3))),
+    streams.map((stream) => stream.particleOffsets.map(() => new Float32Array(particleTrailSamples * 3))),
   );
   const particleHistories = useRef(
     streams.map((stream) =>
-      stream.particleOffsets.map(() => Array.from({ length: motionTrailSamples }, () => new Vector3())),
+      streams.map((stream) => stream.particleOffsets.map(() => new Float32Array(particleTrailSamples * 3))),
     ),
   );
+  const dataBurstRefs = useRef([]);
+  const dataBurstStates = useRef([]);
 
   {
     const previousCoreRefs = coreRefs.current;
     coreRefs.current = streams.map((_, index) => previousCoreRefs[index] ?? null);
 
-  const previousGlowRefs = glowRefs.current;
+    const previousGlowRefs = glowRefs.current;
     glowRefs.current = streams.map((_, index) => previousGlowRefs[index] ?? null);
 
     const previousCoreMaterials = coreMaterials.current;
@@ -2355,10 +2551,10 @@ function EnergyStreams({ streams, reduceMotion, nodePositions, quality }) {
       const existingBuffers = previousTrailBuffers[streamIndex] ?? [];
       return stream.particleOffsets.map((_, particleIndex) => {
         const buffer = existingBuffers[particleIndex];
-        if (buffer && buffer.length === motionTrailSamples * 3) {
+        if (buffer && buffer.length === particleTrailSamples * 3) {
           return buffer;
         }
-        return new Float32Array(motionTrailSamples * 3);
+        return new Float32Array(particleTrailSamples * 3);
       });
     });
 
@@ -2367,11 +2563,53 @@ function EnergyStreams({ streams, reduceMotion, nodePositions, quality }) {
       const existingHistories = previousHistories?.[streamIndex] ?? [];
       return stream.particleOffsets.map((_, particleIndex) => {
         const history = existingHistories[particleIndex];
-        if (history && history.length === motionTrailSamples) {
+        if (history && history.length === particleTrailSamples) {
           return history;
         }
-        return Array.from({ length: motionTrailSamples }, () => new Vector3());
+        return Array.from({ length: particleTrailSamples }, () => new Vector3());
       });
+    });
+
+    const previousDataBurstRefs = dataBurstRefs.current;
+    dataBurstRefs.current = streams.map((_, index) => previousDataBurstRefs[index] ?? null);
+
+    const previousDataBurstStates = dataBurstStates.current;
+    dataBurstStates.current = streams.map((stream, index) => {
+      const existingState = previousDataBurstStates[index];
+      if (existingState && existingState.streamId === stream.id) {
+        existingState.direction = stream.flowDirection >= 0 ? 1 : -1;
+        existingState.interval = stream.dataBurstInterval ?? existingState.interval;
+        existingState.variance = stream.dataBurstVariance ?? existingState.variance;
+        existingState.travelDuration = stream.dataBurstTravelTime ?? existingState.travelDuration;
+        existingState.intensity = stream.dataBurstGlow ?? existingState.intensity;
+        existingState.tail = stream.dataBurstTail ?? existingState.tail;
+        if (typeof existingState.randomizer !== "function") {
+          existingState.randomizer = createDeterministicRandom(
+            (stream.dataBurstSeed ?? 0) + index * 7919 + 17,
+          );
+        }
+        const maxCooldown = existingState.interval * (1 + (existingState.variance ?? 0.5));
+        if (!Number.isFinite(existingState.cooldown) || existingState.cooldown > maxCooldown) {
+          existingState.cooldown = maxCooldown;
+        }
+        return existingState;
+      }
+      const randomizer = createDeterministicRandom((stream.dataBurstSeed ?? 0) + index * 7919 + 17);
+      const interval = stream.dataBurstInterval ?? 9;
+      const variance = stream.dataBurstVariance ?? 0.5;
+      return {
+        streamId: stream.id,
+        active: false,
+        progress: 0,
+        cooldown: interval * (0.35 + randomizer() * 0.65),
+        direction: stream.flowDirection >= 0 ? 1 : -1,
+        travelDuration: stream.dataBurstTravelTime ?? 1.1,
+        intensity: stream.dataBurstGlow ?? 2.0,
+        tail: stream.dataBurstTail ?? 0.24,
+        interval,
+        variance,
+        randomizer,
+      };
     });
   }
 
@@ -2384,11 +2622,15 @@ function EnergyStreams({ streams, reduceMotion, nodePositions, quality }) {
     [streams, streamCurves],
   );
 
-  useFrame(({ clock }) => {
+  useFrame((state, delta) => {
+    const { clock } = state;
     const time = clock.getElapsedTime();
     const timeline = getHeroTimelineState(time);
     const cycleTime = timeline.cycleTime;
     const energyMultiplier = MathUtils.clamp(quality.energyStreamDensity ?? 1, 0.55, 1.05);
+    const baseTrailOpacity = reduceMotion
+      ? 0.06
+      : 0.18 * MathUtils.clamp(quality.energyStreamDensity ?? 1, 0.5, 1);
     streams.forEach((stream, index) => {
       const coreMesh = coreRefs.current[index];
       const glowMesh = glowRefs.current[index];
@@ -2464,9 +2706,17 @@ function EnergyStreams({ streams, reduceMotion, nodePositions, quality }) {
         glowMesh.geometry = newGeometry;
       }
 
+      const burstInterval = Math.max(stream.burstInterval ?? 5, 0.1);
+      const burstPhase = reduceMotion
+        ? 0
+        : Math.sin(((cycleTime + (stream.burstOffset ?? 0)) / burstInterval) * Math.PI * 2);
+      const burstEnergy = reduceMotion
+        ? 0
+        : Math.pow(Math.max(burstPhase, 0), stream.burstSharpness ?? 8) * (stream.burstStrength ?? 0.5);
+
       if (coreMaterial) {
         const pulseFrequency = stream.pulseFrequency * timeline.energyPulseFrequencyMultiplier;
-        const intensity =
+        const baseIntensity =
           (stream.pulseBase * timeline.energyPulseIntensityMultiplier * energyMultiplier) +
           (reduceMotion
             ? 0
@@ -2477,8 +2727,10 @@ function EnergyStreams({ streams, reduceMotion, nodePositions, quality }) {
         coreMaterial.uniforms.uGradientShift.value = reduceMotion
           ? stream.gradientOffset
           : stream.gradientOffset + cycleTime * stream.gradientSpeed * stream.flowDirection;
-        coreMaterial.uniforms.uIntensity.value = intensity;
-        coreMaterial.uniforms.uOpacity.value = reduceMotion ? 0.78 : 0.86 * energyMultiplier;
+        coreMaterial.uniforms.uIntensity.value = baseIntensity * (1 + burstEnergy);
+        coreMaterial.uniforms.uOpacity.value = reduceMotion
+          ? 0.72
+          : (0.86 * energyMultiplier) * (1 + burstEnergy * 0.6);
       }
 
       if (glowMaterial) {
@@ -2486,9 +2738,10 @@ function EnergyStreams({ streams, reduceMotion, nodePositions, quality }) {
         glowMaterial.uniforms.uGradientShift.value = reduceMotion
           ? stream.gradientOffset
           : stream.gradientOffset + cycleTime * stream.gradientSpeed * 0.65 * stream.flowDirection;
-        glowMaterial.uniforms.uOpacity.value = reduceMotion
+        const baseGlow = reduceMotion
           ? 0.14
           : 0.22 * timeline.energyPulseAmplitudeMultiplier * energyMultiplier;
+        glowMaterial.uniforms.uOpacity.value = baseGlow * (1 + burstEnergy * 0.7);
       }
 
       const pathLength = Math.max(curve.getLength(), 0.0001);
@@ -2513,8 +2766,14 @@ function EnergyStreams({ streams, reduceMotion, nodePositions, quality }) {
           const alignment = new Quaternion().setFromUnitVectors(up, tangent);
           particle.quaternion.copy(alignment);
         }
-        const particleScale = stream.coreRadius * 1.6 * energyMultiplier;
+        const particleScale = stream.coreRadius * 1.6 * energyMultiplier * (1 + burstEnergy * 0.5);
         particle.scale.set(particleScale * 0.75, particleScale, particleScale);
+        if (particle.material) {
+          particle.material.opacity = Math.min(
+            1,
+            (reduceMotion ? 0.6 : 0.75 + burstEnergy * 0.4) * energyMultiplier,
+          );
+        }
 
         const histories = particleHistories.current[index];
         const buffers = particleTrailBuffers.current[index];
@@ -2545,9 +2804,70 @@ function EnergyStreams({ streams, reduceMotion, nodePositions, quality }) {
                 }
               }
             }
+            if (trail?.material) {
+              trail.material.opacity = baseTrailOpacity * (1 + burstEnergy * 0.45);
+            }
           }
         }
       });
+
+      const burstMesh = dataBurstRefs.current[index];
+      const burstState = dataBurstStates.current[index];
+      if (burstMesh && burstState) {
+        if (reduceMotion) {
+          burstMesh.visible = false;
+          burstState.active = false;
+          burstState.progress = 0;
+          burstState.cooldown = Math.max(burstState.cooldown, (burstState.interval ?? 8) * 0.5);
+        } else {
+          if (burstState.active) {
+            const travelDuration = Math.max(burstState.travelDuration ?? 1, 0.1);
+            burstState.progress += delta / travelDuration;
+            const normalizedProgress = Math.min(burstState.progress, 1);
+            let sampleT = normalizedProgress;
+            if (burstState.direction < 0) {
+              sampleT = 1 - sampleT;
+            }
+            const point = curve.getPointAt(sampleT);
+            burstMesh.visible = true;
+            burstMesh.position.copy(point);
+            const tangent = curve.getTangentAt(sampleT).normalize();
+            if (tangent.lengthSq() > 0) {
+              burstMesh.quaternion.setFromUnitVectors(new Vector3(0, 1, 0), tangent);
+            }
+            const ease = Math.sin(normalizedProgress * Math.PI);
+            const scaleBase = stream.outerRadius * MathUtils.lerp(2.1, 2.8, Math.min(1, (burstState.intensity ?? 2) / 2.4));
+            burstMesh.scale.set(scaleBase * 0.55, scaleBase * 1.65, scaleBase * (2.4 + (burstState.tail ?? 0.24) * 3.6));
+            if (burstMesh.material) {
+              const baseOpacity = MathUtils.lerp(0.18, 0.72, ease);
+              burstMesh.material.opacity = Math.min(
+                1,
+                baseOpacity * (1 + burstEnergy * 0.55) * timeline.energyPulseIntensityMultiplier,
+              );
+              const hue = 0.52 + stream.gradientOffset * 0.12;
+              const saturation = Math.min(1, 0.82 + ease * 0.18);
+              const lightness = Math.min(1, MathUtils.lerp(0.55, 0.82, ease));
+              burstMesh.material.color.setHSL(hue, saturation, lightness);
+            }
+            if (burstState.progress >= 1) {
+              burstState.active = false;
+              burstState.progress = 0;
+              const interval = burstState.interval ?? 9;
+              const variance = Math.max(0.1, burstState.variance ?? 0.4);
+              const nextDelay = interval * (0.55 + burstState.randomizer() * variance);
+              burstState.cooldown = nextDelay;
+              burstMesh.visible = false;
+            }
+          } else {
+            burstState.cooldown -= delta;
+            if (burstState.cooldown <= 0) {
+              burstState.active = true;
+              burstState.progress = 0;
+            }
+            burstMesh.visible = false;
+          }
+        }
+      }
     });
   });
 
@@ -2587,10 +2907,33 @@ function EnergyStreams({ streams, reduceMotion, nodePositions, quality }) {
               depthWrite={false}
             />
           </mesh>
+          <mesh
+            ref={(value) => {
+              dataBurstRefs.current[index] = value ?? dataBurstRefs.current[index];
+            }}
+            frustumCulled={false}
+            visible={false}
+          >
+            <sphereGeometry args={[0.5, 16, 16]} />
+            <meshBasicMaterial
+              color={new Color(0x9beeff)}
+              toneMapped={false}
+              transparent
+              depthWrite={false}
+              blending={AdditiveBlending}
+              opacity={0}
+            />
+          </mesh>
           {stream.particleOffsets.map((_, particleIndex) => {
             const history =
               particleHistories.current[index]?.[particleIndex] ??
-              Array.from({ length: motionTrailSamples }, () => new Vector3());
+              Array.from({ length: particleTrailSamples }, () => new Vector3());
+            const gradientColors = history.map((_, historyIndex) => {
+              const t = history.length <= 1 ? 0 : historyIndex / Math.max(history.length - 1, 1);
+              const baseColor = new Color(0x66f7ff);
+              const fade = MathUtils.lerp(0.65, 0.05, t);
+              return baseColor.multiplyScalar(fade);
+            });
             return (
               <group key={`${stream.id}-particle-${particleIndex}`}>
                 <mesh
@@ -2603,7 +2946,13 @@ function EnergyStreams({ streams, reduceMotion, nodePositions, quality }) {
                   frustumCulled={false}
                 >
                   <sphereGeometry args={[0.0125, 12, 12]} />
-                  <meshBasicMaterial color={new Color(0xffffff)} toneMapped={false} transparent opacity={0.95} />
+                  <meshBasicMaterial
+                    color={new Color(0xffffff)}
+                    toneMapped={false}
+                    transparent
+                    depthWrite={false}
+                    opacity={0.88}
+                  />
                 </mesh>
                 <Line
                   ref={(value) => {
@@ -2613,9 +2962,10 @@ function EnergyStreams({ streams, reduceMotion, nodePositions, quality }) {
                     particleTrailRefs.current[index][particleIndex] = value ?? particleTrailRefs.current[index][particleIndex];
                   }}
                   points={history}
-                  color="#66f7ff"
+                  color={gradientColors[0] ?? new Color(0x66f7ff)}
+                  vertexColors={gradientColors}
                   transparent
-                  opacity={reduceMotion ? 0.08 : 0.24 * MathUtils.clamp(quality.energyStreamDensity ?? 1, 0.5, 1)}
+                  opacity={reduceMotion ? 0.06 : 0.18 * MathUtils.clamp(quality.energyStreamDensity ?? 1, 0.5, 1)}
                   lineWidth={1.1}
                   dashed={false}
                   toneMapped={false}
@@ -2731,6 +3081,16 @@ function SceneComposer({ reduceMotion, quality }) {
   useFrame(({ clock }) => {
     const time = clock.getElapsedTime();
     const timeline = getHeroTimelineState(time);
+    const temperatureUniform = colorGradeEffect.uniforms.get("uTemperatureShift");
+    if (temperatureUniform) {
+      const kelvinShift = (timeline.colorTemperatureShift ?? 0) / 100;
+      const normalizedShift = MathUtils.clamp(reduceMotion ? 0 : kelvinShift, -1, 1);
+      temperatureUniform.value = MathUtils.lerp(
+        temperatureUniform.value,
+        normalizedShift,
+        0.08,
+      );
+    }
     if (fogRef.current) {
       const baseDensity = (quality.fogBaseDensity ?? HERO_BASE_FOG_DENSITY) *
         (reduceMotion ? 1 : 1 + (timeline.backgroundDriftMultiplier - 1) * (quality.fogPulseMultiplier ?? 0.18));
