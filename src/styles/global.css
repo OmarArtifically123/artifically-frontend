@@ -975,10 +975,6 @@ main :where(section, div)[id] {
   }
 }
 
-[data-motion-ready="true"] [data-animate]:not([data-animate-initialized="true"]) {
-  opacity: 0;
-}
-
 [data-micro-interactive] {
   position: relative;
   transition:

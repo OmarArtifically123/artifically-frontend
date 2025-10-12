@@ -2,7 +2,6 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import { useTheme } from "../context/ThemeContext";
 import { MicroInteractionProvider } from "../context/MicroInteractionContext";
 import useInteractiveEffects from "../hooks/useInteractiveEffects";
-import useScrollChoreography from "../hooks/useScrollChoreography";
 import useMicroInteractionSystem from "../hooks/useMicroInteractionSystem";
 import useKineticTypography from "../hooks/useKineticTypography";
 
@@ -175,7 +174,6 @@ export default function ExperienceLayer({ children, enableExperience = false }) 
 
   useInteractiveEffects(activated);
   useInteractiveEffects();
-  useScrollChoreography();
   useKineticTypography();
 
   useEffect(() => {
