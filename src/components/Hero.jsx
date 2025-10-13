@@ -63,10 +63,6 @@ export default function Hero({ openAuth }) {
   return (
     <section className="hero" data-animate-root data-hero-version="reimagined">
       <BackgroundCanvas />
-      <div className="hero-ambient" aria-hidden="true">
-        <div className="hero-ambient__gradient" />
-        <div className="hero-ambient__fade" />
-      </div>
       <div className="hero-shell">
         <div className="hero-content">
           <AnimatedEyebrow>🚀 The Future of AI Automation</AnimatedEyebrow>
