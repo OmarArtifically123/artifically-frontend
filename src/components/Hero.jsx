@@ -636,7 +636,7 @@ function FloatingProductPreview() {
 
 function ScrollIndicator() {
   return (
-    <div className="hero-scroll-indicator" aria-hidden="true">
+    <div className="hero-scroll-indicator hero__scroll" aria-hidden="true">
       <span className="hero-scroll-indicator__track">
         <span className="hero-scroll-indicator__dot" />
       </span>

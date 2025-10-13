@@ -1547,8 +1547,24 @@ main :where(section, div)[id] {
   isolation: isolate;
   display: flex;
   align-items: center;
-  padding: clamp(6rem, 8vw, 9rem) 0;
+  padding: clamp(6rem, 8vw, 9rem) 0 clamp(88px, 14vh, 144px);
   color: var(--text-primary);
+}
+
+.hero__scroll {
+  position: absolute;
+  left: 50%;
+  transform: translateX(-50%);
+  bottom: clamp(16px, 3vh, 32px);
+  z-index: 6;
+  pointer-events: none;
+  opacity: 0.95;
+}
+
+@media (max-width: 640px) {
+  .hero {
+    padding-bottom: 96px;
+  }
 }
 
 .hero::before {
@@ -3000,8 +3016,6 @@ overflow: hidden;
 }
 
 .hero[data-hero-version="reimagined"] .hero-scroll-indicator {
-  position: absolute;
-  inset: auto 0 2.5rem;
   display: inline-flex;
   align-items: center;
   justify-content: center;
@@ -3010,7 +3024,6 @@ overflow: hidden;
   letter-spacing: 0.4em;
   text-transform: uppercase;
   font-size: 0.75rem;
-  z-index: 2;
 }
 
 .hero[data-hero-version="reimagined"] .hero-scroll-indicator__track {
