@@ -1939,6 +1939,7 @@ function NeuralCore({ reduceMotion, quality }) {
     [quality.neuralConnectionsPerNode, quality.neuralNodeCount],
   );
   const heroTheme = useHeroThemePalette();
+  const highlightColor = useMemo(() => createColor(heroTheme.highlights.energy), [heroTheme]);
   const instancedRef = useRef();
   const connectionRef = useRef();
   const dummy = useMemo(() => new Object3D(), []);
@@ -1965,16 +1966,19 @@ function NeuralCore({ reduceMotion, quality }) {
   useEffect(() => {
     if (!instancedRef.current) return;
     nodes.forEach((node, index) => {
-      const gradientColor = new Color().setHSL(0.62 + node.position.length() * 0.12, 0.85, 0.58);
-      gradientColor.multiplyScalar(node.emissiveBias);
-      gradientColor.r = Math.min(gradientColor.r, 1.25);
-      gradientColor.g = Math.min(gradientColor.g, 1.25);
-      gradientColor.b = Math.min(gradientColor.b, 1.25);
+      const distanceFactor = MathUtils.clamp(node.position.length(), 0, 1);
+      const gradientColor = new Color().setHSL(0.6 + distanceFactor * 0.14, 0.78, 0.56);
+      const emissiveScale = MathUtils.clamp(0.75 + node.emissiveBias * 0.3, 0.75, 1.08);
+      gradientColor.multiplyScalar(emissiveScale);
+      gradientColor.lerp(highlightColor, 0.18 + distanceFactor * 0.1);
+      gradientColor.r = Math.min(gradientColor.r, 0.98);
+      gradientColor.g = Math.min(gradientColor.g, 0.98);
+      gradientColor.b = Math.min(gradientColor.b, 0.98);
       instancedRef.current.setColorAt(index, gradientColor);
       colorsRef.current[index] = gradientColor.clone();
     });
     instancedRef.current.instanceColor.needsUpdate = true;
-  }, [nodes]);
+  }, [highlightColor, nodes]);
 
   useFrame(({ clock }) => {
     if (!instancedRef.current) return;
@@ -1999,7 +2003,13 @@ function NeuralCore({ reduceMotion, quality }) {
         const baseColor = colorsRef.current[index] ?? colorScratch;
         colorScratch.copy(baseColor);
         const emissiveLift = reduceMotion ? 0 : Math.max(timeline.heroEmissiveMultiplier - 1, 0);
-        colorScratch.multiplyScalar(1 + emissiveLift * node.emissiveBias * 0.6);
+        if (emissiveLift > 0) {
+          colorScratch.multiplyScalar(1 + emissiveLift * node.emissiveBias * 0.45);
+          colorScratch.lerp(highlightColor, Math.min(0.2, emissiveLift * 0.12));
+        }
+        colorScratch.r = Math.min(colorScratch.r, 0.98);
+        colorScratch.g = Math.min(colorScratch.g, 0.98);
+        colorScratch.b = Math.min(colorScratch.b, 0.98);
         instancedRef.current.setColorAt(index, colorScratch);
       }
     });
@@ -2024,6 +2034,7 @@ function NeuralCore({ reduceMotion, quality }) {
         <sphereGeometry args={[1, 12, 12]} />
         <meshBasicMaterial
           transparent
+          opacity={0.85}
           toneMapped={false}
           vertexColors
         />
