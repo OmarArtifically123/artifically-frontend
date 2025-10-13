@@ -6,7 +6,6 @@ import App from "./App";
 import { ThemeProvider } from "./context/ThemeContext";
 import { warmupWasm } from "./lib/wasmMath";
 import "./styles/global.css";
-import "./utils/blur-guard";
 import { space } from "./styles/spacing";
 import {
   exposePerformanceBudgets,

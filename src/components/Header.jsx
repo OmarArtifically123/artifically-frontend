@@ -33,8 +33,7 @@ export default function Header({ user, onSignIn, onSignUp, onSignOut }) {
   }, []);
 
   useEffect(() => {
-    const handleScroll = () => setScrolled(window.scrollY > 1);
-    handleScroll();
+    const handleScroll = () => setScrolled(window.scrollY > 20);
     window.addEventListener("scroll", handleScroll, { passive: true });
     return () => window.removeEventListener("scroll", handleScroll);
   }, []);
@@ -190,6 +189,8 @@ export default function Header({ user, onSignIn, onSignUp, onSignOut }) {
         right: 0,
         zIndex: 1000,
         padding: `${space("sm")} 0`,
+        backdropFilter: "blur(40px) saturate(180%)",
+        WebkitBackdropFilter: "blur(40px) saturate(180%)",
         transition: "background 280ms ease, box-shadow 280ms ease, opacity 360ms ease, transform 360ms ease",
         opacity: headerReady ? 1 : 0,
         transform: headerReady ? "translateY(0)" : "translateY(-24px)",
