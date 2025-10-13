@@ -511,8 +511,87 @@ if (typeof window !== "undefined" && import.meta.env.DEV) {
 
 // Force repaint on viewport changes to fix backdrop-filter blur issues
 if (typeof window !== "undefined") {
+  const previousSafeguards = window.__artificiallyViewportSafeguards;
+  if (previousSafeguards?.cleanup) {
+    previousSafeguards.cleanup();
+  }
+
+  const clearGlobalBlur = () => {
+    const root = document.documentElement;
+    if (root) {
+      root.style.filter = "none";
+      root.style.webkitFilter = "none";
+    }
+    if (document.body) {
+      document.body.style.filter = "none";
+      document.body.style.webkitFilter = "none";
+    }
+
+    document.querySelectorAll("[data-global-blur]").forEach((node) => {
+      if (node instanceof HTMLElement) {
+        node.remove();
+      }
+    });
+  };
+
+  const retuneRetinaCanvases = () => {
+    const dpr = Math.min(window.devicePixelRatio || 1, 2);
+    document
+      .querySelectorAll("canvas[data-retina='full-viewport']")
+      .forEach((canvas) => {
+        if (!(canvas instanceof HTMLCanvasElement)) return;
+        const width = Math.max(window.innerWidth, 1);
+        const height = Math.max(window.innerHeight, 1);
+        canvas.width = Math.floor(width * dpr);
+        canvas.height = Math.floor(height * dpr);
+        canvas.style.width = "100vw";
+        canvas.style.height = "100dvh";
+        const context = canvas.getContext("2d");
+        if (context) {
+          context.setTransform(1, 0, 0, 1, 0, 0);
+          context.scale(dpr, dpr);
+        }
+      });
+  };
+
+  const onViewportChange = () => {
+    clearGlobalBlur();
+    retuneRetinaCanvases();
+  };
+
+  const handleViewportChange = () => {
+    window.requestAnimationFrame(onViewportChange);
+  };
+
+  window.addEventListener("resize", handleViewportChange, { passive: true });
+  if (window.visualViewport) {
+    window.visualViewport.addEventListener("resize", handleViewportChange, {
+      passive: true,
+    });
+  }
+
+  onViewportChange();
+
+  const cleanup = () => {
+    window.removeEventListener("resize", handleViewportChange);
+    if (window.visualViewport) {
+      window.visualViewport.removeEventListener("resize", handleViewportChange);
+    }
+  };
+
+  window.__artificiallyViewportSafeguards = { cleanup };
+
+  if (import.meta.hot) {
+    import.meta.hot.dispose(() => {
+      cleanup();
+      delete window.__artificiallyViewportSafeguards;
+    });
+  }
+}
+
+if (typeof window !== "undefined") {
   let resizeTimeout;
-  
+
   const forceRepaint = () => {
     // Force a repaint by temporarily modifying a CSS property
     document.body.style.transform = 'translateZ(0)';

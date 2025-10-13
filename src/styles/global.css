@@ -354,6 +354,13 @@ html {
   background-color: var(--bg-primary);
 }
 
+html,
+body,
+#root {
+  filter: none !important;
+  -webkit-filter: none !important;
+}
+
 body {
   font-family: var(--font-sans);
   font-size: var(--text-base);
@@ -2736,6 +2743,8 @@ main :where(section, div)[id] {
   pointer-events: none;
   opacity: 0.9;
   filter: saturate(120%);
+  transform: translateZ(0);
+  image-rendering: auto;
 }
 
 .hero[data-hero-version="reimagined"] .hero-content {

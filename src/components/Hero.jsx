@@ -85,6 +85,7 @@ export default function Hero({ openAuth }) {
 
 function BackgroundCanvas() {
   const canvasRef = useRef(null);
+  const dprRef = useRef(1);
   const prefersReducedMotion = usePrefersReducedMotion();
   const { darkMode } = useTheme();
 
@@ -124,7 +125,6 @@ function BackgroundCanvas() {
     const context = canvas.getContext("2d");
     if (!context) return undefined;
 
-    const dpr = typeof window !== "undefined" ? window.devicePixelRatio || 1 : 1;
     const nodeCount = 58;
     const nodes = Array.from({ length: nodeCount }, () => ({
       x: Math.random(),
@@ -135,14 +135,24 @@ function BackgroundCanvas() {
     const pointer = { x: 0.5, y: 0.5, active: false };
     let animationFrameId;
 
-    const resize = () => {
-      const { width, height } = canvas.getBoundingClientRect();
-      canvas.width = width * dpr;
-      canvas.height = height * dpr;
-      context.setTransform(dpr, 0, 0, dpr, 0, 0);
+    const updateResolution = () => {
+      const nextDpr = Math.min(
+        typeof window !== "undefined" ? window.devicePixelRatio || 1 : 1,
+        2,
+      );
+      dprRef.current = nextDpr;
+      const rect = canvas.getBoundingClientRect();
+      const targetWidth = Math.max(1, rect.width || window.innerWidth || canvas.offsetWidth || 1);
+      const targetHeight = Math.max(1, rect.height || window.innerHeight || canvas.offsetHeight || 1);
+      canvas.width = Math.floor(targetWidth * nextDpr);
+      canvas.height = Math.floor(targetHeight * nextDpr);
+      canvas.style.width = "100vw";
+      canvas.style.height = "100dvh";
+      context.setTransform(1, 0, 0, 1, 0, 0);
+      context.scale(nextDpr, nextDpr);
     };
 
-    resize();
+    updateResolution();
 
     const handlePointerMove = (event) => {
       if (typeof window === "undefined") return;
@@ -178,7 +188,9 @@ function BackgroundCanvas() {
     };
 
     const draw = () => {
-      const { width, height } = canvas;
+      const effectiveDpr = dprRef.current || 1;
+      const width = canvas.width / effectiveDpr;
+      const height = canvas.height / effectiveDpr;
       context.clearRect(0, 0, width, height);
 
       const gradient = context.createRadialGradient(
@@ -242,19 +254,36 @@ function BackgroundCanvas() {
 
     animationFrameId = requestAnimationFrame(render);
 
-    window.addEventListener("resize", resize);
+    const handleViewportResize = () => {
+      updateResolution();
+    };
+
+    window.addEventListener("resize", handleViewportResize, { passive: true });
+    if (window.visualViewport) {
+      window.visualViewport.addEventListener("resize", handleViewportResize, { passive: true });
+    }
     canvas.addEventListener("pointermove", handlePointerMove);
     canvas.addEventListener("pointerleave", handlePointerLeave);
 
     return () => {
-      window.removeEventListener("resize", resize);
+      window.removeEventListener("resize", handleViewportResize);
+      if (window.visualViewport) {
+        window.visualViewport.removeEventListener("resize", handleViewportResize);
+      }
       canvas.removeEventListener("pointermove", handlePointerMove);
       canvas.removeEventListener("pointerleave", handlePointerLeave);
       cancelAnimationFrame(animationFrameId);
     };
   }, [prefersReducedMotion, palette, darkMode]);
 
-  return <canvas ref={canvasRef} className="hero-background" aria-hidden="true" />;
+  return (
+    <canvas
+      ref={canvasRef}
+      className="hero-background"
+      aria-hidden="true"
+      data-retina="full-viewport"
+    />
+  );
 }
 
 function AnimatedEyebrow({ children }) {

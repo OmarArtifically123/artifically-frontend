@@ -778,6 +778,28 @@ function AutomationCardComponent({
   useEffect(() => {
     if (typeof window === "undefined") return undefined;
 
+    const handleViewportChange = () => {
+      scheduleRender();
+    };
+
+    window.addEventListener("resize", handleViewportChange, { passive: true });
+    if (window.visualViewport) {
+      window.visualViewport.addEventListener("resize", handleViewportChange, {
+        passive: true,
+      });
+    }
+
+    return () => {
+      window.removeEventListener("resize", handleViewportChange);
+      if (window.visualViewport) {
+        window.visualViewport.removeEventListener("resize", handleViewportChange);
+      }
+    };
+  }, [scheduleRender]);
+  
+  useEffect(() => {
+    if (typeof window === "undefined") return undefined;
+
     const runFallback = () => beginInlinePreview(previewGraph);
 
     if (typeof Worker === "undefined") {
