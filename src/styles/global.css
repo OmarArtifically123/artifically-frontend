@@ -372,24 +372,52 @@ body {
   position: relative;
 }
 
+/* 1) Kill the full-viewport pseudo overlays that cause haze */
+body.react-loaded::before,
+section.hero::before,
+section.hero::after {
+  content: none !important;
+  position: static !important;            /* ensure they can't cover viewport */
+  filter: none !important;
+  backdrop-filter: none !important;
+  -webkit-backdrop-filter: none !important;
+  background: transparent !important;
+  opacity: 1 !important;
+  box-shadow: none !important;
+  mix-blend-mode: normal !important;
+  isolation: auto !important;
+  pointer-events: none !important;
+}
+
+/* 2) If any “experience backdrop” exists, make sure it cannot tint/blur */
+.experience-backdrop,
+.experience-backdrop::before,
+.experience-backdrop::after {
+  filter: none !important;
+  backdrop-filter: none !important;
+  -webkit-backdrop-filter: none !important;
+  background: transparent !important;
+  opacity: 1 !important;
+  mix-blend-mode: normal !important;
+}
+
+/* 3) Nuke “micro overlay” canvases that get injected on top of everything */
+canvas[data-micro-layer="true"] {
+  display: none !important;
+}
+
+/* 4) Defensive guard for any “glass” classes that reintroduce blur on zoom */
+[class*="glass"],
+[class*="blur"],
+[class*="backdrop"] {
+  filter: none !important;
+  backdrop-filter: none !important;
+  -webkit-backdrop-filter: none !important;
+}
+
 .page,
 main {
   background: transparent !important;
-}
-
-body::before {
-  content: "";
-  position: fixed;
-  inset: -20vh 0 auto 0;
-  height: 140vh;
-  pointer-events: none;
-  background:
-    radial-gradient(circle at 20% 15%, color-mix(in oklch, var(--brand-energy) 32%, transparent) 0%, transparent 55%),
-    radial-gradient(circle at 80% 5%, color-mix(in oklch, var(--brand-glow) 28%, transparent) 0%, transparent 55%),
-    radial-gradient(circle at 50% 85%, color-mix(in oklch, var(--brand-primary) 24%, transparent) 0%, transparent 65%);
-  opacity: 0.6;
-  filter: blur(0.5px);
-  z-index: 0;
 }
 
 .blur-image-wrapper {
@@ -1551,44 +1579,59 @@ main :where(section, div)[id] {
   color: var(--text-primary);
 }
 
-.hero::before {
-  content: "";
-  position: fixed;
+.hero-ambient {
+  position: absolute;
   inset: 0;
-  width: 100vw;
-  height: 100dvh;
-  background:
-    radial-gradient(circle at 12% 18%, rgba(93, 47, 254, 0.32), transparent 58%),
-    radial-gradient(circle at 78% 12%, rgba(62, 249, 197, 0.18), transparent 60%),
-    radial-gradient(circle at 68% 82%, rgba(255, 145, 83, 0.16), transparent 65%);
   pointer-events: none;
-  z-index: 0;
-  opacity: 1;
+  z-index: 1;
+  overflow: hidden;
+}
+
+.hero-ambient__gradient,
+.hero-ambient__fade {
+  position: absolute;
+  inset: 0;
+}
+
+.hero-ambient__gradient {
+  top: -18%;
+  bottom: -18%;
+  left: -6%;
+  right: -6%;
+  background:
+    radial-gradient(circle at 18% 18%, rgba(93, 47, 254, 0.32), transparent 58%),
+    radial-gradient(circle at 78% 12%, rgba(62, 249, 197, 0.18), transparent 60%),
+    radial-gradient(circle at 50% 88%, rgba(255, 145, 83, 0.16), transparent 68%),
+    radial-gradient(circle at 20% 15%, color-mix(in oklch, var(--brand-energy) 28%, transparent) 0%, transparent 55%),
+    radial-gradient(circle at 80% 5%, color-mix(in oklch, var(--brand-glow) 24%, transparent) 0%, transparent 55%),
+    radial-gradient(circle at 56% 85%, color-mix(in oklch, var(--brand-primary) 22%, transparent) 0%, transparent 65%);
+  opacity: 0.85;
   transform: translateZ(0);
 }
 
-[data-theme="light"] .hero::before {
-  background:
-    radial-gradient(circle at 18% 18%, rgba(148, 197, 255, 0.38), transparent 65%),
-    radial-gradient(circle at 82% 12%, rgba(76, 201, 240, 0.22), transparent 62%),
-    radial-gradient(circle at 55% 88%, rgba(255, 176, 125, 0.18), transparent 70%);
-}
-
-.hero::after {
-  content: "";
-  position: absolute;
-  left: 0;
-  right: 0;
-  top: 0;
-  bottom: -16vh;
+.hero-ambient__fade {
   background: linear-gradient(
     180deg,
     color-mix(in srgb, var(--bg-to) 0%, transparent) 0%,
     color-mix(in srgb, var(--bg-to) 85%, transparent) 70%,
     var(--bg-to) 100%
   );
-  z-index: 1;
-  pointer-events: none;
+  bottom: -16vh;
+}
+
+[data-theme="light"] .hero-ambient__gradient {
+  background:
+    radial-gradient(circle at 18% 18%, rgba(148, 197, 255, 0.38), transparent 65%),
+    radial-gradient(circle at 82% 12%, rgba(76, 201, 240, 0.22), transparent 62%),
+    radial-gradient(circle at 55% 88%, rgba(255, 176, 125, 0.18), transparent 70%),
+    radial-gradient(circle at 26% 20%, color-mix(in oklch, var(--brand-energy) 24%, transparent) 0%, transparent 55%),
+    radial-gradient(circle at 74% 10%, color-mix(in oklch, var(--brand-glow) 22%, transparent) 0%, transparent 60%),
+    radial-gradient(circle at 52% 88%, color-mix(in oklch, var(--brand-primary) 18%, transparent) 0%, transparent 70%);
+  opacity: 0.82;
+}
+
+[data-theme="light"] .hero-ambient__fade {
+  background: linear-gradient(180deg, rgba(219, 234, 254, 0.3), rgba(203, 213, 225, 0.4));
 }
 
 .hero,
@@ -2366,10 +2409,6 @@ main :where(section, div)[id] {
     linear-gradient(180deg, rgba(247, 249, 254, 0.98), rgba(238, 243, 255, 0.98));
 }
 
-[data-theme="light"] .hero::after {
-  background: linear-gradient(180deg, rgba(219, 234, 254, 0.3), rgba(203, 213, 225, 0.4));
-}
-
 [data-theme="light"] .hero-gradient {
   mix-blend-mode: normal;
   opacity: 0.55;
@@ -2724,6 +2763,44 @@ main :where(section, div)[id] {
   --hero-preview-inner-glow: radial-gradient(circle at 32% 22%, rgba(56, 189, 248, 0.32), transparent 72%),
     radial-gradient(circle at 68% 78%, rgba(147, 197, 253, 0.26), transparent 74%);
   isolation: isolate;
+}
+
+.hero[data-hero-version="reimagined"] .hero-ambient__gradient {
+  background:
+    radial-gradient(circle at 18% 20%, rgba(88, 28, 214, 0.38), transparent 62%),
+    radial-gradient(circle at 74% 16%, rgba(45, 212, 191, 0.22), transparent 60%),
+    radial-gradient(circle at 42% 82%, rgba(59, 130, 246, 0.22), transparent 70%),
+    radial-gradient(circle at 62% 72%, rgba(14, 30, 58, 0.72), transparent 88%),
+    radial-gradient(circle at 32% 88%, rgba(15, 23, 42, 0.65), transparent 95%);
+  opacity: 0.9;
+}
+
+.hero[data-hero-version="reimagined"] .hero-ambient__fade {
+  background: linear-gradient(
+    180deg,
+    rgba(8, 15, 32, 0.55) 0%,
+    rgba(8, 15, 32, 0.85) 60%,
+    rgba(8, 15, 32, 0.98) 100%
+  );
+}
+
+[data-theme="light"] .hero[data-hero-version="reimagined"] .hero-ambient__gradient {
+  background:
+    radial-gradient(circle at 18% 20%, rgba(148, 197, 255, 0.45), transparent 62%),
+    radial-gradient(circle at 70% 18%, rgba(96, 165, 250, 0.26), transparent 64%),
+    radial-gradient(circle at 44% 82%, rgba(196, 181, 253, 0.24), transparent 70%),
+    radial-gradient(circle at 66% 72%, rgba(18, 34, 64, 0.65), transparent 90%),
+    radial-gradient(circle at 32% 88%, rgba(17, 24, 39, 0.6), transparent 95%);
+  opacity: 0.88;
+}
+
+[data-theme="light"] .hero[data-hero-version="reimagined"] .hero-ambient__fade {
+  background: linear-gradient(
+    180deg,
+    rgba(226, 240, 255, 0.4) 0%,
+    rgba(203, 213, 225, 0.45) 65%,
+    rgba(148, 163, 184, 0.55) 100%
+  );
 }
 
 [data-theme="light"] .hero[data-hero-version="reimagined"] {
