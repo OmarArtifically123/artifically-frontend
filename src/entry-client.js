@@ -5,16 +5,13 @@ import { ErrorBoundary } from "react-error-boundary";
 import App from "./App";
 import { ThemeProvider } from "./context/ThemeContext";
 import { warmupWasm } from "./lib/wasmMath";
-import "./styles/no-global-blur.css";
 import "./styles/global.css";
+import "./utils/blur-guard";
 import { space } from "./styles/spacing";
 import {
   exposePerformanceBudgets,
   initPerformanceBudgetWatchers,
 } from "./utils/performanceBudgets";
-import { startViewportDprSync } from "./utils/viewportDprSync";
-
-startViewportDprSync();
 import { reportWebVitals } from "./lib/webVitals";
 
 let analyticsTrackPromise = null;
