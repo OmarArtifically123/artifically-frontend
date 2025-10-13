@@ -402,16 +402,7 @@ function FloatingProductPreview() {
   const [shouldRenderScene, setShouldRenderScene] = useState(false);
   const [SceneComponent, setSceneComponent] = useState(null);
   const [sceneDimensions, setSceneDimensions] = useState({ width: 1280, height: 720 });
-  const { darkMode, theme, setTheme } = useTheme();
-  const handleSelectTheme = useCallback(
-    (nextTheme) => {
-      if (nextTheme === theme) {
-        return;
-      }
-      setTheme(nextTheme);
-    },
-    [setTheme, theme],
-  );
+  const { darkMode } = useTheme();
 
   useLayoutEffect(() => {
     if (typeof window === "undefined") {
@@ -584,7 +575,6 @@ function FloatingProductPreview() {
         ref={innerRef}
         data-theme-variant={darkMode ? "dark" : "light"}
       >
-        <HeroPreviewThemeToggle activeTheme={theme} onSelectTheme={handleSelectTheme} />
         {SceneComponent && !prefersReducedMotion ? (
           <SceneComponent width={sceneDimensions.width} height={sceneDimensions.height} />
         ) : (
@@ -603,40 +593,6 @@ function FloatingProductPreview() {
           />
         )}
       </div>
-    </div>
-  );
-}
-
-function HeroPreviewThemeToggle({ activeTheme, onSelectTheme }) {
-  const options = useMemo(
-    () => [
-      { id: "dark", label: "Dark" },
-      { id: "light", label: "Light" },
-    ],
-    [],
-  );
-
-  return (
-    <div className="hero-preview__theme-toggle" role="group" aria-label="Preview appearance">
-      {options.map(({ id, label }) => {
-        const isActive = activeTheme === id;
-        return (
-          <button
-            key={id}
-            type="button"
-            className="hero-preview__theme-toggle-button"
-            data-active={isActive ? "true" : "false"}
-            aria-pressed={isActive}
-            onClick={() => {
-              if (!isActive && typeof onSelectTheme === "function") {
-                onSelectTheme(id);
-              }
-            }}
-          >
-            {label}
-          </button>
-        );
-      })}
     </div>
   );
 }

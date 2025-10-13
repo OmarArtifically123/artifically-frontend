@@ -49,8 +49,8 @@ const HERO_SCENE_WRAPPER_STYLE = Object.freeze({
   borderRadius: "inherit",
   overflow: "hidden",
   display: "flex",
-  alignItems: "stretch",
-  justifyContent: "stretch",
+  alignItems: "center",
+  justifyContent: "center",
 });
 
 const HERO_ASPECT = 16 / 9;
@@ -127,6 +127,11 @@ const HERO_THEME_PRESETS = Object.freeze({
     glow: {
       godRay: 0x38bdf8,
     },
+    celestial: {
+      caustic: 0x3d6ba0,
+      star: 0x2e4a80,
+      constellation: 0x1c3b6f,
+    },
   },
   light: {
     key: "light",
@@ -182,6 +187,11 @@ const HERO_THEME_PRESETS = Object.freeze({
     },
     glow: {
       godRay: 0x7dd3fc,
+    },
+    celestial: {
+      caustic: 0xa1c7ff,
+      star: 0x7aa3ff,
+      constellation: 0x5d8cff,
     },
   },
 });
@@ -964,6 +974,9 @@ const GridMaterial = shaderMaterial(
     uColorB: createColor(HERO_THEME_PRESETS.dark.grid.baseB),
     uGridColor: createColor(HERO_THEME_PRESETS.dark.grid.lines),
     uGlowColor: createColor(HERO_THEME_PRESETS.dark.grid.glow),
+    uStarColor: createColor(HERO_THEME_PRESETS.dark.celestial.star),
+    uConstellationColor: createColor(HERO_THEME_PRESETS.dark.celestial.constellation),
+    uCausticColor: createColor(HERO_THEME_PRESETS.dark.celestial.caustic),
     uScanStrength: 0,
     uScanProgress: 0,
     uCausticStrength: 0.22,
@@ -1054,7 +1067,7 @@ const GridMaterial = shaderMaterial(
       vec3 color = base;
       color += uGridColor * 0.45 * gridMask * mix(1.0, 0.4, uv.y);
       color += uGlowColor * (ambientSweep + scanSweep);
-      color += vec3(0.08, 0.12, 0.2) * noiseValue * 0.08;
+      color += uStarColor * noiseValue * 0.08;
 
       float horizonGlow = smoothstep(0.55, 0.95, uv.y);
       color += uGlowColor * 0.18 * horizonGlow;
@@ -1063,16 +1076,16 @@ const GridMaterial = shaderMaterial(
       float causticPattern = causticWave(causticUV + vec2(sin(uTime * 0.12), cos(uTime * 0.1)) * 0.08, uTime);
       float causticFalloff = exp(-dot(causticUV * vec2(1.2, 0.75), causticUV * vec2(1.2, 0.75)) * 3.6);
       float caustics = causticPattern * causticFalloff * uCausticStrength;
-      color += vec3(0.24, 0.42, 0.62) * caustics * mix(1.0, 0.6, uv.y);
+      color += uCausticColor * caustics * mix(1.0, 0.6, uv.y);
 
       float starGlow = starfield(uv * 1.25) * 0.35;
-      color += vec3(0.18, 0.24, 0.46) * starGlow * uConstellationIntensity;
+      color += uStarColor * starGlow * uConstellationIntensity;
 
       vec2 cellCount = vec2(12.0, 6.0);
       vec2 cell = floor(uv * cellCount);
       float seed = sin(dot(cell, vec2(12.9898, 78.233))) * 43758.5453;
       float constellation = constellationMask(uv, cellCount, seed) * uConstellationIntensity;
-      color += vec3(0.14, 0.28, 0.6) * constellation;
+      color += uConstellationColor * constellation;
 
       gl_FragColor = vec4(color, 0.92);
     }
@@ -1863,6 +1876,9 @@ function BackgroundLayers({ reduceMotion, quality }) {
     materialRef.current.uColorB.copy(createColor(heroTheme.grid.baseB));
     materialRef.current.uGridColor.copy(createColor(heroTheme.grid.lines));
     materialRef.current.uGlowColor.copy(createColor(heroTheme.grid.glow));
+    materialRef.current.uStarColor.copy(createColor(heroTheme.celestial.star));
+    materialRef.current.uConstellationColor.copy(createColor(heroTheme.celestial.constellation));
+    materialRef.current.uCausticColor.copy(createColor(heroTheme.celestial.caustic));
   }, [heroTheme]);
 
   useFrame(({ clock }, delta) => {
