@@ -83,12 +83,18 @@ export default function Home({ user, scrollTo, openAuth }) {
 
 
 const heroSkeletonCanvasStyle = {
-  position: "absolute",
+  position: "fixed",
   inset: 0,
-  borderRadius: "inherit",
+  width: "100vw",
+  height: "100dvh",
+  pointerEvents: "none",
   background:
-    "radial-gradient(circle at 30% 35%, rgba(59, 130, 246, 0.28), transparent 55%), radial-gradient(circle at 70% 65%, rgba(147, 51, 234, 0.24), transparent 58%)",
+    "radial-gradient(circle at 30% 35%, rgba(59, 130, 246, 0.28), transparent 55%), " +
+    "radial-gradient(circle at 70% 65%, rgba(147, 51, 234, 0.24), transparent 58%), " +
+    "linear-gradient(180deg, var(--bg-from), var(--bg-to))",
   opacity: 0.85,
+  zIndex: -1,
+  transform: "translateZ(0)",
 };
 
 const heroSkeletonPanelSurface = {
@@ -128,7 +134,7 @@ function HeroSkeleton() {
       aria-live="polite"
       aria-label="Loading Artifically hero experience"
     >
-      <div className="hero-canvas" aria-hidden="true" style={heroSkeletonCanvasStyle} />
+      <div className="hero-canvas hero-bg-fixed" aria-hidden="true" style={heroSkeletonCanvasStyle} />
       <div className="hero-gradient" aria-hidden="true" />
       <div className="hero-inner" aria-hidden="true">
         <header className="hero-header" style={{ alignItems: "center" }}>

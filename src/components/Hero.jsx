@@ -254,7 +254,7 @@ function BackgroundCanvas() {
     };
   }, [prefersReducedMotion, palette, darkMode]);
 
-  return <canvas ref={canvasRef} className="hero-background" aria-hidden="true" />;
+  return <canvas ref={canvasRef} className="hero-background hero-bg-fixed" aria-hidden="true" />;
 }
 
 function AnimatedEyebrow({ children }) {
