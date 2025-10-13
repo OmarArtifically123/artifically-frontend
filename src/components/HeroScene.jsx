@@ -995,6 +995,9 @@ const GridMaterial = shaderMaterial(
     uniform vec3 uColorB;
     uniform vec3 uGridColor;
     uniform vec3 uGlowColor;
+    uniform vec3 uStarColor;
+    uniform vec3 uConstellationColor;
+    uniform vec3 uCausticColor;
     uniform float uScanStrength;
     uniform float uScanProgress;
     uniform float uCausticStrength;
@@ -3537,6 +3540,57 @@ export default function HeroScene({ width = 1280, height = 720 }) {
     glRef.current.setClearColor(createColor(heroTheme.background), 1);
   }, [heroTheme]);
 
+  useEffect(() => {
+    if (!glRef.current) {
+      return;
+    }
+    glRef.current.setSize(width, height, false);
+  }, [height, width]);
+
+  useEffect(() => {
+    if (typeof window === "undefined" || !glRef.current) {
+      return undefined;
+    }
+
+    const handlePixelRatioChange = () => {
+      if (!glRef.current) {
+        return;
+      }
+      const nextRatio = Math.min(window.devicePixelRatio || 1, maxDpr);
+      glRef.current.setPixelRatio(nextRatio);
+    };
+
+    handlePixelRatioChange();
+
+    const resizeListener = () => handlePixelRatioChange();
+    window.addEventListener("resize", resizeListener, { passive: true });
+
+    let mediaQuery;
+    let mediaListener;
+
+    if (typeof window.matchMedia === "function") {
+      const currentRatio = window.devicePixelRatio || 1;
+      mediaQuery = window.matchMedia(`(resolution: ${currentRatio}dppx)`);
+      mediaListener = () => handlePixelRatioChange();
+      if (typeof mediaQuery.addEventListener === "function") {
+        mediaQuery.addEventListener("change", mediaListener);
+      } else if (typeof mediaQuery.addListener === "function") {
+        mediaQuery.addListener(mediaListener);
+      }
+    }
+
+    return () => {
+      window.removeEventListener("resize", resizeListener);
+      if (mediaQuery && mediaListener) {
+        if (typeof mediaQuery.removeEventListener === "function") {
+          mediaQuery.removeEventListener("change", mediaListener);
+        } else if (typeof mediaQuery.removeListener === "function") {
+          mediaQuery.removeListener(mediaListener);
+        }
+      }
+    };
+  }, [maxDpr]);
+  
   useEffect(() => () => {
     if (typeof contextCleanupRef.current === "function") {
       contextCleanupRef.current();

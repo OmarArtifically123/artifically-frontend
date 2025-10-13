@@ -86,6 +86,37 @@ export default function Hero({ openAuth }) {
 function BackgroundCanvas() {
   const canvasRef = useRef(null);
   const prefersReducedMotion = usePrefersReducedMotion();
+  const { darkMode } = useTheme();
+
+  const palette = useMemo(
+    () =>
+      darkMode
+        ? {
+            gradientStops: [
+              { offset: 0, color: "rgba(104, 83, 255, 0.58)" },
+              { offset: 0.32, color: "rgba(45, 212, 191, 0.28)" },
+              { offset: 0.68, color: "rgba(14, 30, 58, 0.82)" },
+              { offset: 0.92, color: "rgba(6, 12, 28, 0.96)" },
+            ],
+            nodeColor: "rgba(190, 243, 255, 0.8)",
+            nodeShadow: "rgba(45, 212, 191, 0.35)",
+            connectionColor: "77, 204, 255",
+            backgroundOverlay: "rgba(15, 23, 42, 0.32)",
+          }
+        : {
+            gradientStops: [
+              { offset: 0, color: "rgba(187, 222, 255, 0.72)" },
+              { offset: 0.38, color: "rgba(99, 102, 241, 0.22)" },
+              { offset: 0.72, color: "rgba(226, 240, 255, 0.78)" },
+              { offset: 1, color: "rgba(248, 252, 255, 0.96)" },
+            ],
+            nodeColor: "rgba(37, 99, 235, 0.45)",
+            nodeShadow: "rgba(56, 189, 248, 0.28)",
+            connectionColor: "37, 99, 235",
+            backgroundOverlay: "rgba(221, 233, 255, 0.35)",
+          },
+    [darkMode],
+  );
 
   useEffect(() => {
     const canvas = canvasRef.current;
@@ -158,17 +189,23 @@ function BackgroundCanvas() {
         height * 0.5,
         width * 0.9,
       );
-      gradient.addColorStop(0, "rgba(93, 47, 254, 0.28)");
-      gradient.addColorStop(0.4, "rgba(62, 249, 197, 0.18)");
-      gradient.addColorStop(0.8, "rgba(15, 23, 42, 0.85)");
+      palette.gradientStops.forEach(({ offset, color }) => {
+        gradient.addColorStop(offset, color);
+      });
       context.fillStyle = gradient;
+      context.fillRect(0, 0, width, height);
+
+      context.fillStyle = palette.backgroundOverlay;
       context.fillRect(0, 0, width, height);
 
       nodes.forEach((node) => {
         context.beginPath();
         context.arc(node.x * width, node.y * height, 2.5, 0, Math.PI * 2);
-        context.fillStyle = "rgba(190, 243, 255, 0.75)";
+        context.shadowColor = palette.nodeShadow;
+        context.shadowBlur = darkMode ? 18 : 12;
+        context.fillStyle = palette.nodeColor;
         context.fill();
+        context.shadowBlur = 0;
       });
 
       for (let i = 0; i < nodes.length; i += 1) {
@@ -180,7 +217,7 @@ function BackgroundCanvas() {
           const distance = Math.sqrt(dx * dx + dy * dy);
           if (distance < 0.18) {
             const alpha = 0.35 - distance * 1.1;
-            context.strokeStyle = `rgba(125, 211, 252, ${alpha})`;
+            context.strokeStyle = `rgba(${palette.connectionColor}, ${alpha})`;
             context.lineWidth = 1;
             context.beginPath();
             context.moveTo(nodeA.x * width, nodeA.y * height);
@@ -215,7 +252,7 @@ function BackgroundCanvas() {
       canvas.removeEventListener("pointerleave", handlePointerLeave);
       cancelAnimationFrame(animationFrameId);
     };
-  }, [prefersReducedMotion]);
+  }, [prefersReducedMotion, palette, darkMode]);
 
   return <canvas ref={canvasRef} className="hero-background" aria-hidden="true" />;
 }

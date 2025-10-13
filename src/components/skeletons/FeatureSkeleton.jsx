@@ -6,8 +6,8 @@ export default function FeatureSkeletonGrid({ cards = 6 }) {
       aria-hidden
       style={{
         display: "grid",
-        gridTemplateColumns: "repeat(auto-fit, minmax(260px, 1fr))",
-        gap: space("md"),
+        gridTemplateColumns: "repeat(auto-fit, minmax(280px, 1fr))",
+        gap: "var(--layout-bento-gap, 1.75rem)",
       }}
     >
       {Array.from({ length: cards }).map((_, index) => (
@@ -20,7 +20,7 @@ export default function FeatureSkeletonGrid({ cards = 6 }) {
             background: "linear-gradient(160deg, rgba(148,163,184,0.2), rgba(148,163,184,0.1))",
             display: "grid",
             gap: space("fluid-sm"),
-            minHeight: "220px",
+            minHeight: "240px",
           }}
         >
           <div

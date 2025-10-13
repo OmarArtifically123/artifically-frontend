@@ -61,7 +61,7 @@ const BADGE_PALETTE = {
 function FeaturesContent() {
   const { darkMode } = useTheme();
   const [state, setState] = useState(() => ({
-    loading: false,
+    loading: true,
     features: FALLBACK_FEATURE_HIGHLIGHTS,
     stats: FALLBACK_MARKETPLACE_STATS,
   }));
@@ -70,12 +70,13 @@ function FeaturesContent() {
     let isMounted = true;
     const controller = typeof AbortController !== "undefined" ? new AbortController() : null;
 
+    setState((prev) => ({ ...prev, loading: true }));
+
     loadFeatureData({ signal: controller?.signal })
       .then((data) => {
         if (!isMounted) return;
         setState((prev) => ({
           ...prev,
-          loading: false,
           features: data.features || FALLBACK_FEATURE_HIGHLIGHTS,
           stats: data.stats || FALLBACK_MARKETPLACE_STATS,
         }));
@@ -87,10 +88,10 @@ function FeaturesContent() {
         if (import.meta.env.DEV) {
           console.warn("Failed to load feature data", error);
         }
-        setState((prev) => ({
-          ...prev,
-          loading: false,
-        }));
+        })
+      .finally(() => {
+        if (!isMounted) return;
+        setState((prev) => ({ ...prev, loading: false }));
       });
 
     return () => {
