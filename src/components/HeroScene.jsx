@@ -1,4 +1,13 @@
-import { Suspense, useCallback, useEffect, useMemo, useRef, useState } from "react";
+import {
+  Suspense,
+  createContext,
+  useCallback,
+  useContext,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+} from "react";
 import { Canvas, extend, useFrame, useThree } from "@react-three/fiber";
 import {
   ACESFilmicToneMapping,
@@ -31,6 +40,7 @@ import { EffectComposer, Bloom, DepthOfField } from "@react-three/postprocessing
 import { BlendFunction, Effect, EffectAttribute } from "postprocessing";
 import Stats from "three/examples/jsm/libs/stats.module.js";
 import heroFallbackMedia from "../assets/hero-fallback.svg?url";
+import { useTheme } from "../context/ThemeContext";
 
 const HERO_SCENE_WRAPPER_STYLE = Object.freeze({
   position: "relative",
@@ -59,8 +69,132 @@ const ORBITAL_NODE_COUNT = 18;
 const BACKGROUND_PARTICLE_COUNT = 96;
 const FOREGROUND_PARTICLE_COUNT = 28;
 const GOD_RAY_COUNT = 14;
-const HEIGHT_FOG_COLOR = new Color(0x14233c);
 const LENS_DIRT_TEXTURE_SIZE = 256;
+
+const HERO_THEME_PRESETS = Object.freeze({
+  dark: {
+    key: "dark",
+    background: 0x0f172a,
+    backgroundCss: "#0f172a",
+    fog: 0x142337,
+    heightFog: 0x14233c,
+    fallbackBackground: "linear-gradient(135deg, rgba(15, 23, 42, 0.9), rgba(30, 41, 59, 0.92))",
+    fallbackText: "#e2e8f0",
+    fallbackShadow: "0 18px 45px rgba(15, 23, 42, 0.55)",
+    grid: {
+      baseA: 0x1a2440,
+      baseB: 0x060913,
+      lines: 0x6366f1,
+      glow: 0x22d3ee,
+      particle: 0x9ca3af,
+    },
+    plasma: {
+      inner: 0x9333ea,
+      mid: 0x6366f1,
+      outer: 0x3b82f6,
+    },
+    energyGradient: {
+      start: 0x3b82f6,
+      middle: 0x22d3ee,
+      end: 0xa855f7,
+    },
+    typeATints: [0x3b82f6, 0xa855f7, 0x2dd4bf],
+    lighting: {
+      hemisphereSky: 0x3c5078,
+      hemisphereGround: 0x0f1523,
+      directional: 0xb4c8ff,
+      rim: 0xff8c64,
+      points: [0x22d3ee, 0x8b5cf6, 0x06b6d4, 0xf472b6],
+    },
+    structural: {
+      nodeA: 0x282d34,
+      nodeB: 0x1e2330,
+      nodeBEmissive: 0x0f172a,
+      orbGlass: 0xc8dcff,
+      orbCore: 0xffffff,
+      shellBase: 0x0f1e3c,
+    },
+    highlights: {
+      energy: 0x22d3ee,
+      line: 0x60a5fa,
+      lineHex: "#60a5fa",
+      trailHex: "#38bdf8",
+      dataBurst: 0x9beeff,
+      dataTrail: 0x66f7ff,
+      sheen: 0x38bdf8,
+      attenuation: 0x64c8dc,
+    },
+    glow: {
+      godRay: 0x38bdf8,
+    },
+  },
+  light: {
+    key: "light",
+    background: 0xf1f5ff,
+    backgroundCss: "#f1f5ff",
+    fog: 0xdbe8ff,
+    heightFog: 0xd7e3ff,
+    fallbackBackground: "linear-gradient(135deg, rgba(226, 232, 240, 0.85), rgba(191, 219, 254, 0.85))",
+    fallbackText: "#1f2937",
+    fallbackShadow: "0 18px 45px rgba(148, 163, 184, 0.3)",
+    grid: {
+      baseA: 0xe4ecff,
+      baseB: 0xf8fbff,
+      lines: 0x5b6cff,
+      glow: 0x38bdf8,
+      particle: 0xa8b6cf,
+    },
+    plasma: {
+      inner: 0x818cf8,
+      mid: 0x60a5fa,
+      outer: 0x38bdf8,
+    },
+    energyGradient: {
+      start: 0x4f46e5,
+      middle: 0x38bdf8,
+      end: 0xec4899,
+    },
+    typeATints: [0x4f46e5, 0xec4899, 0x14b8a6],
+    lighting: {
+      hemisphereSky: 0xa5b4ff,
+      hemisphereGround: 0xf8fafc,
+      directional: 0x93b4ff,
+      rim: 0xffb38a,
+      points: [0x2563eb, 0xa855f7, 0x22d3ee, 0xfb7185],
+    },
+    structural: {
+      nodeA: 0xe2e8f0,
+      nodeB: 0xcbd5f5,
+      nodeBEmissive: 0xf8fafc,
+      orbGlass: 0xe0ebff,
+      orbCore: 0xffffff,
+      shellBase: 0xe8efff,
+    },
+    highlights: {
+      energy: 0x2563eb,
+      line: 0x7c91ff,
+      lineHex: "#7c91ff",
+      trailHex: "#60a5fa",
+      dataBurst: 0xbae6fd,
+      dataTrail: 0x7dd3fc,
+      sheen: 0x60a5fa,
+      attenuation: 0xa5f3fc,
+    },
+    glow: {
+      godRay: 0x7dd3fc,
+    },
+  },
+});
+
+const HeroThemeContext = createContext(HERO_THEME_PRESETS.dark);
+
+function useHeroThemePalette() {
+  return useContext(HeroThemeContext);
+}
+
+function createColor(hex) {
+  return new Color(hex);
+}
 const MOTION_BLUR_SAMPLES = 8;
 const HERO_TIMELINE_DURATION = 20;
 const PARTICLE_TRAIL_DURATION = 0.3;
@@ -222,18 +356,6 @@ const ORBITAL_RING_CONFIG = [
     typeSequence: ["C", "C", "B", "B"],
   },
 ];
-
-const TYPE_A_TINT_COLORS = [
-  new Color(0x3b82f6),
-  new Color(0xa855f7),
-  new Color(0x2dd4bf),
-];
-
-const ENERGY_GRADIENT = {
-  start: new Color(0x3b82f6),
-  middle: new Color(0x22d3ee),
-  end: new Color(0xa855f7),
-};
 
 function determineQualityLevel() {
   if (typeof window === "undefined") {
@@ -838,10 +960,10 @@ function usePrefersReducedMotionScene() {
 const GridMaterial = shaderMaterial(
   {
     uTime: 0,
-    uColorA: new Color(0x1a2440),
-    uColorB: new Color(0x060913),
-    uGridColor: new Color(0x6366f1),
-    uGlowColor: new Color(0x22d3ee),
+    uColorA: createColor(HERO_THEME_PRESETS.dark.grid.baseA),
+    uColorB: createColor(HERO_THEME_PRESETS.dark.grid.baseB),
+    uGridColor: createColor(HERO_THEME_PRESETS.dark.grid.lines),
+    uGlowColor: createColor(HERO_THEME_PRESETS.dark.grid.glow),
     uScanStrength: 0,
     uScanProgress: 0,
     uCausticStrength: 0.22,
@@ -960,9 +1082,9 @@ const GridMaterial = shaderMaterial(
 const PlasmaMaterial = shaderMaterial(
   {
     uTime: 0,
-    uColorInner: new Color(0x9333ea),
-    uColorMid: new Color(0x6366f1),
-    uColorOuter: new Color(0x3b82f6),
+    uColorInner: createColor(HERO_THEME_PRESETS.dark.plasma.inner),
+    uColorMid: createColor(HERO_THEME_PRESETS.dark.plasma.mid),
+    uColorOuter: createColor(HERO_THEME_PRESETS.dark.plasma.outer),
     uOpacity: 0.65,
   },
   /* glsl */ `
@@ -1031,9 +1153,9 @@ const EnergyStreamMaterial = shaderMaterial(
     uGradientShift: 0,
     uIntensity: 4.8,
     uOpacity: 0.9,
-    uColorStart: ENERGY_GRADIENT.start.clone(),
-    uColorMid: ENERGY_GRADIENT.middle.clone(),
-    uColorEnd: ENERGY_GRADIENT.end.clone(),
+    uColorStart: createColor(HERO_THEME_PRESETS.dark.energyGradient.start),
+    uColorMid: createColor(HERO_THEME_PRESETS.dark.energyGradient.middle),
+    uColorEnd: createColor(HERO_THEME_PRESETS.dark.energyGradient.end),
   },
   /* glsl */ `
     varying vec2 vUv;
@@ -1088,9 +1210,9 @@ const EnergyGlowMaterial = shaderMaterial(
     uFlowDirection: 1,
     uGradientShift: 0,
     uOpacity: 0.25,
-    uColorStart: ENERGY_GRADIENT.start.clone(),
-    uColorMid: ENERGY_GRADIENT.middle.clone(),
-    uColorEnd: ENERGY_GRADIENT.end.clone(),
+    uColorStart: createColor(HERO_THEME_PRESETS.dark.energyGradient.start),
+    uColorMid: createColor(HERO_THEME_PRESETS.dark.energyGradient.middle),
+    uColorEnd: createColor(HERO_THEME_PRESETS.dark.energyGradient.end),
   },
   /* glsl */ `
     varying vec2 vUv;
@@ -1135,7 +1257,7 @@ const HeightFogMaterial = shaderMaterial(
     uTime: 0,
     uDensity: 0.08,
     uHeightFalloff: 0.45,
-    uColor: HEIGHT_FOG_COLOR.clone(),
+    uColor: createColor(HERO_THEME_PRESETS.dark.heightFog),
     uStartDistance: 3.0,
   },
   /* glsl */ `
@@ -1616,6 +1738,7 @@ function CameraRig({ reduceMotion, targetAspect = HERO_ASPECT, quality }) {
 }
 
 function SceneLighting() {
+  const heroTheme = useHeroThemePalette();
   const rimLightRef = useRef();
 
   useEffect(() => {
@@ -1630,34 +1753,59 @@ function SceneLighting() {
     <>
       <hemisphereLight
         intensity={0.4}
-        color={new Color(0x3c5078)}
-        groundColor={new Color(0x0f1523)}
+        color={createColor(heroTheme.lighting.hemisphereSky)}
+        groundColor={createColor(heroTheme.lighting.hemisphereGround)}
       />
       <directionalLight
         intensity={1.5}
-        color={new Color(0xb4c8ff)}
+        color={createColor(heroTheme.lighting.directional)}
         position={[5.2, 6.6, 4.2]}
         castShadow={false}
       />
       <spotLight
         ref={rimLightRef}
         intensity={1}
-        color={new Color(0xff8c64)}
+        color={createColor(heroTheme.lighting.rim)}
         angle={MathUtils.degToRad(45)}
         penumbra={0.65}
         position={[-4.2, 2.4, -3.4]}
         distance={22}
       />
-      <pointLight intensity={2.6} color={new Color(0x22d3ee)} position={[0, 0.2, 0]} distance={9.5} decay={2.1} />
-      <pointLight intensity={0.72} color={new Color(0x8b5cf6)} position={[3.6, 1.4, -3.2]} distance={6.5} decay={2.3} />
-      <pointLight intensity={0.68} color={new Color(0x06b6d4)} position={[-3.4, 1.1, 2.8]} distance={6.8} decay={2.4} />
-      <pointLight intensity={0.6} color={new Color(0xf472b6)} position={[1.4, 2.8, 4.2]} distance={7.1} decay={2.1} />
+      <pointLight
+        intensity={2.6}
+        color={createColor(heroTheme.lighting.points[0])}
+        position={[0, 0.2, 0]}
+        distance={9.5}
+        decay={2.1}
+      />
+      <pointLight
+        intensity={0.72}
+        color={createColor(heroTheme.lighting.points[1])}
+        position={[3.6, 1.4, -3.2]}
+        distance={6.5}
+        decay={2.3}
+      />
+      <pointLight
+        intensity={0.68}
+        color={createColor(heroTheme.lighting.points[2])}
+        position={[-3.4, 1.1, 2.8]}
+        distance={6.8}
+        decay={2.4}
+      />
+      <pointLight
+        intensity={0.6}
+        color={createColor(heroTheme.lighting.points[3])}
+        position={[1.4, 2.8, 4.2]}
+        distance={7.1}
+        decay={2.1}
+      />
     </>
   );
 }
 
 function AtmosphericFog({ reduceMotion, quality }) {
   const materialRef = useRef();
+  const heroTheme = useHeroThemePalette();
 
   useEffect(() => {
     if (!materialRef.current) {
@@ -1667,7 +1815,8 @@ function AtmosphericFog({ reduceMotion, quality }) {
     const baseDensity = quality.fogBaseDensity ?? HERO_BASE_FOG_DENSITY;
     materialRef.current.uDensity = reduceMotion ? Math.min(baseDensity, 0.06) : baseDensity;
     materialRef.current.uHeightFalloff = 0.45;
-  }, [quality.fogBaseDensity, reduceMotion]);
+  materialRef.current.uColor.copy(createColor(heroTheme.heightFog));
+  }, [heroTheme, quality.fogBaseDensity, reduceMotion]);
 
   useFrame(({ clock }) => {
     if (!materialRef.current) {
@@ -1698,12 +1847,23 @@ function AtmosphericFog({ reduceMotion, quality }) {
 
 function BackgroundLayers({ reduceMotion, quality }) {
   const materialRef = useRef();
+  const heroTheme = useHeroThemePalette();
   const { positions, verticalSpeeds, swayAxes, offsets } = useMemo(
     () => createBackgroundParticles(quality.backgroundParticleCount ?? BACKGROUND_PARTICLE_COUNT),
     [quality.backgroundParticleCount],
   );
   const pointsRef = useRef();
   const particleCount = positions.length / 3;
+
+  useEffect(() => {
+    if (!materialRef.current) {
+      return;
+    }
+    materialRef.current.uColorA.copy(createColor(heroTheme.grid.baseA));
+    materialRef.current.uColorB.copy(createColor(heroTheme.grid.baseB));
+    materialRef.current.uGridColor.copy(createColor(heroTheme.grid.lines));
+    materialRef.current.uGlowColor.copy(createColor(heroTheme.grid.glow));
+  }, [heroTheme]);
 
   useFrame(({ clock }, delta) => {
     const timeline = getHeroTimelineState(clock.getElapsedTime());
@@ -1757,7 +1917,7 @@ function BackgroundLayers({ reduceMotion, quality }) {
           <bufferAttribute attach="attributes-position" args={[positions, 3]} />
         </bufferGeometry>
         <pointsMaterial
-          color={new Color(0x9ca3af)}
+          color={createColor(heroTheme.grid.particle)}
           size={0.05}
           transparent
           opacity={reduceMotion ? 0.12 : 0.16 * (quality.gridScanStrength ?? 1)}
@@ -1778,6 +1938,7 @@ function NeuralCore({ reduceMotion, quality }) {
       ),
     [quality.neuralConnectionsPerNode, quality.neuralNodeCount],
   );
+  const heroTheme = useHeroThemePalette();
   const instancedRef = useRef();
   const connectionRef = useRef();
   const dummy = useMemo(() => new Object3D(), []);
@@ -1871,15 +2032,35 @@ function NeuralCore({ reduceMotion, quality }) {
         <bufferGeometry>
           <bufferAttribute attach="attributes-position" args={[connectionPositions, 3]} />
         </bufferGeometry>
-        <lineBasicMaterial color={new Color(0x60a5fa)} transparent opacity={0.32} linewidth={1} toneMapped={false} />
+        <lineBasicMaterial
+          color={createColor(heroTheme.highlights.line)}
+          transparent
+          opacity={0.32}
+          linewidth={1}
+          toneMapped={false}
+        />
       </lineSegments>
     </group>
   );
 }
 
-function CircuitPath({ curve, samples, colors, pulses, reduceMotion }) {
+function CircuitPath({ curve, samples, pulses, reduceMotion }) {
   const points = useMemo(() => samples.map((point) => point.clone()), [samples]);
   const pulseRefs = useRef([]);
+  const heroTheme = useHeroThemePalette();
+  const gradientColors = useMemo(() => {
+    const start = createColor(heroTheme.energyGradient.start);
+    const mid = createColor(heroTheme.energyGradient.middle);
+    const end = createColor(heroTheme.energyGradient.end);
+    return samples.map((_, index) => {
+      if (samples.length <= 1) {
+        return start.clone();
+      }
+      const t = index / (samples.length - 1);
+      const midMix = start.clone().lerp(mid, Math.min(1, t * 1.25));
+      return midMix.lerp(end, Math.max(0, (t - 0.35) / 0.65));
+    });
+  }, [heroTheme, samples]);
 
   useFrame(({ clock }) => {
     if (!pulseRefs.current.length || reduceMotion) {
@@ -1905,8 +2086,8 @@ function CircuitPath({ curve, samples, colors, pulses, reduceMotion }) {
     <group>
       <Line
         points={points}
-        color={colors[0]}
-        vertexColors={colors}
+        color={gradientColors[0] ?? createColor(heroTheme.energyGradient.start)}
+        vertexColors={gradientColors}
         lineWidth={1.4}
         transparent
         opacity={0.48}
@@ -1921,7 +2102,7 @@ function CircuitPath({ curve, samples, colors, pulses, reduceMotion }) {
         >
           <sphereGeometry args={[1, 16, 16]} />
           <meshBasicMaterial
-            color={new Color(0x22d3ee)}
+            color={createColor(heroTheme.highlights.energy)}
             transparent
             opacity={0.55}
             toneMapped={false}
@@ -1961,6 +2142,12 @@ function OrbitalNetwork({ reduceMotion, quality }) {
       }),
     [quality.energyStreamDensity, quality.orbitalNodeDensity],
   );
+  const heroTheme = useHeroThemePalette();
+  const typeATintColors = useMemo(
+    () => heroTheme.typeATints.map((hex) => createColor(hex)),
+    [heroTheme],
+  );
+  const fallbackTintColor = useMemo(() => createColor(heroTheme.highlights.energy), [heroTheme]);
   const orbitRefs = useRef([]);
   const visualRefs = useRef([]);
   const materialRefs = useRef([]);
@@ -2091,12 +2278,13 @@ function OrbitalNetwork({ reduceMotion, quality }) {
 
       const material = materialRefs.current[index];
       if (node.type === "A" && material) {
-        const cycle = ((cycleTime / 8 + node.colorCycleOffset) % TYPE_A_TINT_COLORS.length + TYPE_A_TINT_COLORS.length) %
-          TYPE_A_TINT_COLORS.length;
+        const palette = typeATintColors.length ? typeATintColors : [fallbackTintColor];
+        const tintCount = palette.length;
+        const cycle = ((cycleTime / 8 + node.colorCycleOffset) % tintCount + tintCount) % tintCount;
         const baseIndex = Math.floor(cycle);
-        const nextIndex = (baseIndex + 1) % TYPE_A_TINT_COLORS.length;
+        const nextIndex = (baseIndex + 1) % tintCount;
         const localT = cycle - baseIndex;
-        const emissive = TYPE_A_TINT_COLORS[baseIndex].clone().lerp(TYPE_A_TINT_COLORS[nextIndex], localT);
+        const emissive = palette[baseIndex].clone().lerp(palette[nextIndex], localT);
         material.emissive.copy(emissive);
         material.emissiveIntensity = 0.68 * timeline.heroEmissiveMultiplier * node.emissiveBias;
       }
@@ -2133,12 +2321,12 @@ function OrbitalNetwork({ reduceMotion, quality }) {
         >
           <icosahedronGeometry args={[0.5, 4]} />
           <meshPhysicalMaterial
-            color={new Color(0x282d34)}
+            color={createColor(heroTheme.structural.nodeA)}
             metalness={0.95}
             roughness={0.15}
             clearcoat={0.8}
             clearcoatRoughness={0.12}
-            emissive={TYPE_A_TINT_COLORS[0].clone()}
+            emissive={(typeATintColors[0] ?? fallbackTintColor).clone()}
             emissiveIntensity={0.45 + node.emissiveBias * 0.25}
             reflectivity={0.85}
             envMapIntensity={1.35}
@@ -2161,10 +2349,10 @@ function OrbitalNetwork({ reduceMotion, quality }) {
           >
             {angularGeometry ? <primitive object={angularGeometry} attach="geometry" /> : <icosahedronGeometry args={[0.5, 0]} />}
             <meshStandardMaterial
-              color={new Color(0x1e2330)}
+              color={createColor(heroTheme.structural.nodeB)}
               metalness={0.75}
               roughness={0.45}
-              emissive={new Color(0x0f172a)}
+              emissive={createColor(heroTheme.structural.nodeBEmissive)}
               envMapIntensity={0.65}
             />
           </mesh>
@@ -2176,7 +2364,7 @@ function OrbitalNetwork({ reduceMotion, quality }) {
             >
               <primitive object={edgeGeometry} attach="geometry" />
               <lineBasicMaterial
-                color={new Color(0x22d3ee)}
+                color={createColor(heroTheme.highlights.energy)}
                 transparent
                 opacity={0.85 * node.emissiveBias}
                 toneMapped={false}
@@ -2198,7 +2386,7 @@ function OrbitalNetwork({ reduceMotion, quality }) {
         >
           <torusGeometry args={[0.5, 0.18, 36, 72]} />
           <meshPhysicalMaterial
-            color={new Color(0xc8dcff)}
+            color={createColor(heroTheme.structural.orbGlass)}
             transparent
             opacity={0.85}
             transmission={0.88}
@@ -2216,8 +2404,8 @@ function OrbitalNetwork({ reduceMotion, quality }) {
         >
           <sphereGeometry args={[0.18, 24, 24]} />
           <meshStandardMaterial
-            color={new Color(0xffffff)}
-            emissive={new Color(0xffffff)}
+            color={createColor(heroTheme.structural.orbCore)}
+            emissive={createColor(heroTheme.structural.orbCore)}
             emissiveIntensity={5 * node.emissiveBias}
             metalness={0}
             roughness={1}
@@ -2249,7 +2437,7 @@ function OrbitalNetwork({ reduceMotion, quality }) {
               nodeTrailRefs.current[index] = value ?? nodeTrailRefs.current[index];
             }}
             points={nodeHistories.current[index] ?? []}
-            color="#38bdf8"
+            color={heroTheme.highlights.trailHex}
             transparent
             opacity={Math.min(
               1,
@@ -2334,16 +2522,17 @@ function GodRays({ reduceMotion, quality }) {
   const instancedRef = useRef();
   const dummy = useMemo(() => new Object3D(), []);
   const rays = useMemo(() => createGodRayDescriptors(quality.godRayCount ?? GOD_RAY_COUNT), [quality.godRayCount]);
+  const heroTheme = useHeroThemePalette();
 
   useEffect(() => {
     if (!instancedRef.current) {
       return;
     }
     rays.forEach((ray, index) => {
-      instancedRef.current.setColorAt(index, new Color(0x38bdf8));
+      instancedRef.current.setColorAt(index, createColor(heroTheme.glow.godRay));
     });
     instancedRef.current.instanceColor.needsUpdate = true;
-  }, [rays]);
+  }, [heroTheme, rays]);
 
   useFrame(({ clock }) => {
     if (!instancedRef.current) return;
@@ -2376,7 +2565,7 @@ function GodRays({ reduceMotion, quality }) {
         opacity={quality.godRayOpacity ?? 0.16}
         depthWrite={false}
         toneMapped={false}
-        color={new Color(0x38bdf8)}
+        color={createColor(heroTheme.glow.godRay)}
         blending={AdditiveBlending}
         vertexColors
       />
@@ -2393,6 +2582,21 @@ function HeroOrb({ reduceMotion, quality }) {
   const speckColor = useMemo(() => new Color(), []);
   const shellSpecks = useMemo(() => createShellSpecks(), []);
   const { normalTexture, roughnessTexture, detailTexture } = useProceduralShellMaps();
+  const heroTheme = useHeroThemePalette();
+
+  useEffect(() => {
+    if (plasmaRef.current) {
+      plasmaRef.current.uColorInner.copy(createColor(heroTheme.plasma.inner));
+      plasmaRef.current.uColorMid.copy(createColor(heroTheme.plasma.mid));
+      plasmaRef.current.uColorOuter.copy(createColor(heroTheme.plasma.outer));
+    }
+    if (shellRef.current) {
+      shellRef.current.color.copy(createColor(heroTheme.structural.shellBase));
+      shellRef.current.emissive.copy(createColor(heroTheme.highlights.energy));
+      shellRef.current.sheenColor.copy(createColor(heroTheme.highlights.sheen));
+      shellRef.current.attenuationColor.copy(createColor(heroTheme.highlights.attenuation));
+    }
+  }, [heroTheme]);
 
   useFrame(({ clock }) => {
     if (!groupRef.current) return;
@@ -2451,8 +2655,8 @@ function HeroOrb({ reduceMotion, quality }) {
         <icosahedronGeometry args={[HERO_ORB_RADIUS, 6]} />
         <meshPhysicalMaterial
           ref={shellRef}
-          color={new Color(0x0f1e3c)}
-          emissive={new Color(0x22d3ee)}
+          color={createColor(heroTheme.structural.shellBase)}
+          emissive={createColor(heroTheme.highlights.energy)}
           emissiveIntensity={0.4}
           emissiveMap={detailTexture}
           roughness={0.08}
@@ -2469,9 +2673,9 @@ function HeroOrb({ reduceMotion, quality }) {
           roughnessMap={roughnessTexture}
           normalScale={new Vector2(0.6, 0.6)}
           sheen={0.45}
-          sheenColor={new Color(0x38bdf8)}
+          sheenColor={createColor(heroTheme.highlights.sheen)}
           attenuationDistance={0.45}
-          attenuationColor={new Color(0x64c8dc)}
+          attenuationColor={createColor(heroTheme.highlights.attenuation)}
         />
       </mesh>
       <mesh>
@@ -2500,6 +2704,15 @@ function EnergyStreams({ streams, reduceMotion, nodePositions, quality }) {
   const streamCurves = useMemo(
     () => streams.map(() => new CubicBezierCurve3(new Vector3(), new Vector3(), new Vector3(), new Vector3())),
     [streams],
+  );
+  const heroTheme = useHeroThemePalette();
+  const energyGradient = useMemo(
+    () => ({
+      start: createColor(heroTheme.energyGradient.start),
+      mid: createColor(heroTheme.energyGradient.middle),
+      end: createColor(heroTheme.energyGradient.end),
+    }),
+    [heroTheme],
   );
   const coreRefs = useRef([]);
   const glowRefs = useRef([]);
@@ -2612,6 +2825,26 @@ function EnergyStreams({ streams, reduceMotion, nodePositions, quality }) {
       };
     });
   }
+
+  useEffect(() => {
+    coreMaterials.current.forEach((material) => {
+      if (!material) return;
+      material.uniforms.uColorStart.value.copy(energyGradient.start);
+      material.uniforms.uColorMid.value.copy(energyGradient.mid);
+      material.uniforms.uColorEnd.value.copy(energyGradient.end);
+    });
+    glowMaterials.current.forEach((material) => {
+      if (!material) return;
+      material.uniforms.uColorStart.value.copy(energyGradient.start);
+      material.uniforms.uColorMid.value.copy(energyGradient.mid);
+      material.uniforms.uColorEnd.value.copy(energyGradient.end);
+    });
+    dataBurstRefs.current.forEach((mesh) => {
+      if (mesh?.material) {
+        mesh.material.color.copy(createColor(heroTheme.highlights.dataBurst));
+      }
+    });
+  }, [energyGradient, heroTheme]);
 
   const initialCoreGeometries = useMemo(
     () => streams.map((stream, index) => new TubeGeometry(streamCurves[index], 32, stream.coreRadius, 12, false)),
@@ -2916,7 +3149,7 @@ function EnergyStreams({ streams, reduceMotion, nodePositions, quality }) {
           >
             <sphereGeometry args={[0.5, 16, 16]} />
             <meshBasicMaterial
-              color={new Color(0x9beeff)}
+              color={createColor(heroTheme.highlights.dataBurst)}
               toneMapped={false}
               transparent
               depthWrite={false}
@@ -2930,7 +3163,7 @@ function EnergyStreams({ streams, reduceMotion, nodePositions, quality }) {
               Array.from({ length: particleTrailSamples }, () => new Vector3());
             const gradientColors = history.map((_, historyIndex) => {
               const t = history.length <= 1 ? 0 : historyIndex / Math.max(history.length - 1, 1);
-              const baseColor = new Color(0x66f7ff);
+              const baseColor = createColor(heroTheme.highlights.dataTrail);
               const fade = MathUtils.lerp(0.65, 0.05, t);
               return baseColor.multiplyScalar(fade);
             });
@@ -2962,7 +3195,7 @@ function EnergyStreams({ streams, reduceMotion, nodePositions, quality }) {
                     particleTrailRefs.current[index][particleIndex] = value ?? particleTrailRefs.current[index][particleIndex];
                   }}
                   points={history}
-                  color={gradientColors[0] ?? new Color(0x66f7ff)}
+                  color={gradientColors[0] ?? createColor(heroTheme.highlights.dataTrail)}
                   vertexColors={gradientColors}
                   transparent
                   opacity={reduceMotion ? 0.06 : 0.18 * MathUtils.clamp(quality.energyStreamDensity ?? 1, 0.5, 1)}
@@ -2981,8 +3214,9 @@ function EnergyStreams({ streams, reduceMotion, nodePositions, quality }) {
 
 function SceneComposer({ reduceMotion, quality }) {
   const { camera, size, scene } = useThree();
-  const backgroundColor = useMemo(() => new Color(0x0f172a), []);
-  const fogColor = useMemo(() => new Color(0x142337), []);
+  const heroTheme = useHeroThemePalette();
+  const backgroundColor = useMemo(() => createColor(heroTheme.background), [heroTheme]);
+  const fogColor = useMemo(() => createColor(heroTheme.fog), [heroTheme]);
   const environmentSnapshot = useRef({ background: null, fog: null });
   const fogRef = useRef();
   const lensDirtTexture = useLensDirtTexture();
@@ -3227,22 +3461,30 @@ function PerformanceStatsMonitor() {
 }
 
 export default function HeroScene({ width = 1280, height = 720 }) {
+  const { darkMode } = useTheme();
+  const heroTheme = useMemo(
+    () => (darkMode ? HERO_THEME_PRESETS.dark : HERO_THEME_PRESETS.light),
+    [darkMode],
+  );
+
   if (typeof window === "undefined") {
     return (
-      <div style={HERO_SCENE_WRAPPER_STYLE}>
-        <img
-          src={heroFallbackMedia}
-          alt=""
-          role="presentation"
-          style={{
-            width: "100%",
-            height: "100%",
-            objectFit: "cover",
-            display: "block",
-            flex: "1 1 auto",
-          }}
-        />
-      </div>
+      <HeroThemeContext.Provider value={heroTheme}>
+        <div style={HERO_SCENE_WRAPPER_STYLE}>
+          <img
+            src={heroFallbackMedia}
+            alt=""
+            role="presentation"
+            style={{
+              width: "100%",
+              height: "100%",
+              objectFit: "cover",
+              display: "block",
+              flex: "1 1 auto",
+            }}
+          />
+        </div>
+      </HeroThemeContext.Provider>
     );
   }
 
@@ -3261,6 +3503,13 @@ export default function HeroScene({ width = 1280, height = 720 }) {
   const glRef = useRef(null);
   const contextCleanupRef = useRef(null);
 
+  useEffect(() => {
+    if (!glRef.current) {
+      return;
+    }
+    glRef.current.setClearColor(createColor(heroTheme.background), 1);
+  }, [heroTheme]);
+
   useEffect(() => () => {
     if (typeof contextCleanupRef.current === "function") {
       contextCleanupRef.current();
@@ -3277,75 +3526,90 @@ export default function HeroScene({ width = 1280, height = 720 }) {
     setCanvasResetKey((key) => key + 1);
   }, []);
 
+  const isDarkTheme = heroTheme.key === "dark";
+  const fallbackButtonBackground = isDarkTheme
+    ? "linear-gradient(120deg, rgba(99, 102, 241, 0.2), rgba(59, 130, 246, 0.24), rgba(14, 165, 233, 0.18))"
+    : "linear-gradient(120deg, rgba(99, 102, 241, 0.16), rgba(59, 130, 246, 0.18), rgba(14, 165, 233, 0.14))";
+  const fallbackButtonText = isDarkTheme ? "#f8fafc" : "#0f172a";
+  const fallbackButtonBorder = isDarkTheme
+    ? "1px solid rgba(99, 102, 241, 0.35)"
+    : "1px solid rgba(99, 102, 241, 0.2)";
+  const fallbackBodyColor = isDarkTheme ? "#cbd5f5" : "#475569";
+  const fallbackBorderColor = isDarkTheme ? "rgba(148, 163, 184, 0.15)" : "rgba(148, 163, 184, 0.25)";
+
   if (contextLost) {
     return (
-      <div style={HERO_SCENE_WRAPPER_STYLE}>
-        <div
-          role="status"
-          aria-live="polite"
-          style={{
-            width: "100%",
-            height: "100%",
-            background: "linear-gradient(135deg, rgba(15, 23, 42, 0.9), rgba(30, 41, 59, 0.92))",
-            display: "flex",
-            flexDirection: "column",
-            alignItems: "center",
-            justifyContent: "center",
-            gap: "1.5rem",
-            padding: "2.5rem 1.5rem",
-            textAlign: "center",
-            color: "#e2e8f0",
-            boxShadow: "inset 0 0 0 1px rgba(148, 163, 184, 0.15)",
-          }}
-        >
-          <img
-            src={heroFallbackMedia}
-            alt=""
-            role="presentation"
+      <HeroThemeContext.Provider value={heroTheme}>
+        <div style={HERO_SCENE_WRAPPER_STYLE}>
+          <div
+            role="status"
+            aria-live="polite"
             style={{
-              maxWidth: "420px",
               width: "100%",
-              height: "auto",
-              opacity: 0.85,
-              filter: "drop-shadow(0 22px 65px rgba(15, 23, 42, 0.65))",
-            }}
-          />
-          <div style={{ maxWidth: "520px" }}>
-            <h3 style={{ margin: "0 0 0.75rem", fontSize: "1.5rem", fontWeight: 600 }}>
-              Interactive preview paused
-            </h3>
-            <p style={{ margin: 0, lineHeight: 1.55, color: "#cbd5f5" }}>
-              Your browser reported a brief graphics issue, so we&apos;ve paused the 3D hero to keep the
-              page responsive. You can reload it at any time.
-            </p>
-          </div>
-          <button
-            type="button"
-            onClick={handleRetry}
-            style={{
-              padding: "0.85rem 1.6rem",
-              borderRadius: "0.75rem",
-              border: "1px solid rgba(99, 102, 241, 0.35)",
-              background:
-                "linear-gradient(120deg, rgba(99, 102, 241, 0.2), rgba(59, 130, 246, 0.24), rgba(14, 165, 233, 0.18))",
-              color: "#f8fafc",
-              fontWeight: 600,
-              cursor: "pointer",
-              letterSpacing: "0.01em",
-              transition: "transform 160ms ease, box-shadow 160ms ease",
-              boxShadow: "0 18px 45px rgba(15, 23, 42, 0.55)",
+              height: "100%",
+              background: heroTheme.fallbackBackground,
+              display: "flex",
+              flexDirection: "column",
+              alignItems: "center",
+              justifyContent: "center",
+              gap: "1.5rem",
+              padding: "2.5rem 1.5rem",
+              textAlign: "center",
+              color: heroTheme.fallbackText,
+              boxShadow: `inset 0 0 0 1px ${fallbackBorderColor}`,
             }}
           >
-            Reload interactive preview
-          </button>
+            <img
+              src={heroFallbackMedia}
+              alt=""
+              role="presentation"
+              style={{
+                maxWidth: "420px",
+                width: "100%",
+                height: "auto",
+                opacity: 0.85,
+                filter: isDarkTheme
+                  ? "drop-shadow(0 22px 65px rgba(15, 23, 42, 0.65))"
+                  : "drop-shadow(0 22px 65px rgba(148, 163, 184, 0.35))",
+              }}
+            />
+            <div style={{ maxWidth: "520px" }}>
+              <h3 style={{ margin: "0 0 0.75rem", fontSize: "1.5rem", fontWeight: 600 }}>
+                Interactive preview paused
+              </h3>
+              <p style={{ margin: 0, lineHeight: 1.55, color: fallbackBodyColor }}>
+                Your browser reported a brief graphics issue, so we&apos;ve paused the 3D hero to keep the page
+                responsive. You can reload it at any time.
+              </p>
+            </div>
+            <button
+              type="button"
+              onClick={handleRetry}
+              style={{
+                padding: "0.85rem 1.6rem",
+                borderRadius: "0.75rem",
+                border: fallbackButtonBorder,
+                background: fallbackButtonBackground,
+                color: fallbackButtonText,
+                fontWeight: 600,
+                cursor: "pointer",
+                letterSpacing: "0.01em",
+                transition: "transform 160ms ease, box-shadow 160ms ease",
+                boxShadow: heroTheme.fallbackShadow,
+              }}
+            >
+              Reload interactive preview
+            </button>
+          </div>
         </div>
-      </div>
+      </HeroThemeContext.Provider>
     );
   }
 
   return (
-    <div style={HERO_SCENE_WRAPPER_STYLE}>
-      <Canvas
+    <HeroThemeContext.Provider value={heroTheme}>
+      <div style={HERO_SCENE_WRAPPER_STYLE}>
+        <Canvas
     key={canvasResetKey}
       shadows
       gl={{
@@ -3365,7 +3629,7 @@ export default function HeroScene({ width = 1280, height = 720 }) {
         far: 60,
       }}
       dpr={[1, maxDpr]}
-      style={{
+        style={{
           position: "absolute",
           inset: 0,
           width: "100%",
@@ -3373,7 +3637,7 @@ export default function HeroScene({ width = 1280, height = 720 }) {
           display: "block",
           borderRadius: "inherit",
           pointerEvents: "none",
-          backgroundColor: "#0f172a",
+          backgroundColor: heroTheme.backgroundCss,
         }}
       onCreated={({ gl, scene }) => {
         if (typeof contextCleanupRef.current === "function") {
@@ -3432,9 +3696,9 @@ export default function HeroScene({ width = 1280, height = 720 }) {
         gl.toneMappingExposure = 1.0;
         gl.shadowMap.enabled = true;
         gl.shadowMap.type = PCFSoftShadowMap;
-        gl.setClearColor(new Color(0x0f172a), 1);
-        scene.background = new Color(0x0f172a);
-        scene.fog = new FogExp2(0x142337, HERO_BASE_FOG_DENSITY);
+        gl.setClearColor(createColor(heroTheme.background), 1);
+        scene.background = createColor(heroTheme.background);
+        scene.fog = new FogExp2(heroTheme.fog, HERO_BASE_FOG_DENSITY);
       }}
     >
       <Suspense fallback={null}>
@@ -3444,5 +3708,6 @@ export default function HeroScene({ width = 1280, height = 720 }) {
       </Suspense>
     </Canvas>
     </div>
+    </HeroThemeContext.Provider>
   );
 }
