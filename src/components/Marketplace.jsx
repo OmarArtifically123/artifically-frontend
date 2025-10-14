@@ -1069,40 +1069,6 @@ export default function Marketplace({ user, openAuth }) {
           ))}
         </div>
       </div>
-      {detectedNeeds.length > 0 && (
-        <div
-          className="marketplace-needs"
-          role="group"
-          aria-label="Dynamic automation filters"
-          data-animate="fade-up"
-          data-animate-order="6"
-        >
-          <div className="marketplace-needs__meta glass-card glass-card--subtle" data-animate="fade-up" data-animate-order="0">
-            <span>We think you're optimizing for</span>
-            <strong>{activeNeed ? titleCase(activeNeed) : "blended impact"}</strong>
-          </div>
-          <div className="marketplace-needs__chips" data-animate="fade-up" data-animate-order="1" data-animate-cascade="0.05">
-            {detectedNeeds.map((need) => {
-              const isActive = normalize(need) === normalize(activeNeed);
-              return (
-                <button
-                  type="button"
-                  key={need}
-                  className="marketplace-needs__chip glass-pill"
-                  data-active={isActive}
-                  onClick={() => setActiveNeed(need)}
-                >
-                  <span>{need}</span>
-                  <span className="marketplace-needs__glow" aria-hidden="true" />
-                </button>
-              );
-            })}
-          </div>
-          <p className="marketplace-needs__hint">
-            Automations reorganize themselves in real-time based on the signal you select.
-          </p>
-        </div>
-      )}
     </div>
   );
 
