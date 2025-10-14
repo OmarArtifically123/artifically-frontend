@@ -887,46 +887,6 @@ export default function Marketplace({ user, openAuth }) {
     ? `${visibleResults} of ${totalResults} automations match your search`
     : `${totalResults} automations ready for evaluation`;
 
-    const renderAutomationRow = useCallback(
-    (entry, index) => {
-      if (!entry) return null;
-
-      const { item, matchStrength, industryMatch, browsingMatch, attentionBonus, attentionScore } = entry;
-      if (!item) return null;
-
-      const lastViewedLabel = item?.id ? formatLastViewedLabel(item.id) : null;
-
-      return (
-        <div role="listitem" className="marketplace-results__item">
-          <AutomationCard
-            item={item}
-            activeNeed={activeNeed}
-            matchStrength={matchStrength}
-            industryMatch={industryMatch}
-            browsingMatch={browsingMatch}
-            attentionScore={attentionScore}
-            predicted={Boolean(attentionBonus && attentionBonus > 0)}
-            spotlighted={!searchActive && index < 2}
-            onDemo={handleDemo}
-            onBuy={buy}
-            onDwell={handleAttentionDwell}
-          />
-          {lastViewedLabel ? (
-            <span className="marketplace-results__meta">Last viewed {lastViewedLabel}</span>
-          ) : null}
-        </div>
-      );
-    },
-    [
-      activeNeed,
-      buy,
-      formatLastViewedLabel,
-      handleAttentionDwell,
-      handleDemo,
-      searchActive,
-    ],
-  );
-
   const buy = useCallback(async (item) => {
     if (!item || !item.id) {
       toast("Invalid automation selected", { type: "error" });
@@ -978,6 +938,46 @@ export default function Marketplace({ user, openAuth }) {
     setDemo(item);
   }, [recordBrowsingSignal]);
 
+  const renderAutomationRow = useCallback(
+    (entry, index) => {
+      if (!entry) return null;
+
+      const { item, matchStrength, industryMatch, browsingMatch, attentionBonus, attentionScore } = entry;
+      if (!item) return null;
+
+      const lastViewedLabel = item?.id ? formatLastViewedLabel(item.id) : null;
+
+      return (
+        <div role="listitem" className="marketplace-results__item">
+          <AutomationCard
+            item={item}
+            activeNeed={activeNeed}
+            matchStrength={matchStrength}
+            industryMatch={industryMatch}
+            browsingMatch={browsingMatch}
+            attentionScore={attentionScore}
+            predicted={Boolean(attentionBonus && attentionBonus > 0)}
+            spotlighted={!searchActive && index < 2}
+            onDemo={handleDemo}
+            onBuy={buy}
+            onDwell={handleAttentionDwell}
+          />
+          {lastViewedLabel ? (
+            <span className="marketplace-results__meta">Last viewed {lastViewedLabel}</span>
+          ) : null}
+        </div>
+      );
+    },
+    [
+      activeNeed,
+      buy,
+      formatLastViewedLabel,
+      handleAttentionDwell,
+      handleDemo,
+      searchActive,
+    ],
+  );
+  
   const sectionHeader = (
     <div
       className="section-header"
