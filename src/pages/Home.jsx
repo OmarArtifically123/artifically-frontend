@@ -6,6 +6,7 @@ import ParallaxSection from "../components/animation/ParallaxSection";
 const Hero = lazy(() => import("../components/Hero"));
 const Features = lazy(() => import("../components/Features"));
 const Marketplace = lazy(() => import("../components/Marketplace"));
+const RecommendationEngine = lazy(() => import("../components/RecommendationEngine.jsx"));
 
 export default function Home({ user, scrollTo, openAuth }) {
   const location = useLocation();
@@ -46,8 +47,19 @@ export default function Home({ user, scrollTo, openAuth }) {
   return (
     <main className="home-shell" data-ready={pageReady ? "true" : "false"}>
       <Suspense fallback={<HeroSkeleton />}>
-        <Hero openAuth={openAuth} />
+        <Hero openAuth={openAuth} user={user} />
       </Suspense>
+      <ParallaxSection speed={0.18} className="home-section home-section--recommendations">
+        <section aria-label="Recommended automations for you">
+          <Suspense fallback={<RouteShell rows={3} />}>
+            {contentReady ? (
+              <RecommendationEngine userBehavior={user?.behavior} deployments={user?.deployments} />
+            ) : (
+              <RouteShell rows={3} />
+            )}
+          </Suspense>
+        </section>
+      </ParallaxSection>
       <ParallaxSection
         speed={0.22}
         className="home-section home-section--features"

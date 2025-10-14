@@ -1,6 +1,6 @@
 import api from "../api";
 
-const SAMPLE_AUTOMATIONS = [
+export const SAMPLE_AUTOMATIONS = [
   {
     id: "ops-guardian",
     name: "Ops Guardian",

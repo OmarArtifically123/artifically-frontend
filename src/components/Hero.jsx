@@ -8,11 +8,14 @@ import {
   useRef,
   useState,
 } from "react";
-import { motion, useReducedMotion } from "framer-motion";
+import { createPortal } from "react-dom";
+import { AnimatePresence, motion, useReducedMotion } from "framer-motion";
 import MagneticButton from "./animation/MagneticButton";
 import useMicroInteractions from "../hooks/useMicroInteractions";
 import { BlurImage } from "./media/OptimizedImage";
 import { useTheme } from "../context/ThemeContext";
+import Button from "./ui/Button";
+import Input from "./ui/Input";
 
 const HERO_PREVIEW_IMAGE = "/images/hero-preview.jpg";
 const HERO_PREVIEW_SOURCES = [
@@ -20,6 +23,17 @@ const HERO_PREVIEW_SOURCES = [
   { type: "image/webp", srcSet: "/images/hero-preview.webp" },
 ];
 const HERO_PREVIEW_BLUR = "/images/hero-preview-blur.jpg";
+
+const HERO_CUSTOMER_LOGOS = [
+  { name: "Northwind Retail", initials: "NR" },
+  { name: "Acme Robotics", initials: "AR" },
+  { name: "Aurora Health", initials: "AH" },
+  { name: "Velocity Commerce", initials: "VC" },
+  { name: "Nimbus Airlines", initials: "NA" },
+  { name: "Atlas Finance", initials: "AF" },
+  { name: "Zenith Manufacturing", initials: "ZM" },
+  { name: "Skyline Media", initials: "SM" },
+];
 
 let heroSceneModulePromise;
 
@@ -33,8 +47,10 @@ const loadHeroScene = async () => {
   return module?.default ?? module;
 };
 
-export default function Hero({ openAuth }) {
+export default function Hero({ openAuth, user }) {
   const { dispatchInteraction } = useMicroInteractions();
+  const messaging = usePersonalizedMessaging(user);
+  const { available, total } = useSpotAvailability();
 
   const handlePrimaryClick = useCallback(
     (event) => {
@@ -63,21 +79,27 @@ export default function Hero({ openAuth }) {
   return (
     <section className="hero" data-animate-root data-hero-version="reimagined">
       <BackgroundCanvas />
+      <StickyConversionBar />
+      <ExitIntentModal />
       <div className="hero-shell">
         <div className="hero-content">
-          <AnimatedEyebrow>🚀 The Future of AI Automation</AnimatedEyebrow>
-          <AnimatedHeadline>
-            Deploy Enterprise AI <span className="gradient-text">Automations</span> in Minutes
-          </AnimatedHeadline>
-          <AnimatedSubheadline>
-            Transform your operations with battle-tested automations. No setup hell. No vendor lock-in. Just
-            results.
-          </AnimatedSubheadline>
-          <HeroCTAGroup onPrimaryClick={handlePrimaryClick} onSecondaryClick={handleSecondaryClick} />
+          <UrgencyBanner />
+          <AnimatedEyebrow>{messaging.eyebrow}</AnimatedEyebrow>
+          <AnimatedHeadline>{messaging.headline}</AnimatedHeadline>
+          <AnimatedSubheadline>{messaging.subheadline}</AnimatedSubheadline>
+          <HeroCTAGroup
+            onPrimaryClick={handlePrimaryClick}
+            onSecondaryClick={handleSecondaryClick}
+            primaryLabel={messaging.cta}
+          />
+          <SpotIndicator available={available} total={total} />
           <SocialProofStrip />
+          <LiveActivityFeed />
+          <TrustBadges />
         </div>
         <FloatingProductPreview />
       </div>
+      <LogoWall logos={HERO_CUSTOMER_LOGOS} />
       <ScrollIndicator />
     </section>
   );
@@ -339,8 +361,9 @@ function AnimatedSubheadline({ children }) {
   );
 }
 
-function HeroCTAGroup({ onPrimaryClick, onSecondaryClick }) {
+function HeroCTAGroup({ onPrimaryClick, onSecondaryClick, primaryLabel }) {
   const shouldReduceMotion = useReducedMotion();
+  const label = primaryLabel || "Get Started Free";
   return (
     <motion.div
       className="hero-cta-group"
@@ -348,26 +371,68 @@ function HeroCTAGroup({ onPrimaryClick, onSecondaryClick }) {
       animate={shouldReduceMotion ? undefined : { opacity: 1, y: 0 }}
       transition={{ duration: 0.6, delay: shouldReduceMotion ? 0 : 0.75, ease: [0.33, 1, 0.68, 1] }}
     >
-      <PrimaryCTA onClick={onPrimaryClick}>Start Free Trial</PrimaryCTA>
-      <SecondaryCTA onClick={onSecondaryClick}>Watch Demo →</SecondaryCTA>
+      <CTAGroup>
+        <PrimaryCTA icon={<SparklesIcon />} badge="Free Trial" onClick={onPrimaryClick}>
+          {label}
+          <CTASubtext>No credit card required</CTASubtext>
+        </PrimaryCTA>
+        <SecondaryCTA
+          icon={<PlayCircleIcon />}
+          badge={<LiveBadge>12.5K watching</LiveBadge>}
+          onClick={onSecondaryClick}
+        >
+          Watch 2-Minute Demo
+        </SecondaryCTA>
+      </CTAGroup>
     </motion.div>
   );
 }
 
-function PrimaryCTA({ children, onClick }) {
+function CTAGroup({ children }) {
+  return <div className="cta-group">{children}</div>;
+}
+
+function PrimaryCTA({ children, onClick, icon, badge }) {
+  const content = Children.toArray(children);
+  const subtext = content.find((child) => isValidElement(child) && child.type === CTASubtext);
+  const label = content.filter((child) => child !== subtext);
   return (
-    <MagneticButton type="button" className="hero-cta hero-cta--primary" variant="primary" onClick={onClick}>
-      {children}
+    <MagneticButton
+      type="button"
+      className="hero-cta hero-cta--primary"
+      variant="primary"
+      onClick={onClick}
+    >
+      {badge && <span className="hero-cta__badge hero-cta__badge--primary">{badge}</span>}
+      <span className="hero-cta__inner">
+        {icon && <span className="hero-cta__icon" aria-hidden="true">{icon}</span>}
+        <span className="hero-cta__text">
+          <span className="hero-cta__label">{label}</span>
+          {subtext}
+        </span>
+      </span>
     </MagneticButton>
   );
 }
 
-function SecondaryCTA({ children, onClick }) {
+function SecondaryCTA({ children, onClick, icon, badge }) {
   return (
     <MagneticButton type="button" className="hero-cta hero-cta--secondary" onClick={onClick}>
-      {children}
+      {badge && <span className="hero-cta__badge hero-cta__badge--secondary">{badge}</span>}
+      <span className="hero-cta__inner">
+        {icon && <span className="hero-cta__icon" aria-hidden="true">{icon}</span>}
+        <span className="hero-cta__label">{children}</span>
+      </span>
     </MagneticButton>
   );
+}
+
+function CTASubtext({ children }) {
+  return <span className="hero-cta__subtext">{children}</span>;
+}
+
+function LiveBadge({ children }) {
+  return <span className="live-badge">{children}</span>;
 }
 
 function SocialProofStrip() {
@@ -379,9 +444,15 @@ function SocialProofStrip() {
       animate={shouldReduceMotion ? undefined : { opacity: 1, y: 0 }}
       transition={{ duration: 0.6, delay: shouldReduceMotion ? 0 : 0.9, ease: [0.33, 1, 0.68, 1] }}
     >
-      <StatCounter end={12500} label="Automations Deployed" />
-      <StatCounter end={98.6} decimals={1} suffix="%" label="Uptime" />
-      <StatCounter end={4.8} decimals={1} suffix="x" label="Avg ROI" />
+      <div className="hero-social-proof__message">
+        <span className="hero-social-proof__eyebrow">Trusted by operators everywhere</span>
+        <p>Join the 12,500+ automation teams orchestrating mission-critical workflows with Artifically.</p>
+      </div>
+      <div className="hero-social-proof__stats">
+        <StatCounter end={12500} label="Automations Deployed" />
+        <StatCounter end={98.6} decimals={1} suffix="%" label="Uptime" />
+        <StatCounter end={4.8} decimals={1} suffix="x" label="Avg ROI" />
+      </div>
     </motion.div>
   );
 }
@@ -429,6 +500,679 @@ function StatCounter({ end, label, suffix = "", decimals = 0 }) {
       </span>
       <span className="hero-stat__label">{label}</span>
     </div>
+  );
+}
+
+function StickyConversionBar() {
+  const scrollY = useScrollPosition();
+  const [visible, setVisible] = useState(false);
+  const handleClick = useCallback(() => {
+    if (typeof window !== "undefined" && typeof window.scrollTo === "function") {
+      window.scrollTo({ top: 0, behavior: "smooth" });
+    }
+  }, []);
+
+  useEffect(() => {
+    const shouldShow = scrollY > 720 && scrollY < 3200;
+    setVisible(shouldShow);
+  }, [scrollY]);
+
+  return (
+    <AnimatePresence>
+      {visible && (
+        <motion.div
+          className="sticky-conversion-bar"
+          initial={{ y: -120, opacity: 0 }}
+          animate={{ y: 0, opacity: 1 }}
+          exit={{ y: -120, opacity: 0 }}
+          transition={{ duration: 0.4, ease: [0.22, 1, 0.36, 1] }}
+        >
+          <span className="conversion-message">Join 12,500+ teams automating with Artifically</span>
+          <Button variant="primary" size="sm" onClick={handleClick}>
+            Get Started Free
+          </Button>
+        </motion.div>
+      )}
+    </AnimatePresence>
+  );
+}
+
+function useScrollPosition() {
+  const [scrollY, setScrollY] = useState(0);
+
+  useEffect(() => {
+    if (typeof window === "undefined") {
+      return () => {};
+    }
+
+    const handleScroll = () => {
+      setScrollY(window.scrollY || window.pageYOffset || 0);
+    };
+
+    handleScroll();
+
+    window.addEventListener("scroll", handleScroll, { passive: true });
+    return () => {
+      window.removeEventListener("scroll", handleScroll);
+    };
+  }, []);
+
+  return scrollY;
+}
+
+function ExitIntentModal() {
+  const [show, setShow] = useState(false);
+  const [email, setEmail] = useState("");
+  const [submitted, setSubmitted] = useState(false);
+  const [mounted, setMounted] = useState(false);
+
+  useEffect(() => {
+    if (typeof window === "undefined") {
+      return () => {};
+    }
+
+    setMounted(true);
+
+    const handleMouseLeave = (event) => {
+      if (event.clientY <= 0) {
+        const storage = window.sessionStorage;
+        if (!storage.getItem("exit-intent-shown")) {
+          setShow(true);
+          storage.setItem("exit-intent-shown", "true");
+        }
+      }
+    };
+
+    document.addEventListener("mouseleave", handleMouseLeave);
+    return () => document.removeEventListener("mouseleave", handleMouseLeave);
+  }, []);
+
+  const handleSubmit = useCallback(
+    (event) => {
+      event.preventDefault();
+      if (!email) return;
+      setSubmitted(true);
+      setTimeout(() => {
+        setShow(false);
+        setEmail("");
+        setSubmitted(false);
+      }, 2400);
+    },
+    [email],
+  );
+
+  const handleClose = useCallback(() => {
+    setShow(false);
+    setEmail("");
+    setSubmitted(false);
+  }, []);
+
+  if (typeof document === "undefined" || !mounted) {
+    return null;
+  }
+
+  return createPortal(
+    <AnimatePresence>
+      {show && (
+        <motion.div
+          className="exit-intent-overlay"
+          onClick={(event) => {
+            if (event.target === event.currentTarget) {
+              handleClose();
+            }
+          }}
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          exit={{ opacity: 0 }}
+        >
+          <motion.div
+            className="exit-intent-modal"
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="exit-intent-heading"
+            initial={{ scale: 0.92, opacity: 0 }}
+            animate={{ scale: 1, opacity: 1 }}
+            exit={{ scale: 0.92, opacity: 0 }}
+            transition={{ duration: 0.3, ease: [0.22, 1, 0.36, 1] }}
+          >
+            <button className="exit-intent-close" type="button" onClick={handleClose} aria-label="Close exit modal">
+              ×
+            </button>
+            <h2 id="exit-intent-heading">Wait! Before you go…</h2>
+            <p className="exit-intent-copy">Unlock the automation playbook top operators use to scale revenue, ops, and CX.</p>
+            {submitted ? (
+              <motion.p className="exit-intent-success" initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }}>
+                Success! Check your inbox for the playbook.
+              </motion.p>
+            ) : (
+              <form className="exit-intent-form" onSubmit={handleSubmit}>
+                <Input
+                  type="email"
+                  placeholder="Enter your email"
+                  value={email}
+                  onChange={(event) => setEmail(event.target.value)}
+                  required
+                />
+                <Button type="submit" variant="primary" className="exit-intent-submit">
+                  Send Me The Playbook
+                </Button>
+              </form>
+            )}
+            <TrustBadges />
+          </motion.div>
+        </motion.div>
+      )}
+    </AnimatePresence>,
+    document.body,
+  );
+}
+
+const OFFER_DEADLINE_STORAGE_KEY = "artifically-offer-deadline";
+
+function UrgencyBanner() {
+  const deadline = useMemo(() => {
+    if (typeof window === "undefined") {
+      return new Date(Date.now() + 1000 * 60 * 60 * 72);
+    }
+    const stored = window.localStorage.getItem(OFFER_DEADLINE_STORAGE_KEY);
+    if (stored) {
+      const parsed = Number.parseInt(stored, 10);
+      if (!Number.isNaN(parsed) && parsed > Date.now()) {
+        return new Date(parsed);
+      }
+    }
+    const fallback = Date.now() + 1000 * 60 * 60 * 72;
+    window.localStorage.setItem(OFFER_DEADLINE_STORAGE_KEY, `${fallback}`);
+    return new Date(fallback);
+  }, []);
+
+  const [timeLeft, setTimeLeft] = useState(() => calculateTimeLeft(deadline));
+
+  useEffect(() => {
+    const interval = setInterval(() => {
+      setTimeLeft(calculateTimeLeft(deadline));
+    }, 1000);
+
+    return () => clearInterval(interval);
+  }, [deadline]);
+
+  if (timeLeft.totalMilliseconds <= 0) {
+    return null;
+  }
+
+  return (
+    <motion.div
+      className="urgency-banner"
+      initial={{ opacity: 0, y: -30 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.45, ease: [0.22, 1, 0.36, 1] }}
+    >
+      <span className="urgency-icon" aria-hidden="true">
+        🔥
+      </span>
+      <span className="urgency-text">Early Bird Special: 50% off Enterprise plan ends in</span>
+      <CountdownTimer time={timeLeft} />
+    </motion.div>
+  );
+}
+
+function CountdownTimer({ time }) {
+  const segments = [
+    { label: "Days", value: time.days },
+    { label: "Hours", value: time.hours },
+    { label: "Minutes", value: time.minutes },
+    { label: "Seconds", value: time.seconds },
+  ];
+
+  return (
+    <div className="countdown-timer" role="timer" aria-live="polite">
+      {segments.map((segment) => (
+        <div key={segment.label} className="countdown-segment">
+          <span className="countdown-value">{String(segment.value).padStart(2, "0")}</span>
+          <span className="countdown-label">{segment.label}</span>
+        </div>
+      ))}
+    </div>
+  );
+}
+
+function calculateTimeLeft(deadline) {
+  const totalMilliseconds = Math.max(0, deadline.getTime() - Date.now());
+  const totalSeconds = Math.floor(totalMilliseconds / 1000);
+  const days = Math.floor(totalSeconds / (60 * 60 * 24));
+  const hours = Math.floor((totalSeconds % (60 * 60 * 24)) / (60 * 60));
+  const minutes = Math.floor((totalSeconds % (60 * 60)) / 60);
+  const seconds = totalSeconds % 60;
+
+  return { days, hours, minutes, seconds, totalMilliseconds };
+}
+
+function SpotIndicator({ available, total }) {
+  if (!total) return null;
+  const percentage = Math.min(100, Math.max(0, (available / total) * 100));
+
+  let fillColor = "#10b981";
+  if (percentage < 20) {
+    fillColor = "#ef4444";
+  } else if (percentage < 50) {
+    fillColor = "#f59e0b";
+  }
+
+  return (
+    <div className="spot-indicator" role="status" aria-live="polite">
+      <div className="spot-bar">
+        <motion.div
+          className="spot-fill"
+          initial={{ width: 0 }}
+          animate={{ width: `${percentage}%` }}
+          transition={{ duration: 0.8, ease: "easeOut" }}
+          style={{ backgroundColor: fillColor }}
+        />
+      </div>
+      <span className="spot-text">Only {available} spots left for this month</span>
+    </div>
+  );
+}
+
+function useSpotAvailability(total = 150, minimum = 6) {
+  const [available, setAvailable] = useState(() => Math.max(minimum, Math.round(total * 0.18)));
+
+  useEffect(() => {
+    if (typeof window === "undefined") {
+      return () => {};
+    }
+
+    const interval = window.setInterval(() => {
+      setAvailable((prev) => {
+        if (prev <= minimum) {
+          return prev;
+        }
+        const next = prev - (Math.random() > 0.65 ? 1 : 0);
+        return Math.max(minimum, next);
+      });
+    }, 22000);
+
+    return () => window.clearInterval(interval);
+  }, [minimum]);
+
+  return { available, total };
+}
+
+const TRUST_BADGE_DATA = [
+  { icon: "🔒", label: "SOC 2 Type II Certified" },
+  { icon: "🛡️", label: "GDPR Compliant" },
+  { icon: "✅", label: "99.99% Uptime SLA" },
+  { icon: "⚡", label: "Enterprise Support" },
+  { icon: "🏆", label: "G2 Leader 2024" },
+];
+
+function TrustBadges() {
+  return (
+    <motion.div
+      className="trust-badges"
+      initial={{ opacity: 0, y: 16 }}
+      whileInView={{ opacity: 1, y: 0 }}
+      viewport={{ once: true, amount: 0.3 }}
+    >
+      {TRUST_BADGE_DATA.map((badge, index) => (
+        <motion.div
+          key={badge.label}
+          className="trust-badge"
+          initial={{ opacity: 0, scale: 0.85 }}
+          animate={{ opacity: 1, scale: 1 }}
+          transition={{ delay: index * 0.08, duration: 0.3 }}
+        >
+          <span className="badge-icon" aria-hidden="true">
+            {badge.icon}
+          </span>
+          <span className="badge-label">{badge.label}</span>
+        </motion.div>
+      ))}
+    </motion.div>
+  );
+}
+
+const MOCK_ACTIVITIES = [
+  {
+    id: "activity-1",
+    user: { company: "Northwind Retail", avatar: null },
+    automation: "Support Coach",
+    timestamp: Date.now() - 1000 * 60 * 2,
+  },
+  {
+    id: "activity-2",
+    user: { company: "Acme Robotics", avatar: null },
+    automation: "Ops Guardian",
+    timestamp: Date.now() - 1000 * 60 * 8,
+  },
+  {
+    id: "activity-3",
+    user: { company: "Aurora Health", avatar: null },
+    automation: "Finance Sentinel",
+    timestamp: Date.now() - 1000 * 60 * 13,
+  },
+  {
+    id: "activity-4",
+    user: { company: "Velocity Commerce", avatar: null },
+    automation: "Revenue Loop",
+    timestamp: Date.now() - 1000 * 60 * 19,
+  },
+];
+
+function LiveActivityFeed() {
+  const [activities, setActivities] = useState(() =>
+    MOCK_ACTIVITIES.slice(0, 3).map((activity) => ({ ...activity, id: `${activity.id}-${activity.timestamp}` })),
+  );
+
+  useEffect(() => {
+    if (typeof window === "undefined") {
+      return () => {};
+    }
+
+    let ws;
+    let fallbackTimer;
+
+    const pushActivity = (activity) => {
+      setActivities((prev) => [activity, ...prev].slice(0, 5));
+    };
+
+    const startFallback = () => {
+      if (!fallbackTimer) {
+        pushActivity(generateMockActivity());
+        fallbackTimer = window.setInterval(() => {
+          pushActivity(generateMockActivity());
+        }, 9000);
+      }
+    };
+
+    if (typeof window.WebSocket !== "function") {
+      startFallback();
+      return () => {
+        if (fallbackTimer) {
+          window.clearInterval(fallbackTimer);
+        }
+      };
+    }
+
+    try {
+      ws = new WebSocket("wss://api.artifically.com/activity");
+      ws.addEventListener("message", (event) => {
+        try {
+          const payload = JSON.parse(event.data);
+          const activity = {
+            id: payload.id || `activity-${payload.timestamp || Date.now()}`,
+            user: payload.user ?? { company: "Automation Team", avatar: null },
+            automation: payload.automation ?? "New automation",
+            timestamp: payload.timestamp ?? Date.now(),
+          };
+          pushActivity(activity);
+        } catch (error) {
+          console.warn("Failed to parse live activity payload", error);
+        }
+      });
+      ws.addEventListener("error", () => {
+        startFallback();
+      });
+      ws.addEventListener("close", () => {
+        startFallback();
+      });
+    } catch (error) {
+      startFallback();
+    }
+
+    if (!ws || ws.readyState === WebSocket.CLOSED) {
+      startFallback();
+    }
+
+    return () => {
+      ws?.close();
+      if (fallbackTimer) {
+        window.clearInterval(fallbackTimer);
+      }
+    };
+  }, []);
+
+  if (!activities.length) {
+    return null;
+  }
+
+  return (
+    <div className="live-activity-feed" aria-live="polite">
+      <AnimatePresence mode="popLayout">
+        {activities.map((activity) => (
+          <motion.div
+            key={activity.id}
+            className="activity-item"
+            layout
+            initial={{ opacity: 0, x: -16 }}
+            animate={{ opacity: 1, x: 0 }}
+            exit={{ opacity: 0, x: 24 }}
+            transition={{ duration: 0.35, ease: [0.33, 1, 0.68, 1] }}
+          >
+            <Avatar company={activity.user.company} src={activity.user.avatar} />
+            <div className="activity-item__copy">
+              <strong>{activity.user.company}</strong> just deployed
+              <span className="activity-item__highlight">{activity.automation}</span>
+            </div>
+            <TimeAgo timestamp={activity.timestamp} />
+          </motion.div>
+        ))}
+      </AnimatePresence>
+    </div>
+  );
+}
+
+function generateMockActivity() {
+  const seed = MOCK_ACTIVITIES[Math.floor(Math.random() * MOCK_ACTIVITIES.length)];
+  return {
+    ...seed,
+    id: `${seed.id}-${Date.now()}-${Math.random().toString(16).slice(2, 6)}`,
+    timestamp: Date.now() - Math.floor(Math.random() * 1000 * 60 * 20),
+  };
+}
+
+function Avatar({ src, company }) {
+  const initials = useMemo(() => {
+    if (!company) return "";
+    return company
+      .split(" ")
+      .filter(Boolean)
+      .slice(0, 2)
+      .map((part) => part[0])
+      .join("")
+      .toUpperCase();
+  }, [company]);
+
+  return (
+    <div className="activity-avatar" aria-hidden="true">
+      {src ? <img src={src} alt="" /> : initials}
+    </div>
+  );
+}
+
+function TimeAgo({ timestamp }) {
+  const [now, setNow] = useState(() => Date.now());
+
+  useEffect(() => {
+    if (typeof window === "undefined") {
+      return () => {};
+    }
+
+    const interval = window.setInterval(() => {
+      setNow(Date.now());
+    }, 60000);
+
+    return () => window.clearInterval(interval);
+  }, []);
+
+  const safeTimestamp = typeof timestamp === "number" ? timestamp : new Date(timestamp || Date.now()).getTime();
+  const diffInSeconds = Math.max(0, Math.floor((now - safeTimestamp) / 1000));
+
+  const { value, unit } = useMemo(() => {
+    if (diffInSeconds < 60) {
+      return { value: diffInSeconds, unit: "s" };
+    }
+    if (diffInSeconds < 3600) {
+      return { value: Math.floor(diffInSeconds / 60), unit: "m" };
+    }
+    if (diffInSeconds < 86400) {
+      return { value: Math.floor(diffInSeconds / 3600), unit: "h" };
+    }
+    return { value: Math.floor(diffInSeconds / 86400), unit: "d" };
+  }, [diffInSeconds]);
+
+  return <span className="activity-time">{`${value}${unit} ago`}</span>;
+}
+
+function LogoWall({ logos }) {
+  if (!logos?.length) {
+    return null;
+  }
+
+  const marqueeLogos = [...logos, ...logos];
+
+  return (
+    <div className="logo-wall" aria-hidden="true">
+      <motion.div
+        className="logo-track"
+        animate={{ x: ["0%", "-50%"] }}
+        transition={{ duration: 30, repeat: Infinity, ease: "linear" }}
+      >
+        {marqueeLogos.map((logo, index) => (
+          <div key={`${logo.name}-${index}`} className="logo-item">
+            {logo.src ? (
+              <img src={logo.src} alt={logo.name} loading="lazy" />
+            ) : (
+              <span>{logo.initials || logo.name}</span>
+            )}
+          </div>
+        ))}
+      </motion.div>
+    </div>
+  );
+}
+
+const PERSONALIZED_COPY = {
+  ecommerce: {
+    eyebrow: "🛍️ Ecommerce teams scaling faster",
+    headline: (
+      <>
+        Automate Your <span className="gradient-text">Ecommerce Operations</span>
+      </>
+    ),
+    subheadline: "From inventory sync to customer service macros, orchestrate end-to-end commerce workflows with governance built in.",
+    cta: "See Ecommerce Automations",
+  },
+  healthcare: {
+    eyebrow: "🏥 Built for regulated industries",
+    headline: (
+      <>
+        HIPAA-Compliant <span className="gradient-text">Healthcare Automation</span>
+      </>
+    ),
+    subheadline: "Secure patient data flows that meet compliance standards while accelerating care coordination and intake.",
+    cta: "Explore Healthcare Solutions",
+  },
+  finance: {
+    eyebrow: "📊 Finance teams closing faster",
+    headline: (
+      <>
+        Automate Your <span className="gradient-text">Finance Ops</span> with Guardrails
+      </>
+    ),
+    subheadline: "Detect anomalies across billing, ERP, and spend in minutes instead of days with explainable AI automations.",
+    cta: "Review Finance Playbooks",
+  },
+  security: {
+    eyebrow: "🛡️ SOC 2, ISO, and beyond",
+    headline: (
+      <>
+        Ship <span className="gradient-text">Security Automations</span> with Confidence
+      </>
+    ),
+    subheadline: "Close compliance gaps with continuous monitoring, policy reminders, and automated evidence collection.",
+    cta: "Secure Your Stack",
+  },
+  revops: {
+    eyebrow: "⚡ Revenue teams love fast loops",
+    headline: (
+      <>
+        Reclaim <span className="gradient-text">Revenue Velocity</span>
+      </>
+    ),
+    subheadline: "Sync pipeline signals and trigger personalised outreach loops that revive stalled deals automatically.",
+    cta: "See RevOps Recipes",
+  },
+  default: {
+    eyebrow: "🚀 The Future of AI Automation",
+    headline: (
+      <>
+        Deploy Enterprise AI <span className="gradient-text">Automations</span> in Minutes
+      </>
+    ),
+    subheadline: "Transform your operations with battle-tested automations. No setup hell. No vendor lock-in. Just results.",
+    cta: "Start Building Automations",
+  },
+};
+
+function usePersonalizedMessaging(user) {
+  const behavior = user?.behavior ?? {};
+
+  return useMemo(() => {
+    const industrySignal = (user?.industry ?? behavior.industry ?? "").toLowerCase();
+    const roleSignal = (user?.role ?? behavior.role ?? "").toLowerCase();
+    const sourceSignal = (user?.source ?? behavior.source ?? "").toLowerCase();
+
+    const matchKey = Object.keys(PERSONALIZED_COPY)
+      .filter((key) => key !== "default")
+      .find((key) => {
+        if (!key) return false;
+        return [industrySignal, roleSignal].some((signal) => signal && signal.includes(key));
+      });
+
+    let message = (matchKey && PERSONALIZED_COPY[matchKey]) || PERSONALIZED_COPY.default;
+
+    if (sourceSignal.includes("g2")) {
+      message = {
+        ...message,
+        eyebrow: "🌟 Loved by 1,000+ G2 reviewers",
+      };
+    } else if (sourceSignal.includes("partner")) {
+      message = {
+        ...message,
+        eyebrow: "🤝 Welcome, partner recommendation",
+      };
+    }
+
+    return message;
+  }, [behavior.industry, behavior.role, behavior.source, user?.industry, user?.role, user?.source]);
+}
+
+function SparklesIcon(props) {
+  return (
+    <svg width="20" height="20" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg" {...props}>
+      <path
+        d="M10 2.5L11.12 6.38L15 7.5L11.12 8.62L10 12.5L8.88 8.62L5 7.5L8.88 6.38L10 2.5Z"
+        fill="currentColor"
+      />
+      <path
+        d="M4 11L4.66 13.34L7 14L4.66 14.66L4 17L3.34 14.66L1 14L3.34 13.34L4 11Z"
+        fill="currentColor"
+      />
+      <path
+        d="M16 9L16.5 10.5L18 11L16.5 11.5L16 13L15.5 11.5L14 11L15.5 10.5L16 9Z"
+        fill="currentColor"
+      />
+    </svg>
+  );
+}
+
+function PlayCircleIcon(props) {
+  return (
+    <svg width="20" height="20" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg" {...props}>
+      <circle cx="10" cy="10" r="8.5" stroke="currentColor" strokeWidth="1.5" />
+      <path d="M8.25 6.75L13 10L8.25 13.25V6.75Z" fill="currentColor" />
+    </svg>
   );
 }
 
