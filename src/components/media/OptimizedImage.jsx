@@ -2,6 +2,11 @@ import { memo, useCallback, useMemo, useState } from "react";
 
 const joinClasses = (...classes) => classes.filter(Boolean).join(" ");
 
+const SOURCE_FORMATS = [
+  { type: "image/avif", extension: "avif" },
+  { type: "image/webp", extension: "webp" },
+];
+
 const sanitizeSources = (sources = []) =>
   sources
     .filter(Boolean)
@@ -12,6 +17,24 @@ const sanitizeSources = (sources = []) =>
       return source;
     });
 
+const parseImageSource = (value = "") => {
+  if (typeof value !== "string" || value.length === 0) {
+    return { basePath: "", extension: "", suffix: "" };
+  }
+
+  const queryIndex = value.search(/[?#]/);
+  const path = queryIndex >= 0 ? value.slice(0, queryIndex) : value;
+  const suffix = queryIndex >= 0 ? value.slice(queryIndex) : "";
+  const match = path.match(/^(.*?)(?:\.([^.\\/]+))?$/);
+
+  if (!match) {
+    return { basePath: path, extension: "", suffix };
+  }
+
+  const [, basePath = "", extension = ""] = match;
+  return { basePath, extension, suffix };
+};
+
 const OptimizedImageComponent = ({
   src,
   alt,
@@ -20,16 +43,49 @@ const OptimizedImageComponent = ({
   pictureClassName,
   loading = "lazy",
   decoding = "async",
+  fallbackExtension = "jpg",
   ...props
 }) => {
-  const normalizedSources = useMemo(() => sanitizeSources(sources), [sources]);
+  const parsedSource = useMemo(() => parseImageSource(src), [src]);
+  const normalizedSources = useMemo(() => {
+    const sanitized = sanitizeSources(sources);
+    if (sanitized.length > 0) {
+      return sanitized;
+    }
+
+    if (!parsedSource.basePath) {
+      return sanitized;
+    }
+
+    const fallbackExt = (parsedSource.extension || fallbackExtension || "jpg").toLowerCase();
+
+    return SOURCE_FORMATS.filter(({ extension }) => extension !== fallbackExt).map(
+      ({ type, extension }) => ({
+        type,
+        srcSet: `${parsedSource.basePath}.${extension}${parsedSource.suffix}`,
+      }),
+    );
+  }, [fallbackExtension, parsedSource, sources]);
+
+  const resolvedSrc = useMemo(() => {
+    if (!parsedSource.basePath) {
+      return src;
+    }
+
+    if (parsedSource.extension) {
+      return src;
+    }
+
+    const extension = fallbackExtension || "jpg";
+    return `${parsedSource.basePath}.${extension}${parsedSource.suffix}`;
+  }, [fallbackExtension, parsedSource, src]);
 
   return (
     <picture className={pictureClassName}>
       {normalizedSources.map(({ srcSet, type, media, sizes }) => (
         <source key={`${type ?? ""}-${media ?? srcSet}`} srcSet={srcSet} type={type} media={media} sizes={sizes} />
       ))}
-      <img src={src} alt={alt} className={className} loading={loading} decoding={decoding} {...props} />
+      <img src={resolvedSrc} alt={alt} className={className} loading={loading} decoding={decoding} {...props} />
     </picture>
   );
 };

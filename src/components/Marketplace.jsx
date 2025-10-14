@@ -1,5 +1,4 @@
 import { Suspense, lazy, useCallback, useEffect, useId, useMemo, useRef, useState } from "react";
-import { useVirtualizer } from "@tanstack/react-virtual";
 import { useDebouncedCallback } from "use-debounce";
 import { formatDistanceToNow } from "date-fns";
 import { fetchAutomations } from "../data/automations";
@@ -13,6 +12,7 @@ import LivingSuccessMetrics from "./LivingSuccessMetrics";
 import MarketplaceCollaborationLayer from "./MarketplaceCollaborationLayer";
 import { space } from "../styles/spacing";
 import AutomationCard from "./AutomationCard.jsx";
+import VirtualizedAutomationList from "./VirtualizedAutomationList.jsx";
 import {
   FALLBACK_MARKETPLACE_STATS,
   loadMarketplaceStats,
@@ -20,7 +20,7 @@ import {
 import ModalShell from "./skeletons/ModalShell";
 import "../styles/marketplace.css";
 
-const DemoModal = lazy(() => import("./DemoModal.jsx"));
+const DemoModal = lazy(() => import(/* webpackChunkName: "demo-modal" */ "./DemoModal.jsx"));
 
 const BROWSING_STORAGE_KEY = "automation-browsing-signals";
 const ATTENTION_STORAGE_KEY = "automation-attention-scores";
@@ -340,7 +340,6 @@ export default function Marketplace({ user, openAuth }) {
   const [debouncedQuery, setDebouncedQuery] = useState("");
   const attentionQueueRef = useRef(new Map());
   const attentionRafRef = useRef(null);
-  const listParentRef = useRef(null);
   const workerRef = useRef(null);
   const collaborationChannelRef = useRef(null);
   const [collaborationReady, setCollaborationReady] = useState(false);
@@ -809,13 +808,6 @@ export default function Marketplace({ user, openAuth }) {
     });
   }, [debouncedQuery, scoredAutomations]);
 
-  const virtualizer = useVirtualizer({
-    count: filteredAutomations.length,
-    getScrollElement: () => listParentRef.current,
-    estimateSize: () => 420,
-    overscan: 6,
-  });
-
   const automationMap = useMemo(() => {
     return new Map(automations.map((item) => [item.id, item]));
   }, [automations]);
@@ -894,6 +886,46 @@ export default function Marketplace({ user, openAuth }) {
   const resultsLabel = searchActive
     ? `${visibleResults} of ${totalResults} automations match your search`
     : `${totalResults} automations ready for evaluation`;
+
+    const renderAutomationRow = useCallback(
+    (entry, index) => {
+      if (!entry) return null;
+
+      const { item, matchStrength, industryMatch, browsingMatch, attentionBonus, attentionScore } = entry;
+      if (!item) return null;
+
+      const lastViewedLabel = item?.id ? formatLastViewedLabel(item.id) : null;
+
+      return (
+        <div role="listitem" className="marketplace-results__item">
+          <AutomationCard
+            item={item}
+            activeNeed={activeNeed}
+            matchStrength={matchStrength}
+            industryMatch={industryMatch}
+            browsingMatch={browsingMatch}
+            attentionScore={attentionScore}
+            predicted={Boolean(attentionBonus && attentionBonus > 0)}
+            spotlighted={!searchActive && index < 2}
+            onDemo={handleDemo}
+            onBuy={buy}
+            onDwell={handleAttentionDwell}
+          />
+          {lastViewedLabel ? (
+            <span className="marketplace-results__meta">Last viewed {lastViewedLabel}</span>
+          ) : null}
+        </div>
+      );
+    },
+    [
+      activeNeed,
+      buy,
+      formatLastViewedLabel,
+      handleAttentionDwell,
+      handleDemo,
+      searchActive,
+    ],
+  );
 
   const buy = useCallback(async (item) => {
     if (!item || !item.id) {
@@ -1151,60 +1183,18 @@ export default function Marketplace({ user, openAuth }) {
               />
             </label>
           </header>
-          <div
-            ref={listParentRef}
-            className="marketplace-results__scroller"
-            role="list"
-            aria-label="Marketplace automation results"
-          >
-            <div
-              style={{
-                height: `${virtualizer.getTotalSize()}px`,
-                position: "relative",
-                width: "100%",
-              }}
-            >
-              {virtualizer.getVirtualItems().map((virtualItem) => {
-                const entry = filteredAutomations[virtualItem.index];
-                if (!entry) return null;
-
-                const { item, matchStrength, industryMatch, browsingMatch, attentionBonus, attentionScore } = entry;
-                const lastViewedLabel = item?.id ? formatLastViewedLabel(item.id) : null;
-
-                return (
-                  <div
-                    key={item?.id ?? virtualItem.key}
-                    role="listitem"
-                    className="marketplace-results__item"
-                    style={{
-                      position: "absolute",
-                      top: 0,
-                      left: 0,
-                      width: "100%",
-                      transform: `translateY(${virtualItem.start}px)`,
-                    }}
-                  >
-                    <AutomationCard
-                      item={item}
-                      activeNeed={activeNeed}
-                      matchStrength={matchStrength}
-                      industryMatch={industryMatch}
-                      browsingMatch={browsingMatch}
-                      attentionScore={attentionScore}
-                      predicted={Boolean(attentionBonus && attentionBonus > 0)}
-                      spotlighted={!searchActive && virtualItem.index < 2}
-                      onDemo={handleDemo}
-                      onBuy={buy}
-                      onDwell={handleAttentionDwell}
-                    />
-                    {lastViewedLabel ? (
-                      <span className="marketplace-results__meta">Last viewed {lastViewedLabel}</span>
-                    ) : null}
-                  </div>
-                );
-              })}
-            </div>
-          </div>
+          <VirtualizedAutomationList
+            items={filteredAutomations}
+            estimateSize={420}
+            overscan={6}
+            getKey={(entry) => entry?.item?.id ?? entry?.id}
+            parentProps={{
+              className: "marketplace-results__scroller",
+              role: "list",
+              "aria-label": "Marketplace automation results",
+            }}
+            renderItem={renderAutomationRow}
+          />
           {visibleResults === 0 ? (
             <div className="marketplace-results__empty glass-card glass-card--subtle">
               <h4>No automations match "{searchQuery.trim()}"</h4>

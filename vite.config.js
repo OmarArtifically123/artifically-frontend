@@ -202,8 +202,51 @@ export default defineConfig((configEnv) => {
       'troika-three-text',
       'maath',
     ],
-    analytics: ['@vercel/analytics', '@builder.io/partytown'],
+    analytics: ['@vercel/analytics', '@builder.io/partytown', '@vercel/speed-insights/react'],
   }
+
+  const manualChunkMatchers = Object.entries(manualChunkGroups).flatMap(([chunkName, modules]) =>
+    modules.map((moduleId) => ({
+      chunkName,
+      moduleId: moduleId.replace(/\\/g, '/'),
+    })),
+  )
+
+  const threeModulePatterns = [
+    '/node_modules/three',
+    '/node_modules/@react-three/',
+    '/node_modules/postprocessing',
+    '/node_modules/three-stdlib',
+    '/node_modules/troika-three-text',
+    '/node_modules/maath',
+  ]
+
+  const matchManualChunk = (id) => {
+    const normalizedId = id.replace(/\\/g, '/');
+    if (!normalizedId.includes('/node_modules/')) {
+      return null;
+    }
+
+    const matched = manualChunkMatchers.find(({ moduleId }) =>
+      normalizedId.includes(`/node_modules/${moduleId}/`) || normalizedId.includes(`/node_modules/${moduleId}.`),
+    )
+
+    if (matched) {
+      return matched.chunkName;
+    }
+
+    if (threeModulePatterns.some((pattern) => normalizedId.includes(pattern))) {
+      return 'three';
+    }
+
+    if (normalizedId.includes('/node_modules/gsap')) {
+      return 'animations-deferred';
+    }
+
+    return null;
+  }
+
+  const dedupeModules = ['react', 'react-dom', '@apollo/client', 'graphql', '@tanstack/react-virtual']
 
   const build = {
     target: 'es2015',
@@ -221,33 +264,19 @@ export default defineConfig((configEnv) => {
     build.rollupOptions = {
       output: {
         manualChunks(id) {
-          if (id.includes('src/components/HeroScene')) {
+          const normalizedId = id.replace(/\\/g, '/');
+
+          if (normalizedId.includes('src/components/HeroScene')) {
             return 'three'
           }
 
-          if (!id.includes('node_modules')) {
+          if (!normalizedId.includes('/node_modules/')) {
             return undefined
           }
 
-          for (const [chunkName, modules] of Object.entries(manualChunkGroups)) {
-            if (modules.some((moduleId) => id.includes(`/node_modules/${moduleId}/`))) {
-              return chunkName
-            }
-          }
-
-          if (
-            id.includes('/node_modules/three') ||
-            id.includes('/node_modules/@react-three/') ||
-            id.includes('/node_modules/postprocessing') ||
-            id.includes('/node_modules/three-stdlib') ||
-            id.includes('/node_modules/troika-three-text') ||
-            id.includes('/node_modules/maath')
-          ) {
-            return 'three'
-          }
-
-          if (id.includes('/node_modules/gsap')) {
-            return 'animations-deferred'
+          const matchedChunk = matchManualChunk(normalizedId)
+          if (matchedChunk) {
+            return matchedChunk
           }
 
           return 'vendor'
@@ -275,6 +304,9 @@ export default defineConfig((configEnv) => {
   return {
     plugins,
     build,
+    resolve: {
+      dedupe: dedupeModules,
+    },
     optimizeDeps: {
       include: [
         'react',
@@ -283,6 +315,7 @@ export default defineConfig((configEnv) => {
         '@tanstack/react-virtual',
         'use-debounce',
         '@vercel/analytics',
+        '@vercel/speed-insights/react',
       ],
     }
   }
