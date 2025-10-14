@@ -1,18 +1,25 @@
+import useIntersectionLazy from "../../hooks/useIntersectionLazy";
+
 const painPoints = [
   {
-    icon: "😓",
+    icon: "⏳",
     title: "Weeks of Setup",
-    description: "Complex integrations and endless configuration grind teams to a halt.",
+    description: "Legacy tooling demands endless configuration, testing environments, and custom scripts.",
   },
   {
     icon: "🧩",
-    title: "Disconnected Tools",
-    description: "Data lives in silos, so every workflow requires manual stitching.",
+    title: "Fragmented Data",
+    description: "Information sits in silos so teams manually reconcile spreadsheets and APIs nightly.",
   },
   {
-    icon: "📉",
-    title: "Unclear ROI",
-    description: "Stakeholders lose confidence without live impact metrics to point to.",
+    icon: "🛎️",
+    title: "Manual Monitoring",
+    description: "Ops teams babysit automations with pager duty rotations and brittle alerting.",
+  },
+  {
+    icon: "💸",
+    title: "Hidden Costs",
+    description: "Surprise overages and consulting retainers keep ROI perpetually out of reach.",
   },
 ];
 
@@ -20,23 +27,35 @@ const solutions = [
   {
     icon: "⚡",
     title: "Deploy in Minutes",
-    description: "Spin up pre-built, enterprise-ready automations with zero guesswork.",
+    description: "Launch proven playbooks with guided setup flows and instant environment provisioning.",
   },
   {
-    icon: "🔄",
-    title: "Connected Stack",
-    description: "Native integrations and secure data orchestration from day one.",
+    icon: "🗂️",
+    title: "Unified Data Layer",
+    description: "Sync every system through a governed data fabric that keeps context in lockstep.",
   },
   {
-    icon: "📈",
-    title: "Proof of Impact",
-    description: "Real-time dashboards show ROI, time saved, and adoption automatically.",
+    icon: "🤖",
+    title: "Autonomous Monitoring",
+    description: "Adaptive guardrails self-heal issues, notify owners, and surface post-run insights.",
+  },
+  {
+    icon: "📊",
+    title: "Predictable Pricing",
+    description: "Transparent usage tiers and flat-rate infrastructure remove the guesswork from planning.",
   },
 ];
 
 export default function ProblemSolutionSection() {
+  const { ref, isIntersecting } = useIntersectionLazy();
+
   return (
-    <section className="section-shell" aria-labelledby="problem-solution-title">
+    <section
+      id="problem-solution"
+      ref={ref}
+      className="section-shell"
+      aria-labelledby="problem-solution-title"
+    >
       <header className="section-header">
         <span className="section-eyebrow">The Old Way vs. The Artifically Way</span>
         <h2 id="problem-solution-title" className="section-title">
@@ -48,8 +67,13 @@ export default function ProblemSolutionSection() {
       </header>
       <div className="problem-grid">
         <div className="problem-column" aria-label="Legacy automation pain points">
-          {painPoints.map((pain) => (
-            <article key={pain.title} className="pain-card">
+          {painPoints.map((pain, index) => (
+            <article
+              key={pain.title}
+              className="pain-card"
+              data-visible={isIntersecting}
+              style={{ transitionDelay: `${index * 90}ms` }}
+            >
               <span style={{ fontSize: "1.8rem" }}>{pain.icon}</span>
               <strong>{pain.title}</strong>
               <p>{pain.description}</p>
@@ -58,8 +82,13 @@ export default function ProblemSolutionSection() {
         </div>
         <div className="transform-arrow" aria-hidden="true" />
         <div className="solution-column" aria-label="How Artifically solves automation">
-          {solutions.map((solution) => (
-            <article key={solution.title} className="solution-card">
+          {solutions.map((solution, index) => (
+            <article
+              key={solution.title}
+              className="solution-card"
+              data-visible={isIntersecting}
+              style={{ transitionDelay: `${index * 90}ms` }}
+            >
               <span style={{ fontSize: "1.8rem" }}>{solution.icon}</span>
               <strong>{solution.title}</strong>
               <p>{solution.description}</p>

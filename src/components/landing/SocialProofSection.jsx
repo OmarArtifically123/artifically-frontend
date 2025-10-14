@@ -1,3 +1,5 @@
+import { useEffect, useMemo, useRef, useState } from "react";
+
 const customerLogos = [
   "Mercury Labs",
   "Nova Retail",
@@ -7,6 +9,8 @@ const customerLogos = [
   "Artemis Cloud",
   "Northwind AI",
   "Titan Manufacturing",
+  "Quantum Freight",
+  "Evergreen CX",
 ];
 
 const testimonials = [
@@ -28,9 +32,61 @@ const testimonials = [
     roi: 4.4,
     timeSaved: 52,
   },
+  {
+    id: "helio",
+    quote: "Compliance audits used to hijack entire sprints. Now the guardrails generate evidence for us while automations run.",
+    name: "Priya Menon",
+    title: "Chief Operating Officer",
+    company: "Helios Health",
+    roi: 6.2,
+    timeSaved: 44,
+  },
 ];
 
 export default function SocialProofSection() {
+  const [activeIndex, setActiveIndex] = useState(0);
+  const isPausedRef = useRef(false);
+  const autoplayRef = useRef();
+
+  const total = testimonials.length;
+  const activeTestimonial = useMemo(() => testimonials[activeIndex % total], [activeIndex, total]);
+
+  useEffect(() => {
+    if (isPausedRef.current) {
+      return undefined;
+    }
+
+    autoplayRef.current = setTimeout(() => {
+      setActiveIndex((index) => (index + 1) % total);
+    }, 7000);
+
+    return () => clearTimeout(autoplayRef.current);
+  }, [activeIndex, total]);
+
+  const handleNavigate = (direction) => {
+    if (!isPausedRef.current && autoplayRef.current) {
+      clearTimeout(autoplayRef.current);
+    }
+    setActiveIndex((index) => (index + direction + total) % total);
+  };
+
+  const pauseAutoplay = () => {
+    isPausedRef.current = true;
+    if (autoplayRef.current) {
+      clearTimeout(autoplayRef.current);
+    }
+  };
+
+  const resumeAutoplay = () => {
+    if (!isPausedRef.current) return;
+    isPausedRef.current = false;
+    autoplayRef.current = setTimeout(() => {
+      setActiveIndex((index) => (index + 1) % total);
+    }, 7000);
+  };
+
+  useEffect(() => () => clearTimeout(autoplayRef.current), []);
+
   return (
     <section className="section-shell" aria-labelledby="social-proof-title">
       <header className="section-header">
@@ -58,24 +114,41 @@ export default function SocialProofSection() {
           </span>
         ))}
       </div>
-      <div className="testimonial-carousel">
-        {testimonials.map((testimonial) => (
-          <article key={testimonial.id} className="testimonial-card">
-            <blockquote>“{testimonial.quote}”</blockquote>
+      <div
+        className="testimonial-carousel"
+        onMouseEnter={pauseAutoplay}
+        onMouseLeave={resumeAutoplay}
+        onFocus={pauseAutoplay}
+        onBlur={resumeAutoplay}
+      >
+        <div className="testimonial-carousel__slides">
+          <article key={activeTestimonial.id} className="testimonial-card" aria-live="polite">
+            <blockquote>“{activeTestimonial.quote}”</blockquote>
             <footer style={{ display: "flex", flexWrap: "wrap", gap: "0.85rem", alignItems: "center" }}>
               <div>
-                <strong style={{ color: "white" }}>{testimonial.name}</strong>
+                <strong style={{ color: "white" }}>{activeTestimonial.name}</strong>
                 <div style={{ fontSize: "0.95rem", color: "color-mix(in oklch, white 75%, var(--gray-300))" }}>
-                  {testimonial.title} at {testimonial.company}
+                  {activeTestimonial.title} at {activeTestimonial.company}
                 </div>
               </div>
             </footer>
             <div className="metric-grid">
-              <Metric value={`${testimonial.roi}x`} label="ROI Increase" />
-              <Metric value={`${testimonial.timeSaved} hrs`} label="Saved per Week" />
+              <Metric value={`${activeTestimonial.roi}x`} label="ROI Increase" />
+              <Metric value={`${activeTestimonial.timeSaved} hrs`} label="Saved per Week" />
             </div>
           </article>
-        ))}
+        </div>
+        <div className="testimonial-carousel__controls" role="toolbar" aria-label="Testimonial carousel controls">
+          <button type="button" onClick={() => handleNavigate(-1)} aria-label="View previous testimonial">
+            ←
+          </button>
+          <span className="testimonial-carousel__index" aria-hidden="true">
+            {activeIndex + 1} / {total}
+          </span>
+          <button type="button" onClick={() => handleNavigate(1)} aria-label="View next testimonial">
+            →
+          </button>
+        </div>
       </div>
     </section>
   );

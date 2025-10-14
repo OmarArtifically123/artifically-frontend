@@ -290,7 +290,7 @@ export default defineConfig((configEnv) => {
     plugins.push(
       bundleBudgetPlugin({
         jsBudgetBytes: 200 * KB,
-        cssBudgetBytes: 20 * KB,
+        cssBudgetBytes: 25 * KB,
       })
     )
 

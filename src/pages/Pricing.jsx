@@ -73,25 +73,30 @@ const faqItems = [
   },
 ];
 
+function calculateSavings(teamSize, hourlyRate) {
+  const normalizedTeam = Math.max(1, Math.min(1000, Number(teamSize) || 0));
+  const normalizedRate = Math.max(20, Math.min(200, Number(hourlyRate) || 0));
+  const automationCoverage = Math.min(0.85, 0.35 + normalizedTeam * 0.0006);
+  const hoursSavedPerWeek = Math.round(normalizedTeam * automationCoverage * 2);
+  const monthlySavings = Math.round(hoursSavedPerWeek * 4 * normalizedRate);
+  const roi = Math.max(1.5, Math.min(10, Number((monthlySavings / 1250).toFixed(1))));
+
+  return {
+    hoursSavedPerWeek,
+    monthlySavings,
+    roi,
+  };
+}
+
 export default function Pricing() {
   const [billing, setBilling] = useState("annual");
-  const [teamSize, setTeamSize] = useState(35);
+  const [teamSize, setTeamSize] = useState(45);
   const [hourlyRate, setHourlyRate] = useState(95);
   const [faqOpen, setFaqOpen] = useState(faqItems[0].question);
 
   const multiplier = billing === "annual" ? 12 * 0.8 : 1;
 
-  const savings = useMemo(() => {
-    const hoursSavedPerWeek = Math.min(80, Math.max(5, Math.round(teamSize * 0.6)));
-    const monthlyHours = hoursSavedPerWeek * 4;
-    const costSaved = monthlyHours * hourlyRate;
-    const roi = costSaved / 1200;
-    return {
-      hoursSavedPerWeek,
-      monthlySavings: Math.round(costSaved),
-      roi: Math.max(1.5, Math.min(8, Number(roi.toFixed(1)))),
-    };
-  }, [hourlyRate, teamSize]);
+  const savings = useMemo(() => calculateSavings(teamSize, hourlyRate), [hourlyRate, teamSize]);
 
   return (
     <main className="section-shell" style={{ gap: "clamp(2.5rem, 4vw, 3.5rem)", paddingBottom: "6rem" }}>
@@ -139,14 +144,14 @@ export default function Pricing() {
             label="Team Size"
             value={teamSize}
             min={1}
-            max={200}
+            max={1000}
             onChange={(value) => setTeamSize(Number(value))}
           />
           <Slider
             label="Avg Hourly Rate"
             value={hourlyRate}
             min={20}
-            max={250}
+            max={200}
             onChange={(value) => setHourlyRate(Number(value))}
           />
         </div>

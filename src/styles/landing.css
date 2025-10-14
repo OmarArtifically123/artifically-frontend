@@ -273,6 +273,19 @@
   grid-column: span 4;
 }
 
+.pain-card,
+.solution-card {
+  opacity: 0;
+  transform: translateY(18px);
+  transition: opacity 0.45s ease, transform 0.45s ease;
+}
+
+.pain-card[data-visible="true"],
+.solution-card[data-visible="true"] {
+  opacity: 1;
+  transform: translateY(0);
+}
+
 .transform-arrow {
   grid-column: span 4;
   display: grid;
@@ -384,9 +397,61 @@
   justify-items: center;
 }
 
+.logo-wall span {
+  filter: grayscale(1);
+  transition: transform 0.25s ease, filter 0.3s ease;
+}
+
+.logo-wall span:hover,
+.logo-wall span:focus-visible {
+  filter: grayscale(0);
+  transform: translateY(-4px);
+}
+
 .testimonial-carousel {
   display: grid;
-  gap: 1.5rem;
+  gap: 1.25rem;
+}
+
+.testimonial-carousel__slides {
+  position: relative;
+  min-height: clamp(260px, 24vw, 320px);
+}
+
+.testimonial-carousel__slides .testimonial-card {
+  animation: testimonial-fade 0.45s ease;
+}
+
+.testimonial-carousel__controls {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.75rem;
+}
+
+.testimonial-carousel__controls button {
+  width: 42px;
+  height: 42px;
+  border-radius: 50%;
+  border: 1px solid color-mix(in oklch, white 10%, transparent);
+  background: color-mix(in oklch, var(--glass-3) 70%, transparent);
+  color: color-mix(in oklch, white 80%, var(--gray-100));
+  font-size: 1rem;
+  cursor: pointer;
+  transition: transform 0.2s ease, border-color 0.2s ease;
+}
+
+.testimonial-carousel__controls button:hover,
+.testimonial-carousel__controls button:focus-visible {
+  transform: translateY(-2px);
+  border-color: color-mix(in oklch, var(--brand-glow) 35%, transparent);
+}
+
+.testimonial-carousel__index {
+  font-size: 0.9rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: color-mix(in oklch, white 65%, var(--gray-300));
 }
 
 .testimonial-card {
@@ -409,6 +474,17 @@
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
   gap: 1rem;
+}
+
+@keyframes testimonial-fade {
+  from {
+    opacity: 0;
+    transform: translateY(14px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
 
 .final-cta {

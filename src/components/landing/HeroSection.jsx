@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 
 const heroStats = [
   { label: "Automations", value: 12500, suffix: "+" },
@@ -47,6 +47,7 @@ export default function HeroSection({ onPrimary, onSecondary }) {
             </p>
           </article>
         </div>
+        <ScrollIndicator targetId="problem-solution" />
       </div>
     </section>
   );
@@ -179,5 +180,27 @@ function Badge({ children }) {
     >
       {children}
     </span>
+  );
+}
+
+function ScrollIndicator({ targetId }) {
+  const handleScroll = useCallback(() => {
+    if (!targetId) return;
+    const target = document.getElementById(targetId);
+    target?.scrollIntoView({ behavior: "smooth", block: "start" });
+  }, [targetId]);
+
+  return (
+    <button
+      type="button"
+      className="hero-scroll-indicator hero__scroll"
+      onClick={handleScroll}
+      aria-label="Scroll to explore more content"
+    >
+      <span className="hero-scroll-indicator__track">
+        <span className="hero-scroll-indicator__dot" />
+      </span>
+      <span className="hero-scroll-indicator__label">Scroll</span>
+    </button>
   );
 }

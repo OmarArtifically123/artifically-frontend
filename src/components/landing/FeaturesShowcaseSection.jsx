@@ -1,61 +1,65 @@
-import { useState } from "react";
+import { useMemo, useState } from "react";
 
 const featureTabs = [
   {
     id: "demos",
-    icon: "🎯",
+    icon: "🎬",
     label: "Interactive Demos",
-    description: "Spin up a sandboxed automation replica to experience the workflow and outcomes before you deploy to production.",
+    description:
+      "Launch immersive WebGL or video walkthroughs that mirror your production data in a safe sandbox before deploying.",
+    highlights: [
+      { icon: "✨", title: "One-Click Previews", description: "Spin up guided previews with telemetry overlays instantly." },
+      { icon: "🎧", title: "Guided Walkthroughs", description: "Narrated tours showcase key KPIs and decision points." },
+      { icon: "🧪", title: "Sandboxed Data", description: "Inject scrubbed datasets to experience the workflow end-to-end." },
+    ],
   },
   {
-    id: "governance",
+    id: "library",
+    icon: "🗂️",
+    label: "Workflow Library",
+    description:
+      "Browse modular blueprints curated by industry experts with playbooks that cover every department and KPI.",
+    highlights: [
+      { icon: "📚", title: "Version Control", description: "Track iterations with rollbacks and change approvals built-in." },
+      { icon: "🧩", title: "Composable Blocks", description: "Drag, remix, and publish reusable automation components." },
+      { icon: "🧑‍🤝‍🧑", title: "Role-Based Access", description: "Assign granular permissions for builders, reviewers, and approvers." },
+    ],
+  },
+  {
+    id: "compliance",
     icon: "🛡️",
-    label: "Enterprise Governance",
-    description: "Role-based controls, SOC 2 compliance, and real-time monitoring to keep every automation audit-ready.",
+    label: "Compliance Guardrails",
+    description:
+      "Meet regulatory requirements automatically with guardrails that enforce policies, retention, and audit trails.",
+    highlights: [
+      { icon: "📋", title: "Policy Templates", description: "Pre-built controls for SOC 2, HIPAA, GDPR, and ISO frameworks." },
+      { icon: "🔍", title: "Automated Audits", description: "Continuous evidence collection keeps every workflow inspection-ready." },
+      { icon: "🛡", title: "Redaction Pipelines", description: "Inline scrubbing removes sensitive data before it leaves your network." },
+    ],
   },
   {
-    id: "connectors",
+    id: "integrations",
     icon: "🔌",
-    label: "150+ Connectors",
-    description: "Connect CRMs, ERPs, data warehouses, and internal tools with pre-authenticated pipelines.",
-  },
-  {
-    id: "ai",
-    icon: "🤖",
-    label: "Adaptive AI",
-    description: "Fine-tune models with your data, and let guardrails ensure safe responses across every channel.",
-  },
-];
-
-const featureList = [
-  {
-    icon: "✨",
-    title: "One-Click Previews",
-    description: "Launch a guided preview with sample data, voiceover, and telemetry overlays in seconds.",
-  },
-  {
-    icon: "🧠",
-    title: "Smart Recommendations",
-    description: "ML-powered suggestions highlight the automations that match your current stack and KPIs.",
-  },
-  {
-    icon: "📊",
-    title: "Live Impact Reports",
-    description: "See time saved, error rates avoided, and ROI multipliers from day one.",
-  },
-  {
-    icon: "🤝",
-    title: "Collaborative Reviews",
-    description: "Invite stakeholders to leave inline feedback, approvals, and deployment notes.",
+    label: "Enterprise Integrations",
+    description:
+      "Connect mission-critical systems through secure connectors, streaming events, and bi-directional syncs.",
+    highlights: [
+      { icon: "🔐", title: "Secure Connectors", description: "Bring 250+ SaaS, data, and on-prem systems with scoped OAuth and SSO." },
+      { icon: "🌐", title: "Event Streams", description: "Real-time webhooks and queues ensure every automation stays in sync." },
+      { icon: "♻️", title: "Bi-Directional Sync", description: "Keep records updated everywhere with conflict resolution built-in." },
+    ],
   },
 ];
 
 export default function FeaturesShowcaseSection() {
   const [active, setActive] = useState(featureTabs[0].id);
-  const activeTab = featureTabs.find((tab) => tab.id === active) ?? featureTabs[0];
+  const activeTab = useMemo(
+    () => featureTabs.find((tab) => tab.id === active) ?? featureTabs[0],
+    [active],
+  );
 
   return (
-    <section className="section-shell" aria-labelledby="features-title">
+    <section id="features-showcase" className="section-shell" aria-labelledby="features-title">
       <header className="section-header">
         <span className="section-eyebrow">Everything You Need</span>
         <h2 id="features-title" className="section-title">
@@ -71,6 +75,8 @@ export default function FeaturesShowcaseSection() {
             key={tab.id}
             type="button"
             role="tab"
+            id={`feature-tab-${tab.id}`}
+            aria-controls={`feature-panel-${tab.id}`}
             aria-selected={active === tab.id}
             className="feature-tab"
             data-active={active === tab.id}
@@ -82,7 +88,14 @@ export default function FeaturesShowcaseSection() {
         ))}
       </div>
       <div className="feature-content">
-        <article className="demo-preview" role="tabpanel" aria-live="polite">
+        <article
+          key={activeTab.id}
+          id={`feature-panel-${activeTab.id}`}
+          className="demo-preview"
+          role="tabpanel"
+          aria-labelledby={`feature-tab-${activeTab.id}`}
+          aria-live="polite"
+        >
           <header style={{ display: "grid", gap: "0.4rem" }}>
             <span style={{ letterSpacing: "0.16em", textTransform: "uppercase", fontSize: "0.8rem", color: "color-mix(in oklch, white 72%, var(--gray-400))" }}>
               {activeTab.label}
@@ -117,15 +130,15 @@ export default function FeaturesShowcaseSection() {
                 Highlights
               </span>
               <ul style={{ display: "grid", gap: "0.35rem", paddingLeft: "1.1rem", color: "color-mix(in oklch, white 75%, var(--gray-200))" }}>
-                <li>Real production-like datasets streamed into the preview</li>
-                <li>Live guardrail monitoring with explainability traces</li>
-                <li>Suggested follow-up automations based on impact</li>
+                {activeTab.highlights.map((item) => (
+                  <li key={item.title}>{item.title}: {item.description}</li>
+                ))}
               </ul>
             </div>
           </div>
         </article>
         <div className="feature-list">
-          {featureList.map((feature) => (
+          {activeTab.highlights.map((feature) => (
             <article key={feature.title} className="feature-card">
               <span style={{ fontSize: "1.6rem" }}>{feature.icon}</span>
               <strong>{feature.title}</strong>
