@@ -98,7 +98,7 @@ const heroSkeletonCanvasStyle = {
   position: "fixed",
   inset: 0,
   width: "100vw",
-  height: "100dvh",
+  height: "max(100dvh, 1500px)",
   pointerEvents: "none",
   background:
     "radial-gradient(circle at 30% 35%, rgba(59, 130, 246, 0.28), transparent 55%), " +
@@ -109,17 +109,34 @@ const heroSkeletonCanvasStyle = {
   transform: "translateZ(0)",
 };
 
-const heroSkeletonPanelSurface = {
-  background: "linear-gradient(160deg, rgba(15, 23, 42, 0.9), rgba(2, 6, 23, 0.94))",
+const heroSkeletonSurface = {
+  background: "linear-gradient(160deg, rgba(15, 23, 42, 0.88), rgba(2, 6, 23, 0.94))",
   border: "1px solid rgba(148, 163, 184, 0.22)",
-  boxShadow: "0 30px 60px rgba(15, 23, 42, 0.45)",
+  boxShadow: "0 28px 60px rgba(15, 23, 42, 0.45)",
   backdropFilter: "blur(18px) saturate(140%)",
   WebkitBackdropFilter: "blur(18px) saturate(140%)",
 };
 
 const heroSkeletonFillSurface = {
-  background: "linear-gradient(135deg, rgba(148, 163, 184, 0.18), rgba(148, 163, 184, 0.08))",
+  background: "linear-gradient(135deg, rgba(148, 163, 184, 0.2), rgba(148, 163, 184, 0.1))",
   border: "1px solid rgba(148, 163, 184, 0.18)",
+  animation: "pulse 1.6s ease-in-out infinite",
+};
+
+const heroSkeletonLogoChipStyle = {
+  display: "inline-block",
+  minWidth: "96px",
+  height: "1.1rem",
+  borderRadius: "999px",
+  background: "rgba(148, 163, 184, 0.32)",
+  animation: "pulse 1.8s ease-in-out infinite",
+};
+
+const heroSkeletonAvatarStyle = {
+  width: "2.6rem",
+  height: "2.6rem",
+  borderRadius: "0.95rem",
+  background: "rgba(148, 163, 184, 0.28)",
   animation: "pulse 1.6s ease-in-out infinite",
 };
 
@@ -142,138 +159,126 @@ function HeroSkeleton() {
   return (
     <section
       className="hero"
+      data-hero-version="reimagined"
       aria-busy="true"
       aria-live="polite"
       aria-label="Loading Artifically hero experience"
     >
-      <div className="hero-canvas hero-bg-fixed" aria-hidden="true" style={heroSkeletonCanvasStyle} />
-      <div className="hero-gradient" aria-hidden="true" />
-      <div className="hero-inner" aria-hidden="true">
-        <header className="hero-header" style={{ alignItems: "center" }}>
-          <SkeletonBar width="220px" height="42px" radius="999px" />
-          <div className="hero-actions" style={{ gap: "0.75rem" }}>
-            <SkeletonBar width="190px" height="52px" radius="1.2rem" />
-            <SkeletonBar width="56px" height="52px" radius="1.2rem" />
+      <div className="hero-background hero-bg-fixed" aria-hidden="true" style={heroSkeletonCanvasStyle} />
+      <div className="hero-shell" aria-hidden="true">
+        <div className="hero-content" style={{ gap: "1.6rem" }}>
+          <div style={{ display: "flex", alignItems: "center", gap: "0.85rem", flexWrap: "wrap" }}>
+            <SkeletonBar width="260px" height="42px" radius="1.1rem" />
+            <SkeletonBar width="168px" height="30px" radius="999px" />
           </div>
-        </header>
-        <div className="hero-body">
-          <div className="hero-text" style={{ gap: "1.6rem" }}>
-            <div style={{ display: "grid", gap: "0.75rem" }}>
-              <SkeletonBar width="68%" height="3.4rem" radius="1.2rem" />
-              <SkeletonBar width="74%" height="3.4rem" radius="1.2rem" />
-              <SkeletonBar width="58%" height="3.4rem" radius="1.2rem" />
-            </div>
-            <div style={{ display: "grid", gap: "0.6rem" }}>
-              <SkeletonBar width="100%" height="1.1rem" />
-              <SkeletonBar width="94%" height="1.1rem" />
-              <SkeletonBar width="72%" height="1.1rem" />
-            </div>
-            <div className="hero-ctas" style={{ gap: "0.85rem", flexWrap: "wrap" }}>
-              <SkeletonBar width="190px" height="52px" radius="1.2rem" />
-              <SkeletonBar width="212px" height="52px" radius="1.2rem" />
-              <SkeletonBar width="168px" height="20px" radius="999px" />
-            </div>
+        <SkeletonBar width="180px" height="28px" radius="999px" />
+          <div style={{ display: "grid", gap: "0.75rem" }}>
+            <SkeletonBar width="72%" height="3.6rem" radius="1.25rem" />
+            <SkeletonBar width="68%" height="3.6rem" radius="1.25rem" />
+            <SkeletonBar width="54%" height="3.6rem" radius="1.25rem" />
+          </div>
+          <div style={{ display: "grid", gap: "0.6rem" }}>
+            <SkeletonBar width="100%" height="1.15rem" />
+            <SkeletonBar width="92%" height="1.15rem" />
+            <SkeletonBar width="70%" height="1.15rem" />
+          </div>
+          <div style={{ display: "flex", flexWrap: "wrap", gap: "0.9rem" }}>
+            <SkeletonBar width="214px" height="54px" radius="1.35rem" />
+            <SkeletonBar width="220px" height="54px" radius="1.35rem" />
+          </div>
+          <div style={{ display: "grid", gap: "0.5rem", marginTop: "0.4rem" }}>
+            <SkeletonBar width="100%" height="0.7rem" radius="999px" />
+            <SkeletonBar width="58%" height="1rem" radius="0.75rem" />
+          </div>
+          <div
+            style={{
+              ...heroSkeletonSurface,
+              borderRadius: "1.6rem",
+              padding: "1.2rem",
+              display: "grid",
+              gap: "0.9rem",
+            }}
+          >
+            <SkeletonBar width="60%" height="1rem" radius="0.75rem" />
             <div
-              className="hero-ticker"
-              style={{ display: "flex", alignItems: "center", gap: "0.85rem", padding: "0.5rem 0" }}
+              style={{
+                display: "grid",
+                gridTemplateColumns: "repeat(3, minmax(0, 1fr))",
+                gap: "0.9rem",
+              }}
             >
-              <SkeletonBar width="110px" height="28px" radius="999px" />
-              <SkeletonBar width="280px" height="24px" radius="0.85rem" />
-            </div>
-            <div className="hero-badges" style={{ gap: "0.75rem" }}>
-              {Array.from({ length: 4 }).map((_, index) => (
-                <SkeletonBar key={index} width="182px" height="38px" radius="999px" />
+              {Array.from({ length: 3 }).map((_, index) => (
+                <SkeletonBar key={`stat-${index}`} width="100%" height="2.8rem" radius="0.95rem" />
               ))}
             </div>
-          </div>
-          <div className="hero-insights">
-            <div
-              className="hero-panel"
-              style={{
-                ...heroSkeletonPanelSurface,
-                minHeight: "340px",
-                display: "grid",
-                gap: "1rem",
-              }}
-            >
-              <SkeletonBar width="45%" height="1.05rem" radius="0.75rem" />
-              <div style={{ display: "grid", gap: "0.75rem" }}>
-                <SkeletonBar width="100%" height="48px" radius="0.95rem" />
-                <SkeletonBar width="100%" height="48px" radius="0.95rem" />
-              </div>
-              <div
-                style={{
-                  borderRadius: "1.05rem",
-                  minHeight: "96px",
-                  ...heroSkeletonFillSurface,
-                }}
-              />
             </div>
-            <div
-              className="hero-panel"
-              style={{
-                ...heroSkeletonPanelSurface,
-                minHeight: "320px",
-                display: "grid",
-                gap: "0.95rem",
-              }}
-            >
-              <SkeletonBar width="38%" height="1.05rem" radius="0.75rem" />
+          <div
+            style={{
+              ...heroSkeletonSurface,
+              borderRadius: "1.6rem",
+              padding: "1.1rem 1.2rem",
+              display: "grid",
+              gap: "0.85rem",
+            }}
+          >
+            {Array.from({ length: 3 }).map((_, index) => (
               <div
-                className="hero-map"
-                style={{
-                  borderRadius: "1.2rem",
-                  minHeight: "220px",
-                  ...heroSkeletonFillSurface,
-                }}
-              />
-            </div>
-            <div
-              className="hero-panel"
-              style={{
-                ...heroSkeletonPanelSurface,
-                minHeight: "260px",
-                display: "grid",
-                gap: "0.8rem",
-              }}
-            >
-              <SkeletonBar width="50%" height="1.05rem" radius="0.75rem" />
-              <div style={{ display: "grid", gap: "0.7rem" }}>
-                {Array.from({ length: 3 }).map((_, index) => (
-                  <SkeletonBar key={index} width="100%" height="64px" radius="1rem" />
-                ))}
-              </div>
-            </div>
-            <div
-              className="hero-panel"
-              style={{
-                ...heroSkeletonPanelSurface,
-                minHeight: "240px",
-                display: "grid",
-                gap: "0.75rem",
-              }}
-            >
-              <SkeletonBar width="60%" height="1.05rem" radius="0.75rem" />
-              <div
-                className="hero-trust__grid"
+                key={`activity-${index}`}
                 style={{
                   display: "grid",
-                  gridTemplateColumns: "repeat(3, minmax(0, 1fr))",
-                  gap: "0.6rem",
+                  gridTemplateColumns: "auto 1fr auto",
+                  gap: "0.8rem",
+                  alignItems: "center",
                 }}
               >
-                {Array.from({ length: 6 }).map((_, index) => (
-                  <div
-                    key={index}
-                    style={{
-                      height: "60px",
-                      borderRadius: "1rem",
-                      display: "block",
-                      ...heroSkeletonFillSurface,
-                    }}
-                  />
-                ))}
+                <span style={heroSkeletonAvatarStyle} />
+                <div style={{ display: "grid", gap: "0.35rem" }}>
+                  <SkeletonBar width="180px" height="0.95rem" radius="0.75rem" />
+                  <SkeletonBar width="120px" height="0.85rem" radius="0.75rem" />
+                </div>
+                <SkeletonBar width="64px" height="0.75rem" radius="999px" />
               </div>
+            ))}
+          </div>
+          <div
+            style={{
+              display: "grid",
+              gridTemplateColumns: "repeat(auto-fit, minmax(140px, 1fr))",
+              gap: "0.75rem",
+            }}
+          >
+            {Array.from({ length: 4 }).map((_, index) => (
+              <SkeletonBar key={`badge-${index}`} width="100%" height="2.4rem" radius="0.9rem" />
+            ))}
+          </div>
+        </div>
+      </div>
+      <div className="logo-wall" data-with-scene="true" aria-hidden="true">
+        <div className="logo-wall__marquee">
+          <div className="logo-track" style={{ gap: "2rem" }}>
+            {Array.from({ length: 6 }).map((_, index) => (
+              <span key={`logo-${index}`} style={heroSkeletonLogoChipStyle} />
+            ))}
+          </div>
+        </div>
+        <div className="logo-wall__scene">
+          <div className="hero-preview" aria-hidden="true" style={{ minHeight: "clamp(320px, 50vh, 720px)" }}>
+            <div
+              className="hero-preview__inner"
+              style={{
+                ...heroSkeletonSurface,
+                borderRadius: "clamp(2.4rem, 4vw, 3.6rem)",
+                padding: "clamp(1.2rem, 3vw, 2.4rem)",
+              }}
+            >
+              <div
+                style={{
+                  ...heroSkeletonFillSurface,
+                  width: "100%",
+                  height: "100%",
+                  borderRadius: "clamp(1.6rem, 3vw, 2.75rem)",
+                }}
+              />
             </div>
           </div>
         </div>

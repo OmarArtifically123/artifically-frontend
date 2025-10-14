@@ -35,6 +35,8 @@ const HERO_CUSTOMER_LOGOS = [
   { name: "Skyline Media", initials: "SM" },
 ];
 
+const LIVE_ACTIVITY_SOCKET_URL = import.meta.env.VITE_ACTIVITY_SOCKET_URL;
+
 let heroSceneModulePromise;
 
 const loadHeroScene = async () => {
@@ -97,9 +99,10 @@ export default function Hero({ openAuth, user }) {
           <LiveActivityFeed />
           <TrustBadges />
         </div>
-        <FloatingProductPreview />
       </div>
-      <LogoWall logos={HERO_CUSTOMER_LOGOS} />
+      <LogoWall logos={HERO_CUSTOMER_LOGOS}>
+        <HeroSceneShowcase />
+      </LogoWall>
       <ScrollIndicator />
     </section>
   );
@@ -873,7 +876,7 @@ function LiveActivityFeed() {
     let fallbackTimer;
 
     const pushActivity = (activity) => {
-      setActivities((prev) => [activity, ...prev].slice(0, 5));
+      setActivities((prev) => [activity, ...prev].slice(0, 3));
     };
 
     const startFallback = () => {
@@ -894,8 +897,21 @@ function LiveActivityFeed() {
       };
     }
 
+    const socketUrl = typeof LIVE_ACTIVITY_SOCKET_URL === "string" ? LIVE_ACTIVITY_SOCKET_URL.trim() : "";
+    const isSecureContext = window.location?.protocol === "https:";
+    const isLocalHost = /(^localhost$)|(^127\.)|(\.local$)|(^0\.0\.0\.0$)/i.test(window.location?.hostname || "");
+
+    if (!socketUrl || !isSecureContext || isLocalHost) {
+      startFallback();
+      return () => {
+        if (fallbackTimer) {
+          window.clearInterval(fallbackTimer);
+        }
+      };
+    }
+
     try {
-      ws = new WebSocket("wss://api.artifically.com/activity");
+      ws = new WebSocket(socketUrl);
       ws.addEventListener("message", (event) => {
         try {
           const payload = JSON.parse(event.data);
@@ -912,6 +928,7 @@ function LiveActivityFeed() {
       });
       ws.addEventListener("error", () => {
         startFallback();
+        ws?.close();
       });
       ws.addEventListener("close", () => {
         startFallback();
@@ -1024,30 +1041,36 @@ function TimeAgo({ timestamp }) {
   return <span className="activity-time">{`${value}${unit} ago`}</span>;
 }
 
-function LogoWall({ logos }) {
-  if (!logos?.length) {
+function LogoWall({ logos, children }) {
+  if (!logos?.length && !children) {
     return null;
   }
 
-  const marqueeLogos = [...logos, ...logos];
+  const marqueeLogos = logos ? [...logos, ...logos] : [];
+  const hasScene = Boolean(children);
 
   return (
-    <div className="logo-wall" aria-hidden="true">
-      <motion.div
-        className="logo-track"
-        animate={{ x: ["0%", "-50%"] }}
-        transition={{ duration: 30, repeat: Infinity, ease: "linear" }}
-      >
-        {marqueeLogos.map((logo, index) => (
-          <div key={`${logo.name}-${index}`} className="logo-item">
-            {logo.src ? (
-              <img src={logo.src} alt={logo.name} loading="lazy" />
-            ) : (
-              <span>{logo.initials || logo.name}</span>
-            )}
-          </div>
-        ))}
-      </motion.div>
+    <div className="logo-wall" data-with-scene={hasScene ? "true" : undefined} aria-hidden="true">
+      {marqueeLogos.length > 0 && (
+        <div className="logo-wall__marquee">
+          <motion.div
+            className="logo-track"
+            animate={{ x: ["0%", "-50%"] }}
+            transition={{ duration: 30, repeat: Infinity, ease: "linear" }}
+          >
+            {marqueeLogos.map((logo, index) => (
+              <div key={`${logo.name}-${index}`} className="logo-item">
+                {logo.src ? (
+                  <img src={logo.src} alt={logo.name} loading="lazy" />
+                ) : (
+                  <span>{logo.initials || logo.name}</span>
+                )}
+              </div>
+            ))}
+          </motion.div>
+        </div>
+      )}
+      {hasScene && <div className="logo-wall__scene">{children}</div>}
     </div>
   );
 }
@@ -1176,7 +1199,7 @@ function PlayCircleIcon(props) {
   );
 }
 
-function FloatingProductPreview() {
+function HeroSceneShowcase() {
   const containerRef = useRef(null);
   const innerRef = useRef(null);
   const prefersReducedMotion = usePrefersReducedMotion();
