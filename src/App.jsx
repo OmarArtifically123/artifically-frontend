@@ -7,6 +7,7 @@ import { SpeedInsights } from "@vercel/speed-insights/react";
 import api, { pick } from "./api";
 import usePredictivePrefetch from "./hooks/usePredictivePrefetch";
 import "./styles/global.css";
+import "./styles/landing.css";
 import ExperienceLayer from "./components/ExperienceLayer";
 import Button from "./components/ui/Button";
 
@@ -28,7 +29,7 @@ const Privacy = lazy(() => import(/* webpackChunkName: "privacy" */ "./pages/Pri
 const Terms = lazy(() => import(/* webpackChunkName: "terms" */ "./pages/Terms"));
 const Contact = lazy(() => import(/* webpackChunkName: "contact" */ "./pages/Contact"));
 const Marketplace = lazy(() =>
-  import(/* webpackChunkName: "marketplace", webpackPrefetch: true */ "./components/Marketplace")
+  import(/* webpackChunkName: "marketplace", webpackPrefetch: true */ "./pages/Marketplace")
 );
 const Dashboard = lazy(() => import(/* webpackChunkName: "dashboard", webpackPrefetch: true */ "./components/Dashboard"));
 const AuthModal = lazy(() => import(/* webpackChunkName: "auth-modal" */ "./components/AuthModal"));
@@ -105,8 +106,8 @@ export default function App() {
       "/privacy": () => import("./pages/Privacy"),
       "/terms": () => import("./pages/Terms"),
       "/contact": () => import("./pages/Contact"),
-      "/marketplace": () => import("./components/Marketplace"),
-      "/products/marketplace": () => import("./components/Marketplace"),
+      "/marketplace": () => import("./pages/Marketplace"),
+      "/products/marketplace": () => import("./pages/Marketplace"),
       "/dashboard": () => import("./components/Dashboard"),
       "/verify": () => import("./components/Verify"),
     }),

@@ -1,35 +1,52 @@
-import { useEffect, useMemo, useState, useRef } from "react";
-import { fetchAutomations } from "../data/automations";
-import { toast } from "../components/Toast";
-import { space } from "../styles/spacing";
-import Button from "../components/ui/Button";
-import BentoCard from "../components/ui/BentoCard";
-
-const loadGsap = () => import("../lib/gsapConfig");
+import { useMemo, useState } from "react";
 
 const billingOptions = [
   { id: "monthly", label: "Monthly" },
-  { id: "yearly", label: "Yearly (save 20%)" },
+  { id: "annual", label: "Annual (Save 20%)" },
 ];
 
-const caseStudies = [
+const pricingTiers = [
   {
-    customer: "Nova Retail",
-    story: "Automated 12 merchandising workflows across regions",
-    automation: "Inventory Orchestrator",
-    result: "+28% sell-through in 8 weeks",
+    id: "starter",
+    name: "Starter",
+    icon: "🚀",
+    priceMonthly: 249,
+    priceAnnual: 249 * 12 * 0.8,
+    spotlight: false,
+    features: [
+      "5 automations",
+      "Workflow analytics",
+      "Email support",
+    ],
   },
   {
-    customer: "Mercury Labs",
-    story: "Connected revops stack with revenue loop",
-    automation: "Revenue Loop",
-    result: "$420k pipeline reactivated",
+    id: "professional",
+    name: "Professional",
+    icon: "💼",
+    priceMonthly: 549,
+    priceAnnual: 549 * 12 * 0.8,
+    spotlight: true,
+    features: [
+      "Unlimited automations",
+      "AI copilots",
+      "Dedicated success architect",
+      "Usage-based discounts",
+    ],
   },
   {
-    customer: "Atlas Support",
-    story: "Scaled AI-first support triage globally",
-    automation: "Support Coach",
-    result: "40% faster resolution",
+    id: "enterprise",
+    name: "Enterprise",
+    icon: "🏢",
+    priceMonthly: 0,
+    priceAnnual: 0,
+    spotlight: false,
+    features: [
+      "Custom SLAs",
+      "Private deployment",
+      "Onsite launch week",
+      "Security reviews",
+    ],
+    custom: "Talk to sales",
   },
 ];
 
@@ -37,102 +54,229 @@ const faqItems = [
   {
     question: "How does billing work?",
     answer:
-      "Pick monthly or yearly. Yearly plans include a 20% discount and lock pricing for the contract term.",
+      "Choose monthly to stay flexible or annual to lock pricing and unlock a 20% discount.",
   },
   {
-    question: "Can I upgrade or downgrade at any time?",
+    question: "Can we scale usage as we grow?",
     answer:
-      "Yes. Automations are billed pro-rata. Scale usage up or pause automations without hidden fees.",
+      "Yes. Add automations or seats at any time. Your plan rebalances automatically with pro-rated credits.",
   },
   {
     question: "What support is included?",
     answer:
-      "Every plan includes 24/7 priority support, shared Slack channel access, and quarterly architecture reviews.",
+      "Every plan includes 24/7 incident response, a shared Slack channel, and quarterly architecture reviews.",
   },
   {
     question: "Do you offer pilots?",
     answer:
-      "Enterprise teams can launch a 30-day pilot with production parity, including SOC 2 reports and DPA.",
+      "Enterprise teams launch a 30-day pilot with production parity, SOC 2 reports, and custom success plans.",
   },
 ];
 
-function formatCurrency(amount, currency = "USD") {
-  return new Intl.NumberFormat("en-US", {
-    style: "currency",
-    currency,
-    minimumFractionDigits: amount % 1 === 0 ? 0 : 2,
-  }).format(amount);
+export default function Pricing() {
+  const [billing, setBilling] = useState("annual");
+  const [teamSize, setTeamSize] = useState(35);
+  const [hourlyRate, setHourlyRate] = useState(95);
+  const [faqOpen, setFaqOpen] = useState(faqItems[0].question);
+
+  const multiplier = billing === "annual" ? 12 * 0.8 : 1;
+
+  const savings = useMemo(() => {
+    const hoursSavedPerWeek = Math.min(80, Math.max(5, Math.round(teamSize * 0.6)));
+    const monthlyHours = hoursSavedPerWeek * 4;
+    const costSaved = monthlyHours * hourlyRate;
+    const roi = costSaved / 1200;
+    return {
+      hoursSavedPerWeek,
+      monthlySavings: Math.round(costSaved),
+      roi: Math.max(1.5, Math.min(8, Number(roi.toFixed(1)))),
+    };
+  }, [hourlyRate, teamSize]);
+
+  return (
+    <main className="section-shell" style={{ gap: "clamp(2.5rem, 4vw, 3.5rem)", paddingBottom: "6rem" }}>
+      <header className="section-header">
+        <span className="section-eyebrow">Transparent Pricing</span>
+        <h1 className="section-title">Choose Your Growth Path</h1>
+        <div style={{ display: "inline-flex", alignItems: "center", gap: "0.5rem", padding: "0.4rem", borderRadius: "999px", background: "color-mix(in oklch, var(--glass-2) 80%, transparent)", border: "1px solid color-mix(in oklch, white 10%, transparent)" }}>
+          {billingOptions.map((option) => (
+            <button
+              key={option.id}
+              type="button"
+              onClick={() => setBilling(option.id)}
+              style={{
+                borderRadius: "999px",
+                padding: "0.6rem 1.4rem",
+                border: "none",
+                background:
+                  billing === option.id
+                    ? "color-mix(in oklch, var(--brand-primary) 25%, transparent)"
+                    : "transparent",
+                color: "color-mix(in oklch, white 85%, var(--gray-200))",
+                fontWeight: 600,
+                cursor: "pointer",
+              }}
+            >
+              {option.label}
+            </button>
+          ))}
+        </div>
+      </header>
+
+      <section className="pricing-grid" style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(260px, 1fr))", gap: "var(--landing-grid-gap)" }}>
+        {pricingTiers.map((tier) => (
+          <PricingCard key={tier.id} tier={tier} multiplier={multiplier} billing={billing} />
+        ))}
+      </section>
+
+      <section className="roi-calculator" style={{ marginTop: "2rem" }}>
+        <h2 style={{ fontSize: "1.8rem", color: "white" }}>Calculate Your Savings</h2>
+        <p style={{ color: "color-mix(in oklch, white 78%, var(--gray-200))" }}>
+          Adjust team size and hourly rate to project ROI in seconds.
+        </p>
+        <div style={{ display: "grid", gap: "1.25rem", marginTop: "1.5rem" }}>
+          <Slider
+            label="Team Size"
+            value={teamSize}
+            min={1}
+            max={200}
+            onChange={(value) => setTeamSize(Number(value))}
+          />
+          <Slider
+            label="Avg Hourly Rate"
+            value={hourlyRate}
+            min={20}
+            max={250}
+            onChange={(value) => setHourlyRate(Number(value))}
+          />
+        </div>
+        <div className="roi-result" style={{ marginTop: "1.5rem" }}>
+          <span style={{ fontSize: "2.4rem", color: "white" }}>${savings.monthlySavings.toLocaleString()}</span>
+          <span>Estimated Monthly Savings</span>
+          <ul style={{ display: "grid", gap: "0.35rem", paddingLeft: "1.2rem" }}>
+            <li>Time saved: {savings.hoursSavedPerWeek} hrs/week</li>
+            <li>ROI: {savings.roi}x</li>
+          </ul>
+        </div>
+      </section>
+
+      <section style={{ display: "grid", gap: "1rem" }}>
+        <h2 style={{ fontSize: "1.8rem", color: "white" }}>Frequently Asked Questions</h2>
+        <div style={{ display: "grid", gap: "1rem" }}>
+          {faqItems.map((item) => (
+            <FaqItem
+              key={item.question}
+              item={item}
+              isOpen={faqOpen === item.question}
+              onToggle={() => setFaqOpen(faqOpen === item.question ? null : item.question)}
+            />
+          ))}
+        </div>
+      </section>
+    </main>
+  );
 }
 
-function useGsapAccordion(ref, isOpen) {
-  const timelineRef = useRef();
-
-  useEffect(() => {
-    if (!ref.current || typeof window === "undefined") {
-      return undefined;
-    }
-
-    let cancelled = false;
-    let ctx;
-
-    const setup = async () => {
-      try {
-        const { gsap } = await loadGsap();
-        if (cancelled || !ref.current) {
-          return;
-        }
-
-        ctx = gsap.context(() => {
-          timelineRef.current = gsap
-            .timeline({ paused: true })
-            .fromTo(
-              ref.current,
-              { height: 0, opacity: 0, display: "none" },
-              { height: "auto", opacity: 1, display: "block", duration: 0.4, ease: "power2.out" }
-            );
-        }, ref);
-        } catch (error) {
-        console.warn("Failed to initialize pricing accordion animation", error);
-      }
-    };
-
-    setup();
-
-    return () => {
-      cancelled = true;
-      timelineRef.current?.kill();
-      timelineRef.current = undefined;
-      ctx?.revert();
-    };
-  }, [ref]);
-
-  useEffect(() => {
-    if (!timelineRef.current) return undefined;
-
-    if (isOpen) {
-      timelineRef.current.play();
-    } else {
-      timelineRef.current.reverse();
-    }
-
-    return undefined;
-  }, [isOpen]);
-}
-
-function FaqAccordion({ question, answer, isOpen, onToggle }) {
-  const contentRef = useRef(null);
-  useGsapAccordion(contentRef, isOpen);
+function PricingCard({ tier, multiplier, billing }) {
+  const isCustom = tier.custom;
+  const price = tier.priceMonthly * multiplier;
+  const displayPrice = isCustom
+    ? tier.custom
+    : billing === "annual"
+    ? `$${Math.round(price).toLocaleString()}`
+    : `$${tier.priceMonthly}`;
+  const cadence = isCustom ? "" : billing === "annual" ? "/year" : "/month";
 
   return (
     <article
-      className="glass"
+      className="feature-card"
       style={{
-        borderRadius: "1.25rem",
-        padding: `${space("fluid-sm")} ${space("md")}`,
-        border: `1px solid ${isOpen
-          ? "color-mix(in oklch, var(--brand-primary) 45%, transparent)"
-          : "color-mix(in oklch, var(--glass-border-primary) 65%, transparent)"}`,
-        transition: "border-color 0.2s ease",
+        borderRadius: "calc(var(--landing-radius-xl) * 0.7)",
+        border: tier.spotlight
+          ? "1px solid color-mix(in oklch, var(--brand-glow) 45%, transparent)"
+          : undefined,
+        boxShadow: tier.spotlight ? "0 25px 65px color-mix(in oklch, var(--brand-glow) 28%, transparent)" : undefined,
+        position: "relative",
+        overflow: "hidden",
+      }}
+    >
+      {tier.spotlight && (
+        <span
+          style={{
+            position: "absolute",
+            top: "1.2rem",
+            right: "1.2rem",
+            padding: "0.35rem 0.8rem",
+            borderRadius: "999px",
+            background: "color-mix(in oklch, var(--brand-glow) 35%, transparent)",
+            color: "white",
+            fontSize: "0.75rem",
+            letterSpacing: "0.12em",
+            textTransform: "uppercase",
+          }}
+        >
+          Most Popular
+        </span>
+      )}
+      <div style={{ display: "grid", gap: "0.45rem" }}>
+        <span style={{ fontSize: "2rem" }}>{tier.icon}</span>
+        <h3 style={{ fontSize: "1.5rem", color: "white" }}>{tier.name}</h3>
+        <div style={{ display: "flex", alignItems: "baseline", gap: "0.4rem" }}>
+          <span style={{ fontSize: "2.4rem", fontWeight: 700, color: "white" }}>{displayPrice}</span>
+          {cadence && <span style={{ color: "color-mix(in oklch, white 70%, var(--gray-300))" }}>{cadence}</span>}
+        </div>
+      </div>
+      <ul style={{ display: "grid", gap: "0.45rem", paddingLeft: "1.1rem", marginTop: "1rem" }}>
+        {tier.features.map((feature) => (
+          <li key={feature} style={{ display: "flex", gap: "0.5rem", color: "color-mix(in oklch, white 78%, var(--gray-200))" }}>
+            <span aria-hidden="true">✓</span>
+            <span>{feature}</span>
+          </li>
+        ))}
+      </ul>
+      <button
+        type="button"
+        className="cta-primary"
+        style={{ width: "100%", marginTop: "1.5rem" }}
+      >
+        {isCustom ? "Contact Sales" : "Start Free Trial"}
+      </button>
+    </article>
+  );
+}
+
+function Slider({ label, min, max, value, onChange }) {
+  return (
+    <label style={{ display: "grid", gap: "0.5rem", color: "color-mix(in oklch, white 80%, var(--gray-200))" }}>
+      <span style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+        <span>{label}</span>
+        <strong style={{ color: "white" }}>{value}</strong>
+      </span>
+      <input
+        type="range"
+        min={min}
+        max={max}
+        value={value}
+        onChange={(event) => onChange(event.target.value)}
+        style={{
+          width: "100%",
+          accentColor: "var(--brand-glow)",
+        }}
+      />
+    </label>
+  );
+}
+
+function FaqItem({ item, isOpen, onToggle }) {
+  return (
+    <article
+      className="feature-card"
+      style={{
+        borderRadius: "calc(var(--landing-radius-xl) * 0.6)",
+        cursor: "pointer",
+        border: isOpen
+          ? "1px solid color-mix(in oklch, var(--brand-glow) 45%, transparent)"
+          : undefined,
       }}
     >
       <button
@@ -141,336 +285,24 @@ function FaqAccordion({ question, answer, isOpen, onToggle }) {
         style={{
           background: "transparent",
           border: "none",
+          color: "inherit",
+          width: "100%",
+          textAlign: "left",
           display: "flex",
           justifyContent: "space-between",
           alignItems: "center",
-          width: "100%",
-          gap: space("sm"),
-          cursor: "pointer",
-          color: "inherit",
+          gap: "1rem",
+          fontSize: "1rem",
         }}
       >
-        <span style={{ fontWeight: 600, fontSize: "1rem" }}>{question}</span>
-        <span style={{ transform: `rotate(${isOpen ? 90 : 0}deg)`, transition: "transform 0.3s ease" }}>➔</span>
-      </button>
-      <div
-        ref={contentRef}
-        style={{
-          overflow: "hidden",
-          marginTop: space("xs", 1.8),
-          color: "var(--gray-400)",
-          lineHeight: 1.6,
-          fontSize: "0.95rem",
-        }}
-      >
-        {answer}
-      </div>
-    </article>
-  );
-}
-
-export default function Pricing() {
-  const [automations, setAutomations] = useState([]);
-  const [loading, setLoading] = useState(true);
-  const [billingCycle, setBillingCycle] = useState("monthly");
-  const [automationCount, setAutomationCount] = useState(6);
-  const [hoursSaved, setHoursSaved] = useState(40);
-  const [faqOpen, setFaqOpen] = useState(faqItems[0].question);
-
-  useEffect(() => {
-    const loadPricing = async () => {
-      try {
-        const list = await fetchAutomations();
-        setAutomations(Array.isArray(list) ? list : []);
-      } catch (err) {
-        const msg =
-          err?.response?.data?.message ||
-          err?.message ||
-          "Failed to load pricing information";
-        toast(msg, { type: "error" });
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    loadPricing();
-  }, []);
-
-  const averageMonthlyPrice = useMemo(() => {
-    if (!automations.length) {
-      return 240;
-    }
-    const sum = automations.reduce((total, item) => total + (item.priceMonthly || 0), 0);
-    return Math.round(sum / automations.length);
-  }, [automations]);
-
-  const sliderPrice = useMemo(() => {
-    const monthly = automationCount * averageMonthlyPrice;
-    if (billingCycle === "monthly") {
-      return monthly;
-    }
-    return monthly * 12 * 0.8;
-  }, [automationCount, averageMonthlyPrice, billingCycle]);
-
-  const roiMonthly = useMemo(() => {
-    const hourlyValue = 85;
-    const monthlyHours = hoursSaved * 4;
-    return monthlyHours * hourlyValue;
-  }, [hoursSaved]);
-
-  const tierPrice = (automation) => {
-    const base = automation.priceMonthly || averageMonthlyPrice;
-    if (billingCycle === "monthly") {
-      return base;
-    }
-    return Math.round(base * 12 * 0.8);
-  };
-
-  return (
-    <main
-      className="container"
-      style={{ padding: `${space("xl", 1.1667)} 0 ${space("2xl", 1.5)}`, minHeight: "80vh", display: "grid", gap: space("xl") }}
-    >
-      <section style={{ textAlign: "center", display: "grid", gap: space("md") }}>
-        <span
-          style={{
-            color: "var(--brand-primary)",
-            fontSize: "0.85rem",
-            letterSpacing: "0.08em",
-            textTransform: "uppercase",
-          }}
-        >
-          Pricing
+        <span style={{ fontWeight: 600 }}>{item.question}</span>
+        <span aria-hidden="true" style={{ transform: `rotate(${isOpen ? 90 : 0}deg)`, transition: "transform 0.2s ease" }}>
+          ➔
         </span>
-        <h1 style={{ fontSize: "2.75rem", fontWeight: 800 }}>Predictable pricing for automation scale</h1>
-        <p style={{ color: "var(--gray-400)", fontSize: "1.1rem", maxWidth: "720px", margin: "0 auto" }}>
-          Inspired by Stripe-level clarity. Choose your plan, launch your automations, and grow without worrying about
-          surprise overages.
-        </p>
-        <div
-        style={{
-          display: "inline-flex",
-          background: "color-mix(in oklch, var(--brand-primary) 18%, transparent)",
-          borderRadius: "999px",
-          padding: space("2xs", 1.4),
-          gap: space("2xs", 1.4),
-          margin: "0 auto",
-        }}
-        >
-          {billingOptions.map((option) => (
-            <button
-              key={option.id}
-              type="button"
-              onClick={() => setBillingCycle(option.id)}
-              style={{
-                border: "none",
-                cursor: "pointer",
-                borderRadius: "999px",
-                padding: `${space("xs", 1.1)} ${space("sm", 1.4)}`,
-                fontWeight: 600,
-                background:
-                  billingCycle === option.id
-                    ? "linear-gradient(135deg, var(--brand-primary), var(--brand-glow))"
-                    : "transparent",
-                color:
-                  billingCycle === option.id
-                    ? "var(--text-primary)"
-                    : "color-mix(in oklch, var(--brand-primary) 75%, transparent)",
-                transition: "all 0.2s ease",
-              }}
-            >
-              {option.label}
-            </button>
-          ))}
-        </div>
-      </section>
-
-      <section
-        style={{
-          display: "grid",
-          gap: space("lg"),
-          gridTemplateColumns: "repeat(auto-fit, minmax(280px, 1fr))",
-        }}
-      >
-        {loading
-          ? [1, 2, 3].map((index) => (
-              <div key={index} className="glass" style={{ borderRadius: "1.5rem", padding: space("lg", 1.25) }}>
-                <div className="loading" style={{ width: "36px", height: "36px", marginBottom: space("md") }}></div>
-                <div
-                  style={{
-                    height: "12px",
-                    background: "color-mix(in oklch, var(--glass-2) 60%, transparent)",
-                    borderRadius: "999px",
-                    marginBottom: space("xs", 1.5),
-                  }}
-                ></div>
-                <div
-                  style={{
-                    height: "12px",
-                    background: "color-mix(in oklch, var(--glass-2) 45%, transparent)",
-                    borderRadius: "999px",
-                    width: "70%",
-                  }}
-                ></div>
-              </div>
-            ))
-          : automations.map((automation) => {
-              const price = tierPrice(automation);
-              const isYearly = billingCycle === "yearly";
-              return (
-                <BentoCard key={automation.id} className="pricing-plan-card">
-                  <div style={{ fontSize: "1.15rem", fontWeight: 700 }}>{automation.name}</div>
-                  <p style={{ color: "var(--gray-400)", lineHeight: 1.7 }}>{automation.description}</p>
-                  <div>
-                    <span style={{ fontSize: "2.4rem", fontWeight: 800, color: "var(--brand-primary)" }}>
-                      {formatCurrency(price, automation.currency)}
-                    </span>
-                    <span style={{ color: "var(--gray-400)", marginLeft: space("2xs", 1.4) }}>
-                      {isYearly ? "/year" : "/month"}
-                    </span>
-                  </div>
-                  <ul
-                    style={{
-                      color: "var(--gray-300)",
-                      lineHeight: 1.6,
-                      paddingLeft: space("sm", 1.1),
-                      display: "grid",
-                      gap: space("2xs", 1.6),
-                    }}
-                  >
-                    {(automation.highlights || []).slice(0, 3).map((highlight) => (
-                      <li key={highlight}>{highlight}</li>
-                    ))}
-                  </ul>
-                  <Button
-                    size="sm"
-                    variant="primary"
-                    style={{ justifySelf: "flex-start" }}
-                  >
-                    <span>Start for Free →</span>
-                  </Button>
-                </BentoCard>
-              );
-            })}
-      </section>
-
-      <section
-        className="glass"
-        style={{
-          borderRadius: "1.5rem",
-          padding: space("lg", 1.25),
-          display: "grid",
-          gap: space("lg"),
-          alignItems: "center",
-          gridTemplateColumns: "repeat(auto-fit, minmax(240px, 1fr))",
-        }}
-      >
-        <div style={{ display: "grid", gap: space("xs", 1.5) }}>
-          <h2 style={{ fontSize: "1.6rem", fontWeight: 700 }}>Interactive calculator</h2>
-          <p style={{ color: "var(--gray-400)", lineHeight: 1.7 }}>
-            Slide to match your automation volume. Pricing updates instantly so you can model new rollouts with
-            confidence.
-          </p>
-          <div style={{ display: "grid", gap: space("xs", 1.5) }}>
-            <label htmlFor="automation-count" style={{ fontWeight: 600 }}>
-              Automations: {automationCount}
-            </label>
-            <input
-              id="automation-count"
-              type="range"
-              min="1"
-              max="50"
-              value={automationCount}
-              onChange={(event) => setAutomationCount(Number(event.target.value))}
-            />
-            <div style={{ fontSize: "1.25rem", fontWeight: 700 }}>
-              {formatCurrency(sliderPrice, "USD")} {billingCycle === "yearly" ? "/year" : "/month"}
-            </div>
-            <span style={{ color: "var(--gray-400)", fontSize: "0.9rem" }}>
-              Includes orchestration, monitoring, and 24/7 support.
-            </span>
-          </div>
-        </div>
-        <div
-          style={{
-            background: "color-mix(in oklch, var(--brand-primary) 15%, transparent)",
-            borderRadius: "1.25rem",
-            padding: space("md"),
-            display: "grid",
-            gap: space("sm"),
-          }}
-        >
-          <h3 style={{ margin: 0 }}>ROI snapshot</h3>
-          <label htmlFor="hours-saved" style={{ fontSize: "0.9rem", fontWeight: 600 }}>
-            Hours saved per week: {hoursSaved}
-          </label>
-          <input
-            id="hours-saved"
-            type="range"
-            min="5"
-            max="120"
-            step="5"
-            value={hoursSaved}
-            onChange={(event) => setHoursSaved(Number(event.target.value))}
-          />
-          <div style={{ fontSize: "1.35rem", fontWeight: 800, color: "var(--success-vibrant)" }}>
-            {formatCurrency(roiMonthly, "USD")} /month in team capacity
-          </div>
-          <p style={{ color: "var(--gray-400)", margin: 0 }}>
-            Based on blended hourly rate of $85 and four weeks per month. Adjust to your team inputs to build your ROI
-            model.
-          </p>
-        </div>
-      </section>
-
-      <section style={{ display: "grid", gap: space("md") }}>
-        <h2 style={{ fontSize: "1.75rem", fontWeight: 700 }}>Teams scaling with Artifically</h2>
-        <div style={{ display: "grid", gap: space("fluid-sm"), gridTemplateColumns: "repeat(auto-fit, minmax(260px, 1fr))" }}>
-          {caseStudies.map((item) => (
-            <BentoCard key={item.customer} gradient={false} spotlight={false} className="pricing-case-card">
-              <div style={{ fontWeight: 700, fontSize: "1.1rem" }}>{item.customer}</div>
-              <p style={{ color: "var(--gray-400)", margin: 0 }}>{item.story}</p>
-              <div style={{ color: "var(--brand-primary)", fontWeight: 600 }}>{item.automation}</div>
-              <span style={{ color: "var(--success-vibrant)", fontWeight: 600 }}>{item.result}</span>
-            </BentoCard>
-          ))}
-        </div>
-      </section>
-
-      <section style={{ display: "grid", gap: space("sm") }}>
-        <h2 style={{ fontSize: "1.75rem", fontWeight: 700 }}>Questions</h2>
-        <div style={{ display: "grid", gap: space("xs", 1.5) }}>
-          {faqItems.map((item) => (
-            <FaqAccordion
-              key={item.question}
-              question={item.question}
-              answer={item.answer}
-              isOpen={faqOpen === item.question}
-              onToggle={() => setFaqOpen((prev) => (prev === item.question ? null : item.question))}
-            />
-          ))}
-        </div>
-      </section>
-
-      <section
-        style={{
-          borderRadius: "1.75rem",
-          padding: space("xl"),
-          textAlign: "center",
-          background: "linear-gradient(120deg, color-mix(in oklch, var(--brand-primary) 65%, transparent), color-mix(in oklch, var(--brand-glow) 65%, transparent))",
-          color: "var(--text-primary)",
-          display: "grid",
-          gap: space("sm"),
-        }}
-      >
-        <h2 style={{ fontSize: "2.1rem", fontWeight: 800 }}>Ready to orchestrate your automations?</h2>
-        <p style={{ maxWidth: "560px", margin: "0 auto", fontSize: "1.05rem" }}>
-          Start for free, deploy your first automation, and scale with full observability and enterprise guardrails.
-        </p>
-        <Button size="lg" variant="primary" style={{ justifySelf: "center" }}>
-          <span>Deploy Your First Automation</span>
-        </Button>
-      </section>
-    </main>
+      </button>
+      {isOpen && (
+        <p style={{ marginTop: "0.85rem", color: "color-mix(in oklch, white 75%, var(--gray-300))" }}>{item.answer}</p>
+      )}
+    </article>
   );
 }
