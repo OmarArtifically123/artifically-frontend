@@ -1,7 +1,10 @@
+import CTABackground from "./CTABackground";
+
 export default function FinalCTASection({ onSubmit }) {
   return (
     <section className="section-shell" aria-labelledby="final-cta-title">
       <article className="final-cta">
+        <CTABackground variant="gradient-mesh" />
         <div className="final-cta__content">
           <h2 id="final-cta-title" className="final-cta__headline">
             Ready to Transform Your Operations?
@@ -16,11 +19,17 @@ export default function FinalCTASection({ onSubmit }) {
             <input id="cta-email" name="email" type="email" placeholder="Enter your work email" required />
             <button type="submit">Start Free Trial</button>
           </form>
-          <div className="trust-signals">
-            <span>✅ No credit card required</span>
-            <span>✅ Free for 14 days</span>
-            <span>✅ Cancel anytime</span>
-          </div>
+          <ul className="trust-signals" role="list">
+            <li>
+              <span aria-hidden="true">✅</span> No credit card required
+            </li>
+            <li>
+              <span aria-hidden="true">✅</span> Free for 14 days
+            </li>
+            <li>
+              <span aria-hidden="true">✅</span> Cancel anytime
+            </li>
+          </ul>
         </div>
       </article>
     </section>

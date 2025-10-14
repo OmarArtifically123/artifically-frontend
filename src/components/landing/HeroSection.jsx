@@ -1,4 +1,7 @@
-import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
+import HeroBackground from "./HeroBackground";
+import ProductPreview3D from "./ProductPreview3D";
+import ScrollIndicator from "./ScrollIndicator";
 
 const heroStats = [
   { label: "Automations", value: 12500, suffix: "+" },
@@ -15,11 +18,12 @@ export default function HeroSection({ onPrimary, onSecondary }) {
 
   return (
     <section className="page-hero" aria-labelledby="hero-headline">
+      <HeroBackground variant="particles" />
       <div className="page-hero__inner">
         <div className="page-hero__content">
           <span className="page-hero__eyebrow">⚡ The Future of AI Automation</span>
           <h1 id="hero-headline" className="page-hero__headline">
-            Deploy Enterprise AI <span>Automations</span> in Minutes
+            Deploy Enterprise AI <GradientText>Automations</GradientText> in Minutes
           </h1>
           <p className="page-hero__subheadline">
             Transform operations with battle-tested automations. No setup hell. No vendor lock-in. Just results.
@@ -38,8 +42,8 @@ export default function HeroSection({ onPrimary, onSecondary }) {
         <div className="page-hero__preview" id="product-preview">
           <article className="preview-card">
             <span className="preview-card__chip">Live product preview</span>
-            <div className="preview-card__stage" role="img" aria-label="3D preview of automation workflow">
-              <PreviewScene />
+            <div className="preview-card__stage">
+              <ProductPreview3D label="3D preview of automation workflow" />
             </div>
             <p className="preview-card__annotation">
               "We launched our global support automation in under 2 hours. Artifically handled auth, routing, and reporting out of the box."
@@ -47,8 +51,8 @@ export default function HeroSection({ onPrimary, onSecondary }) {
             </p>
           </article>
         </div>
-        <ScrollIndicator targetId="problem-solution" />
       </div>
+      <ScrollIndicator targetId="problem-solution" />
     </section>
   );
 }
@@ -135,32 +139,6 @@ function LogoTicker({ logos, gradientId }) {
   );
 }
 
-function PreviewScene() {
-  return (
-    <div style={{ display: "grid", justifyItems: "center", gap: "1rem", color: "color-mix(in oklch, white 82%, var(--gray-200))" }}>
-      <div
-        style={{
-          width: "68%",
-          aspectRatio: "1 / 1",
-          borderRadius: "24px",
-          border: "1px solid color-mix(in oklch, white 12%, transparent)",
-          background:
-            "radial-gradient(circle at 30% 30%, color-mix(in oklch, var(--brand-glow) 35%, transparent) 0%, transparent 60%)," +
-            "radial-gradient(circle at 70% 70%, color-mix(in oklch, var(--brand-energy) 30%, transparent) 0%, transparent 65%)",
-          boxShadow: "0 30px 65px color-mix(in oklch, var(--brand-glow) 28%, transparent)",
-          display: "grid",
-          placeItems: "center",
-        }}
-      >
-        <span style={{ fontSize: "2.5rem" }}>🛠️</span>
-      </div>
-      <div style={{ fontSize: "0.9rem", textAlign: "center", maxWidth: "28ch" }}>
-        Interactive workflow nodes update in real-time as data flows through your automation.
-      </div>
-    </div>
-  );
-}
-
 function Badge({ children }) {
   return (
     <span
@@ -183,24 +161,6 @@ function Badge({ children }) {
   );
 }
 
-function ScrollIndicator({ targetId }) {
-  const handleScroll = useCallback(() => {
-    if (!targetId) return;
-    const target = document.getElementById(targetId);
-    target?.scrollIntoView({ behavior: "smooth", block: "start" });
-  }, [targetId]);
-
-  return (
-    <button
-      type="button"
-      className="hero-scroll-indicator hero__scroll"
-      onClick={handleScroll}
-      aria-label="Scroll to explore more content"
-    >
-      <span className="hero-scroll-indicator__track">
-        <span className="hero-scroll-indicator__dot" />
-      </span>
-      <span className="hero-scroll-indicator__label">Scroll</span>
-    </button>
-  );
+function GradientText({ children }) {
+  return <span className="gradient-text">{children}</span>;
 }
