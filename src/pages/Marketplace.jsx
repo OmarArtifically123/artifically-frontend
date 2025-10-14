@@ -3,6 +3,7 @@ import { fetchAutomations } from "../data/automations";
 import { toast } from "../components/Toast";
 import ProductPreview3D from "../components/landing/ProductPreview3D";
 import { calculateSavings } from "../utils/calculateSavings";
+import ROICalculator from "../components/roi/ROICalculator";
 
 const categories = ["All", "Sales", "Support", "Operations", "Finance", "Marketing"];
 
@@ -427,7 +428,7 @@ function QuickViewModal({ automation, onClose }) {
   const dialogRef = useRef(null);
   const [teamSize, setTeamSize] = useState(automation.teamSizeHint ?? 45);
   const [hourlyRate, setHourlyRate] = useState(automation.hourlyRateHint ?? 95);
-  const savings = useMemo(() => calculateSavings(teamSize, hourlyRate), [hourlyRate, teamSize]);
+  const [savings, setSavings] = useState(() => calculateSavings(teamSize, hourlyRate));
 
   useEffect(() => {
     const handleKeyDown = (event) => {
@@ -484,20 +485,23 @@ function QuickViewModal({ automation, onClose }) {
             <Metric icon="⌛" label="Time saved" value={`${automation.timeSaved ?? savings.hoursSavedPerWeek} hrs/week`} />
             <Metric icon="📦" label="Integrations" value={(automation.integrations || []).slice(0, 2).join(", ") || "10+"} />
           </div>
-          <div className="roi-calculator">
-            <strong style={{ color: "white", fontSize: "1.1rem" }}>ROI Calculator</strong>
-            <p>Adjust the sliders to estimate your potential savings.</p>
-            <SliderControl label="Team size" min={1} max={1000} value={teamSize} onChange={setTeamSize} />
-            <SliderControl label="Avg hourly rate" min={20} max={200} value={hourlyRate} onChange={setHourlyRate} prefix="$" />
-            <div className="roi-result">
-              <span className="roi-result__value">${savings.monthlySavings.toLocaleString()}</span>
-              <span className="roi-result__caption">Estimated monthly savings</span>
-              <div className="roi-result__meta">
-                <span>Time saved: {savings.hoursSavedPerWeek} hrs/week</span>
-                <span>Projected ROI: {savings.roi.toFixed(1)}x</span>
-              </div>
-            </div>
-          </div>
+          <ROICalculator
+            heading="ROI Calculator"
+            description="Adjust the sliders to estimate your potential savings."
+            teamSize={teamSize}
+            hourlyRate={hourlyRate}
+            onTeamSizeChange={(value) => setTeamSize(value)}
+            onHourlyRateChange={(value) => setHourlyRate(value)}
+            onChange={(result) =>
+              setSavings({
+                hoursSavedPerWeek: result.hoursSavedPerWeek,
+                monthlySavings: result.monthlySavings,
+                roi: result.roi,
+              })
+            }
+            variant="compact"
+            headingLevel={3}
+          />
           <div style={{ display: "flex", gap: "0.75rem", flexWrap: "wrap" }}>
             <button type="button" className="cta-primary" onClick={onClose}>
               Launch Pilot
@@ -509,24 +513,6 @@ function QuickViewModal({ automation, onClose }) {
         </div>
       </div>
     </div>
-  );
-}
-
-function SliderControl({ label, min, max, value, onChange, prefix = "" }) {
-  return (
-    <label className="slider-control">
-      <span>
-        {label}
-        <strong>{prefix}{value}</strong>
-      </span>
-      <input
-        type="range"
-        min={min}
-        max={max}
-        value={value}
-        onChange={(event) => onChange(Number(event.target.value))}
-      />
-    </label>
   );
 }
 

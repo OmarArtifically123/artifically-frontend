@@ -7,6 +7,17 @@ const featureTabs = [
     label: "Interactive Demos",
     description:
       "Launch immersive WebGL or video walkthroughs that mirror your production data in a safe sandbox before deploying.",
+    preview: {
+      eyebrow: "WebGL sandbox",
+      icon: "🧪",
+      title: "Launch a safe sandbox",
+      description:
+        "Preview how the automation responds with your data, then promote it to production in one click.",
+        stats: [
+        { label: "Interactive flows", value: "28" },
+        { label: "Adoption", value: "92%" },
+      ],
+    },
     highlights: [
       { icon: "✨", title: "One-Click Previews", description: "Spin up guided previews with telemetry overlays instantly." },
       { icon: "🎧", title: "Guided Walkthroughs", description: "Narrated tours showcase key KPIs and decision points." },
@@ -19,6 +30,17 @@ const featureTabs = [
     label: "Workflow Library",
     description:
       "Browse modular blueprints curated by industry experts with playbooks that cover every department and KPI.",
+    preview: {
+      eyebrow: "Library spotlight",
+      icon: "📚",
+      title: "Curated blueprints",
+      description:
+        "Remix modular components vetted by industry experts and publish with guardrails already in place.",
+      stats: [
+        { label: "Playbooks", value: "350+" },
+        { label: "Industries", value: "18" },
+      ],
+    },
     highlights: [
       { icon: "📚", title: "Version Control", description: "Track iterations with rollbacks and change approvals built-in." },
       { icon: "🧩", title: "Composable Blocks", description: "Drag, remix, and publish reusable automation components." },
@@ -31,6 +53,17 @@ const featureTabs = [
     label: "Compliance Guardrails",
     description:
       "Meet regulatory requirements automatically with guardrails that enforce policies, retention, and audit trails.",
+    preview: {
+      eyebrow: "Compliance heatmap",
+      icon: "🔍",
+      title: "Automated audits",
+      description:
+        "Continuously capture evidence, redline risky steps, and keep every policy aligned with the latest frameworks.",
+      stats: [
+        { label: "Controls automated", value: "120" },
+        { label: "Audit prep", value: "< 2 hrs" },
+      ],
+    },
     highlights: [
       { icon: "📋", title: "Policy Templates", description: "Pre-built controls for SOC 2, HIPAA, GDPR, and ISO frameworks." },
       { icon: "🔍", title: "Automated Audits", description: "Continuous evidence collection keeps every workflow inspection-ready." },
@@ -43,6 +76,17 @@ const featureTabs = [
     label: "Enterprise Integrations",
     description:
       "Connect mission-critical systems through secure connectors, streaming events, and bi-directional syncs.",
+    preview: {
+      eyebrow: "Integration map",
+      icon: "🔄",
+      title: "Bi-directional sync",
+      description:
+        "Stream data between 250+ connectors with conflict resolution that keeps every system in lockstep.",
+      stats: [
+        { label: "Connectors", value: "250+" },
+        { label: "Sync latency", value: "< 60s" },
+      ],
+    },
     highlights: [
       { icon: "🔐", title: "Secure Connectors", description: "Bring 250+ SaaS, data, and on-prem systems with scoped OAuth and SSO." },
       { icon: "🌐", title: "Event Streams", description: "Real-time webhooks and queues ensure every automation stays in sync." },
@@ -98,7 +142,7 @@ export default function FeaturesShowcaseSection() {
         >
           <header style={{ display: "grid", gap: "0.4rem" }}>
             <span style={{ letterSpacing: "0.16em", textTransform: "uppercase", fontSize: "0.8rem", color: "color-mix(in oklch, white 72%, var(--gray-400))" }}>
-              {activeTab.label}
+              {activeTab.preview.eyebrow}
             </span>
             <h3 style={{ fontSize: "1.6rem", color: "white" }}>{activeTab.label}</h3>
           </header>
@@ -117,23 +161,34 @@ export default function FeaturesShowcaseSection() {
             }}
           >
             <div style={{ display: "flex", gap: "1rem", alignItems: "center" }}>
-              <span style={{ fontSize: "2rem" }}>🧪</span>
+              <span style={{ fontSize: "2rem" }}>{activeTab.preview.icon}</span>
               <div>
-                <strong style={{ color: "white", fontSize: "1.1rem" }}>Launch a safe sandbox</strong>
+                <strong style={{ color: "white", fontSize: "1.1rem" }}>{activeTab.preview.title}</strong>
                 <p style={{ marginTop: "0.35rem", color: "color-mix(in oklch, white 80%, var(--gray-200))" }}>
-                  Preview how the automation responds with your data, then promote it to production in one click.
+                  {activeTab.preview.description}
                 </p>
               </div>
             </div>
-            <div style={{ display: "grid", gap: "0.4rem" }}>
-              <span style={{ fontSize: "0.8rem", letterSpacing: "0.14em", textTransform: "uppercase", color: "color-mix(in oklch, white 65%, var(--gray-400))" }}>
-                Highlights
-              </span>
-              <ul style={{ display: "grid", gap: "0.35rem", paddingLeft: "1.1rem", color: "color-mix(in oklch, white 75%, var(--gray-200))" }}>
-                {activeTab.highlights.map((item) => (
-                  <li key={item.title}>{item.title}: {item.description}</li>
-                ))}
-              </ul>
+            <div style={{ display: "flex", gap: "1.25rem", flexWrap: "wrap" }}>
+              {activeTab.preview.stats.map((stat) => (
+                <div
+                  key={stat.label}
+                  style={{
+                    display: "grid",
+                    gap: "0.25rem",
+                    padding: "0.75rem 1rem",
+                    borderRadius: "0.9rem",
+                    background: "color-mix(in oklch, var(--glass-2) 70%, transparent)",
+                    border: "1px solid color-mix(in oklch, white 12%, transparent)",
+                    minWidth: "120px",
+                  }}
+                >
+                  <span style={{ fontSize: "0.75rem", letterSpacing: "0.14em", textTransform: "uppercase", color: "color-mix(in oklch, white 70%, var(--gray-300))" }}>
+                    {stat.label}
+                  </span>
+                  <strong style={{ fontSize: "1.35rem", color: "white" }}>{stat.value}</strong>
+                </div>
+              ))}
             </div>
           </div>
         </article>

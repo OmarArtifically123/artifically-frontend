@@ -33,7 +33,7 @@ export default function HeroSection({ onPrimary, onSecondary }) {
               Start Free Trial
             </button>
             <button type="button" className="cta-secondary" onClick={onSecondary}>
-              Watch Demo → <Badge>2 min</Badge>
+              Watch Demo → <VideoBadge duration="2 min" />
             </button>
           </div>
           <HeroStats stats={heroStats} />
@@ -139,14 +139,14 @@ function LogoTicker({ logos, gradientId }) {
   );
 }
 
-function Badge({ children }) {
+function VideoBadge({ duration }) {
   return (
     <span
       style={{
         display: "inline-flex",
         alignItems: "center",
-        justifyContent: "center",
-        padding: "0.15rem 0.5rem",
+        gap: "0.35rem",
+        padding: "0.15rem 0.65rem",
         borderRadius: "0.6rem",
         background: "color-mix(in oklch, var(--brand-glow) 45%, transparent)",
         color: "color-mix(in oklch, white 85%, var(--gray-50))",
@@ -156,7 +156,10 @@ function Badge({ children }) {
         textTransform: "uppercase",
       }}
     >
-      {children}
+      <span aria-hidden="true" style={{ display: "grid", placeItems: "center" }}>
+        ▶
+      </span>
+      {duration}
     </span>
   );
 }

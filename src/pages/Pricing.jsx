@@ -1,5 +1,5 @@
-import { useMemo, useState } from "react";
-import { calculateSavings } from "../utils/calculateSavings";
+import { useState } from "react";
+import ROICalculator from "../components/roi/ROICalculator";
 
 const billingOptions = [
   { id: "monthly", label: "Monthly" },
@@ -76,13 +76,9 @@ const faqItems = [
 
 export default function Pricing() {
   const [billing, setBilling] = useState("annual");
-  const [teamSize, setTeamSize] = useState(45);
-  const [hourlyRate, setHourlyRate] = useState(95);
   const [faqOpen, setFaqOpen] = useState(faqItems[0].question);
 
   const multiplier = billing === "annual" ? 12 * 0.8 : 1;
-
-  const savings = useMemo(() => calculateSavings(teamSize, hourlyRate), [hourlyRate, teamSize]);
 
   return (
     <main className="section-shell" style={{ gap: "clamp(2.5rem, 4vw, 3.5rem)", paddingBottom: "6rem" }}>
@@ -120,36 +116,13 @@ export default function Pricing() {
         ))}
       </section>
 
-      <section className="roi-calculator" style={{ marginTop: "2rem" }}>
-        <h2 style={{ fontSize: "1.8rem", color: "white" }}>Calculate Your Savings</h2>
-        <p style={{ color: "color-mix(in oklch, white 78%, var(--gray-200))" }}>
-          Adjust team size and hourly rate to project ROI in seconds.
-        </p>
-        <div style={{ display: "grid", gap: "1.25rem", marginTop: "1.5rem" }}>
-          <Slider
-            label="Team Size"
-            value={teamSize}
-            min={1}
-            max={1000}
-            onChange={(value) => setTeamSize(Number(value))}
-          />
-          <Slider
-            label="Avg Hourly Rate"
-            value={hourlyRate}
-            min={20}
-            max={200}
-            onChange={(value) => setHourlyRate(Number(value))}
-          />
-        </div>
-        <div className="roi-result" style={{ marginTop: "1.5rem" }}>
-          <span style={{ fontSize: "2.4rem", color: "white" }}>${savings.monthlySavings.toLocaleString()}</span>
-          <span>Estimated Monthly Savings</span>
-          <ul style={{ display: "grid", gap: "0.35rem", paddingLeft: "1.2rem" }}>
-            <li>Time saved: {savings.hoursSavedPerWeek} hrs/week</li>
-            <li>ROI: {savings.roi}x</li>
-          </ul>
-        </div>
-      </section>
+      <ROICalculator
+        heading="Calculate Your Savings"
+        description="Adjust team size and hourly rate to project ROI in seconds."
+        variant="panel"
+        id="pricing-roi-calculator"
+        style={{ marginTop: "2rem" }}
+      />
 
       <section style={{ display: "grid", gap: "1rem" }}>
         <h2 style={{ fontSize: "1.8rem", color: "white" }}>Frequently Asked Questions</h2>
@@ -233,28 +206,6 @@ function PricingCard({ tier, multiplier, billing }) {
         {isCustom ? "Contact Sales" : "Start Free Trial"}
       </button>
     </article>
-  );
-}
-
-function Slider({ label, min, max, value, onChange }) {
-  return (
-    <label style={{ display: "grid", gap: "0.5rem", color: "color-mix(in oklch, white 80%, var(--gray-200))" }}>
-      <span style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-        <span>{label}</span>
-        <strong style={{ color: "white" }}>{value}</strong>
-      </span>
-      <input
-        type="range"
-        min={min}
-        max={max}
-        value={value}
-        onChange={(event) => onChange(event.target.value)}
-        style={{
-          width: "100%",
-          accentColor: "var(--brand-glow)",
-        }}
-      />
-    </label>
   );
 }
 

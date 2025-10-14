@@ -1144,6 +1144,44 @@
   border: 1px solid color-mix(in oklch, white 12%, transparent);
 }
 
+.roi-calculator__header {
+  display: grid;
+  gap: 0.4rem;
+}
+
+.roi-calculator__header :is(h1, h2, h3, h4, h5, h6) {
+  font-size: clamp(1.4rem, 2.4vw, 1.8rem);
+  color: white;
+  letter-spacing: -0.01em;
+}
+
+.roi-calculator__header p {
+  color: color-mix(in oklch, white 78%, var(--gray-200));
+  font-size: 0.95rem;
+}
+
+.roi-calculator__controls {
+  display: grid;
+  gap: 1rem;
+}
+
+.roi-calculator--panel {
+  padding: clamp(1.8rem, 3vw, 2.4rem);
+}
+
+.roi-calculator--compact {
+  padding: clamp(1.25rem, 2vw, 1.75rem);
+  gap: 1rem;
+}
+
+.roi-calculator--compact .roi-calculator__header :is(h1, h2, h3, h4, h5, h6) {
+  font-size: clamp(1.15rem, 2vw, 1.3rem);
+}
+
+.roi-calculator--compact .roi-calculator__header p {
+  font-size: 0.85rem;
+}
+
 .roi-result {
   display: grid;
   gap: 0.75rem;
