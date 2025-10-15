@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useRef, useState } from "react";
+import useDocumentVisibility from "../../hooks/useDocumentVisibility";
 import HeroBackground from "./HeroBackground";
 import ProductPreview3D from "./ProductPreview3D";
 import ScrollIndicator from "./ScrollIndicator";
@@ -72,6 +73,7 @@ function StatCounter({ value, suffix = "", label }) {
   const rafRef = useRef();
   const nodeRef = useRef(null);
   const [shouldAnimate, setShouldAnimate] = useState(false);
+  const isDocumentVisible = useDocumentVisibility();
   const [prefersReducedMotion, setPrefersReducedMotion] = useState(() => {
     if (typeof window === "undefined" || typeof window.matchMedia !== "function") {
       return false;
@@ -122,6 +124,8 @@ function StatCounter({ value, suffix = "", label }) {
     };
   }, []);
 
+  const canAnimate = shouldAnimate && isDocumentVisible;
+
   useEffect(() => {
     if (prefersReducedMotion) {
       setDisplay(value);
@@ -131,7 +135,7 @@ function StatCounter({ value, suffix = "", label }) {
       return () => {};
     }
 
-    if (!shouldAnimate) {
+    if (!canAnimate) {
       if (!hasAnimatedRef.current) {
         setDisplay(0);
       }
@@ -164,13 +168,13 @@ function StatCounter({ value, suffix = "", label }) {
         cancelAnimationFrame(rafRef.current);
       }
     };
-  }, [prefersReducedMotion, shouldAnimate, value]);
+  }, [canAnimate, prefersReducedMotion, value]);
 
   useEffect(() => {
-    if (!shouldAnimate) {
+    if (!canAnimate) {
       hasAnimatedRef.current = false;
     }
-  }, [shouldAnimate, value]);
+  }, [canAnimate, value]);
 
   const formatted = useMemo(() => {
     if (value >= 1000) {

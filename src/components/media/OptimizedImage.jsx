@@ -44,6 +44,7 @@ const OptimizedImageComponent = ({
   loading = "lazy",
   decoding = "async",
   fallbackExtension = "jpg",
+  fetchPriority,
   ...props
 }) => {
   const parsedSource = useMemo(() => parseImageSource(src), [src]);
@@ -85,7 +86,15 @@ const OptimizedImageComponent = ({
       {normalizedSources.map(({ srcSet, type, media, sizes }) => (
         <source key={`${type ?? ""}-${media ?? srcSet}`} srcSet={srcSet} type={type} media={media} sizes={sizes} />
       ))}
-      <img src={resolvedSrc} alt={alt} className={className} loading={loading} decoding={decoding} {...props} />
+      <img
+        src={resolvedSrc}
+        alt={alt}
+        className={className}
+        loading={loading}
+        decoding={decoding}
+        fetchPriority={fetchPriority}
+        {...props}
+      />
     </picture>
   );
 };
@@ -105,6 +114,7 @@ const BlurImageComponent = ({
   loading = "lazy",
   decoding = "async",
   wrapperProps = {},
+  fetchPriority,
   ...props
 }) => {
   const [loaded, setLoaded] = useState(false);
@@ -139,6 +149,7 @@ const BlurImageComponent = ({
         loading={loading}
         decoding={decoding}
         onLoad={handleLoad}
+        fetchPriority={fetchPriority}
         {...props}
       />
     </div>

@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useRef, useState } from "react";
+import useDocumentVisibility from "../../hooks/useDocumentVisibility";
 import { getNetworkInformation, prefersLowPower } from "../../utils/networkPreferences";
 
 export default function ProductPreview3D({ label = "Automation preview", theme = "dark" }) {
@@ -16,12 +17,13 @@ export default function ProductPreview3D({ label = "Automation preview", theme =
     return window.matchMedia("(prefers-reduced-motion: reduce)").matches;
   });
   const [prefersLowPowerMode, setPrefersLowPowerMode] = useState(() => prefersLowPower());
+  const isDocumentVisible = useDocumentVisibility();
 
   const allowInteractivity = useMemo(
     () => !prefersReducedMotion && !prefersLowPowerMode,
     [prefersLowPowerMode, prefersReducedMotion],
   );
-  const shouldAnimate = allowInteractivity && isInViewport;
+  const shouldAnimate = allowInteractivity && isInViewport && isDocumentVisible;
 
   useEffect(() => {
     if (typeof window === "undefined" || typeof window.matchMedia !== "function") {

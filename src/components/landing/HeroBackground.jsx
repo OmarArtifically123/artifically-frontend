@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from "react";
+import useDocumentVisibility from "../../hooks/useDocumentVisibility";
 import { getNetworkInformation, prefersLowPower } from "../../utils/networkPreferences";
 
 function createParticles(width, height, count) {
@@ -24,9 +25,14 @@ export default function HeroBackground({ variant = "particles" }) {
   });
   const [prefersLowPowerMode, setPrefersLowPowerMode] = useState(() => prefersLowPower());
   const [isInViewport, setIsInViewport] = useState(false);
+  const isDocumentVisible = useDocumentVisibility();
 
   const shouldAnimate =
-    variant === "particles" && isInViewport && !prefersReducedMotion && !prefersLowPowerMode;
+    variant === "particles" &&
+    isInViewport &&
+    isDocumentVisible &&
+    !prefersReducedMotion &&
+    !prefersLowPowerMode;
 
   useEffect(() => {
     if (typeof window === "undefined" || typeof window.matchMedia !== "function") {

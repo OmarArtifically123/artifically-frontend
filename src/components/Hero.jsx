@@ -16,6 +16,7 @@ import { BlurImage } from "./media/OptimizedImage";
 import { useTheme } from "../context/ThemeContext";
 import Button from "./ui/Button";
 import Input from "./ui/Input";
+import useDocumentVisibility from "../hooks/useDocumentVisibility";
 
 const HERO_PREVIEW_IMAGE = "/images/hero-preview.jpg";
 const HERO_PREVIEW_SOURCES = [
@@ -112,6 +113,8 @@ function BackgroundCanvas() {
   const canvasRef = useRef(null);
   const prefersReducedMotion = usePrefersReducedMotion();
   const { darkMode } = useTheme();
+  const isDocumentVisible = useDocumentVisibility();
+  const [isInViewport, setIsInViewport] = useState(false);
 
   const palette = useMemo(
     () =>
@@ -145,6 +148,31 @@ function BackgroundCanvas() {
 
   useEffect(() => {
     const canvas = canvasRef.current;
+    if (!canvas || typeof IntersectionObserver === "undefined") {
+      setIsInViewport(true);
+      return undefined;
+    }
+
+    const observer = new IntersectionObserver(
+      (entries) => {
+        entries.forEach((entry) => {
+          if (entry.target === canvas) {
+            setIsInViewport(entry.isIntersecting);
+          }
+        });
+      },
+      { threshold: 0.1 },
+    );
+
+    observer.observe(canvas);
+
+    return () => {
+      observer.disconnect();
+    };
+  }, []);
+
+  useEffect(() => {
+    const canvas = canvasRef.current;
     if (!canvas) return undefined;
     const context = canvas.getContext("2d");
     if (!context) return undefined;
@@ -159,6 +187,7 @@ function BackgroundCanvas() {
     }));
     const pointer = { x: 0.5, y: 0.5, active: false };
     let animationFrameId;
+    const shouldAnimate = isInViewport && isDocumentVisible && !prefersReducedMotion;
 
     const resize = () => {
       const { width, height } = canvas.getBoundingClientRect();
@@ -262,10 +291,16 @@ function BackgroundCanvas() {
         updateNodes(delta * 0.6);
       }
       draw();
-      animationFrameId = requestAnimationFrame(render);
+      if (shouldAnimate) {
+        animationFrameId = requestAnimationFrame(render);
+      }
     };
 
-    animationFrameId = requestAnimationFrame(render);
+    if (shouldAnimate) {
+      animationFrameId = requestAnimationFrame(render);
+    } else {
+      draw();
+    }
 
     window.addEventListener("resize", resize);
     canvas.addEventListener("pointermove", handlePointerMove);
@@ -277,7 +312,7 @@ function BackgroundCanvas() {
       canvas.removeEventListener("pointerleave", handlePointerLeave);
       cancelAnimationFrame(animationFrameId);
     };
-  }, [prefersReducedMotion, palette, darkMode]);
+  }, [darkMode, isDocumentVisible, isInViewport, palette, prefersReducedMotion]);
 
   return <canvas ref={canvasRef} className="hero-background hero-bg-fixed" aria-hidden="true" />;
 }
@@ -1391,6 +1426,7 @@ function HeroSceneShowcase() {
             className="hero-preview__fallback"
             loading="eager"
             decoding="sync"
+            fetchPriority="high"
             wrapperProps={{
               "data-enhanced": "true",
               style: { width: "100%", height: "100%" },

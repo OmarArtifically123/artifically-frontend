@@ -11,8 +11,11 @@ const LIGHT_COLORS = {
   plasma: "rgba(56, 189, 248, 0.3)",
   grid: "rgba(15, 23, 42, 0.12)",
   textGradientStart: "#0f172a",
+  textGradientMid: "#2563eb",
   textGradientEnd: "#0369a1",
+  textOutline: "rgba(15, 23, 42, 0.26)",
   tagline: "rgba(30, 41, 59, 0.7)",
+  taglineGlow: "rgba(59, 130, 246, 0.18)",
   glow: "rgba(59, 130, 246, 0.45)",
 };
 
@@ -27,10 +30,15 @@ const DARK_COLORS = {
   plasma: "rgba(147, 197, 253, 0.22)",
   grid: "rgba(148, 163, 184, 0.18)",
   textGradientStart: "#f8fafc",
+  textGradientMid: "#bae6fd",
   textGradientEnd: "#22d3ee",
+  textOutline: "rgba(15, 118, 110, 0.45)",
   tagline: "rgba(226, 232, 240, 0.65)",
+  taglineGlow: "rgba(34, 211, 238, 0.22)",
   glow: "rgba(59, 130, 246, 0.55)",
 };
+
+const WORDMARK_WIDTH = 300;
 
 const ORBIT_RINGS = [
   { rx: 168, ry: 88, rotation: -12, opacity: 0.6 },
@@ -86,7 +94,7 @@ export default function LogoWordmark({ variant = "light", className, ...props })
       className={className}
       {...props}
     >
-      <title id={getId("title")}>Artifically</title>
+      <title id={getId("title")}>Artifically wordmark</title>
       <defs>
         <linearGradient id={getId("primary")} x1="28" y1="208" x2="360" y2="16" gradientUnits="userSpaceOnUse">
           <stop offset="0%" stopColor={colors.glyphStart} />
@@ -126,7 +134,13 @@ export default function LogoWordmark({ variant = "light", className, ...props })
         </radialGradient>
         <linearGradient id={getId("text")} x1="0" y1="0" x2="1" y2="1">
           <stop offset="0%" stopColor={colors.textGradientStart} />
+          <stop offset="55%" stopColor={colors.textGradientMid} />
           <stop offset="100%" stopColor={colors.textGradientEnd} />
+        </linearGradient>
+        <linearGradient id={getId("tagline-highlight")} x1="0" y1="0" x2="1" y2="0">
+          <stop offset="0%" stopColor="rgba(255,255,255,0)" />
+          <stop offset="45%" stopColor={colors.taglineGlow} />
+          <stop offset="100%" stopColor="rgba(255,255,255,0)" />
         </linearGradient>
         <pattern id={getId("grid")} width="14" height="14" patternUnits="userSpaceOnUse" patternTransform="skewX(-18)">
           <path d="M0 0h14v14" fill="none" stroke={colors.grid} strokeWidth="1" />
@@ -237,29 +251,57 @@ export default function LogoWordmark({ variant = "light", className, ...props })
         <circle cx="210" cy="108" r="32" fill="none" stroke="rgba(255,255,255,0.35)" strokeWidth="1.6" strokeDasharray="4 8" />
         <circle cx="210" cy="108" r="12" fill={`url(#${getId("spark")})`} opacity="0.75" />
       </g>
-      <g transform="translate(360 58)" filter={`url(#${getId("text-glow")})`}>
+      <g transform="translate(320 58)" filter={`url(#${getId("text-glow")})`}>
         <text
           x="0"
           y="0"
           fontFamily="var(--font-sans, 'Inter', 'Segoe UI', 'Helvetica Neue', sans-serif)"
           fontSize="40"
           fontWeight="800"
-          letterSpacing="0.14em"
           fill={`url(#${getId("text")})`}
+          stroke={colors.textOutline}
+          strokeWidth="1.2"
+          style={{ paintOrder: "stroke fill" }}
+          textLength={WORDMARK_WIDTH}
+          lengthAdjust="spacingAndGlyphs"
         >
           ARTIFICALLY
         </text>
         <g transform="translate(0 16)">
-          <rect x="0" y="0" width="230" height="3" fill={colors.accent} opacity="0.65" rx="1.5" />
-          <rect x="0" y="8" width="230" height="1.2" fill="#fff" opacity="0.25" />
+          <rect
+            x="0"
+            y="0"
+            width={WORDMARK_WIDTH}
+            height="3"
+            fill={colors.accent}
+            opacity="0.65"
+            rx="1.5"
+          />
+          <rect
+            x="0"
+            y="8"
+            width={WORDMARK_WIDTH}
+            height="1.2"
+            fill="#fff"
+            opacity="0.25"
+          />
         </g>
+        <rect
+          x="0"
+          y="34"
+          width={WORDMARK_WIDTH}
+          height="18"
+          fill={`url(#${getId("tagline-highlight")})`}
+          rx="9"
+          opacity="0.55"
+        />
         <text
           x="0"
           y="58"
           fontFamily="var(--font-sans, 'Inter', 'Segoe UI', 'Helvetica Neue', sans-serif)"
           fontSize="14"
           fontWeight="600"
-          letterSpacing="0.48em"
+          letterSpacing="0.42em"
           fill={colors.tagline}
         >
           AUTOMATION • INTELLIGENCE • ORCHESTRATION

@@ -4,17 +4,40 @@ import { getNetworkInformation, prefersLowPower } from "../utils/networkPreferen
 const STORAGE_KEY = "__artifically_route_model_v1";
 const HISTORY_KEY = "route-history";
 
-const requestIdle =
-  typeof window !== "undefined" && typeof window.requestIdleCallback === "function"
-    ? (cb) => window.requestIdleCallback(cb)
-    : (cb) => setTimeout(() => cb({ didTimeout: false, timeRemaining: () => 0 }), 1);
+const supportsScheduler =
+  typeof window !== "undefined" &&
+  typeof window.scheduler !== "undefined" &&
+  typeof window.scheduler.postTask === "function";
 
-const cancelIdle =
-  typeof window !== "undefined" && typeof window.cancelIdleCallback === "function"
-    ? (id) => window.cancelIdleCallback(id)
-    : (id) => clearTimeout(id);
+const scheduleIdleTask = (callback, { priority = "background" } = {}) => {
+  if (typeof window === "undefined") {
+    return () => {};
+  }
 
-    const loadHistory = () => {
+  const run = () => {
+    callback();
+  };
+
+if (supportsScheduler) {
+    const controller = new AbortController();
+    window.scheduler.postTask(run, {
+      priority,
+      delay: 0,
+      signal: controller.signal,
+    });
+    return () => controller.abort();
+  }
+
+    if (typeof window.requestIdleCallback === "function") {
+    const id = window.requestIdleCallback(run, { timeout: 1500 });
+    return () => window.cancelIdleCallback(id);
+  }
+
+  const timeoutId = window.setTimeout(run, 1);
+  return () => window.clearTimeout(timeoutId);
+};
+
+const loadHistory = () => {
   if (typeof window === "undefined") return [];
   try {
     const stored = window.localStorage.getItem(HISTORY_KEY);
@@ -95,10 +118,11 @@ const normalise = (weights) => {
 
 export default function usePredictivePrefetch(routeLoaders, currentPathname) {
   const interactionCounts = useRef(new Map());
-  const idleHandle = useRef(null);
+  const idleCancel = useRef(null);
   const modelRef = useRef(loadModel());
   const previousRouteRef = useRef(currentPathname);
-  const persistIdleHandle = useRef(null);
+  const persistIdleCancel = useRef(null);
+  const prefetchedRoutesRef = useRef(new Set());
   const [hasUserEngaged, setHasUserEngaged] = useState(false);
   const [connectionConstrained, setConnectionConstrained] = useState(() => prefersLowPower());
 
@@ -163,10 +187,10 @@ export default function usePredictivePrefetch(routeLoaders, currentPathname) {
     model.visits[currentPathname] = (model.visits[currentPathname] || 0) + 1;
     previousRouteRef.current = currentPathname;
 
-    if (persistIdleHandle.current) {
-      cancelIdle(persistIdleHandle.current);
+    if (persistIdleCancel.current) {
+      persistIdleCancel.current();
     }
-    persistIdleHandle.current = requestIdle(() => persistModel(model));
+    persistIdleCancel.current = scheduleIdleTask(() => persistModel(model));
 
     const currentCount = counts.get(currentPathname) || 0;
     counts.set(currentPathname, currentCount + 0.5);
@@ -261,32 +285,41 @@ export default function usePredictivePrefetch(routeLoaders, currentPathname) {
         pushEntries(ranked, false);
       }
 
+      if (!visibleRoutes.size) {
+        return;
+      }
+
       const limited = prioritised.slice(0, 2);
-      const prefetched = new Set();
       limited.forEach(({ path }) => {
-        if (prefetched.has(path)) return;
-        prefetched.add(path);
+        if (prefetchedRoutesRef.current.has(path)) {
+          return;
+        }
+        if (!loaders[path]) {
+          return;
+        }
+
+        prefetchedRoutesRef.current.add(path);
         try {
           loaders[path]?.();
         } catch (error) {
           console.warn("Prefetch failed", path, error);
         }
       });
-      };
+    };
 
-    if (idleHandle.current) {
-      cancelIdle(idleHandle.current);
+    if (idleCancel.current) {
+      idleCancel.current();
     }
 
     if (!hasUserEngaged || connectionConstrained) {
       return () => {
-        if (idleHandle.current) {
-          cancelIdle(idleHandle.current);
+        if (idleCancel.current) {
+          idleCancel.current();
         }
       };
     }
 
-    idleHandle.current = requestIdle(() => {
+    idleCancel.current = scheduleIdleTask(() => {
       if (typeof document !== "undefined" && document.visibilityState === "hidden") {
         return;
       }
@@ -294,8 +327,13 @@ export default function usePredictivePrefetch(routeLoaders, currentPathname) {
     });
 
     return () => {
-      if (idleHandle.current) {
-        cancelIdle(idleHandle.current);
+      if (idleCancel.current) {
+        idleCancel.current();
+        idleCancel.current = null;
+      }
+      if (persistIdleCancel.current) {
+        persistIdleCancel.current();
+        persistIdleCancel.current = null;
       }
     };
   }, [connectionConstrained, currentPathname, hasUserEngaged, loaders]);
@@ -325,7 +363,12 @@ export default function usePredictivePrefetch(routeLoaders, currentPathname) {
       model.transitions[currentPathname] = transitions;
 
       interactionCounts.current.set(route, (interactionCounts.current.get(route) || 0) + 1.5);
-      requestIdle(() => loaders[route]());
+      if (prefetchedRoutesRef.current.has(route)) {
+        return;
+      }
+
+      prefetchedRoutesRef.current.add(route);
+      scheduleIdleTask(() => loaders[route]?.());
     };
 
     document.addEventListener("pointerenter", handler, { passive: true, capture: true });
