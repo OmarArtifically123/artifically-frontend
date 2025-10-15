@@ -181,6 +181,29 @@ export default function ExperienceLayer({ children, enableExperience = false }) 
     let ctx;
     let ScrollTriggerModule;
 
+    const teardown = () => {
+      if (timelineRef.current) {
+        timelineRef.current.kill();
+        timelineRef.current = null;
+      }
+
+      ctx?.revert();
+
+      if (ScrollTriggerModule) {
+        ScrollTriggerModule.getAll().forEach((instance) => instance.kill());
+      }
+
+      if (gsapRef.current && containerRef.current) {
+        const targets = containerRef.current.querySelectorAll("[data-experience-animate]");
+        gsapRef.current.killTweensOf(targets);
+      }
+    };
+
+    if (reducedMotion) {
+      teardown();
+      return teardown;
+    }
+
     const setup = async () => {
       if (!containerRef.current) return;
       try {
@@ -231,24 +254,9 @@ export default function ExperienceLayer({ children, enableExperience = false }) 
 
     return () => {
       isMounted = false;
-
-      if (timelineRef.current) {
-        timelineRef.current.kill();
-        timelineRef.current = null;
-      }
-
-      ctx?.revert();
-
-      if (ScrollTriggerModule) {
-        ScrollTriggerModule.getAll().forEach((instance) => instance.kill());
-      }
-
-      if (gsapRef.current && containerRef.current) {
-        const targets = containerRef.current.querySelectorAll("[data-experience-animate]");
-        gsapRef.current.killTweensOf(targets);
-      }
+      teardown();
     };
-  }, []);
+  }, [reducedMotion]);
 
   return (
     <MicroInteractionProvider enabled={eligible}>

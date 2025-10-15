@@ -225,6 +225,9 @@ export default function App() {
 
   return (
     <ExperienceLayer enableExperience={enableExperience}>
+      <a href="#main-content" className="skip-link">
+        Skip to main content
+      </a>
       <Header
         user={user}
         onSignIn={() => openAuth("signin")}
@@ -260,7 +263,12 @@ export default function App() {
         </div>
       )}
 
-      <main className="app-shell" data-route-ready={isHydrated ? "true" : "false"}>
+      <main
+        id="main-content"
+        className="app-shell"
+        data-route-ready={isHydrated ? "true" : "false"}
+        tabIndex={-1}
+      >
         <Suspense fallback={<RouteShell rows={6} />}>
           <Routes location={location}>
             <Route

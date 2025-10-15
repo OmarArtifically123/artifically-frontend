@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState, useId } from "react";
 import { fetchAutomations } from "../data/automations";
 import { toast } from "../components/Toast";
 import ProductPreview3D from "../components/landing/ProductPreview3D";
@@ -17,6 +17,7 @@ export default function Marketplace() {
   const [quickView, setQuickView] = useState(null);
   const [isSearchFocused, setIsSearchFocused] = useState(false);
   const [highlightedSuggestion, setHighlightedSuggestion] = useState(0);
+  const suggestionIdPrefix = useId();
   const filterRefs = useRef([]);
   const cardRefs = useRef([]);
   const searchFieldBlurTimeout = useRef();
@@ -227,6 +228,12 @@ export default function Marketplace() {
     }
   };
 
+  const suggestionListId = `${suggestionIdPrefix}-listbox`;
+  const activeDescendant =
+    showSuggestions && suggestions[highlightedSuggestion]
+      ? `${suggestionIdPrefix}-option-${highlightedSuggestion}`
+      : undefined;
+
   return (
     <main className="marketplace-shell">
       <header className="section-header">
@@ -251,27 +258,41 @@ export default function Marketplace() {
             onFocus={handleSearchFocus}
             onBlur={handleSearchBlur}
             onKeyDown={handleSearchKeyDown}
+            role="combobox"
             aria-autocomplete="list"
-            aria-controls="automation-suggestions"
-            aria-expanded={showSuggestions}
+            aria-controls={suggestionListId}
+            aria-expanded={showSuggestions ? "true" : "false"}
+            aria-activedescendant={activeDescendant}
+            aria-haspopup="listbox"
           />
           {showSuggestions && (
-            <ul id="automation-suggestions" className="search-suggestions" role="listbox">
-              {suggestions.map((suggestion, index) => (
-                <li key={suggestion.id || suggestion.name || index}>
-                  <button
-                    type="button"
-                    role="option"
-                    aria-selected={index === highlightedSuggestion}
-                    data-highlighted={index === highlightedSuggestion}
-                    onMouseDown={(event) => event.preventDefault()}
-                    onClick={() => handleSuggestionSelect(suggestion.name || "")}
-                  >
-                    <span className="search-suggestions__name">{suggestion.name}</span>
-                    <span className="search-suggestions__meta">{suggestion.category || suggestion.vertical || "Automation"}</span>
-                  </button>
-                </li>
-              ))}
+            <ul
+              id={suggestionListId}
+              className="search-suggestions"
+              role="listbox"
+              aria-label="Search suggestions"
+            >
+              {suggestions.map((suggestion, index) => {
+                const optionId = `${suggestionIdPrefix}-option-${index}`;
+                return (
+                    <li key={suggestion.id || suggestion.name || index} role="presentation">
+                      <button
+                        type="button"
+                        role="option"
+                        aria-selected={index === highlightedSuggestion}
+                        data-highlighted={index === highlightedSuggestion}
+                        id={optionId}
+                        onMouseDown={(event) => event.preventDefault()}
+                        onClick={() => handleSuggestionSelect(suggestion.name || "")}
+                      >
+                        <span className="search-suggestions__name">{suggestion.name}</span>
+                        <span className="search-suggestions__meta">
+                          {suggestion.category || suggestion.vertical || "Automation"}
+                        </span>
+                      </button>
+                    </li>
+                );
+              })}
             </ul>
           )}
         </div>

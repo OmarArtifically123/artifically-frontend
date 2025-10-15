@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState, useId } from "react";
 import useDocumentVisibility from "../../hooks/useDocumentVisibility";
 import { getNetworkInformation, prefersLowPower } from "../../utils/networkPreferences";
 
@@ -18,12 +18,16 @@ export default function ProductPreview3D({ label = "Automation preview", theme =
   });
   const [prefersLowPowerMode, setPrefersLowPowerMode] = useState(() => prefersLowPower());
   const isDocumentVisible = useDocumentVisibility();
+  const descriptionId = useId();
 
   const allowInteractivity = useMemo(
     () => !prefersReducedMotion && !prefersLowPowerMode,
     [prefersLowPowerMode, prefersReducedMotion],
   );
   const shouldAnimate = allowInteractivity && isInViewport && isDocumentVisible;
+  const previewDescription = allowInteractivity
+    ? "Interactive 3D preview of the automation workspace that responds to pointer movement."
+    : "Static preview of the automation workspace highlighting its layout.";
 
   useEffect(() => {
     if (typeof window === "undefined" || typeof window.matchMedia !== "function") {
@@ -170,8 +174,17 @@ export default function ProductPreview3D({ label = "Automation preview", theme =
 
   return (
     <div ref={containerRef} className={`product-preview product-preview--${theme}`}>
+      <p id={descriptionId} className="sr-only">
+        {previewDescription}
+      </p>
       <div className="product-preview__glow" aria-hidden="true" />
-      <div className="product-preview__frame" ref={frameRef} role="img" aria-label={label}>
+      <div
+        className="product-preview__frame"
+        ref={frameRef}
+        role="img"
+        aria-label={label}
+        aria-describedby={descriptionId}
+      >
         <div className="product-preview__surface">
           <header className="product-preview__toolbar">
             <span />

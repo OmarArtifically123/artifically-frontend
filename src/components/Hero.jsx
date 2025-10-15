@@ -1439,8 +1439,14 @@ function HeroSceneShowcase() {
 }
 
 function ScrollIndicator() {
+  const prefersReducedMotion = useReducedMotion();
+
   return (
-    <div className="hero-scroll-indicator hero__scroll" aria-hidden="true">
+    <div
+      className="hero-scroll-indicator hero__scroll"
+      aria-hidden="true"
+      data-reduced-motion={prefersReducedMotion ? "true" : undefined}
+    >
       <span className="hero-scroll-indicator__track">
         <span className="hero-scroll-indicator__dot" />
       </span>
