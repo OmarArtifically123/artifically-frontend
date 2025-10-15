@@ -124,6 +124,10 @@ function sendToAnalytics(metric) {
       name: metric.name,
       value: metric.value,
       rating: metric.rating,
+      id: metric.id,
+      delta: metric.delta,
+      navigationType: metric.navigationType,
+      url: typeof window !== "undefined" ? window.location.href : undefined,
     });
 
     if (typeof navigator !== "undefined") {
@@ -162,6 +166,9 @@ if (typeof window !== "undefined") {
             name: metric.name,
             value: metric.value,
             rating: metric.rating,
+            id: metric.id,
+            delta: metric.delta,
+            navigationType: metric.navigationType,
           });
         } catch (error) {
           if (import.meta.env.DEV) {

@@ -1,8 +1,42 @@
 import path from "path";
 import fs from "fs";
 import { fileURLToPath, pathToFileURL } from "url";
+import {
+  buildSitemapXml,
+  buildRobotsTxt,
+  getCanonicalUrl,
+  getStructuredData,
+  injectSeoMeta,
+  ssrStatusPayload,
+} from "../server/seo.js";
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
+
+const createIsoTimestamp = () => new Date().toISOString();
+
+const ssrStatus = {
+  healthy: false,
+  lastSuccessAt: null,
+  lastErrorAt: null,
+  lastErrorMessage: null,
+  lastFallbackAt: null,
+};
+
+const markSsrSuccess = () => {
+  ssrStatus.healthy = true;
+  ssrStatus.lastSuccessAt = createIsoTimestamp();
+};
+
+const markSsrFailure = (error) => {
+  ssrStatus.healthy = false;
+  ssrStatus.lastErrorAt = createIsoTimestamp();
+  ssrStatus.lastErrorMessage = error?.message ?? String(error ?? "Unknown SSR failure");
+};
+
+const markSsrFallback = (error) => {
+  markSsrFailure(error);
+  ssrStatus.lastFallbackAt = createIsoTimestamp();
+};
 
 const mimeTypes = {
   ".js": "application/javascript",
@@ -73,12 +107,66 @@ const normaliseRequestPath = (rawPath = "/") => {
   }
 };
 
+const handleSeoRoutes = (req, res) => {
+  const method = (req.method || "GET").toUpperCase();
+  if (method !== "GET" && method !== "HEAD") {
+    return false;
+  }
+
+  const pathname = (req.url || "/").split("?")[0];
+
+  if (pathname === "/robots.txt") {
+    const body = buildRobotsTxt();
+    res.statusCode = 200;
+    res.setHeader("Content-Type", "text/plain; charset=utf-8");
+    res.setHeader("Cache-Control", "public, max-age=86400");
+    if (method === "HEAD") {
+      res.end();
+    } else {
+      res.end(body);
+    }
+    return true;
+  }
+
+  if (pathname === "/sitemap.xml") {
+    const body = buildSitemapXml();
+    res.statusCode = 200;
+    res.setHeader("Content-Type", "application/xml; charset=utf-8");
+    res.setHeader("Cache-Control", "public, max-age=900");
+    if (method === "HEAD") {
+      res.end();
+    } else {
+      res.end(body);
+    }
+    return true;
+  }
+
+  if (pathname === "/__ssr-status") {
+    res.statusCode = 200;
+    res.setHeader("Content-Type", "application/json; charset=utf-8");
+    res.setHeader("Cache-Control", "no-store");
+    const payload = ssrStatusPayload({ ...ssrStatus, environment: "production" });
+    if (method === "HEAD") {
+      res.end();
+    } else {
+      res.end(JSON.stringify(payload));
+    }
+    return true;
+  }
+
+  return false;
+};
+
 export default async function handler(req, res) {
   const clientDist = path.resolve(__dirname, "../dist/client");
   const serverDist = path.resolve(__dirname, "../dist/server");
   const templatePath = path.join(clientDist, "index.html");
 
   const requestPath = normaliseRequestPath(req.url);
+
+  if (handleSeoRoutes(req, res)) {
+    return;
+  }
 
   if (isStaticAssetRequest(requestPath)) {
     const assetPath = path.join(clientDist, requestPath);
@@ -176,23 +264,49 @@ export default async function handler(req, res) {
 
     if (!manifest) {
       console.warn("⚠️ ssr-manifest.json not found. Falling back to client rendering.");
+      markSsrFallback(new Error("ssr-manifest.json missing"));
       res.statusCode = 200;
       res.setHeader("Content-Type", "text/html; charset=utf-8");
       res.setHeader("X-SSR-Fallback", "true");
-      res.end(clientOnlyTemplate);
+      const canonicalUrl = getCanonicalUrl(requestPath);
+      const structuredData = getStructuredData(requestPath);
+      res.setHeader("Link", `<${canonicalUrl}>; rel="canonical"`);
+      res.end(injectSeoMeta(clientOnlyTemplate, { canonicalUrl, structuredData }));
       return;
     }
 
     // Run SSR
-    await render({ req, res, template, manifest, isProd: true });
+    const canonicalUrl = getCanonicalUrl(requestPath);
+    const structuredData = getStructuredData(requestPath);
+    template = injectSeoMeta(template, { canonicalUrl, structuredData });
+    const fallbackTemplate = injectSeoMeta(clientOnlyTemplate, { canonicalUrl, structuredData });
+
+    res.setHeader("Link", `<${canonicalUrl}>; rel="canonical"`);
+
+    try {
+      await render({ req, res, template, manifest, isProd: true });
+      markSsrSuccess();
+    } catch (renderError) {
+      markSsrFallback(renderError);
+      if (!res.headersSent) {
+        res.statusCode = 200;
+        res.setHeader("Content-Type", "text/html; charset=utf-8");
+        res.setHeader("X-SSR-Fallback", "true");
+        res.end(fallbackTemplate);
+      }
+    }
   } catch (error) {
     console.error("❌ SSR error:", error);
+    markSsrFallback(error);
     if (!res.headersSent) {
       if (clientOnlyTemplate) {
         res.statusCode = 200;
         res.setHeader("Content-Type", "text/html; charset=utf-8");
         res.setHeader("X-SSR-Fallback", "true");
-        res.end(clientOnlyTemplate);
+        const canonicalUrl = getCanonicalUrl(requestPath);
+        const structuredData = getStructuredData(requestPath);
+        res.setHeader("Link", `<${canonicalUrl}>; rel="canonical"`);
+        res.end(injectSeoMeta(clientOnlyTemplate, { canonicalUrl, structuredData }));
       } else {
         res.statusCode = 500;
         res.end("Internal Server Error");

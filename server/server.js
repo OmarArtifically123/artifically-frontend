@@ -3,9 +3,43 @@ import fs from "fs";
 import path from "path";
 import http from "http";
 import { fileURLToPath, pathToFileURL } from "url";
+import {
+  buildSitemapXml,
+  buildRobotsTxt,
+  getCanonicalUrl,
+  getStructuredData,
+  injectSeoMeta,
+  ssrStatusPayload,
+} from "./seo.js";
 
 const isProd = process.env.NODE_ENV === "production";
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
+
+const createIsoTimestamp = () => new Date().toISOString();
+
+const ssrStatus = {
+  healthy: false,
+  lastSuccessAt: null,
+  lastErrorAt: null,
+  lastErrorMessage: null,
+  lastFallbackAt: null,
+};
+
+const markSsrSuccess = () => {
+  ssrStatus.healthy = true;
+  ssrStatus.lastSuccessAt = createIsoTimestamp();
+};
+
+const markSsrFailure = (error) => {
+  ssrStatus.healthy = false;
+  ssrStatus.lastErrorAt = createIsoTimestamp();
+  ssrStatus.lastErrorMessage = error?.message ?? String(error ?? "Unknown SSR failure");
+};
+
+const markSsrFallback = (error) => {
+  markSsrFailure(error);
+  ssrStatus.lastFallbackAt = createIsoTimestamp();
+};
 
 const mimeTypes = {
   ".js": "application/javascript",
@@ -28,6 +62,56 @@ const setDefaultHeaders = (res) => {
   res.setHeader("X-Frame-Options", "DENY");
   res.setHeader("X-Content-Type-Options", "nosniff");
   res.setHeader("Referrer-Policy", "strict-origin-when-cross-origin");
+};
+
+const handleSeoRoutes = (req, res, environment) => {
+  const method = (req.method || "GET").toUpperCase();
+  if (method !== "GET" && method !== "HEAD") {
+    return false;
+  }
+
+  const pathname = (req.url || "/").split("?")[0];
+
+  if (pathname === "/robots.txt") {
+    const body = buildRobotsTxt();
+    res.statusCode = 200;
+    res.setHeader("Content-Type", "text/plain; charset=utf-8");
+    res.setHeader("Cache-Control", "public, max-age=86400");
+    if (method === "HEAD") {
+      res.end();
+    } else {
+      res.end(body);
+    }
+    return true;
+  }
+
+  if (pathname === "/sitemap.xml") {
+    const body = buildSitemapXml();
+    res.statusCode = 200;
+    res.setHeader("Content-Type", "application/xml; charset=utf-8");
+    res.setHeader("Cache-Control", "public, max-age=900");
+    if (method === "HEAD") {
+      res.end();
+    } else {
+      res.end(body);
+    }
+    return true;
+  }
+
+  if (pathname === "/__ssr-status") {
+    res.statusCode = 200;
+    res.setHeader("Content-Type", "application/json; charset=utf-8");
+    res.setHeader("Cache-Control", "no-store");
+    const payload = ssrStatusPayload({ ...ssrStatus, environment });
+    if (method === "HEAD") {
+      res.end();
+    } else {
+      res.end(JSON.stringify(payload));
+    }
+    return true;
+  }
+
+  return false;
 };
 
 const normalizeRenderResult = (result) => {
@@ -71,6 +155,10 @@ async function createDevServer() {
     setDefaultHeaders(res);
     const url = req.url || "/";
 
+    if (handleSeoRoutes(req, res, "development")) {
+      return;
+    }
+
     if (url.startsWith("/rsc/features")) {
       try {
         const mod = await vite.ssrLoadModule("/src/entry-server.jsx");
@@ -91,8 +179,25 @@ async function createDevServer() {
           try {
             const requestUrl = req.originalUrl || req.url || "/";
             const templatePath = path.resolve(__dirname, "../index.html");
+            const canonicalUrl = getCanonicalUrl(requestUrl);
+            const structuredData = getStructuredData(requestUrl);
+
             let template = fs.readFileSync(templatePath, "utf-8");
             template = await vite.transformIndexHtml(requestUrl, template);
+            template = injectSeoMeta(template, { canonicalUrl, structuredData });
+
+            const fallbackTemplate = injectSeoMeta(
+              template
+                .replace(
+                  "<!--app-html-->",
+                  '<div class="initial-loading"><div class="loading-spinner"></div><p>Loading Artifically...</p></div>'
+                )
+                .replace(
+                  "<!--app-fallback-->",
+                  '<script>window.__SSR_DISABLED__ = true;</script>'
+                ),
+              { canonicalUrl, structuredData },
+            );
             
             try {
               const { render } = await vite.ssrLoadModule("/src/entry-server.jsx");
@@ -101,6 +206,8 @@ async function createDevServer() {
               if (!rendered?.stream) {
                 throw new Error("SSR renderer did not return a stream");
               }
+
+              res.setHeader("Link", `<${canonicalUrl}>; rel="canonical"`);
 
               const [htmlStart = "", htmlEndWithFallback = ""] = template.split("<!--app-html-->");
               const htmlEnd = htmlEndWithFallback.replace("<!--app-fallback-->", "");
@@ -117,6 +224,7 @@ async function createDevServer() {
 
               rendered.stream.on("error", (streamError) => {
                 console.error("SSR stream failure (dev):", streamError);
+                markSsrFailure(streamError);
                 if (!res.headersSent) {
                   res.statusCode = 500;
                 }
@@ -129,6 +237,7 @@ async function createDevServer() {
               });
 
               rendered.stream.on("end", () => {
+                markSsrSuccess();
                 res.write(htmlEnd);
                 res.end();
               });
@@ -136,22 +245,14 @@ async function createDevServer() {
               rendered.stream.pipe(res, { end: false });
               console.log(`✅ SSR successful for: ${requestUrl}`);
             } catch (ssrError) {
+              markSsrFallback(ssrError);
               console.warn(`⚠️ SSR failed for ${requestUrl}, falling back to client-only:`, ssrError.message);
-
-              const clientOnlyTemplate = template
-                .replace(
-                  "<!--app-html-->",
-                  '<div class="initial-loading"><div class="loading-spinner"></div><p>Loading Artifically...</p></div>'
-                )
-                .replace(
-                  "<!--app-fallback-->",
-                  '<script>window.__SSR_DISABLED__ = true;</script>'
-                );
 
               res.statusCode = 200;
               res.setHeader("Content-Type", "text/html; charset=utf-8");
               res.setHeader("X-SSR-Fallback", "true");
-              res.end(clientOnlyTemplate);
+              res.setHeader("Link", `<${canonicalUrl}>; rel="canonical"`);
+              res.end(fallbackTemplate);
             }
             
             resolved = true;
@@ -167,6 +268,7 @@ async function createDevServer() {
       }
     } catch (error) {
       vite.ssrFixStacktrace(error);
+      markSsrFailure(error);
       console.error(error);
       res.statusCode = 500;
       res.end(error.stack);
@@ -284,19 +386,27 @@ async function createProdServer() {
     }
   }
 
-  const sendClientOnly = (res) => {
+  const sendClientOnly = (res, requestUrl) => {
     if (res.headersSent) {
       return;
     }
     res.statusCode = 200;
     res.setHeader("Content-Type", "text/html; charset=utf-8");
     res.setHeader("X-SSR-Fallback", "true");
-    res.end(clientOnlyTemplate);
+    const canonicalUrl = getCanonicalUrl(requestUrl);
+    const structuredData = getStructuredData(requestUrl);
+    const fallbackTemplate = injectSeoMeta(clientOnlyTemplate, { canonicalUrl, structuredData });
+    res.setHeader("Link", `<${canonicalUrl}>; rel="canonical"`);
+    res.end(fallbackTemplate);
   };
 
   const requestListener = async (req, res) => {
     setDefaultHeaders(res);
     const url = (req.url || "/").split("?")[0];
+
+    if (handleSeoRoutes(req, res, "production")) {
+      return;
+    }
     if (url.startsWith("/rsc/features")) {
       if (renderFeatureHighlightsRSC) {
         try {
@@ -320,17 +430,22 @@ async function createProdServer() {
     }
 
     if (!render || !manifest) {
-      sendClientOnly(res);
+      markSsrFallback(new Error("SSR renderer unavailable"));
+      sendClientOnly(res, url);
       return;
     }
 
     try {
+      const canonicalUrl = getCanonicalUrl(url);
+      const structuredData = getStructuredData(url);
+      const enrichedTemplate = injectSeoMeta(template, { canonicalUrl, structuredData });
+      const [htmlStart = "", htmlEndWithFallback = ""] = enrichedTemplate.split("<!--app-html-->");
+      const htmlEnd = htmlEndWithFallback.replace("<!--app-fallback-->", "");
+
       const rendered = normalizeRenderResult(await render(url, manifest));
       if (!rendered?.stream) {
         throw new Error("SSR renderer did not provide a stream");
       }
-      const [htmlStart = "", htmlEndWithFallback = ""] = template.split("<!--app-html-->");
-      const htmlEnd = htmlEndWithFallback.replace("<!--app-fallback-->", "");
 
       res.statusCode = rendered.statusCode ?? 200;
       const headers = rendered.headers ?? {};
@@ -340,10 +455,13 @@ async function createProdServer() {
         }
       }
 
+      res.setHeader("Link", `<${canonicalUrl}>; rel="canonical"`);
+
       res.write(htmlStart);
 
       rendered.stream.on("error", (error) => {
         console.error("SSR stream failure (prod):", error);
+        markSsrFailure(error);
         if (!res.headersSent) {
           res.statusCode = 500;
         }
@@ -356,6 +474,7 @@ async function createProdServer() {
       });
 
       rendered.stream.on("end", () => {
+        markSsrSuccess();
         res.write(htmlEnd);
         res.end();
       });
@@ -363,7 +482,8 @@ async function createProdServer() {
       rendered.stream.pipe(res, { end: false });
     } catch (error) {
       console.error("SSR render failed in production, falling back to client-only", error);
-      sendClientOnly(res);
+      markSsrFallback(error);
+      sendClientOnly(res, url);
     }
   };
 
