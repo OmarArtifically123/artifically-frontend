@@ -9,6 +9,7 @@ import { useAchievements } from "../hooks/useAchievements";
 import { space } from "../styles/spacing";
 import "../styles/dashboard.css";
 import Button from "./ui/Button";
+import AssistiveHint from "./ui/AssistiveHint";
 
 const statusColors = {
   active: { bg: "rgba(16,185,129,0.18)", color: "#10b981" },
@@ -715,13 +716,18 @@ export default function Dashboard({ user, openAuth }) {
             <div>
               <h2 style={{ margin: 0, fontSize: "1.4rem" }}>Marketplace preview</h2>
               <p style={{ margin: `${space("2xs", 1.4)} 0 0`, color: darkMode ? "#94a3b8" : "#475569" }}>
-                Drag automations into the live preview. We’ll simulate metrics so you can sense how it performs before
-                deployment.
+                Drag automations into the live preview or press Enter on a card to simulate performance.
               </p>
             </div>
             <Button size="sm" variant="primary" magnetic onClick={() => navigate("/marketplace")}>
               <span>Browse marketplace</span>
             </Button>
+            <AssistiveHint
+              id="dashboard-marketplace-hint"
+              label="Marketplace preview guidance"
+              message="Use keyboard arrows to focus a card and press Enter to load it into the live preview."
+              placement="left"
+            />
           </header>
           <div
             style={{
@@ -737,6 +743,14 @@ export default function Dashboard({ user, openAuth }) {
                   draggable
                   onDragStart={handleDragStart(automation)}
                   onClick={() => handleAutomationDrop(automation)}
+                  role="button"
+                  tabIndex={0}
+                  onKeyDown={(event) => {
+                    if (event.key === "Enter" || event.key === " ") {
+                      event.preventDefault();
+                      handleAutomationDrop(automation);
+                    }
+                  }}
                   style={{
                     background: darkMode ? "rgba(30,41,59,0.85)" : "rgba(248,250,252,0.95)",
                     borderRadius: "1.15rem",
@@ -758,7 +772,9 @@ export default function Dashboard({ user, openAuth }) {
             <div
               onDrop={handleDrop}
               onDragOver={handleDragOver}
-              role="presentation"
+              role="region"
+              aria-labelledby="dashboard-dropzone-title"
+              aria-describedby="dashboard-dropzone-hint"
               style={{
                 minHeight: "260px",
                 borderRadius: "1.25rem",
@@ -771,13 +787,24 @@ export default function Dashboard({ user, openAuth }) {
               }}
             >
               <div>
-                <span style={{ fontSize: "0.75rem", color: darkMode ? "#a5b4fc" : "#6366f1", textTransform: "uppercase", letterSpacing: "0.08em" }}>
+                <span
+                  id="dashboard-dropzone-title"
+                  style={{ fontSize: "0.75rem", color: darkMode ? "#a5b4fc" : "#6366f1", textTransform: "uppercase", letterSpacing: "0.08em" }}
+                >
                   Live demo
                 </span>
                 <h3 style={{ margin: `${space("2xs", 1.4)} 0 0`, fontSize: "1.35rem" }}>{dockedAutomation.name}</h3>
               </div>
               <p style={{ margin: 0, color: darkMode ? "#cbd5e1" : "#475569", lineHeight: 1.6 }}>
                 {dockedAutomation.description}
+              </p>
+              <p
+                id="dashboard-dropzone-hint"
+                style={{ margin: 0, color: darkMode ? "#94a3b8" : "#64748b", fontSize: "0.9rem", lineHeight: 1.6 }}
+                role="note"
+              >
+                Prefer not to drag? Focus a card and press Enter to load it here. Screen reader users will hear live updates
+                for the metrics below.
               </p>
               <div
                 style={{

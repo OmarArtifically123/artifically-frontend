@@ -1,4 +1,4 @@
-import { lazy, Suspense, useEffect, useMemo, useState } from "react";
+import { lazy, Suspense, useEffect, useMemo, useRef, useState } from "react";
 import { Routes, Route, useNavigate, useLocation } from "react-router-dom";
 import Header from "./components/Header";
 import RouteShell from "./components/skeletons/RouteShell";
@@ -10,6 +10,7 @@ import "./styles/global.css";
 import "./styles/landing.css";
 import ExperienceLayer from "./components/ExperienceLayer";
 import Button from "./components/ui/Button";
+import GlobalProgressBar from "./components/GlobalProgressBar";
 
 const Home = lazy(() => import(/* webpackChunkName: "home", webpackPrefetch: true */ "./pages/Home"));
 const Pricing = lazy(() => import(/* webpackChunkName: "pricing", webpackPrefetch: true */ "./pages/Pricing"));
@@ -57,6 +58,8 @@ export default function App() {
   const [user, setUser] = useState(null);
   const [authChecking, setAuthChecking] = useState(false);
   const [isHydrated, setIsHydrated] = useState(false);
+  const [isNavigating, setIsNavigating] = useState(false);
+  const navigationTimeoutRef = useRef(null);
 
   const navigate = useNavigate();
   const location = useLocation();
@@ -192,6 +195,30 @@ export default function App() {
     return () => clearTimeout(timeoutId);
   }, [pathname, isHydrated]);
 
+  useEffect(() => {
+    if (!isHydrated || typeof window === "undefined") {
+      return;
+    }
+
+    setIsNavigating(true);
+    if (navigationTimeoutRef.current) {
+      clearTimeout(navigationTimeoutRef.current);
+    }
+
+    const settle = () => setIsNavigating(false);
+    navigationTimeoutRef.current = window.setTimeout(settle, 1200);
+    const idleId = requestIdle(() => {
+      settle();
+    });
+
+    return () => {
+      if (navigationTimeoutRef.current) {
+        clearTimeout(navigationTimeoutRef.current);
+      }
+      cancelIdle(idleId);
+    };
+  }, [pathname, isHydrated]);
+
   const openAuth = (mode = "signin") => {
     setAuthMode(mode);
     setAuthOpen(true);
@@ -225,6 +252,7 @@ export default function App() {
 
   return (
     <ExperienceLayer enableExperience={enableExperience}>
+      <GlobalProgressBar active={isNavigating || authChecking} />
       <a href="#main-content" className="skip-link">
         Skip to main content
       </a>

@@ -3,6 +3,7 @@ import useDocumentVisibility from "../../hooks/useDocumentVisibility";
 import HeroBackground from "./HeroBackground";
 import ProductPreview3D from "./ProductPreview3D";
 import ScrollIndicator from "./ScrollIndicator";
+import HeroRoiCalculator from "./HeroRoiCalculator";
 
 const heroStats = [
   { label: "Automations", value: 12500, suffix: "+" },
@@ -16,6 +17,41 @@ const defaultLogos = [
 
 export default function HeroSection({ onPrimary, onSecondary }) {
   const gradientId = useMemo(() => `heroGradient-${Math.random().toString(36).slice(2)}`, []);
+  const [primaryLabel, setPrimaryLabel] = useState("Start Free Trial");
+  const [secondaryLabel, setSecondaryLabel] = useState("Watch Demo");
+  const [ctaContext, setCtaContext] = useState("");
+
+  useEffect(() => {
+    if (typeof window === "undefined") {
+      return undefined;
+    }
+
+    const referrer = document.referrer || "";
+    const locale = window.navigator?.language || "";
+    let timezone = "";
+    try {
+      timezone = Intl.DateTimeFormat().resolvedOptions().timeZone || "";
+    } catch (error) {
+      timezone = "";
+    }
+
+    if (referrer.includes("partners")) {
+      setPrimaryLabel("Launch partner pilot");
+      setCtaContext("We noticed you're visiting from the partner hub—skip the trial and request a guided pilot.");
+    } else if (locale.startsWith("en-GB") || timezone.includes("Europe")) {
+      setPrimaryLabel("Book EU onboarding");
+      setCtaContext("European customers get dedicated onboarding slots with GDPR-ready templates.");
+    } else if (locale.startsWith("en-AU") || timezone.includes("Australia")) {
+      setPrimaryLabel("Start ANZ rollout");
+      setCtaContext("We'll provision an APAC workspace with local support hours.");
+    }
+
+    if (referrer.includes("webinar")) {
+      setSecondaryLabel("Replay webinar demo");
+    }
+
+    return undefined;
+  }, []);
 
   return (
     <section className="page-hero" aria-labelledby="hero-headline">
@@ -31,12 +67,13 @@ export default function HeroSection({ onPrimary, onSecondary }) {
           </p>
           <div className="cta-group">
             <button type="button" className="cta-primary" onClick={onPrimary}>
-              Start Free Trial
+              {primaryLabel}
             </button>
             <button type="button" className="cta-secondary" onClick={onSecondary}>
-              Watch Demo → <VideoBadge duration="2 min" />
+              {secondaryLabel} → <VideoBadge duration="2 min" />
             </button>
           </div>
+          {ctaContext ? <p className="hero-cta-context">{ctaContext}</p> : null}
           <HeroStats stats={heroStats} />
           <LogoTicker logos={defaultLogos} gradientId={gradientId} />
         </div>
@@ -52,6 +89,9 @@ export default function HeroSection({ onPrimary, onSecondary }) {
             </p>
           </article>
         </div>
+      </div>
+      <div className="page-hero__roi">
+        <HeroRoiCalculator />
       </div>
       <ScrollIndicator targetId="problem-solution" />
     </section>

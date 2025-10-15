@@ -4,8 +4,10 @@ import { toast } from "../components/Toast";
 import ProductPreview3D from "../components/landing/ProductPreview3D";
 import { calculateSavings } from "../utils/calculateSavings";
 import ROICalculator from "../components/roi/ROICalculator";
+import AssistiveHint from "../components/ui/AssistiveHint";
 
 const categories = ["All", "Sales", "Support", "Operations", "Finance", "Marketing"];
+const FILTER_STORAGE_KEY = "artifically:marketplace:filters";
 
 export default function Marketplace() {
   const [automations, setAutomations] = useState([]);
@@ -17,10 +19,13 @@ export default function Marketplace() {
   const [quickView, setQuickView] = useState(null);
   const [isSearchFocused, setIsSearchFocused] = useState(false);
   const [highlightedSuggestion, setHighlightedSuggestion] = useState(0);
+  const [filtersHydrated, setFiltersHydrated] = useState(false);
   const suggestionIdPrefix = useId();
   const filterRefs = useRef([]);
   const cardRefs = useRef([]);
   const searchFieldBlurTimeout = useRef();
+  const suggestionListRef = useRef(null);
+  const queryAppliedRef = useRef(false);
 
   useEffect(() => {
     let mounted = true;
@@ -54,6 +59,76 @@ export default function Marketplace() {
       }
     };
   }, []);
+
+  useEffect(() => {
+    if (typeof window === "undefined") {
+      setFiltersHydrated(true);
+      return;
+    }
+    try {
+      const stored = window.localStorage.getItem(FILTER_STORAGE_KEY);
+      if (stored) {
+        const parsed = JSON.parse(stored);
+        if (typeof parsed?.search === "string") {
+          setSearch(parsed.search);
+        }
+        if (typeof parsed?.category === "string") {
+          setActiveCategory(parsed.category);
+        }
+        if (typeof parsed?.sort === "string") {
+          setSort(parsed.sort);
+        }
+      }
+    } catch (error) {
+      console.warn("Unable to load marketplace filters", error);
+    } finally {
+      setFiltersHydrated(true);
+    }
+  }, []);
+
+  useEffect(() => {
+    if (typeof window === "undefined" || !filtersHydrated) {
+      return;
+    }
+    try {
+      const payload = {
+        search,
+        category: activeCategory,
+        sort,
+      };
+      window.localStorage.setItem(FILTER_STORAGE_KEY, JSON.stringify(payload));
+    } catch (error) {
+      console.warn("Unable to persist marketplace filters", error);
+    }
+  }, [activeCategory, filtersHydrated, search, sort]);
+
+  useEffect(() => {
+    if (typeof window === "undefined" || queryAppliedRef.current === true || !filtersHydrated) {
+      return;
+    }
+    try {
+      const params = new URLSearchParams(window.location.search);
+      const persona = params.get("persona");
+      const wizard = params.get("wizard");
+      if (persona) {
+        const normalized = persona.toLowerCase();
+        if (normalized.includes("finance")) {
+          setActiveCategory("Finance");
+        } else if (normalized.includes("support")) {
+          setActiveCategory("Support");
+        } else if (normalized.includes("operations")) {
+          setActiveCategory("Operations");
+        }
+        setSearch(persona.replace(/-/g, " "));
+        queryAppliedRef.current = true;
+      } else if (wizard) {
+        setSearch(wizard.split(" · ")[0] || "");
+        queryAppliedRef.current = true;
+      }
+    } catch (error) {
+      console.warn("Unable to apply marketplace query filters", error);
+    }
+  }, [filtersHydrated]);
 
   const suggestions = useMemo(() => {
     if (!search.trim()) {
@@ -195,7 +270,11 @@ export default function Marketplace() {
     setIsSearchFocused(true);
   };
 
-  const handleSearchBlur = () => {
+  const handleSearchBlur = (event) => {
+    const nextFocus = event?.relatedTarget;
+    if (nextFocus && (nextFocus === event.currentTarget || suggestionListRef.current?.contains(nextFocus))) {
+      return;
+    }
     searchFieldBlurTimeout.current = setTimeout(() => {
       setIsSearchFocused(false);
     }, 120);
@@ -265,12 +344,19 @@ export default function Marketplace() {
             aria-activedescendant={activeDescendant}
             aria-haspopup="listbox"
           />
+          <AssistiveHint
+            id="marketplace-search"
+            label="Search guidance"
+            message="Type to filter automations. Use arrow keys to browse suggestions and Enter to select without losing focus."
+            placement="right"
+          />
           {showSuggestions && (
             <ul
               id={suggestionListId}
               className="search-suggestions"
               role="listbox"
               aria-label="Search suggestions"
+              ref={suggestionListRef}
             >
               {suggestions.map((suggestion, index) => {
                 const optionId = `${suggestionIdPrefix}-option-${index}`;
@@ -450,11 +536,30 @@ function QuickViewModal({ automation, onClose }) {
   const [teamSize, setTeamSize] = useState(automation.teamSizeHint ?? 45);
   const [hourlyRate, setHourlyRate] = useState(automation.hourlyRateHint ?? 95);
   const [savings, setSavings] = useState(() => calculateSavings(teamSize, hourlyRate));
+  const focusTrapRef = useRef({ first: null, last: null });
+  const previouslyFocusedRef = useRef(null);
 
   useEffect(() => {
     const handleKeyDown = (event) => {
       if (event.key === "Escape") {
         onClose();
+      }
+
+      if (event.key === "Tab") {
+        const { first, last } = focusTrapRef.current;
+        if (!first || !last) {
+          return;
+        }
+
+        if (event.shiftKey) {
+          if (document.activeElement === first) {
+            event.preventDefault();
+            last.focus();
+          }
+        } else if (document.activeElement === last) {
+          event.preventDefault();
+          first.focus();
+        }
       }
     };
 
@@ -463,9 +568,45 @@ function QuickViewModal({ automation, onClose }) {
   }, [onClose]);
 
   useEffect(() => {
-    const previouslyFocused = document.activeElement;
-    dialogRef.current?.focus();
-    return () => previouslyFocused?.focus?.();
+    previouslyFocusedRef.current = document.activeElement;
+    const node = dialogRef.current;
+    if (!node) {
+      return () => {};
+    }
+
+    const updateFocusable = () => {
+      const focusable = Array.from(
+        node.querySelectorAll(
+          "a[href], button:not([disabled]), textarea, input, select, details summary, [tabindex]:not([tabindex='-1'])",
+        ),
+      );
+      focusTrapRef.current = {
+        first: focusable[0] || node,
+        last: focusable[focusable.length - 1] || focusable[0] || node,
+      };
+    };
+
+    updateFocusable();
+    requestAnimationFrame(() => {
+      focusTrapRef.current.first?.focus({ preventScroll: true });
+    });
+
+    const observer = new MutationObserver(updateFocusable);
+    observer.observe(node, { childList: true, subtree: true, attributes: true });
+
+    const handleFocusIn = (event) => {
+      if (!node.contains(event.target)) {
+        focusTrapRef.current.first?.focus({ preventScroll: true });
+      }
+    };
+
+    window.addEventListener("focusin", handleFocusIn);
+
+    return () => {
+      observer.disconnect();
+      window.removeEventListener("focusin", handleFocusIn);
+      previouslyFocusedRef.current?.focus?.({ preventScroll: true });
+    };
   }, []);
 
   const handleBackdropMouseDown = (event) => {
@@ -480,7 +621,7 @@ function QuickViewModal({ automation, onClose }) {
       role="dialog"
       aria-modal="true"
       aria-labelledby="quick-view-title"
-      aria-describedby="quick-view-description"
+      aria-describedby="quick-view-description quick-view-instructions"
       onMouseDown={handleBackdropMouseDown}
     >
       <div className="quick-view-modal" ref={dialogRef} tabIndex={-1}>
@@ -500,6 +641,14 @@ function QuickViewModal({ automation, onClose }) {
         <div className="quick-view-details">
           <p id="quick-view-description" style={{ color: "color-mix(in oklch, white 78%, var(--gray-200))" }}>
             {automation.description}
+          </p>
+          <p
+            id="quick-view-instructions"
+            style={{ color: "color-mix(in oklch, white 78%, var(--gray-300))", fontSize: "0.9rem", lineHeight: 1.5 }}
+            role="note"
+          >
+            Use Tab or Shift+Tab to explore metrics, adjust ROI sliders, then press Launch Pilot to continue. Press Escape
+            or select Close to return to the marketplace.
           </p>
           <div className="metric-grid">
             <Metric icon="⚡" label="ROI" value={`${automation.roi ?? savings.roi.toFixed(1)}x`} />
