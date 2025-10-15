@@ -1,4 +1,5 @@
-import { useEffect, useMemo, useRef } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
+import { getNetworkInformation, prefersLowPower } from "../utils/networkPreferences";
 
 const STORAGE_KEY = "__artifically_route_model_v1";
 const HISTORY_KEY = "route-history";
@@ -98,6 +99,8 @@ export default function usePredictivePrefetch(routeLoaders, currentPathname) {
   const modelRef = useRef(loadModel());
   const previousRouteRef = useRef(currentPathname);
   const persistIdleHandle = useRef(null);
+  const [hasUserEngaged, setHasUserEngaged] = useState(false);
+  const [connectionConstrained, setConnectionConstrained] = useState(() => prefersLowPower());
 
   const loaders = useMemo(() => routeLoaders || {}, [routeLoaders]);
 
@@ -105,6 +108,47 @@ export default function usePredictivePrefetch(routeLoaders, currentPathname) {
     previousRouteRef.current = currentPathname;
   }, []);
 
+  useEffect(() => {
+    if (typeof window === "undefined") {
+      return undefined;
+    }
+
+    const markEngaged = () => {
+      setHasUserEngaged(true);
+    };
+
+    window.addEventListener("pointermove", markEngaged, { once: true, passive: true });
+    window.addEventListener("keydown", markEngaged, { once: true });
+    window.addEventListener("touchstart", markEngaged, { once: true, passive: true });
+
+    return () => {
+      window.removeEventListener("pointermove", markEngaged);
+      window.removeEventListener("keydown", markEngaged);
+      window.removeEventListener("touchstart", markEngaged);
+    };
+  }, []);
+
+  useEffect(() => {
+    const connection = getNetworkInformation();
+    if (!connection) {
+      setConnectionConstrained(false);
+      return undefined;
+    }
+
+    const updateConstraint = () => setConnectionConstrained(prefersLowPower(connection));
+    updateConstraint();
+
+    if (typeof connection.addEventListener === "function") {
+      connection.addEventListener("change", updateConstraint);
+      return () => connection.removeEventListener("change", updateConstraint);
+    }
+
+    connection.onchange = updateConstraint;
+    return () => {
+      connection.onchange = null;
+    };
+  }, []);
+  
   useEffect(() => {
     const counts = interactionCounts.current;
     const model = modelRef.current;
@@ -138,12 +182,8 @@ export default function usePredictivePrefetch(routeLoaders, currentPathname) {
       .filter((path) => loaders[path])
       .forEach((path) => candidatePaths.add(path));
 
-    if (idleHandle.current) {
-      cancelIdle(idleHandle.current);
-    }
-
-    idleHandle.current = requestIdle(() => {
-      const scoredEntries = Array.from(candidatePaths)
+    const schedulePrefetch = () => {
+      const ranked = Array.from(candidatePaths)
         .map((path) => {
           const probability = probabilityMap[path] || 0;
           const interactionBoost = interactionCounts.current.get(path) || 0;
@@ -158,15 +198,14 @@ export default function usePredictivePrefetch(routeLoaders, currentPathname) {
           return { path, score };
         })
         .filter(({ score }) => score > 0)
-        .sort((a, b) => b.score - a.score)
-        .slice(0, 4);
+        .sort((a, b) => b.score - a.score);
 
-      if (!scoredEntries.length) {
+      if (!ranked.length) {
         const fallbackEntries = Array.from(counts.entries())
           .filter(([path]) => loaders[path] && path !== currentPathname)
           .map(([path, score]) => ({ path, score: score / 5 }))
           .sort((a, b) => b.score - a.score)
-          .slice(0, 3);
+          .slice(0, 2);
 
         const historyFallback = Object.entries(historyMap)
           .filter(([path]) => loaders[path] && path !== currentPathname)
@@ -174,18 +213,57 @@ export default function usePredictivePrefetch(routeLoaders, currentPathname) {
           .sort((a, b) => b.score - a.score)
           .slice(0, 2);
 
-        const seen = new Set();
+        const seenFallback = new Set();
         const combined = [...fallbackEntries, ...historyFallback].filter(({ path }) => {
-          if (seen.has(path)) return false;
-          seen.add(path);
+          if (seenFallback.has(path)) return false;
+          seenFallback.add(path);
           return true;
         });
 
-        scoredEntries.push(...combined);
+        ranked.push(...combined);
       }
 
+      const visibleRoutes = new Set();
+      if (typeof document !== "undefined" && typeof window !== "undefined") {
+        const viewportHeight = window.innerHeight || 0;
+        const viewportWidth = window.innerWidth || 0;
+        document.querySelectorAll("[data-prefetch-route]").forEach((element) => {
+          const route = element.getAttribute("data-prefetch-route");
+          if (!route) return;
+          const rect = element.getBoundingClientRect();
+          const inViewport =
+            rect.bottom > 0 &&
+            rect.right > 0 &&
+            rect.left < viewportWidth &&
+            rect.top < viewportHeight;
+          if (inViewport) {
+            visibleRoutes.add(route);
+          }
+        });
+      }
+
+      const prioritised = [];
+      const seen = new Set();
+      const pushEntries = (entries, requireVisibility) => {
+        entries.forEach((entry) => {
+          if (seen.has(entry.path)) return;
+          if (requireVisibility && visibleRoutes.size && !visibleRoutes.has(entry.path)) {
+            return;
+          }
+          seen.add(entry.path);
+          prioritised.push(entry);
+        });
+      };
+
+      pushEntries(ranked, true);
+
+      if (!prioritised.length) {
+        pushEntries(ranked, false);
+      }
+
+      const limited = prioritised.slice(0, 2);
       const prefetched = new Set();
-      scoredEntries.forEach(({ path }) => {
+      limited.forEach(({ path }) => {
         if (prefetched.has(path)) return;
         prefetched.add(path);
         try {
@@ -194,6 +272,25 @@ export default function usePredictivePrefetch(routeLoaders, currentPathname) {
           console.warn("Prefetch failed", path, error);
         }
       });
+      };
+
+    if (idleHandle.current) {
+      cancelIdle(idleHandle.current);
+    }
+
+    if (!hasUserEngaged || connectionConstrained) {
+      return () => {
+        if (idleHandle.current) {
+          cancelIdle(idleHandle.current);
+        }
+      };
+    }
+
+    idleHandle.current = requestIdle(() => {
+      if (typeof document !== "undefined" && document.visibilityState === "hidden") {
+        return;
+      }
+      schedulePrefetch();
     });
 
     return () => {
@@ -201,7 +298,7 @@ export default function usePredictivePrefetch(routeLoaders, currentPathname) {
         cancelIdle(idleHandle.current);
       }
     };
-  }, [currentPathname, loaders]);
+  }, [connectionConstrained, currentPathname, hasUserEngaged, loaders]);
 
   useEffect(() => {
     if (typeof document === "undefined") {
@@ -210,15 +307,25 @@ export default function usePredictivePrefetch(routeLoaders, currentPathname) {
 
     const handler = (event) => {
       const route = event.target?.getAttribute?.("data-prefetch-route");
-      if (route && loaders[route]) {
-        const model = modelRef.current;
-        const transitions = model.transitions[currentPathname] || {};
-        transitions[route] = (transitions[route] || 0) + 0.35;
-        model.transitions[currentPathname] = transitions;
-
-        interactionCounts.current.set(route, (interactionCounts.current.get(route) || 0) + 1.5);
-        requestIdle(() => loaders[route]());
+      if (!route || !loaders[route]) {
+        return;
       }
+
+      if (connectionConstrained) {
+        return;
+      }
+
+      if (!hasUserEngaged) {
+        setHasUserEngaged(true);
+      }
+
+      const model = modelRef.current;
+      const transitions = model.transitions[currentPathname] || {};
+      transitions[route] = (transitions[route] || 0) + 0.35;
+      model.transitions[currentPathname] = transitions;
+
+      interactionCounts.current.set(route, (interactionCounts.current.get(route) || 0) + 1.5);
+      requestIdle(() => loaders[route]());
     };
 
     document.addEventListener("pointerenter", handler, { passive: true, capture: true });
@@ -228,7 +335,7 @@ export default function usePredictivePrefetch(routeLoaders, currentPathname) {
       document.removeEventListener("pointerenter", handler, { capture: true });
       document.removeEventListener("focusin", handler, { capture: true });
     };
-  }, [currentPathname, loaders]);
+  }, [connectionConstrained, currentPathname, hasUserEngaged, loaders]);
 
   return {
     prefetch: (path) => loaders[path]?.(),

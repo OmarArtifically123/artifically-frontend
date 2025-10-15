@@ -1,12 +1,11 @@
 import { Link } from "react-router-dom";
 import { useEffect, useMemo, useState, useId, useRef } from "react";
-import LogoLight from "../assets/logos/1_Primary.svg";
-import LogoDark from "../assets/logos/3_Dark_Mode.svg";
 import ThemeToggle from "./ThemeToggle";
 import { useTheme } from "../context/ThemeContext";
 import { space } from "../styles/spacing";
 import Button from "./ui/Button";
 import Input from "./ui/Input";
+import LogoWordmark from "./ui/LogoWordmark";
 
 const FALLBACK_YEAR = new Date().getUTCFullYear();
 
@@ -277,12 +276,8 @@ export default function Footer() {
             }}
           >
             <div style={{ display: "flex", alignItems: "center", gap: space("sm") }}>
-              <img
-                src={darkMode ? LogoDark : LogoLight}
-                alt="Artifically"
-                width={375}
-                height={375}
-                loading="lazy"
+              <LogoWordmark
+                variant={darkMode ? "dark" : "light"}
                 style={{ height: "60px", width: "auto" }}
               />
               <div>

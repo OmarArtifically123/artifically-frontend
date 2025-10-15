@@ -70,12 +70,84 @@ function HeroStats({ stats }) {
 function StatCounter({ value, suffix = "", label }) {
   const [display, setDisplay] = useState(0);
   const rafRef = useRef();
+  const nodeRef = useRef(null);
+  const [shouldAnimate, setShouldAnimate] = useState(false);
+  const [prefersReducedMotion, setPrefersReducedMotion] = useState(() => {
+    if (typeof window === "undefined" || typeof window.matchMedia !== "function") {
+      return false;
+    }
+    return window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+  });
+  const hasAnimatedRef = useRef(false);
 
   useEffect(() => {
+    if (typeof window === "undefined" || typeof window.matchMedia !== "function") {
+      return undefined;
+    }
+
+    const media = window.matchMedia("(prefers-reduced-motion: reduce)");
+    const handleChange = (event) => setPrefersReducedMotion(event.matches);
+    if (typeof media.addEventListener === "function") {
+      media.addEventListener("change", handleChange);
+      return () => media.removeEventListener("change", handleChange);
+    }
+
+    media.addListener(handleChange);
+    return () => media.removeListener(handleChange);
+  }, []);
+
+  useEffect(() => {
+    const node = nodeRef.current;
+    if (!node || typeof IntersectionObserver === "undefined") {
+      setShouldAnimate(true);
+      return undefined;
+    }
+
+    const observer = new IntersectionObserver(
+      (entries) => {
+        entries.forEach((entry) => {
+          if (entry.target === node) {
+            setShouldAnimate(entry.isIntersecting);
+          }
+        });
+      },
+      { threshold: 0.35 },
+    );
+
+    observer.observe(node);
+
+    return () => {
+      observer.unobserve(node);
+      observer.disconnect();
+    };
+  }, []);
+
+  useEffect(() => {
+    if (prefersReducedMotion) {
+      setDisplay(value);
+      if (rafRef.current) {
+        cancelAnimationFrame(rafRef.current);
+      }
+      return () => {};
+    }
+
+    if (!shouldAnimate) {
+      if (!hasAnimatedRef.current) {
+        setDisplay(0);
+      }
+      if (rafRef.current) {
+        cancelAnimationFrame(rafRef.current);
+      }
+      return () => {};
+    }
+
+    let isMounted = true;
     const start = performance.now();
     const duration = 1800;
+    hasAnimatedRef.current = true;
 
     const animate = (now) => {
+      if (!isMounted) return;
       const progress = Math.min(1, (now - start) / duration);
       const eased = 1 - Math.pow(1 - progress, 3);
       setDisplay(value * eased);
@@ -86,8 +158,19 @@ function StatCounter({ value, suffix = "", label }) {
 
     rafRef.current = requestAnimationFrame(animate);
 
-    return () => cancelAnimationFrame(rafRef.current);
-  }, [value]);
+    return () => {
+      isMounted = false;
+      if (rafRef.current) {
+        cancelAnimationFrame(rafRef.current);
+      }
+    };
+  }, [prefersReducedMotion, shouldAnimate, value]);
+
+  useEffect(() => {
+    if (!shouldAnimate) {
+      hasAnimatedRef.current = false;
+    }
+  }, [shouldAnimate, value]);
 
   const formatted = useMemo(() => {
     if (value >= 1000) {
@@ -97,7 +180,7 @@ function StatCounter({ value, suffix = "", label }) {
   }, [display, suffix, value]);
 
   return (
-    <div className="hero-stat">
+    <div ref={nodeRef} className="hero-stat">
       <span className="hero-stat__value">{formatted}</span>
       <span className="hero-stat__label">{label}</span>
     </div>

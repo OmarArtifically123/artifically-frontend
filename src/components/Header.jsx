@@ -1,13 +1,12 @@
 import { Link, useNavigate, useLocation } from "react-router-dom";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import LogoLight from "../assets/logos/1_Primary.svg";
-import LogoDark from "../assets/logos/3_Dark_Mode.svg";
 import ThemeToggle from "./ThemeToggle";
 import { useTheme } from "../context/ThemeContext";
 import useMicroInteractions from "../hooks/useMicroInteractions";
 import { space } from "../styles/spacing";
 import MagneticButton from "./animation/MagneticButton";
 import { StaggeredContainer, StaggeredItem } from "./animation/StaggeredList";
+import LogoWordmark from "./ui/LogoWordmark";
 
 export default function Header({ user, onSignIn, onSignUp, onSignOut }) {
   const navigate = useNavigate();
@@ -248,11 +247,8 @@ export default function Header({ user, onSignIn, onSignUp, onSignOut }) {
             transition: "transform var(--transition-fast)",
           }}
         >
-          <img
-            src={darkMode ? LogoDark : LogoLight}
-            alt="Artifically"
-            width={375}
-            height={375}
+          <LogoWordmark
+            variant={darkMode ? "dark" : "light"}
             style={{
               height: "56px",
               width: "auto",

@@ -1290,6 +1290,7 @@ function HeroSceneShowcase() {
     if (!container) {
       setShouldRenderScene(true);
       return () => {};
+      fetchPriority="high"
     }
 
     if (typeof IntersectionObserver !== "function") {
