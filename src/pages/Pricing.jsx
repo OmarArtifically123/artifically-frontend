@@ -76,7 +76,7 @@ const faqItems = [
 
 export default function Pricing() {
   const [billing, setBilling] = useState("annual");
-  const [faqOpen, setFaqOpen] = useState(faqItems[0].question);
+  const [openFaqs, setOpenFaqs] = useState([faqItems[0].question]);
 
   const multiplier = billing === "annual" ? 12 * 0.8 : 1;
 
@@ -127,14 +127,28 @@ export default function Pricing() {
       <section style={{ display: "grid", gap: "1rem" }}>
         <h2 style={{ fontSize: "1.8rem", color: "white" }}>Frequently Asked Questions</h2>
         <div style={{ display: "grid", gap: "1rem" }}>
-          {faqItems.map((item) => (
-            <FaqItem
-              key={item.question}
-              item={item}
-              isOpen={faqOpen === item.question}
-              onToggle={() => setFaqOpen(faqOpen === item.question ? null : item.question)}
-            />
-          ))}
+          {faqItems.map((item, index) => {
+            const panelId = `faq-panel-${index}`;
+            const triggerId = `faq-trigger-${index}`;
+            const isOpen = openFaqs.includes(item.question);
+
+            return (
+              <FaqItem
+                key={item.question}
+                item={item}
+                isOpen={isOpen}
+                panelId={panelId}
+                triggerId={triggerId}
+                onToggle={() =>
+                  setOpenFaqs((prev) =>
+                    prev.includes(item.question)
+                      ? prev.filter((question) => question !== item.question)
+                      : [...prev, item.question]
+                  )
+                }
+              />
+            );
+          })}
         </div>
       </section>
     </main>
@@ -209,7 +223,7 @@ function PricingCard({ tier, multiplier, billing }) {
   );
 }
 
-function FaqItem({ item, isOpen, onToggle }) {
+function FaqItem({ item, isOpen, panelId, triggerId, onToggle }) {
   return (
     <article
       className="feature-card"
@@ -224,6 +238,9 @@ function FaqItem({ item, isOpen, onToggle }) {
       <button
         type="button"
         onClick={onToggle}
+        id={triggerId}
+        aria-expanded={isOpen}
+        aria-controls={panelId}
         style={{
           background: "transparent",
           border: "none",
@@ -242,9 +259,21 @@ function FaqItem({ item, isOpen, onToggle }) {
           ➔
         </span>
       </button>
-      {isOpen && (
-        <p style={{ marginTop: "0.85rem", color: "color-mix(in oklch, white 75%, var(--gray-300))" }}>{item.answer}</p>
-      )}
+      <div
+        id={panelId}
+        role="region"
+        aria-hidden={!isOpen}
+        aria-labelledby={triggerId}
+        style={{
+          maxHeight: isOpen ? "320px" : "0px",
+          opacity: isOpen ? 1 : 0,
+          overflow: "hidden",
+          transition: "max-height 0.25s ease, opacity 0.2s ease",
+          paddingTop: isOpen ? "0.85rem" : "0",
+        }}
+      >
+        <p style={{ color: "color-mix(in oklch, white 75%, var(--gray-300))" }}>{item.answer}</p>
+      </div>
     </article>
   );
 }
