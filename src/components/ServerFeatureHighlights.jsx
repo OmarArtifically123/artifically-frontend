@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from "react";
+import DOMPurify from "dompurify";
 import FeatureSkeletonGrid from "./skeletons/FeatureSkeleton";
 import useIntersectionLazy from "../hooks/useIntersectionLazy";
 import { space } from "../styles/spacing";
@@ -113,7 +114,15 @@ export default function ServerFeatureHighlights({
         if (!trimmed || /<html[^>]*>/i.test(trimmed) || /<body[^>]*>/i.test(trimmed)) {
           throw new Error("Received invalid server markup");
         }
-        setState({ status: "success", markup: trimmed, error: null })
+        const sanitized =
+          typeof window === "undefined"
+            ? trimmed
+            : DOMPurify.sanitize(trimmed, {
+                USE_PROFILES: { html: true },
+                ADD_ATTR: ["target", "rel"],
+                FORBID_TAGS: ["script", "style"],
+              });
+        setState({ status: "success", markup: sanitized, error: null })
       })
       .catch((error) => {
         if (controller.signal.aborted) {

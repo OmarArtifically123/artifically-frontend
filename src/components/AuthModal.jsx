@@ -338,11 +338,13 @@ const AuthModal = ({ onClose, onAuthenticated, initialMode = "signin" }) => {
 
       if (response.data.success !== false) {
         onAuthenticated({
-          token: response.data.token || null,
           user: response.data.user || null,
-          notice: response.data.message || (mode === "signup"
-            ? "Account created! Please check your email to verify."
-            : "Welcome back!")
+          notice:
+            response.data.message ||
+            (mode === "signup"
+              ? "Account created! Please check your email to verify."
+              : "Welcome back!"),
+          sessionEstablished: true
         });
       } else {
         throw new Error(response.data.message || "Authentication failed");

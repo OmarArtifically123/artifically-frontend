@@ -21,6 +21,8 @@ const getBaseURL = () => {
 const baseURL = getBaseURL();
 const isBrowser = typeof window !== "undefined" && typeof window.document !== "undefined";
 
+const SESSION_COOKIE_NAME = "__Host-artifically-session";
+
 if (import.meta.env.DEV) {
   console.log("API Base URL:", baseURL);
 }
@@ -51,27 +53,40 @@ const generateRequestId = () => {
 
 export const api = axios.create({
   baseURL,
-  withCredentials: true, // Set to true if you need cookies
+  withCredentials: true,
   timeout: 30000,
   headers: {
     "Content-Type": "application/json",
     Accept: "application/json",
   },
+  xsrfCookieName: "__Host-artifically-csrf",
+  xsrfHeaderName: "X-CSRF-Token",
 });
+
+const hasSessionCookie = () => {
+  if (!isBrowser) {
+    return false;
+  }
+
+  try {
+    return document.cookie.split(";").some((cookie) => cookie.trim().startsWith(`${SESSION_COOKIE_NAME}=`));
+  } catch (error) {
+    if (import.meta.env.DEV) {
+      console.warn("Unable to inspect session cookie", error);
+    }
+    return false;
+  }
+};
 
 // Enhanced request interceptor
 api.interceptors.request.use(
   (config) => {
-    // Attach JWT automatically
-    if (isBrowser) {
-      const token = window.localStorage?.getItem("token");
-      if (token) {
-        config.headers.Authorization = `Bearer ${token}`;
-      }
-    }
-
     // Add request ID for tracking
     config.headers["X-Request-ID"] = generateRequestId();
+
+    if (!hasSessionCookie()) {
+      config.headers["X-Session-Check"] = "missing";
+    }
 
     // Log requests in development
     if (import.meta.env.DEV) {
@@ -192,10 +207,6 @@ api.interceptors.response.use(
         enhancedError.code = "UNAUTHORIZED";
         
         // Auto-logout on 401
-        if (isBrowser) {
-          window.localStorage?.removeItem("token");
-        }
-
         // Redirect to home if not already there
         if (
           isBrowser &&

@@ -1,4 +1,4 @@
-const VERSION = 'artifically-cache-v3';
+const VERSION = 'artifically-cache-v5';
 const STATIC_CACHE = `${VERSION}-static`;
 const DYNAMIC_CACHE = `${VERSION}-dynamic`;
 const IMMUTABLE_CACHE = `${VERSION}-immutable`;
@@ -14,6 +14,52 @@ const PRECACHE_URLS = [
 ];
 
 const IMMUTABLE_PATTERNS = [/\/assets\//, /\.(?:woff2?|ttf|otf)$/i];
+
+const isHtmlRequest = (request, response) => {
+  if (request.mode === 'navigate' || request.destination === 'document') {
+    return true;
+  }
+
+  const acceptHeader = request.headers.get('Accept') || '';
+  if (acceptHeader.includes('text/html')) {
+    return true;
+  }
+
+  if (response) {
+    const contentType = response.headers.get('Content-Type') || '';
+    if (contentType.includes('text/html')) {
+      return true;
+    }
+  }
+
+  return false;
+};
+
+const shouldCacheResponse = (request, response) => {
+  if (!response || response.status !== 200) {
+    return false;
+  }
+
+  const cacheControl = response.headers.get('Cache-Control') || '';
+  if (/no-store|no-cache|private/i.test(cacheControl)) {
+    return false;
+  }
+
+  if (isHtmlRequest(request, response)) {
+    return false;
+  }
+
+  const authorization = request.headers.get('Authorization');
+  if (authorization) {
+    return false;
+  }
+
+  if (request.credentials === 'include') {
+    return false;
+  }
+
+  return true;
+};
 
 // Check if we're in development mode
 const isDevelopment = () => {
@@ -68,12 +114,13 @@ self.addEventListener('message', (event) => {
   }
 });
 
-const networkFirst = async (request) => {
-  const cache = await caches.open(DYNAMIC_CACHE);
+const networkFirst = async (request, options = {}) => {
+  const { cacheName = DYNAMIC_CACHE, shouldCache = shouldCacheResponse } = options;
+  const cache = await caches.open(cacheName);
   try {
     const response = await fetch(request);
     // Only cache successful responses
-    if (response.status === 200) {
+    if (shouldCache(request, response)) {
       cache.put(request, response.clone());
     }
     return response;
@@ -86,12 +133,12 @@ const networkFirst = async (request) => {
   }
 };
 
-const staleWhileRevalidate = async (request, cacheName) => {
+const staleWhileRevalidate = async (request, cacheName, shouldCache = shouldCacheResponse) => {
   const cache = await caches.open(cacheName);
   const cached = await cache.match(request);
   const fetchPromise = fetch(request)
     .then((response) => {
-      if (response.status === 200) {
+      if (shouldCache(request, response)) {
         cache.put(request, response.clone());
       }
       return response;
@@ -126,7 +173,9 @@ self.addEventListener('fetch', (event) => {
             const preloadResponse = await event.preloadResponse;
             if (preloadResponse) {
               const cache = await caches.open(DYNAMIC_CACHE);
-              cache.put(request, preloadResponse.clone());
+              if (shouldCacheResponse(request, preloadResponse)) {
+                cache.put(request, preloadResponse.clone());
+              }
               return preloadResponse;
             }
           } catch (error) {
@@ -192,7 +241,7 @@ self.addEventListener('fetch', (event) => {
   }
 
   if (url.pathname.startsWith('/api') || url.pathname.startsWith('/graphql')) {
-    event.respondWith(networkFirst(request));
+    event.respondWith(networkFirst(request, { shouldCache: () => false }));
     return;
   }
 

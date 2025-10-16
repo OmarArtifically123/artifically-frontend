@@ -30,9 +30,9 @@ type AuthUser = {
 } | null;
 
 type AuthenticatedPayload = {
-  token?: string | null;
   user?: AuthUser;
   notice?: string | null;
+  sessionEstablished?: boolean;
 };
 
 type RouteLoaders = Record<string, () => Promise<unknown>>;
@@ -175,12 +175,6 @@ export default function App() {
     }
 
     let mounted = true;
-    const token = window.localStorage.getItem("token");
-
-    if (!token) {
-      return;
-    }
-
     setAuthChecking(true);
 
     apiClient
@@ -191,9 +185,9 @@ export default function App() {
           setUser((u as AuthUser) ?? null);
         }
       })
-      .catch(() => {
-        if (typeof window !== "undefined") {
-          window.localStorage.removeItem("token");
+      .catch((error) => {
+        if (import.meta.env.DEV) {
+          console.warn("Auth check failed", error);
         }
         if (mounted) {
           setUser(null);
@@ -273,24 +267,39 @@ export default function App() {
     setAuthOpen(true);
   };
 
-  const signOut = () => {
-    if (typeof window !== "undefined") {
-      window.localStorage.removeItem("token");
-    }
-    setUser(null);
-    setAuthChecking(false);
-    toast("Successfully signed out", { type: "info" });
-    if (pathname.startsWith("/dashboard")) {
-      navigate("/");
+  const signOut = async () => {
+    setAuthChecking(true);
+    try {
+      await apiClient.post("/auth/signout");
+    } catch (error) {
+      if (import.meta.env.DEV) {
+        console.warn("Failed to end session", error);
+      }
+    } finally {
+      setUser(null);
+      setAuthChecking(false);
+      toast("Successfully signed out", { type: "info" });
+      if (pathname.startsWith("/dashboard")) {
+        navigate("/");
+      }
     }
   };
 
-  const onAuthenticated = ({ token, user: nextUser, notice }: AuthenticatedPayload) => {
-    if (token && typeof window !== "undefined") {
-      window.localStorage.setItem("token", token);
-    }
+  const onAuthenticated = ({ user: nextUser, notice }: AuthenticatedPayload) => {
     if (typeof nextUser !== "undefined") {
       setUser(nextUser ?? null);
+      } else {
+      apiClient
+        .get("/auth/me")
+        .then(pick("user"))
+        .then((resolvedUser) => {
+          setUser((resolvedUser as AuthUser) ?? null);
+        })
+        .catch((error) => {
+          if (import.meta.env.DEV) {
+            console.warn("Post-auth user fetch failed", error);
+          }
+        });
     }
     if (notice) {
       toast(notice, { type: nextUser && nextUser.verified ? "success" : "info" });
