@@ -16,6 +16,7 @@ import {
   ConciergeBell,
   Contrast,
   DoorClosed,
+  ChevronDown,
   FlaskConical,
   Flame,
   Gift,
@@ -109,6 +110,7 @@ const ICON_MAP = {
   celebration: PartyPopper,
   recycle: Recycle,
   cog: Cog,
+  chevronDown: ChevronDown,
 } satisfies Record<string, LucideIcon>;
 
 export type IconName = keyof typeof ICON_MAP;

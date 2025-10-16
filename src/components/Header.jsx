@@ -1,4 +1,4 @@
-import { Link, useNavigate, useLocation } from "react-router-dom";
+import { Link, useLocation } from "react-router-dom";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { motion, useReducedMotion } from "framer-motion";
 import ThemeToggle from "./ThemeToggle";
@@ -10,9 +10,11 @@ import MagneticButton from "./animation/MagneticButton";
 import { StaggeredContainer, StaggeredItem } from "./animation/StaggeredList";
 import LogoWordmark from "./ui/LogoWordmark";
 import motionCatalog from "../design/motion/catalog";
+import useViewTransitionNavigate from "../hooks/useViewTransitionNavigate";
+import { Icon } from "./icons";
 
 export default function Header({ user, onSignIn, onSignUp, onSignOut }) {
-  const navigate = useNavigate();
+  const navigate = useViewTransitionNavigate();
   const { pathname } = useLocation();
   const { darkMode } = useTheme();
   const [scrolled, setScrolled] = useState(false);
@@ -181,12 +183,50 @@ export default function Header({ user, onSignIn, onSignUp, onSignOut }) {
 
   const navItems = useMemo(
     () => [
-      { path: "/marketplace", label: "Marketplace" },
-      { path: "/pricing", label: "Pricing" },
-      { path: "/docs", label: "Docs" },
-      { path: "/design-system", label: "Design System" },
+      {
+        type: "menu",
+        label: "Solutions",
+        items: [
+          {
+            path: "/marketplace",
+            label: "Automation Marketplace",
+            description: "Browse prebuilt automations",
+          },
+          {
+            path: "/case-studies",
+            label: "Case Studies",
+            description: "See how teams ship AI in production",
+          },
+          {
+            path: "/security",
+            label: "Enterprise Security",
+            description: "Deep-dive into compliance posture",
+          },
+        ],
+      },
+      { type: "link", path: "/pricing", label: "Pricing" },
+      { type: "link", path: "/docs", label: "Docs" },
+      { type: "link", path: "/design-system", label: "Design System" },
     ],
-    []
+    [],
+  );
+
+  const handleLinkNavigation = useCallback(
+    (event, path, options) => {
+      if (
+        event.defaultPrevented ||
+        event.metaKey ||
+        event.ctrlKey ||
+        event.shiftKey ||
+        event.altKey ||
+        event.button !== 0
+      ) {
+        return;
+      }
+      event.preventDefault();
+      navigate(path, options);
+    },
+    [navigate],
   );
 
   const headerBackground = useMemo(
@@ -248,7 +288,9 @@ export default function Header({ user, onSignIn, onSignUp, onSignOut }) {
 
         <div
           className="brand brand--interactive"
-          onClick={() => navigate("/")}
+          onClick={(event) => {
+            handleLinkNavigation(event, "/");
+          }}
           role="button"
           tabIndex={0}
           onKeyDown={(event) => {
@@ -300,7 +342,48 @@ export default function Header({ user, onSignIn, onSignUp, onSignOut }) {
               gap: space("md"),
             }}
           >
-            {navItems.map(({ path, label }, index) => {
+            {navItems.map((item, index) => {
+              if (item.type === "menu") {
+                const isActive = item.items.some((entry) => entry.path === pathname);
+                return (
+                  <StaggeredItem key={item.label} index={index} style={{ display: "flex" }}>
+                    <div
+                      className={`nav-item nav-item--menu${isActive ? " nav-item--active" : ""}`.trim()}
+                      data-nav-menu
+                    >
+                      <details className="nav-menu" data-enhanced>
+                        <summary aria-haspopup="menu">
+                          <span>{item.label}</span>
+                          <Icon name="chevron-down" size={16} aria-hidden="true" />
+                        </summary>
+                        <div className="nav-menu__panel" role="menu">
+                          {item.items.map((entry) => (
+                            <Link
+                              key={entry.path}
+                              to={entry.path}
+                              role="menuitem"
+                              className="nav-menu__link"
+                              data-prefetch-route={entry.path}
+                              onClick={(event) => {
+                                handleLinkNavigation(event, entry.path);
+                                const rootDetails = event.currentTarget.closest("details");
+                                if (rootDetails) {
+                                  rootDetails.removeAttribute("open");
+                                }
+                              }}
+                            >
+                              <span className="nav-menu__link-label">{entry.label}</span>
+                              <span className="nav-menu__link-description">{entry.description}</span>
+                            </Link>
+                          ))}
+                        </div>
+                      </details>
+                    </div>
+                  </StaggeredItem>
+                );
+              }
+
+              const { path, label } = item;
               const isActive = pathname === path;
               const isPredicted = !isActive && predictedNav === path;
               return (
@@ -314,6 +397,7 @@ export default function Header({ user, onSignIn, onSignUp, onSignOut }) {
                     data-prefetch-route={path}
                     className="nav-item"
                     transition={{ type: "spring", stiffness: 320, damping: 24 }}
+                    onClick={(event) => handleLinkNavigation(event, path)}
                     style={{
                       position: "relative",
                       padding: `${space("xs", 1.1)} ${space("sm", 1.15)}`,

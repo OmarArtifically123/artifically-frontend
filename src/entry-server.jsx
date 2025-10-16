@@ -5,6 +5,7 @@ import { StaticRouter } from "react-router-dom/server";
 import App from "./App";
 import { ThemeProvider } from "./context/ThemeContext";
 import { getFallbackFeatureData } from "./lib/graphqlClient";
+import MarketingHomeServer from "./rsc/MarketingHome.server.jsx";
 
 const ABORT_DELAY = 10000;
 
@@ -201,6 +202,49 @@ export function renderFeatureHighlightsRSC(res) {
         onAllReady() {},
         onError(error) {
           console.error("RSC stream error", error);
+        },
+      },
+    );
+
+    const timeoutId = setTimeout(() => {
+      abort();
+    }, ABORT_DELAY);
+
+    stream.on("end", () => {
+      clearTimeout(timeoutId);
+      resolve();
+    });
+    stream.on("close", () => clearTimeout(timeoutId));
+    stream.on("error", (error) => {
+      clearTimeout(timeoutId);
+      reject(error);
+    });
+  });
+}
+
+export function renderMarketingHomeRSC(res) {
+  return new Promise((resolve, reject) => {
+    const stream = new PassThrough();
+
+    const { pipe, abort } = renderToPipeableStream(
+      <ThemeProvider>
+        <MarketingHomeServer />
+      </ThemeProvider>,
+      {
+        onShellReady() {
+          res.statusCode = 200;
+          res.setHeader("Content-Type", "text/html; charset=utf-8");
+          res.setHeader("Cache-Control", "public, max-age=300, stale-while-revalidate=900");
+          res.setHeader("X-Component-Type", "rsc");
+          pipe(stream);
+          stream.pipe(res);
+        },
+        onShellError(error) {
+          reject(error);
+        },
+        onAllReady() {},
+        onError(error) {
+          console.error("Marketing RSC stream error", error);
         },
       },
     );

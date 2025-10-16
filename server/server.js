@@ -584,6 +584,19 @@ async function createDevServer() {
       return;
     }
 
+    if (url.startsWith("/rsc/marketing/home")) {
+      try {
+        const mod = await vite.ssrLoadModule("/src/entry-server.jsx");
+        await mod.renderMarketingHomeRSC(res);
+      } catch (error) {
+        vite.ssrFixStacktrace(error);
+        console.error("Marketing RSC dev render failed", error);
+        res.statusCode = 500;
+        res.end("RSC render failed");
+      }
+      return;
+    }
+
     try {
       let resolved = false;
       await new Promise((resolve, reject) => {
@@ -793,13 +806,14 @@ async function createProdServer() {
   const entryPath = resolveEntryServerPath(serverDist);
   let render = null;
   let renderFeatureHighlightsRSC = null;
+  let renderMarketingHomeRSC = null;
   if (!entryPath) {
     console.error(
       "⚠️ SSR entry module not found in dist/server. Falling back to client-only rendering."
     );
   } else {
     try {
-      ({ render, renderFeatureHighlightsRSC } = await import(pathToFileURL(entryPath).href));
+      ({ render, renderFeatureHighlightsRSC, renderMarketingHomeRSC } = await import(pathToFileURL(entryPath).href));
     } catch (error) {
       console.error("⚠️ Failed to load SSR entry module, falling back to client-only", error);
     }
@@ -846,6 +860,23 @@ async function createProdServer() {
         }
       } else {
         console.warn("RSC renderer unavailable, returning empty response");
+        res.statusCode = 204;
+        res.end();
+      }
+      return;
+    }
+
+    if (url.startsWith("/rsc/marketing/home")) {
+      if (renderMarketingHomeRSC) {
+        try {
+          await renderMarketingHomeRSC(res);
+        } catch (error) {
+          console.error("Marketing RSC prod render failed", error);
+          res.statusCode = 500;
+          res.end("RSC render failed");
+        }
+      } else {
+        console.warn("Marketing RSC renderer unavailable, returning empty response");
         res.statusCode = 204;
         res.end();
       }

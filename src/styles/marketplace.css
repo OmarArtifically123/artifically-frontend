@@ -164,6 +164,9 @@
     0 35px 90px oklch(0.08 0.02 264 / 0.45);
   backdrop-filter: blur(40px) saturate(180%);
   -webkit-backdrop-filter: blur(40px) saturate(180%);
+  container-type: inline-size;
+  container-name: automation-card;
+  view-transition-name: automation-card;
 }
 
 .automation-card::before {
@@ -351,6 +354,8 @@ body.demo-experience-open {
   gap: var(--space-sm);
   padding: var(--space-sm) var(--space-sm);
   border-radius: var(--rounded-2xl);
+  container-type: inline-size;
+  container-name: journey-card;
 }
 
 .marketplace-journey__card-header {
@@ -401,6 +406,47 @@ body.demo-experience-open {
   justify-content: center;
   align-items: center;
   overflow-y: auto;
+}
+
+@container automation-card (max-width: 520px) {
+  .automation-card {
+    padding: var(--space-sm);
+  }
+
+  .card-header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: var(--space-sm);
+  }
+
+  .card-actions {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .card-actions > * {
+    width: 100%;
+  }
+
+  .card-tags {
+    justify-content: flex-start;
+  }
+}
+
+@container journey-card (max-width: 360px) {
+  .marketplace-journey__card {
+    padding: var(--space-sm);
+  }
+
+  .marketplace-journey__card-header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: var(--space-xs);
+  }
+
+  .marketplace-journey__card ol {
+    padding-left: 1rem;
+  }
 }
 
 [data-theme="light"] .demo-experience {

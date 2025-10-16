@@ -1,5 +1,4 @@
-import { useCallback, useState } from "react";
-import HeroSection from "../components/landing/HeroSection";
+import { lazy, Suspense, useCallback, useEffect, useState } from "react";
 import ProblemSolutionSection from "../components/landing/ProblemSolutionSection";
 import FeaturesShowcaseSection from "../components/landing/FeaturesShowcaseSection";
 import SocialProofSection from "../components/landing/SocialProofSection";
@@ -7,9 +6,14 @@ import FinalCTASection from "../components/landing/FinalCTASection";
 import HeroDemoModal from "../components/landing/HeroDemoModal";
 import PersonaScenarioSection from "../components/landing/PersonaScenarioSection";
 import GoalOnboardingWizard from "../components/landing/GoalOnboardingWizard";
+import ServerRenderedHero from "../components/landing/ServerRenderedHero";
+
+const HeroSection = lazy(() => import("../components/landing/HeroSection"));
 
 export default function Home({ openAuth }) {
   const [demoOpen, setDemoOpen] = useState(false);
+  const [enhanceHero, setEnhanceHero] = useState(false);
+  const [showStaticHero, setShowStaticHero] = useState(true);
   const handlePrimary = useCallback(() => {
     if (typeof openAuth === "function") {
       openAuth("signup");
@@ -33,10 +37,27 @@ export default function Home({ openAuth }) {
     [openAuth],
   );
 
+  const handleHeroReady = useCallback(() => {
+    setShowStaticHero(false);
+  }, []);
+
+  useEffect(() => {
+    setEnhanceHero(true);
+  }, []);
+
   return (
     <>
       <main>
-        <HeroSection onPrimary={handlePrimary} onSecondary={handleSecondary} />
+        <ServerRenderedHero hidden={!showStaticHero} />
+        {enhanceHero ? (
+          <Suspense fallback={null}>
+            <HeroSectionIsland
+              onReady={handleHeroReady}
+              onPrimary={handlePrimary}
+              onSecondary={handleSecondary}
+            />
+          </Suspense>
+        ) : null}
         <PersonaScenarioSection />
         <ProblemSolutionSection />
         <FeaturesShowcaseSection />
@@ -47,4 +68,14 @@ export default function Home({ openAuth }) {
       <HeroDemoModal open={demoOpen} onClose={handleDemoClose} />
     </>
   );
+}
+
+function HeroSectionIsland({ onReady, ...props }) {
+  useEffect(() => {
+    if (typeof onReady === "function") {
+      onReady();
+    }
+  }, [onReady]);
+
+  return <HeroSection {...props} />;
 }
