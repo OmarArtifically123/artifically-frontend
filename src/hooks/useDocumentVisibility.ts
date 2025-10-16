@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 
-export default function useDocumentVisibility() {
-  const [isVisible, setIsVisible] = useState(() => {
+export default function useDocumentVisibility(): boolean {
+  const [isVisible, setIsVisible] = useState<boolean>(() => {
     if (typeof document === "undefined") {
       return true;
     }

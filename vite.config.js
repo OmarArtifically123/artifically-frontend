@@ -317,6 +317,17 @@ export default defineConfig((configEnv) => {
         '@vercel/analytics',
         '@vercel/speed-insights/react',
       ],
-    }
+    },
+    test: {
+      include: ['src/**/*.{test,spec}.{js,jsx,ts,tsx}'],
+      globals: true,
+      environment: 'jsdom',
+      setupFiles: './vitest.setup.ts',
+      exclude: ['tests/e2e/**'],
+      coverage: {
+        provider: 'v8',
+        reporter: ['text', 'html'],
+      },
+    },
   }
 })

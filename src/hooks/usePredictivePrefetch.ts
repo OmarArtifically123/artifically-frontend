@@ -1,24 +1,50 @@
 import { useEffect, useMemo, useRef, useState } from "react";
+import {
+  calculateHistoryWeights,
+  loadRouteHistory,
+  loadRouteModel,
+  normaliseWeights,
+  persistRouteModel,
+  recordRouteTransition,
+  recordRouteVisit,
+  type RouteModel,
+  type RouteProbabilityMap,
+} from "../services/prefetchAnalytics";
 import { getNetworkInformation, prefersLowPower } from "../utils/networkPreferences";
 
-const STORAGE_KEY = "__artifically_route_model_v1";
-const HISTORY_KEY = "route-history";
+type RouteLoaders = Record<string, () => Promise<unknown>>;
+type IdleTaskPriority = "user-blocking" | "user-visible" | "background";
+type CancelFn = () => void;
+
+type IdleTaskOptions = {
+  priority?: IdleTaskPriority;
+};
+
+declare global {
+  interface Window {
+    scheduler?: {
+      postTask: (callback: () => void, options?: { priority?: IdleTaskPriority; delay?: number; signal?: AbortSignal }) => void;
+    };
+  }
+}
+
+type PrefetchHandle = {
+  prefetch: (path: string) => Promise<unknown> | undefined;
+};
 
 const supportsScheduler =
   typeof window !== "undefined" &&
   typeof window.scheduler !== "undefined" &&
   typeof window.scheduler.postTask === "function";
 
-const scheduleIdleTask = (callback, { priority = "background" } = {}) => {
+const scheduleIdleTask = (callback: () => void, { priority = "background" }: IdleTaskOptions = {}): CancelFn => {
   if (typeof window === "undefined") {
     return () => {};
   }
 
-  const run = () => {
-    callback();
-  };
+  const run = () => callback();
 
-if (supportsScheduler) {
+  if (supportsScheduler && window.scheduler) {
     const controller = new AbortController();
     window.scheduler.postTask(run, {
       priority,
@@ -28,7 +54,7 @@ if (supportsScheduler) {
     return () => controller.abort();
   }
 
-    if (typeof window.requestIdleCallback === "function") {
+  if (typeof window.requestIdleCallback === "function") {
     const id = window.requestIdleCallback(run, { timeout: 1500 });
     return () => window.cancelIdleCallback(id);
   }
@@ -37,100 +63,22 @@ if (supportsScheduler) {
   return () => window.clearTimeout(timeoutId);
 };
 
-const loadHistory = () => {
-  if (typeof window === "undefined") return [];
-  try {
-    const stored = window.localStorage.getItem(HISTORY_KEY);
-    if (!stored) return [];
-    const parsed = JSON.parse(stored);
-    return Array.isArray(parsed) ? parsed : [];
-  } catch (error) {
-    console.warn("Failed to load route history", error);
-    return [];
-  }
-};
+const toRouteProbabilityMap = (input: RouteProbabilityMap | undefined): RouteProbabilityMap => input ?? {};
 
-const calculateHistoryWeights = (history, currentPathname) => {
-  if (!Array.isArray(history) || !history.length) return {};
-
-  const now = Date.now();
-  const weights = history.reduce((acc, entry, index) => {
-    if (!entry || typeof entry.path !== "string" || entry.path === currentPathname) {
-      return acc;
-    }
-
-    const age = Math.max(now - (entry.ts || 0), 0);
-    const recency = Math.exp(-age / (1000 * 60 * 10)); // decay over ~10 minutes
-    const positionWeight = 1 / Math.pow(index + 1, 1.2);
-    const weight = recency * positionWeight;
-
-    acc[entry.path] = (acc[entry.path] || 0) + weight;
-    return acc;
-  }, {});
-
-  return normalise(weights);
-};
-
-const loadModel = () => {
-  if (typeof window === "undefined") return { transitions: {}, visits: {} };
-  try {
-    const stored = window.localStorage.getItem(STORAGE_KEY);
-    if (!stored) return { transitions: {}, visits: {} };
-    const parsed = JSON.parse(stored);
-    if (typeof parsed !== "object" || !parsed) {
-      return { transitions: {}, visits: {} };
-    }
-    return {
-      transitions: parsed.transitions || {},
-      visits: parsed.visits || {},
-    };
-  } catch (error) {
-    console.warn("Failed to load predictive model", error);
-    return { transitions: {}, visits: {} };
-  }
-};
-
-const persistModel = (model) => {
-  if (typeof window === "undefined") return;
-  try {
-    window.localStorage.setItem(
-      STORAGE_KEY,
-      JSON.stringify({
-        transitions: model.transitions,
-        visits: model.visits,
-      })
-    );
-  } catch (error) {
-    console.warn("Failed to persist predictive model", error);
-  }
-};
-
-const normalise = (weights) => {
-  const entries = Object.entries(weights || {});
-  if (!entries.length) return {};
-  const total = entries.reduce((acc, [, value]) => acc + value, 0);
-  if (!total) return {};
-  return entries.reduce((acc, [key, value]) => {
-    acc[key] = value / total;
-    return acc;
-  }, {});
-};
-
-export default function usePredictivePrefetch(routeLoaders, currentPathname) {
-  const interactionCounts = useRef(new Map());
-  const idleCancel = useRef(null);
-  const modelRef = useRef(loadModel());
-  const previousRouteRef = useRef(currentPathname);
-  const persistIdleCancel = useRef(null);
-  const prefetchedRoutesRef = useRef(new Set());
+export default function usePredictivePrefetch(
+  routeLoaders: RouteLoaders,
+  currentPathname: string,
+): PrefetchHandle {
+  const interactionCounts = useRef<Map<string, number>>(new Map());
+  const idleCancel = useRef<CancelFn | null>(null);
+  const modelRef = useRef<RouteModel>(loadRouteModel());
+  const previousRouteRef = useRef<string | null>(currentPathname);
+  const persistIdleCancel = useRef<CancelFn | null>(null);
+  const prefetchedRoutesRef = useRef<Set<string>>(new Set());
   const [hasUserEngaged, setHasUserEngaged] = useState(false);
-  const [connectionConstrained, setConnectionConstrained] = useState(() => prefersLowPower());
+  const [connectionConstrained, setConnectionConstrained] = useState<boolean>(() => prefersLowPower());
 
-  const loaders = useMemo(() => routeLoaders || {}, [routeLoaders]);
-
-  useEffect(() => {
-    previousRouteRef.current = currentPathname;
-  }, []);
+  const loaders = useMemo<RouteLoaders>(() => routeLoaders ?? {}, [routeLoaders]);
 
   useEffect(() => {
     if (typeof window === "undefined") {
@@ -164,7 +112,11 @@ export default function usePredictivePrefetch(routeLoaders, currentPathname) {
 
     if (typeof connection.addEventListener === "function") {
       connection.addEventListener("change", updateConstraint);
-      return () => connection.removeEventListener("change", updateConstraint);
+      return () => {
+        if (typeof connection.removeEventListener === "function") {
+          connection.removeEventListener("change", updateConstraint);
+        }
+      };
     }
 
     connection.onchange = updateConstraint;
@@ -172,38 +124,36 @@ export default function usePredictivePrefetch(routeLoaders, currentPathname) {
       connection.onchange = null;
     };
   }, []);
-  
+
   useEffect(() => {
     const counts = interactionCounts.current;
     const model = modelRef.current;
-    const prev = previousRouteRef.current;
+    const previous = previousRouteRef.current;
 
-    if (prev && prev !== currentPathname) {
-      const transitions = model.transitions[prev] || {};
-      transitions[currentPathname] = (transitions[currentPathname] || 0) + 1;
-      model.transitions[prev] = transitions;
+    if (previous && previous !== currentPathname) {
+      recordRouteTransition(model, previous, currentPathname);
     }
 
-    model.visits[currentPathname] = (model.visits[currentPathname] || 0) + 1;
+    recordRouteVisit(model, currentPathname);
     previousRouteRef.current = currentPathname;
 
     if (persistIdleCancel.current) {
       persistIdleCancel.current();
     }
-    persistIdleCancel.current = scheduleIdleTask(() => persistModel(model));
+    persistIdleCancel.current = scheduleIdleTask(() => persistRouteModel(model));
 
     const currentCount = counts.get(currentPathname) || 0;
     counts.set(currentPathname, currentCount + 0.5);
 
-    const probabilityMap = normalise(model.transitions[currentPathname] || {});
-    const history = loadHistory();
+    const probabilityMap = normaliseWeights(toRouteProbabilityMap(model.transitions[currentPathname]));
+    const history = loadRouteHistory();
     const historyMap = calculateHistoryWeights(history, currentPathname);
 
     const candidatePaths = new Set(
-      Object.keys(probabilityMap).filter((path) => loaders[path])
+      Object.keys(probabilityMap).filter((path) => Boolean(loaders[path])),
     );
     Object.keys(historyMap)
-      .filter((path) => loaders[path])
+      .filter((path) => Boolean(loaders[path]))
       .forEach((path) => candidatePaths.add(path));
 
     const schedulePrefetch = () => {
@@ -214,11 +164,7 @@ export default function usePredictivePrefetch(routeLoaders, currentPathname) {
           const historyBoost = historyMap[path] || 0;
           const visitCount = model.visits[path] || 0;
           const decay = Math.exp(-Math.max(visitCount - 1, 0) * 0.05);
-          const score =
-            probability * 0.55 +
-            interactionBoost * 0.2 +
-            historyBoost * 0.2 +
-            decay * 0.05;
+          const score = probability * 0.55 + interactionBoost * 0.2 + historyBoost * 0.2 + decay * 0.05;
           return { path, score };
         })
         .filter(({ score }) => score > 0)
@@ -237,7 +183,7 @@ export default function usePredictivePrefetch(routeLoaders, currentPathname) {
           .sort((a, b) => b.score - a.score)
           .slice(0, 2);
 
-        const seenFallback = new Set();
+        const seenFallback = new Set<string>();
         const combined = [...fallbackEntries, ...historyFallback].filter(({ path }) => {
           if (seenFallback.has(path)) return false;
           seenFallback.add(path);
@@ -247,7 +193,7 @@ export default function usePredictivePrefetch(routeLoaders, currentPathname) {
         ranked.push(...combined);
       }
 
-      const visibleRoutes = new Set();
+      const visibleRoutes = new Set<string>();
       if (typeof document !== "undefined" && typeof window !== "undefined") {
         const viewportHeight = window.innerHeight || 0;
         const viewportWidth = window.innerWidth || 0;
@@ -256,19 +202,16 @@ export default function usePredictivePrefetch(routeLoaders, currentPathname) {
           if (!route) return;
           const rect = element.getBoundingClientRect();
           const inViewport =
-            rect.bottom > 0 &&
-            rect.right > 0 &&
-            rect.left < viewportWidth &&
-            rect.top < viewportHeight;
+            rect.bottom > 0 && rect.right > 0 && rect.left < viewportWidth && rect.top < viewportHeight;
           if (inViewport) {
             visibleRoutes.add(route);
           }
         });
       }
 
-      const prioritised = [];
-      const seen = new Set();
-      const pushEntries = (entries, requireVisibility) => {
+      const prioritised: Array<{ path: string; score: number }> = [];
+      const seen = new Set<string>();
+      const pushEntries = (entries: Array<{ path: string; score: number }>, requireVisibility: boolean) => {
         entries.forEach((entry) => {
           if (seen.has(entry.path)) return;
           if (requireVisibility && visibleRoutes.size && !visibleRoutes.has(entry.path)) {
@@ -343,8 +286,9 @@ export default function usePredictivePrefetch(routeLoaders, currentPathname) {
       return undefined;
     }
 
-    const handler = (event) => {
-      const route = event.target?.getAttribute?.("data-prefetch-route");
+    const handler = (event: Event) => {
+      const target = event.target as HTMLElement | null;
+      const route = target?.getAttribute?.("data-prefetch-route");
       if (!route || !loaders[route]) {
         return;
       }
@@ -358,9 +302,7 @@ export default function usePredictivePrefetch(routeLoaders, currentPathname) {
       }
 
       const model = modelRef.current;
-      const transitions = model.transitions[currentPathname] || {};
-      transitions[route] = (transitions[route] || 0) + 0.35;
-      model.transitions[currentPathname] = transitions;
+      recordRouteTransition(model, currentPathname, route, 0.35);
 
       interactionCounts.current.set(route, (interactionCounts.current.get(route) || 0) + 1.5);
       if (prefetchedRoutesRef.current.has(route)) {
@@ -381,6 +323,6 @@ export default function usePredictivePrefetch(routeLoaders, currentPathname) {
   }, [connectionConstrained, currentPathname, hasUserEngaged, loaders]);
 
   return {
-    prefetch: (path) => loaders[path]?.(),
+    prefetch: (path: string) => loaders[path]?.(),
   };
 }

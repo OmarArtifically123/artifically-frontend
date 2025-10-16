@@ -1,16 +1,47 @@
-import { lazy, Suspense, useEffect, useMemo, useRef, useState } from "react";
-import { Routes, Route, useNavigate, useLocation } from "react-router-dom";
+import { SpeedInsights } from "@vercel/speed-insights/react";
+import {
+  lazy,
+  Suspense,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+  type ReactNode,
+} from "react";
+import { Route, Routes, useLocation, useNavigate } from "react-router-dom";
+
+import apiClient, { pick } from "./api";
+import ExperienceLayer from "./components/ExperienceLayer";
+import GlobalProgressBar from "./components/GlobalProgressBar";
 import Header from "./components/Header";
 import RouteShell from "./components/skeletons/RouteShell";
 import { ToastHost, toast } from "./components/Toast";
-import { SpeedInsights } from "@vercel/speed-insights/react";
-import api, { pick } from "./api";
+import Button from "./components/ui/Button";
 import usePredictivePrefetch from "./hooks/usePredictivePrefetch";
+import { applyDesignTokens } from "./styles/applyDesignTokens";
 import "./styles/global.css";
 import "./styles/landing.css";
-import ExperienceLayer from "./components/ExperienceLayer";
-import Button from "./components/ui/Button";
-import GlobalProgressBar from "./components/GlobalProgressBar";
+
+type AuthMode = "signin" | "signup";
+
+type AuthUser = {
+  verified?: boolean;
+  [key: string]: unknown;
+} | null;
+
+type AuthenticatedPayload = {
+  token?: string | null;
+  user?: AuthUser;
+  notice?: string | null;
+};
+
+type RouteLoaders = Record<string, () => Promise<unknown>>;
+
+declare global {
+  interface Window {
+    __SSR_SUCCESS__?: boolean;
+  }
+}
 
 const Home = lazy(() => import(/* webpackChunkName: "home", webpackPrefetch: true */ "./pages/Home"));
 const Pricing = lazy(() => import(/* webpackChunkName: "pricing", webpackPrefetch: true */ "./pages/Pricing"));
@@ -38,35 +69,49 @@ const Verify = lazy(() => import(/* webpackChunkName: "verify" */ "./components/
 const Footer = lazy(() => import(/* webpackChunkName: "footer" */ "./components/Footer"));
 
 // Utility functions - moved outside component to prevent recreation
-const requestIdle =
+type IdleHandle = number | ReturnType<typeof setTimeout>;
+
+const requestIdle: (cb: IdleRequestCallback) => IdleHandle =
   typeof window !== "undefined" && typeof window.requestIdleCallback === "function"
     ? (cb) => window.requestIdleCallback(cb)
-    : (cb) => setTimeout(() => cb({ didTimeout: false, timeRemaining: () => 0 }), 1);
+    : (cb) => {
+        const start = Date.now();
+        const timeoutId = setTimeout(() => {
+          cb({
+            didTimeout: false,
+            timeRemaining: () => Math.max(0, 50 - (Date.now() - start)),
+          });
+        }, 1);
+        return timeoutId;
+      };
 
-const cancelIdle =
-  typeof window !== "undefined" && typeof window.cancelIdleCallback === "function"
-    ? (id) => window.cancelIdleCallback(id)
-    : (id) => clearTimeout(id);
+const cancelIdle = (id: IdleHandle) => {
+  if (typeof window !== "undefined" && typeof window.cancelIdleCallback === "function" && typeof id === "number") {
+    window.cancelIdleCallback(id);
+    return;
+  }
+  clearTimeout(id as ReturnType<typeof setTimeout>);
+};
 
-function SuspenseBoundary({ children, rows = 3 }) {
+function SuspenseBoundary({ children, rows = 3 }: { children: ReactNode; rows?: number }) {
   return <Suspense fallback={<RouteShell rows={rows} />}>{children}</Suspense>;
 }
 
 export default function App() {
-  const [authOpen, setAuthOpen] = useState(false);
-  const [authMode, setAuthMode] = useState("signin");
-  const [user, setUser] = useState(null);
-  const [authChecking, setAuthChecking] = useState(false);
-  const [isHydrated, setIsHydrated] = useState(false);
-  const [isNavigating, setIsNavigating] = useState(false);
-  const navigationTimeoutRef = useRef(null);
+  const [authOpen, setAuthOpen] = useState<boolean>(false);
+  const [authMode, setAuthMode] = useState<AuthMode>("signin");
+  const [user, setUser] = useState<AuthUser>(null);
+  const [authChecking, setAuthChecking] = useState<boolean>(false);
+  const [isHydrated, setIsHydrated] = useState<boolean>(false);
+  const [isNavigating, setIsNavigating] = useState<boolean>(false);
+  const navigationTimeoutRef = useRef<number | null>(null);
 
   const navigate = useNavigate();
   const location = useLocation();
   const { pathname } = location;
   const experienceRoutes = useMemo(
     () =>
-      new Set([
+      new Set<string>([
         "/",
         "/case-studies",
         "/customers",
@@ -76,6 +121,10 @@ export default function App() {
     [],
   );
   const enableExperience = experienceRoutes.has(pathname);
+
+  useEffect(() => {
+    applyDesignTokens();
+  }, []);
 
   // Mark as hydrated after initial mount
   useEffect(() => {
@@ -89,7 +138,7 @@ export default function App() {
   }, []);
 
   // Static route loaders - memoized to prevent recreation
-  const routeLoaders = useMemo(
+  const routeLoaders = useMemo<RouteLoaders>(
     () => ({
       "/": () => import("./pages/Home"),
       "/pricing": () => import("./pages/Pricing"),
@@ -134,12 +183,12 @@ export default function App() {
 
     setAuthChecking(true);
 
-    api
+    apiClient
       .get("/auth/me")
       .then(pick("user"))
       .then((u) => {
         if (mounted) {
-          setUser(u);
+          setUser((u as AuthUser) ?? null);
         }
       })
       .catch(() => {
@@ -219,7 +268,7 @@ export default function App() {
     };
   }, [pathname, isHydrated]);
 
-  const openAuth = (mode = "signin") => {
+  const openAuth = (mode: AuthMode = "signin") => {
     setAuthMode(mode);
     setAuthOpen(true);
   };
@@ -236,15 +285,15 @@ export default function App() {
     }
   };
 
-  const onAuthenticated = ({ token, user: u, notice }) => {
+  const onAuthenticated = ({ token, user: nextUser, notice }: AuthenticatedPayload) => {
     if (token && typeof window !== "undefined") {
       window.localStorage.setItem("token", token);
     }
-    if (u) {
-      setUser(u);
+    if (typeof nextUser !== "undefined") {
+      setUser(nextUser ?? null);
     }
     if (notice) {
-      toast(notice, { type: u?.verified ? "success" : "info" });
+      toast(notice, { type: nextUser && nextUser.verified ? "success" : "info" });
     }
     setAuthChecking(false);
     setAuthOpen(false);
@@ -274,12 +323,20 @@ export default function App() {
               style={{ marginLeft: 12 }}
               onClick={async () => {
                 try {
-                  await api.post("/auth/resend-verification");
+                  await apiClient.post("/auth/resend-verification");
                   toast("Verification email sent. Check your inbox.", {
                     type: "success",
                   });
-                } catch (e) {
-                  toast(e.message || "Could not resend verification", {
+                } catch (error) {
+                  const fallbackMessage = "Could not resend verification";
+                  let message = fallbackMessage;
+                  if (error instanceof Error) {
+                    message = error.message || fallbackMessage;
+                  } else if (typeof error === "object" && error !== null && "message" in error) {
+                    message = String((error as { message?: unknown }).message ?? fallbackMessage);
+                  }
+
+                  toast(message, {
                     type: "error",
                   });
                 }
@@ -303,7 +360,7 @@ export default function App() {
               path="/"
               element={
                 <SuspenseBoundary rows={6}>
-                  <Home openAuth={openAuth} user={user} />
+                  <Home openAuth={openAuth} />
                 </SuspenseBoundary>
               }
             />
@@ -359,7 +416,7 @@ export default function App() {
               path="/case-studies"
               element={
                 <SuspenseBoundary rows={6}>
-                    <CaseStudies />
+                  <CaseStudies />
                 </SuspenseBoundary>
               }
             />
@@ -367,7 +424,7 @@ export default function App() {
               path="/customers"
               element={
                 <SuspenseBoundary rows={6}>
-                    <CaseStudies />
+                  <CaseStudies />
                 </SuspenseBoundary>
               }
             />
@@ -375,7 +432,7 @@ export default function App() {
               path="/changelog"
               element={
                 <SuspenseBoundary rows={4}>
-                    <Changelog />
+                  <Changelog />
                 </SuspenseBoundary>
               }
             />
@@ -383,7 +440,7 @@ export default function App() {
               path="/updates"
               element={
                 <SuspenseBoundary rows={4}>
-                    <Changelog />
+                  <Changelog />
                 </SuspenseBoundary>
               }
             />
@@ -391,7 +448,7 @@ export default function App() {
               path="/help"
               element={
                 <SuspenseBoundary rows={4}>
-                    <HelpCenter />
+                  <HelpCenter />
                 </SuspenseBoundary>
               }
             />
@@ -399,7 +456,7 @@ export default function App() {
               path="/support"
               element={
                 <SuspenseBoundary rows={4}>
-                    <HelpCenter />
+                  <HelpCenter />
                 </SuspenseBoundary>
               }
             />
@@ -407,7 +464,7 @@ export default function App() {
               path="/status"
               element={
                 <SuspenseBoundary rows={3}>
-                    <StatusPage />
+                  <StatusPage />
                 </SuspenseBoundary>
               }
             />
@@ -447,7 +504,7 @@ export default function App() {
               path="/marketplace"
               element={
                 <SuspenseBoundary rows={6}>
-                    <Marketplace openAuth={openAuth} user={user} />
+                  <Marketplace />
                 </SuspenseBoundary>
               }
             />
@@ -455,7 +512,7 @@ export default function App() {
               path="/products/marketplace"
               element={
                 <SuspenseBoundary rows={6}>
-                    <Marketplace openAuth={openAuth} user={user} />
+                  <Marketplace />
                 </SuspenseBoundary>
               }
             />
@@ -468,7 +525,7 @@ export default function App() {
                   ) : user ? (
                     <Dashboard user={user} openAuth={openAuth} />
                   ) : (
-                    <Home openAuth={openAuth} user={null} />
+                    <Home openAuth={openAuth} />
                   )}
                 </SuspenseBoundary>
               }
@@ -477,7 +534,7 @@ export default function App() {
               path="/verify"
               element={
                 <SuspenseBoundary rows={3}>
-                    <Verify onVerified={(u) => setUser(u)} />
+                  <Verify onVerified={(verifiedUser: AuthUser) => setUser(verifiedUser ?? null)} />
                 </SuspenseBoundary>
               }
             />
@@ -485,7 +542,7 @@ export default function App() {
               path="*"
               element={
                 <SuspenseBoundary rows={6}>
-                    <Home openAuth={openAuth} user={user} />
+                    <Home openAuth={openAuth} />
                 </SuspenseBoundary>
               }
             />
@@ -546,7 +603,6 @@ function FooterSkeleton() {
             />
             {Array.from({ length: 4 }).map((_, lineIndex) => (
               <div
-                // eslint-disable-next-line react/no-array-index-key
                 key={lineIndex}
                 style={{
                   height: "0.85rem",

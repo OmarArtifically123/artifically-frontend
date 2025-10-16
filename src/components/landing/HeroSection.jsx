@@ -58,34 +58,34 @@ export default function HeroSection({ onPrimary, onSecondary }) {
       <HeroBackground variant="particles" />
       <div className="page-hero__inner">
         <div className="page-hero__content">
-          <span className="page-hero__eyebrow">⚡ The Future of AI Automation</span>
-          <h1 id="hero-headline" className="page-hero__headline">
-            Deploy Enterprise AI <GradientText>Automations</GradientText> in Minutes
-          </h1>
-          <p className="page-hero__subheadline">
-            Transform operations with battle-tested automations. No setup hell. No vendor lock-in. Just results.
-          </p>
-          <div className="cta-group">
-            <button type="button" className="cta-primary" onClick={onPrimary}>
-              {primaryLabel}
-            </button>
-            <button type="button" className="cta-secondary" onClick={onSecondary}>
-              {secondaryLabel} → <VideoBadge duration="2 min" />
-            </button>
+            <span className="page-hero__eyebrow">⚡ The Future of AI Automation</span>
+            <h1 id="hero-headline" className="page-hero__headline">
+              Deploy Enterprise AI <GradientText>Automations</GradientText> in Minutes
+            </h1>
+            <p className="page-hero__subheadline">
+              Transform operations with battle-tested automations. No setup hell. No vendor lock-in. Just results.
+            </p>
+            <div className="cta-group">
+              <button type="button" className="cta-primary" onClick={onPrimary}>
+                {primaryLabel}
+              </button>
+              <button type="button" className="cta-secondary" onClick={onSecondary}>
+                {secondaryLabel} → <VideoBadge duration="2 min" />
+              </button>
+            </div>
+            {ctaContext ? <p className="hero-cta-context">{ctaContext}</p> : null}
+            <HeroStats stats={heroStats} />
+            <LogoTicker logos={defaultLogos} gradientId={gradientId} />
           </div>
-          {ctaContext ? <p className="hero-cta-context">{ctaContext}</p> : null}
-          <HeroStats stats={heroStats} />
-          <LogoTicker logos={defaultLogos} gradientId={gradientId} />
-        </div>
         <div className="page-hero__preview" id="product-preview">
           <article className="preview-card">
             <span className="preview-card__chip">Live product preview</span>
             <div className="preview-card__stage">
               <ProductPreview3D label="3D preview of automation workflow" />
             </div>
-            <p className="preview-card__annotation">
+            <p className="preview-card__annotation hero-quote">
               "We launched our global support automation in under 2 hours. Artifically handled auth, routing, and reporting out of the box."
-              <span style={{ fontSize: "0.85rem", opacity: 0.75 }}>— Elena Ruiz, VP Operations</span>
+              <span className="hero-quote__author">— Elena Ruiz, VP Operations</span>
             </p>
           </article>
         </div>
@@ -233,30 +233,16 @@ function StatCounter({ value, suffix = "", label }) {
 
 function LogoTicker({ logos, gradientId }) {
   return (
-    <div aria-label="Trusted by leading teams" style={{ display: "grid", gap: "0.75rem" }}>
-      <span style={{ fontSize: "0.85rem", letterSpacing: "0.12em", textTransform: "uppercase", color: "color-mix(in oklch, white 72%, var(--gray-400))" }}>
-        Trusted by teams shipping AI in production
-      </span>
-      <div style={{ display: "flex", gap: "1.5rem", flexWrap: "wrap", alignItems: "center" }}>
+    <div aria-label="Trusted by leading teams" className="trusted-by">
+      <span className="trusted-by__eyebrow">Trusted by teams shipping AI in production</span>
+      <div className="trusted-by__logos">
         {logos.map((logo) => (
-          <span
-            key={logo}
-            style={{
-              padding: "0.65rem 1rem",
-              borderRadius: "999px",
-              border: "1px solid color-mix(in oklch, white 12%, transparent)",
-              background: "color-mix(in oklch, var(--glass-2) 70%, transparent)",
-              fontSize: "0.85rem",
-              letterSpacing: "0.08em",
-              textTransform: "uppercase",
-              color: "color-mix(in oklch, white 70%, var(--gray-300))",
-            }}
-          >
+          <span key={logo} className="trusted-by__logo">
             {logo}
           </span>
         ))}
       </div>
-      <svg width="0" height="0" style={{ position: "absolute" }} aria-hidden="true">
+      <svg width="0" height="0" className="trusted-by__gradient-defs" aria-hidden="true">
         <linearGradient id={gradientId} x1="0%" y1="0%" x2="100%" y2="0%">
           <stop offset="0%" stopColor="var(--brand-glow)" />
           <stop offset="100%" stopColor="var(--brand-energy)" />
@@ -268,22 +254,8 @@ function LogoTicker({ logos, gradientId }) {
 
 function VideoBadge({ duration }) {
   return (
-    <span
-      style={{
-        display: "inline-flex",
-        alignItems: "center",
-        gap: "0.35rem",
-        padding: "0.15rem 0.65rem",
-        borderRadius: "0.6rem",
-        background: "color-mix(in oklch, var(--brand-glow) 45%, transparent)",
-        color: "color-mix(in oklch, white 85%, var(--gray-50))",
-        fontSize: "0.75rem",
-        fontWeight: 600,
-        letterSpacing: "0.06em",
-        textTransform: "uppercase",
-      }}
-    >
-      <span aria-hidden="true" style={{ display: "grid", placeItems: "center" }}>
+    <span className="video-badge">
+      <span aria-hidden="true" className="video-badge__icon">
         ▶
       </span>
       {duration}
