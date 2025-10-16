@@ -5,6 +5,7 @@ import ProductPreview3D from "../components/landing/ProductPreview3D";
 import { calculateSavings } from "../utils/calculateSavings";
 import ROICalculator from "../components/roi/ROICalculator";
 import AssistiveHint from "../components/ui/AssistiveHint";
+import { Icon } from "../components/icons";
 
 const categories = ["All", "Sales", "Support", "Operations", "Finance", "Marketing"];
 const FILTER_STORAGE_KEY = "artifically:marketplace:filters";
@@ -450,9 +451,9 @@ export default function Marketplace() {
               <h2 id="featured-title" style={{ fontSize: "2rem", color: "white" }}>{featured.name}</h2>
               <p style={{ color: "color-mix(in oklch, white 78%, var(--gray-200))" }}>{featured.description}</p>
               <div className="metrics-row">
-                <Metric icon="⚡" label="Avg ROI" value={`${featured.roi ?? 4.8}x`} />
-                <Metric icon="⏱" label="Time to deploy" value={featured.timeToDeploy ?? "45 min"} />
-                <Metric icon="🧠" label="AI coverage" value={featured.aiCoverage ?? "Full"} />
+                <Metric icon="zap" label="Avg ROI" value={`${featured.roi ?? 4.8}x`} />
+                <Metric icon="hourglass" label="Time to deploy" value={featured.timeToDeploy ?? "45 min"} />
+                <Metric icon="brain" label="AI coverage" value={featured.aiCoverage ?? "Full"} />
               </div>
               <div className="cta-group">
                 <button type="button" className="cta-primary" onClick={() => setQuickView(featured)}>
@@ -495,7 +496,9 @@ export default function Marketplace() {
                 }}
                 onKeyDown={(event) => handleCardKeyDown(event, index)}
               >
-                <span className="automation-card__icon" aria-hidden="true">⚙️</span>
+                <span className="automation-card__icon" aria-hidden="true">
+                  <Icon name="cog" size={22} />
+                </span>
                 <strong style={{ fontSize: "1.15rem", color: "white" }}>{automation.name}</strong>
                 <p style={{ color: "color-mix(in oklch, white 78%, var(--gray-200))", fontSize: "0.95rem" }}>
                   {automation.description}
@@ -651,9 +654,9 @@ function QuickViewModal({ automation, onClose }) {
             or select Close to return to the marketplace.
           </p>
           <div className="metric-grid">
-            <Metric icon="⚡" label="ROI" value={`${automation.roi ?? savings.roi.toFixed(1)}x`} />
-            <Metric icon="⌛" label="Time saved" value={`${automation.timeSaved ?? savings.hoursSavedPerWeek} hrs/week`} />
-            <Metric icon="📦" label="Integrations" value={(automation.integrations || []).slice(0, 2).join(", ") || "10+"} />
+            <Metric icon="zap" label="ROI" value={`${automation.roi ?? savings.roi.toFixed(1)}x`} />
+            <Metric icon="hourglass" label="Time saved" value={`${automation.timeSaved ?? savings.hoursSavedPerWeek} hrs/week`} />
+            <Metric icon="boxes" label="Integrations" value={(automation.integrations || []).slice(0, 2).join(", ") || "10+"} />
           </div>
           <ROICalculator
             heading="ROI Calculator"
@@ -689,7 +692,9 @@ function QuickViewModal({ automation, onClose }) {
 function Metric({ icon, label, value }) {
   return (
     <div className="metric">
-      <span aria-hidden="true">{icon}</span>
+      <span aria-hidden="true" className="metric__icon">
+        <Icon name={icon} size={18} />
+      </span>
       <strong>{value}</strong>
       <span>{label}</span>
     </div>

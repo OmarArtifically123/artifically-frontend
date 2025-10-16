@@ -3,6 +3,7 @@ import { space } from "../styles/spacing";
 import { useEffect, useMemo, useState } from "react";
 import { createPortal } from "react-dom";
 import { useTheme } from "../context/ThemeContext";
+import { Icon } from "./icons";
 
 function CelebrationIcon({ darkMode }) {
   const confettiPieces = useMemo(
@@ -38,8 +39,8 @@ function CelebrationIcon({ darkMode }) {
           aria-hidden="true"
         />
       ))}
-      <span className="toast-celebration__icon" role="img" aria-hidden="true">
-        🎉
+      <span className="toast-celebration__icon" role="presentation" aria-hidden="true">
+        <Icon name="celebration" size={22} />
       </span>
     </div>
   );
@@ -83,11 +84,11 @@ export function ToastItem({ data, onClose }) {
   );
 
   const icons = {
-    success: "✅",
-    error: "⚠️",
-    warn: "⚠️",
-    info: "ℹ️",
-    celebration: "🎉",
+    success: "check",
+    error: "alert",
+    warn: "alert",
+    info: "info",
+    celebration: "celebration",
   };
 
   return (
@@ -126,7 +127,7 @@ export function ToastItem({ data, onClose }) {
         {type === "celebration" ? (
           <CelebrationIcon darkMode={darkMode} />
         ) : (
-          <span style={{ fontSize: "1.75rem" }}>{icons[type] || icons.success}</span>
+          <Icon name={icons[type] || icons.success} size={22} />
         )}
       </div>
 
@@ -152,7 +153,7 @@ export function ToastItem({ data, onClose }) {
               gap: space("2xs", 1.4),
             }}
           >
-            🎁 {reward}
+            <Icon name="gift" size={16} /> {reward}
           </span>
         )}
       </div>

@@ -1,23 +1,24 @@
 import useIntersectionLazy from "../../hooks/useIntersectionLazy";
+import { Icon } from "../icons";
 
 const painPoints = [
   {
-    icon: "⏳",
+    icon: "hourglass",
     title: "Weeks of Setup",
     description: "Legacy tooling demands endless configuration, testing environments, and custom scripts.",
   },
   {
-    icon: "🧩",
+    icon: "puzzle",
     title: "Fragmented Data",
     description: "Information sits in silos so teams manually reconcile spreadsheets and APIs nightly.",
   },
   {
-    icon: "🛎️",
+    icon: "concierge",
     title: "Manual Monitoring",
     description: "Ops teams babysit automations with pager duty rotations and brittle alerting.",
   },
   {
-    icon: "💸",
+    icon: "dollar",
     title: "Hidden Costs",
     description: "Surprise overages and consulting retainers keep ROI perpetually out of reach.",
   },
@@ -25,22 +26,22 @@ const painPoints = [
 
 const solutions = [
   {
-    icon: "⚡",
+    icon: "zap",
     title: "Deploy in Minutes",
     description: "Launch proven playbooks with guided setup flows and instant environment provisioning.",
   },
   {
-    icon: "🗂️",
+    icon: "folders",
     title: "Unified Data Layer",
     description: "Sync every system through a governed data fabric that keeps context in lockstep.",
   },
   {
-    icon: "🤖",
+    icon: "robot",
     title: "Autonomous Monitoring",
     description: "Adaptive guardrails self-heal issues, notify owners, and surface post-run insights.",
   },
   {
-    icon: "📊",
+    icon: "barChart",
     title: "Predictable Pricing",
     description: "Transparent usage tiers and flat-rate infrastructure remove the guesswork from planning.",
   },
@@ -74,7 +75,9 @@ export default function ProblemSolutionSection() {
               data-visible={isIntersecting}
               style={{ transitionDelay: `${index * 90}ms` }}
             >
-              <span style={{ fontSize: "1.8rem" }}>{pain.icon}</span>
+              <span className="pain-card__icon" aria-hidden="true">
+                <Icon name={pain.icon} size={28} />
+              </span>
               <strong>{pain.title}</strong>
               <p>{pain.description}</p>
             </article>
@@ -89,7 +92,9 @@ export default function ProblemSolutionSection() {
               data-visible={isIntersecting}
               style={{ transitionDelay: `${index * 90}ms` }}
             >
-              <span style={{ fontSize: "1.8rem" }}>{solution.icon}</span>
+              <span className="solution-card__icon" aria-hidden="true">
+                <Icon name={solution.icon} size={28} />
+              </span>
               <strong>{solution.title}</strong>
               <p>{solution.description}</p>
             </article>

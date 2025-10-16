@@ -1,4 +1,5 @@
 import CTABackground from "./CTABackground";
+import { Icon } from "../icons";
 
 export default function FinalCTASection({ onSubmit }) {
   return (
@@ -21,13 +22,16 @@ export default function FinalCTASection({ onSubmit }) {
           </form>
           <ul className="trust-signals" role="list">
             <li>
-              <span aria-hidden="true">✅</span> No credit card required
+              <Icon name="check" size={18} aria-hidden="true" />
+              <span>No credit card required</span>
             </li>
             <li>
-              <span aria-hidden="true">✅</span> Free for 14 days
+              <Icon name="check" size={18} aria-hidden="true" />
+              <span>Free for 14 days</span>
             </li>
             <li>
-              <span aria-hidden="true">✅</span> Cancel anytime
+              <Icon name="check" size={18} aria-hidden="true" />
+              <span>Cancel anytime</span>
             </li>
           </ul>
         </div>

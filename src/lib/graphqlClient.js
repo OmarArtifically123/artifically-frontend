@@ -1,35 +1,35 @@
 const FALLBACK_FEATURE_HIGHLIGHTS = [
   {
     id: "live-demos",
-    icon: "⚡",
+    icon: "zap",
     title: "One-click live demos",
     description: "See automation running with your actual data (simulated)",
     status: "Immersive preview",
   },
   {
     id: "roi-calculator",
-    icon: "📈",
+    icon: "barChart",
     title: "Interactive ROI calculator",
     description: "Drag sliders to see cost/benefit in real-time",
     status: "Dynamic projections",
   },
   {
     id: "workflow-visualization",
-    icon: "🧠",
+    icon: "brain",
     title: "3D workflow visualization",
     description: "See exactly how data flows through each step",
     status: "Spatial insight",
   },
   {
     id: "before-after",
-    icon: "🔄",
+    icon: "refresh",
     title: "Before/after scenarios",
     description: "Visual comparison of manual vs automated process",
     status: "Clarity mode",
   },
   {
     id: "demo-metrics",
-    icon: "📊",
+    icon: "barChart",
     title: "Realistic projections",
     description:
       "Every demo surfaces live-looking KPIs tailored to your inputs",
@@ -37,7 +37,7 @@ const FALLBACK_FEATURE_HIGHLIGHTS = [
   },
   {
     id: "safe-interaction",
-    icon: "🛡️",
+    icon: "shield",
     title: "Safe sandbox interaction",
     description: "Experiment confidently with isolated, no-risk data streams",
     status: "Sandboxed",
@@ -60,7 +60,7 @@ const sanitizeFeature = (feature, index) => {
 
   return {
     id: String(feature.id || `feature-${index}`),
-    icon: feature.icon || "✨",
+    icon: feature.icon || "sparkles",
     title: feature.title || "Powerful automation",
     description:
       feature.description ||

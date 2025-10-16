@@ -1,5 +1,6 @@
 import { useState } from "react";
 import ROICalculator from "../components/roi/ROICalculator";
+import { Icon } from "../components/icons";
 
 const billingOptions = [
   { id: "monthly", label: "Monthly" },
@@ -10,7 +11,7 @@ const pricingTiers = [
   {
     id: "starter",
     name: "Starter",
-    icon: "🚀",
+    icon: "rocket",
     priceMonthly: 249,
     priceAnnual: 249 * 12 * 0.8,
     spotlight: false,
@@ -23,7 +24,7 @@ const pricingTiers = [
   {
     id: "professional",
     name: "Professional",
-    icon: "💼",
+    icon: "briefcase",
     priceMonthly: 549,
     priceAnnual: 549 * 12 * 0.8,
     spotlight: true,
@@ -37,7 +38,7 @@ const pricingTiers = [
   {
     id: "enterprise",
     name: "Enterprise",
-    icon: "🏢",
+    icon: "building",
     priceMonthly: 0,
     priceAnnual: 0,
     spotlight: false,
@@ -197,7 +198,9 @@ function PricingCard({ tier, multiplier, billing }) {
         </span>
       )}
       <div style={{ display: "grid", gap: "0.45rem" }}>
-        <span style={{ fontSize: "2rem" }}>{tier.icon}</span>
+        <span style={{ fontSize: "2rem", display: "inline-flex", alignItems: "center", justifyContent: "center" }}>
+          <Icon name={tier.icon} size={28} />
+        </span>
         <h3 style={{ fontSize: "1.5rem", color: "white" }}>{tier.name}</h3>
         <div style={{ display: "flex", alignItems: "baseline", gap: "0.4rem" }}>
           <span style={{ fontSize: "2.4rem", fontWeight: 700, color: "white" }}>{displayPrice}</span>
@@ -206,8 +209,11 @@ function PricingCard({ tier, multiplier, billing }) {
       </div>
       <ul style={{ display: "grid", gap: "0.45rem", paddingLeft: "1.1rem", marginTop: "1rem" }}>
         {tier.features.map((feature) => (
-          <li key={feature} style={{ display: "flex", gap: "0.5rem", color: "color-mix(in oklch, white 78%, var(--gray-200))" }}>
-            <span aria-hidden="true">✓</span>
+          <li
+            key={feature}
+            style={{ display: "flex", gap: "0.5rem", color: "color-mix(in oklch, white 78%, var(--gray-200))" }}
+          >
+            <Icon name="check" size={16} aria-hidden="true" />
             <span>{feature}</span>
           </li>
         ))}
@@ -255,8 +261,11 @@ function FaqItem({ item, isOpen, panelId, triggerId, onToggle }) {
         }}
       >
         <span style={{ fontWeight: 600 }}>{item.question}</span>
-        <span aria-hidden="true" style={{ transform: `rotate(${isOpen ? 90 : 0}deg)`, transition: "transform 0.2s ease" }}>
-          ➔
+        <span
+          aria-hidden="true"
+          style={{ transform: `rotate(${isOpen ? 90 : 0}deg)`, transition: "transform 0.2s ease" }}
+        >
+          <Icon name="arrowRight" size={16} aria-hidden="true" />
         </span>
       </button>
       <div

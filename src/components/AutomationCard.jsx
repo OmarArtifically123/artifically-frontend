@@ -3,6 +3,7 @@ import { useTheme } from "../context/ThemeContext";
 import useMicroInteractions from "../hooks/useMicroInteractions";
 import { space } from "../styles/spacing";
 import Button from "./ui/Button";
+import { Icon } from "./icons";
 
 const SAMPLE_COMPANIES = [
   "TechCorp",
@@ -1157,13 +1158,15 @@ function AutomationCardComponent({
 
       <div className="automation-card__live-stat">
         <span className="automation-card__stat-icon" aria-hidden="true">
-          ⚡
+          <Icon name="zap" size={18} />
         </span>
         <span className="automation-card__stat-copy">{metrics.statement}</span>
       </div>
 
       <div className="automation-card__psychic" data-visible={predicted}>
-        <span aria-hidden="true">🔮</span>
+        <span aria-hidden="true" className="automation-card__psychic-icon">
+          <Icon name="sparkles" size={18} />
+        </span>
         <span>Marketplace senses you're about to open this.</span>
       </div>
 
@@ -1271,7 +1274,9 @@ function AutomationCardComponent({
             className="automation-card__vote"
             onClick={handleVote}
           >
-            <span aria-hidden="true">🗳️</span>
+            <span aria-hidden="true" className="automation-card__vote-icon">
+              <Icon name="vote" size={18} />
+            </span>
             <span>Vote to deploy</span>
           </Button>
           <span className="automation-card__vote-count">{voteCount} team votes</span>

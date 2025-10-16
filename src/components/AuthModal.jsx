@@ -5,6 +5,7 @@ import debounce from "lodash/debounce";
 import api from "../api";
 import ThemeToggle from "./ThemeToggle";
 import Button from "./ui/Button";
+import { Icon } from "./icons";
 
 // ✅ Move InputField outside the component to prevent remounting
 const InputField = ({
@@ -61,7 +62,7 @@ const InputField = ({
         alignItems: 'center',
         gap: 'var(--space-2xs)'
       }}>
-        <span>⚠ </span>
+        <Icon name="alert" size={16} aria-hidden="true" />
         {fieldErrors[field]}
       </div>
     )}
@@ -627,7 +628,7 @@ const AuthModal = ({ onClose, onAuthenticated, initialMode = "signin" }) => {
             alignItems: 'center',
             gap: 'var(--space-xs)'
           }}>
-            <span>⚠ </span>
+            <Icon name="alert" size={16} aria-hidden="true" />
             {error}
           </div>
         )}

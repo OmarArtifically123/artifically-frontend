@@ -6,6 +6,7 @@ import ThemeToggle from "./ThemeToggle";
 import { useTheme } from "../context/ThemeContext";
 import { space } from "../styles/spacing";
 import Button from "./ui/Button";
+import { Icon } from "./icons";
 
 export default function Verify({ onVerified }) {
   const { darkMode } = useTheme();
@@ -104,7 +105,19 @@ export default function Verify({ onVerified }) {
   if (status === "success") {
     return renderCard(
       <>
-        <h2 style={{ fontSize: "1.75rem", color: darkMode ? "#6ee7b7" : "#047857" }}>✅ Verified! Redirecting…</h2>
+        <h2
+          style={{
+            fontSize: "1.75rem",
+            color: darkMode ? "#6ee7b7" : "#047857",
+            display: "inline-flex",
+            alignItems: "center",
+            gap: "var(--space-2xs)",
+            justifyContent: "center",
+          }}
+        >
+          <Icon name="check" size={28} aria-hidden="true" />
+          <span>Verified! Redirecting…</span>
+        </h2>
         <p style={{ color: darkMode ? "#94a3b8" : "#475569" }}>Hang tight, taking you to the dashboard.</p>
       </>
     );

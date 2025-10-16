@@ -3,6 +3,7 @@ import DOMPurify from "dompurify";
 import FeatureSkeletonGrid from "./skeletons/FeatureSkeleton";
 import useIntersectionLazy from "../hooks/useIntersectionLazy";
 import { space } from "../styles/spacing";
+import { Icon } from "./icons";
 import {
   FALLBACK_FEATURE_HIGHLIGHTS,
   FALLBACK_MARKETPLACE_STATS,
@@ -32,10 +33,9 @@ function FeatureHighlightFallback({
                 borderRadius: "1rem",
                 background:
                   "linear-gradient(135deg, rgba(99,102,241,0.32), rgba(45,212,191,0.26))",
-                fontSize: "1.35rem",
               }}
             >
-              {feature.icon}
+              <Icon name={feature.icon} size={20} />
             </span>
             <div>
               <h4>{feature.title}</h4>

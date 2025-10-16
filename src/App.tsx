@@ -55,6 +55,7 @@ const CaseStudies = lazy(() =>
 );
 const Changelog = lazy(() => import(/* webpackChunkName: "changelog" */ "./pages/Changelog"));
 const HelpCenter = lazy(() => import(/* webpackChunkName: "help-center" */ "./pages/HelpCenter"));
+const DesignSystem = lazy(() => import(/* webpackChunkName: "design-system" */ "./pages/DesignSystem"));
 const StatusPage = lazy(() => import(/* webpackChunkName: "status" */ "./pages/Status"));
 const Security = lazy(() => import(/* webpackChunkName: "security" */ "./pages/Security"));
 const Privacy = lazy(() => import(/* webpackChunkName: "privacy" */ "./pages/Privacy"));
@@ -144,6 +145,7 @@ export default function App() {
       "/pricing": () => import("./pages/Pricing"),
       "/docs": () => import("./pages/Docs"),
       "/documentation": () => import("./pages/Docs"),
+      "/design-system": () => import("./pages/DesignSystem"),
       "/api": () => import("./pages/ApiReference"),
       "/docs/api": () => import("./pages/ApiReference"),
       "/blog": () => import("./pages/Blog"),
@@ -394,6 +396,14 @@ export default function App() {
               element={
                 <SuspenseBoundary rows={5}>
                   <Docs />
+                </SuspenseBoundary>
+              }
+            />
+            <Route
+              path="/design-system"
+              element={
+                <SuspenseBoundary rows={4}>
+                  <DesignSystem />
                 </SuspenseBoundary>
               }
             />

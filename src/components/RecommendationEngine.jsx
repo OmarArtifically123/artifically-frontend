@@ -1,6 +1,7 @@
 import { useMemo } from "react";
 import { motion } from "framer-motion";
 import { SAMPLE_AUTOMATIONS } from "../data/automations";
+import { Icon } from "./icons";
 
 const RECOMMENDATION_LIMIT = 3;
 
@@ -116,6 +117,10 @@ function RecommendationEngine({ userBehavior = DEFAULT_BEHAVIOR, deployments = [
 
 function RecommendationCard({ automation, index }) {
   const { icon, name, description, highlights = [], matchScore, reason } = automation;
+  const iconNode =
+    typeof icon === "string"
+      ? <Icon name={icon} size={24} aria-hidden="true" />
+      : icon ?? <Icon name="cog" size={24} aria-hidden="true" />;
 
   return (
     <motion.article
@@ -127,7 +132,7 @@ function RecommendationCard({ automation, index }) {
     >
       <div className="recommendation-card__header">
         <span className="recommendation-card__icon" aria-hidden="true">
-          {icon || "⚙️"}
+          {iconNode}
         </span>
         <span className="recommendation-card__score">{matchScore}% match</span>
       </div>

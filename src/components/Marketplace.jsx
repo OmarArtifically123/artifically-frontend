@@ -13,6 +13,7 @@ import MarketplaceCollaborationLayer from "./MarketplaceCollaborationLayer";
 import { space } from "../styles/spacing";
 import AutomationCard from "./AutomationCard.jsx";
 import VirtualizedAutomationList from "./VirtualizedAutomationList.jsx";
+import { Icon } from "./icons";
 import {
   FALLBACK_MARKETPLACE_STATS,
   loadMarketplaceStats,
@@ -31,7 +32,7 @@ const ATTENTION_DECAY_INTERVAL_MINUTES = 18;
 const MARKETPLACE_JOURNEY = [
   {
     title: "Entry Experience",
-    icon: "🚪",
+    icon: "door",
     steps: [
       "Marketplace welcome adapts to your company profile in one glance",
       "Live ROI summary highlights the outcomes your team cares about",
@@ -41,7 +42,7 @@ const MARKETPLACE_JOURNEY = [
   },
   {
     title: "Browse & Evaluate",
-    icon: "🧭",
+    icon: "compass",
     steps: [
       "Clusters group automations by outcome so you scan less",
       "Match strength indicators compare every option instantly",
@@ -51,7 +52,7 @@ const MARKETPLACE_JOURNEY = [
   },
   {
     title: "Deep Dive Preview",
-    icon: "🔍",
+    icon: "search",
     steps: [
       "Interactive previews stream sample data based on your needs",
       "Feature highlights explain how the automation actually works",
@@ -61,7 +62,7 @@ const MARKETPLACE_JOURNEY = [
   },
   {
     title: "Team Collaboration",
-    icon: "🤝",
+    icon: "handshake",
     steps: [
       "Shared cursors broadcast teammate focus in real time",
       "Lightweight discussion feed captures quick takeaways",
@@ -1073,7 +1074,9 @@ export default function Marketplace({ user, openAuth }) {
         data-animate-context="story"
       >
         <header data-animate="fade-up" data-animate-order="0">
-          <span className="marketplace-journey__eyebrow">🎯 Marketplace Playbook</span>
+          <span className="marketplace-journey__eyebrow">
+            <Icon name="target" size={18} aria-hidden="true" /> Marketplace Playbook
+          </span>
           <p>See how each phase of the marketplace keeps momentum from hello to handoff.</p>
         </header>
         <div className="marketplace-journey__grid">
@@ -1088,7 +1091,7 @@ export default function Marketplace({ user, openAuth }) {
             >
               <div className="marketplace-journey__card-header">
                 <span aria-hidden="true" className="marketplace-journey__icon glass-pill">
-                  {icon}
+                  <Icon name={icon} size={20} />
                 </span>
                 <h4>{title}</h4>
               </div>
@@ -1124,7 +1127,17 @@ export default function Marketplace({ user, openAuth }) {
         <div className="container" style={{ display: "grid", gap: space("lg") }}>
           {sectionHeader}
           <div className="marketplace-error glass-card glass-card--danger">
-            <div style={{ fontSize: "3rem", marginBottom: space("sm") }}>⚠️</div>
+            <div
+              aria-hidden="true"
+              style={{
+                marginBottom: space("sm"),
+                display: "inline-flex",
+                justifyContent: "center",
+                alignItems: "center",
+              }}
+            >
+              <Icon name="alert" size={48} />
+            </div>
             <h3 style={{ fontSize: "1.5rem", marginBottom: space("xs") }}>Unable to Load Marketplace</h3>
             <p className="marketplace-error__description">
               We're having trouble loading the automation marketplace. Please check your connection and try again.

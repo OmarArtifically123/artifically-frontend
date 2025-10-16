@@ -4,6 +4,7 @@ import HeroBackground from "./HeroBackground";
 import ProductPreview3D from "./ProductPreview3D";
 import ScrollIndicator from "./ScrollIndicator";
 import HeroRoiCalculator from "./HeroRoiCalculator";
+import { Icon } from "../icons";
 
 const heroStats = [
   { label: "Automations", value: 12500, suffix: "+" },
@@ -58,7 +59,10 @@ export default function HeroSection({ onPrimary, onSecondary }) {
       <HeroBackground variant="particles" />
       <div className="page-hero__inner">
         <div className="page-hero__content">
-            <span className="page-hero__eyebrow">⚡ The Future of AI Automation</span>
+            <span className="page-hero__eyebrow">
+              <Icon name="zap" size={18} aria-hidden="true" />
+              <span>The Future of AI Automation</span>
+            </span>
             <h1 id="hero-headline" className="page-hero__headline">
               Deploy Enterprise AI <GradientText>Automations</GradientText> in Minutes
             </h1>

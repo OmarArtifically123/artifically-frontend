@@ -1,6 +1,7 @@
 import { Link, useNavigate, useLocation } from "react-router-dom";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import ThemeToggle from "./ThemeToggle";
+import ContrastToggle from "./ContrastToggle";
 import { useTheme } from "../context/ThemeContext";
 import useMicroInteractions from "../hooks/useMicroInteractions";
 import { space } from "../styles/spacing";
@@ -161,6 +162,7 @@ export default function Header({ user, onSignIn, onSignUp, onSignOut }) {
       { path: "/marketplace", label: "Marketplace" },
       { path: "/pricing", label: "Pricing" },
       { path: "/docs", label: "Docs" },
+      { path: "/design-system", label: "Design System" },
     ],
     []
   );
@@ -349,7 +351,16 @@ export default function Header({ user, onSignIn, onSignUp, onSignOut }) {
             zIndex: 1,
           }}
         >
-          <ThemeToggle />
+          <div
+            style={{
+              display: "inline-flex",
+              alignItems: "center",
+              gap: space("2xs", 1.4),
+            }}
+          >
+            <ContrastToggle />
+            <ThemeToggle />
+          </div>
 
           {user ? (
             <div

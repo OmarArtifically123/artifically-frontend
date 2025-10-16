@@ -6,6 +6,7 @@ import FeatureSkeletonGrid from "./skeletons/FeatureSkeleton";
 import { space } from "../styles/spacing";
 import { StaggeredContainer, StaggeredItem } from "./animation/StaggeredList";
 import MagneticButton from "./animation/MagneticButton";
+import { Icon } from "./icons";
 import {
   FALLBACK_FEATURE_HIGHLIGHTS,
   FALLBACK_MARKETPLACE_STATS,
@@ -23,7 +24,7 @@ const FeatureCard = memo(
         <div className="feature-card__inner">
           <div className="feature-card__header">
             <div className="feature-card__icon glass-card glass-card--subtle" aria-hidden="true">
-              {feature.icon}
+              <Icon name={feature.icon} size={20} />
             </div>
             <span className="feature-card__badge glass-pill">{feature.status}</span>
           </div>

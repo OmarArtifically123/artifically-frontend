@@ -61,6 +61,8 @@ const normaliseAliasMap = (record: TokenRecord): AliasMap => {
 const flattenedTokens = flattenTokens(tokensJson as TokenRecord);
 const aliasMap = normaliseAliasMap(tokensJson as TokenRecord);
 
+const WIDE_GAMUT_SUFFIX = "-p3";
+
 const resolveTokenPath = (path: string): string | undefined => flattenedTokens[path];
 
 const toCssVar = (path: string) => `--${path.replace(/\./g, '-')}`;
@@ -78,16 +80,35 @@ export const applyDesignTokens = ({ target }: DesignTokenOptions = {}): ApplyRes
 
   const appliedAliases: Record<string, string> = {};
 
+  const wideGamutCandidates: Array<{ base: string; value: string }> = [];
+
   Object.entries(aliasMap).forEach(([alias, path]) => {
     const value = resolveTokenPath(path);
     if (value) {
       element.style.setProperty(alias, value);
       appliedAliases[alias] = value;
+
+      if (alias.endsWith(WIDE_GAMUT_SUFFIX)) {
+        const base = alias.slice(0, -WIDE_GAMUT_SUFFIX.length);
+        wideGamutCandidates.push({ base, value });
+      }
     } else if (process.env.NODE_ENV !== 'production') {
       console.warn(`Unknown design token path for alias "${alias}": ${path}`);
     }
   });
 
+  if (typeof window !== 'undefined') {
+    const supportsWideGamut = window.CSS?.supports?.('color', 'color(display-p3 1 1 1)');
+    if (supportsWideGamut) {
+      wideGamutCandidates.forEach(({ base, value }) => {
+        if (!base.endsWith(WIDE_GAMUT_SUFFIX)) {
+          element.style.setProperty(base, value);
+          appliedAliases[base] = value;
+        }
+      });
+    }
+  }
+  
   return { applied: { ...flattenedTokens }, aliases: appliedAliases };
 };
 

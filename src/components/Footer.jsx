@@ -6,6 +6,7 @@ import { space } from "../styles/spacing";
 import Button from "./ui/Button";
 import Input from "./ui/Input";
 import LogoWordmark from "./ui/LogoWordmark";
+import { Icon } from "./icons";
 
 const FALLBACK_YEAR = new Date().getUTCFullYear();
 
@@ -166,25 +167,25 @@ export default function Footer() {
       {
         name: "Twitter",
         url: "https://twitter.com/artifically",
-        icon: "🐦",
+        icon: "twitter",
         color: "color-mix(in oklch, var(--brand-glow) 60%, transparent)",
       },
       {
         name: "LinkedIn",
         url: "https://linkedin.com/company/artifically",
-        icon: "💼",
+        icon: "briefcase",
         color: "color-mix(in oklch, var(--brand-primary) 55%, transparent)",
       },
       {
         name: "GitHub",
         url: "https://github.com/artifically",
-        icon: "💻",
+        icon: "laptop",
         color: "color-mix(in oklch, var(--text-primary) 85%, transparent)",
       },
       {
         name: "Discord",
         url: "https://discord.gg/artifically",
-        icon: "💬",
+        icon: "message",
         color: "color-mix(in oklch, var(--brand-energy) 55%, transparent)",
       },
     ],
@@ -517,7 +518,9 @@ export default function Footer() {
                       fontWeight: 600,
                     }}
                   >
-                    <span aria-hidden="true">{link.icon}</span>
+                    <span aria-hidden="true" style={{ display: "inline-flex", alignItems: "center" }}>
+                      <Icon name={link.icon} size={18} />
+                    </span>
                     {link.name}
                   </a>
                 ))}

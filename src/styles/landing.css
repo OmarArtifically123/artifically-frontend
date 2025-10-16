@@ -77,6 +77,14 @@
   letter-spacing: 0.12em;
   text-transform: uppercase;
   color: color-mix(in oklch, white 82%, var(--brand-glow));
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.page-hero__eyebrow svg {
+  width: 1em;
+  height: 1em;
 }
 
 .page-hero__headline {
@@ -661,6 +669,34 @@
   color: white;
 }
 
+.pain-card__icon,
+.solution-card__icon,
+.feature-card__icon,
+.feature-preview__icon,
+.feature-tab__icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--accent);
+}
+
+.feature-preview__icon {
+  width: clamp(2.5rem, 2vw + 2rem, 3rem);
+  height: clamp(2.5rem, 2vw + 2rem, 3rem);
+  border-radius: 50%;
+  background: color-mix(in oklch, var(--brand-primary) 25%, transparent);
+  color: white;
+  box-shadow: 0 10px 24px color-mix(in oklch, var(--brand-primary) 35%, transparent);
+}
+
+.feature-card__icon {
+  width: 2.25rem;
+  height: 2.25rem;
+  border-radius: 0.8rem;
+  background: color-mix(in oklch, var(--glass-2) 80%, transparent);
+  color: var(--accent);
+}
+
 .feature-tabs {
   display: flex;
   flex-wrap: wrap;
@@ -1191,6 +1227,18 @@
   gap: 0.3rem;
   min-width: 120px;
   color: color-mix(in oklch, white 85%, var(--gray-200));
+}
+
+.metric__icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 2rem;
+  height: 2rem;
+  border-radius: 0.75rem;
+  background: color-mix(in oklch, var(--brand-glow) 25%, transparent);
+  color: var(--accent);
+  box-shadow: 0 15px 30px color-mix(in oklch, var(--brand-glow) 25%, transparent);
 }
 
 .metric strong {

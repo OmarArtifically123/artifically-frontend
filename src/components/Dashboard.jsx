@@ -2,14 +2,15 @@ import { useCallback, useEffect, useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import api, { pick } from "../api";
 import { toast } from "./Toast";
-import ThemeToggle from "./ThemeToggle";
 import { useTheme } from "../context/ThemeContext";
+import ThemeToggle from "./ThemeToggle";
 import OnboardingTour from "./OnboardingTour";
 import { useAchievements } from "../hooks/useAchievements";
 import { space } from "../styles/spacing";
 import "../styles/dashboard.css";
 import Button from "./ui/Button";
 import AssistiveHint from "./ui/AssistiveHint";
+import { Icon } from "./icons";
 
 const statusColors = {
   active: { bg: "rgba(16,185,129,0.18)", color: "#10b981" },
@@ -369,21 +370,21 @@ export default function Dashboard({ user, openAuth }) {
     () => [
       {
         id: "first",
-        icon: "🚀",
+        icon: "rocket",
         label: "First automation",
         unlocked: deployments.length > 0,
         description: "Launch your first workflow to unlock AI guidance and deeper analytics.",
       },
       {
         id: "scale",
-        icon: "🌐",
+        icon: "globe",
         label: "5 live automations",
         unlocked: deployments.length >= 5,
         description: "Reach full-team coverage and earn concierge rollout reviews.",
       },
       {
         id: "streak",
-        icon: "🔥",
+        icon: "flame",
         label: "7-day streak",
         unlocked: loginStreak >= 7,
         description: "Stay active every day for a week to unlock streak boosts.",
@@ -941,8 +942,8 @@ export default function Dashboard({ user, openAuth }) {
                   <p style={{ margin: 0, fontSize: "0.85rem", color: darkMode ? "#cbd5e1" : "#475569" }}>
                     {achievement.description}
                   </p>
-                  <span style={{ fontSize: "0.8rem", fontWeight: 600 }}>
-                    🎁 {achievement.reward}
+                  <span style={{ fontSize: "0.8rem", fontWeight: 600, display: "inline-flex", alignItems: "center", gap: "0.4rem" }}>
+                    <Icon name="gift" size={16} /> {achievement.reward}
                   </span>
                   {unlockedDate && (
                     <span style={{ fontSize: "0.75rem", color: darkMode ? "#94a3b8" : "#64748b" }}>
@@ -993,7 +994,9 @@ export default function Dashboard({ user, openAuth }) {
                   gap: space("xs"),
                 }}
               >
-                <span style={{ fontSize: "1.5rem" }}>{badge.icon}</span>
+                <span style={{ display: "inline-flex", alignItems: "center", justifyContent: "center" }}>
+                  <Icon name={badge.icon} size={24} />
+                </span>
                 <div style={{ fontWeight: 600 }}>{badge.label}</div>
                 <p style={{ margin: 0, color: darkMode ? "#cbd5e1" : "#475569", fontSize: "0.9rem", lineHeight: 1.5 }}>
                   {badge.description}
@@ -1074,7 +1077,9 @@ export default function Dashboard({ user, openAuth }) {
               background: darkMode ? "rgba(15,23,42,0.7)" : "rgba(255,255,255,0.95)",
             }}
           >
-            <div style={{ fontSize: "3rem", marginBottom: space("sm"), opacity: 0.6 }}>🤖</div>
+            <div style={{ fontSize: "3rem", marginBottom: space("sm"), opacity: 0.6 }}>
+              <Icon name="robot" size={48} />
+            </div>
             <h3 style={{ fontSize: "1.4rem", marginBottom: space("xs") }}>No Automations Yet</h3>
             <p style={{ color: darkMode ? "#94a3b8" : "#475569", maxWidth: "400px", margin: `0 auto ${space("md")}` }}>
               Browse the marketplace to deploy your first AI automation and start transforming your business operations.
@@ -1164,8 +1169,8 @@ export default function Dashboard({ user, openAuth }) {
                       fontWeight: 600,
                     }}
                   >
-                    <span>
-                      👥 {viewerCounts[deployment.id] ?? 1} teammates viewing this automation
+                    <span style={{ display: "inline-flex", alignItems: "center", gap: "0.4rem" }}>
+                      <Icon name="users" size={16} /> {viewerCounts[deployment.id] ?? 1} teammates viewing this automation
                     </span>
                     <span
                       style={{

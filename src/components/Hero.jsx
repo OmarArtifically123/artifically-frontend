@@ -17,6 +17,7 @@ import { useTheme } from "../context/ThemeContext";
 import Button from "./ui/Button";
 import Input from "./ui/Input";
 import useDocumentVisibility from "../hooks/useDocumentVisibility";
+import { Icon } from "./icons";
 
 const HERO_PREVIEW_IMAGE = "/images/hero-preview.jpg";
 const HERO_PREVIEW_SOURCES = [
@@ -87,7 +88,7 @@ export default function Hero({ openAuth, user }) {
       <div className="hero-shell">
         <div className="hero-content">
           <UrgencyBanner />
-          <AnimatedEyebrow>{messaging.eyebrow}</AnimatedEyebrow>
+          <AnimatedEyebrow icon={messaging.eyebrow?.icon}>{messaging.eyebrow?.label}</AnimatedEyebrow>
           <AnimatedHeadline>{messaging.headline}</AnimatedHeadline>
           <AnimatedSubheadline>{messaging.subheadline}</AnimatedSubheadline>
           <HeroCTAGroup
@@ -317,7 +318,7 @@ function BackgroundCanvas() {
   return <canvas ref={canvasRef} className="hero-background hero-bg-fixed" aria-hidden="true" />;
 }
 
-function AnimatedEyebrow({ children }) {
+function AnimatedEyebrow({ children, icon }) {
   const shouldReduceMotion = useReducedMotion();
 
   return (
@@ -327,7 +328,12 @@ function AnimatedEyebrow({ children }) {
       animate={shouldReduceMotion ? undefined : { opacity: 1, y: 0 }}
       transition={{ duration: 0.6, ease: [0.33, 1, 0.68, 1] }}
     >
-      {children}
+      {icon ? (
+        <span className="hero-eyebrow__icon" aria-hidden="true">
+          <Icon name={icon} size={16} />
+        </span>
+      ) : null}
+      <span className="hero-eyebrow__text">{children}</span>
     </motion.span>
   );
 }
@@ -746,7 +752,7 @@ function UrgencyBanner() {
       transition={{ duration: 0.45, ease: [0.22, 1, 0.36, 1] }}
     >
       <span className="urgency-icon" aria-hidden="true">
-        🔥
+        <Icon name="flame" size={18} />
       </span>
       <span className="urgency-text">Early Bird Special: 50% off Enterprise plan ends in</span>
       <CountdownTimer time={timeLeft} />
@@ -837,11 +843,11 @@ function useSpotAvailability(total = 150, minimum = 6) {
 }
 
 const TRUST_BADGE_DATA = [
-  { icon: "🔒", label: "SOC 2 Type II Certified" },
-  { icon: "🛡️", label: "GDPR Compliant" },
-  { icon: "✅", label: "99.99% Uptime SLA" },
-  { icon: "⚡", label: "Enterprise Support" },
-  { icon: "🏆", label: "G2 Leader 2024" },
+  { icon: "lock", label: "SOC 2 Type II Certified" },
+  { icon: "shield", label: "GDPR Compliant" },
+  { icon: "target", label: "99.99% Uptime SLA" },
+  { icon: "zap", label: "Enterprise Support" },
+  { icon: "trophy", label: "G2 Leader 2024" },
 ];
 
 function TrustBadges() {
@@ -861,7 +867,7 @@ function TrustBadges() {
           transition={{ delay: index * 0.08, duration: 0.3 }}
         >
           <span className="badge-icon" aria-hidden="true">
-            {badge.icon}
+            <Icon name={badge.icon} size={18} />
           </span>
           <span className="badge-label">{badge.label}</span>
         </motion.div>
@@ -1112,7 +1118,7 @@ function LogoWall({ logos, children }) {
 
 const PERSONALIZED_COPY = {
   ecommerce: {
-    eyebrow: "🛍️ Ecommerce teams scaling faster",
+    eyebrow: { icon: "shoppingBag", label: "Ecommerce teams scaling faster" },
     headline: (
       <>
         Automate Your <span className="gradient-text">Ecommerce Operations</span>
@@ -1122,7 +1128,7 @@ const PERSONALIZED_COPY = {
     cta: "See Ecommerce Automations",
   },
   healthcare: {
-    eyebrow: "🏥 Built for regulated industries",
+    eyebrow: { icon: "hospital", label: "Built for regulated industries" },
     headline: (
       <>
         HIPAA-Compliant <span className="gradient-text">Healthcare Automation</span>
@@ -1132,7 +1138,7 @@ const PERSONALIZED_COPY = {
     cta: "Explore Healthcare Solutions",
   },
   finance: {
-    eyebrow: "📊 Finance teams closing faster",
+    eyebrow: { icon: "barChart", label: "Finance teams closing faster" },
     headline: (
       <>
         Automate Your <span className="gradient-text">Finance Ops</span> with Guardrails
@@ -1142,7 +1148,7 @@ const PERSONALIZED_COPY = {
     cta: "Review Finance Playbooks",
   },
   security: {
-    eyebrow: "🛡️ SOC 2, ISO, and beyond",
+    eyebrow: { icon: "shield", label: "SOC 2, ISO, and beyond" },
     headline: (
       <>
         Ship <span className="gradient-text">Security Automations</span> with Confidence
@@ -1152,7 +1158,7 @@ const PERSONALIZED_COPY = {
     cta: "Secure Your Stack",
   },
   revops: {
-    eyebrow: "⚡ Revenue teams love fast loops",
+    eyebrow: { icon: "zap", label: "Revenue teams love fast loops" },
     headline: (
       <>
         Reclaim <span className="gradient-text">Revenue Velocity</span>
@@ -1162,7 +1168,7 @@ const PERSONALIZED_COPY = {
     cta: "See RevOps Recipes",
   },
   default: {
-    eyebrow: "🚀 The Future of AI Automation",
+    eyebrow: { icon: "rocket", label: "The Future of AI Automation" },
     headline: (
       <>
         Deploy Enterprise AI <span className="gradient-text">Automations</span> in Minutes
@@ -1193,12 +1199,12 @@ function usePersonalizedMessaging(user) {
     if (sourceSignal.includes("g2")) {
       message = {
         ...message,
-        eyebrow: "🌟 Loved by 1,000+ G2 reviewers",
+        eyebrow: { icon: "star", label: "Loved by 1,000+ G2 reviewers" },
       };
     } else if (sourceSignal.includes("partner")) {
       message = {
         ...message,
-        eyebrow: "🤝 Welcome, partner recommendation",
+        eyebrow: { icon: "handshake", label: "Welcome, partner recommendation" },
       };
     }
 
@@ -1418,21 +1424,51 @@ function HeroSceneShowcase() {
         {SceneComponent && !prefersReducedMotion ? (
           <SceneComponent width={sceneDimensions.width} height={sceneDimensions.height} />
         ) : (
-          <BlurImage
-            src={HERO_PREVIEW_IMAGE}
-            blurDataURL={HERO_PREVIEW_BLUR}
-            sources={HERO_PREVIEW_SOURCES}
-            alt="Artifically automation workspace preview"
-            className="hero-preview__fallback"
-            loading="eager"
-            decoding="sync"
-            fetchPriority="high"
-            wrapperProps={{
-              "data-enhanced": "true",
-              style: { width: "100%", height: "100%" },
-            }}
-          />
+          <HeroFallbackIllustration darkMode={darkMode} />
         )}
+      </div>
+    </div>
+  );
+}
+
+function HeroFallbackIllustration({ darkMode }) {
+  return (
+    <div className="hero-fallback" data-theme-variant={darkMode ? "dark" : "light"}>
+      <BlurImage
+        src={HERO_PREVIEW_IMAGE}
+        blurDataURL={HERO_PREVIEW_BLUR}
+        sources={HERO_PREVIEW_SOURCES}
+        alt="Artifically automation workspace preview"
+        className="hero-fallback__image"
+        loading="eager"
+        decoding="sync"
+        fetchPriority="high"
+        wrapperProps={{
+          "data-enhanced": "true",
+          className: "hero-fallback__media",
+        }}
+      />
+      <div className="hero-fallback__overlay">
+        <div className="hero-fallback__card">
+          <span className="hero-fallback__icon hero-fallback__icon--primary" aria-hidden="true">
+            <Icon name="robot" size={22} />
+          </span>
+          <div className="hero-fallback__card-copy">
+            <span className="hero-fallback__card-title">Realtime orchestrations</span>
+            <span className="hero-fallback__card-subtitle">3D preview paused for performance</span>
+          </div>
+        </div>
+        <div className="hero-fallback__chips">
+          <span className="hero-fallback__chip">
+            <Icon name="brain" size={14} /> AI routing
+          </span>
+          <span className="hero-fallback__chip">
+            <Icon name="sparkles" size={14} /> Auto-tuned responses
+          </span>
+          <span className="hero-fallback__chip">
+            <Icon name="globe" size={14} /> Global resilience
+          </span>
+        </div>
       </div>
     </div>
   );

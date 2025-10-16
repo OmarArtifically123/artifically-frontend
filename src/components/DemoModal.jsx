@@ -3,6 +3,7 @@ import api from "../api";
 import { toast } from "./Toast";
 import { useTheme } from "../context/ThemeContext";
 import Button from "./ui/Button";
+import { Icon } from "./icons";
 
 const clamp = (value, min, max) => Math.min(Math.max(value, min), max);
 
@@ -467,7 +468,21 @@ export default function DemoModal({ automation, user, onClose }) {
             {result ? (
               <div className="demo-experience__result" data-status={result.status}>
                 <header style={{ color: statusColor }}>
-                  <strong>{result.status === "success" ? "✅ Success" : "❌ Demo error"}</strong>
+                  <strong
+                    style={{ display: "inline-flex", alignItems: "center", gap: "0.35rem" }}
+                  >
+                    {result.status === "success" ? (
+                      <>
+                        <Icon name="check" size={20} aria-hidden="true" />
+                        <span>Success</span>
+                      </>
+                    ) : (
+                      <>
+                        <Icon name="alert" size={20} aria-hidden="true" />
+                        <span>Demo error</span>
+                      </>
+                    )}
+                  </strong>
                   {result.cost && result.latency ? (
                     <span>
                       Cost: {result.cost} • Latency: {result.latency}
