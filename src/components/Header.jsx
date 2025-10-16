@@ -1,5 +1,6 @@
 import { Link, useNavigate, useLocation } from "react-router-dom";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { motion, useReducedMotion } from "framer-motion";
 import ThemeToggle from "./ThemeToggle";
 import ContrastToggle from "./ContrastToggle";
 import { useTheme } from "../context/ThemeContext";
@@ -8,6 +9,7 @@ import { space } from "../styles/spacing";
 import MagneticButton from "./animation/MagneticButton";
 import { StaggeredContainer, StaggeredItem } from "./animation/StaggeredList";
 import LogoWordmark from "./ui/LogoWordmark";
+import motionCatalog from "../design/motion/catalog";
 
 export default function Header({ user, onSignIn, onSignUp, onSignOut }) {
   const navigate = useNavigate();
@@ -24,6 +26,26 @@ export default function Header({ user, onSignIn, onSignUp, onSignOut }) {
   const { dispatchInteraction } = useMicroInteractions();
   const isServer = typeof window === "undefined";
   const [headerReady, setHeaderReady] = useState(isServer);
+  const prefersReducedMotion = useReducedMotion();
+
+  const headerVariants = useMemo(() => {
+    const hidden = { opacity: 0 };
+    if (!prefersReducedMotion) {
+      hidden.y = -20;
+    }
+    const visible = {
+      opacity: 1,
+      y: 0,
+      transition: {
+        duration: motionCatalog.durations.short,
+        ease: motionCatalog.easings.out,
+      },
+    };
+    if (prefersReducedMotion) {
+      delete visible.y;
+    }
+    return { hidden, visible };
+  }, [prefersReducedMotion]);
 
   const syncHeaderOffset = useCallback(() => {
     const header = document.querySelector(".site-header");
@@ -181,7 +203,7 @@ export default function Header({ user, onSignIn, onSignUp, onSignOut }) {
   );
 
   return (
-    <header
+    <motion.header
       className={`site-header ${scrolled ? "scrolled" : ""}`}
       style={{
         position: "fixed",
@@ -190,12 +212,12 @@ export default function Header({ user, onSignIn, onSignUp, onSignOut }) {
         right: 0,
         zIndex: 1000,
         padding: `${space("sm")} 0`,
-        transition: "background 280ms ease, box-shadow 280ms ease, opacity 360ms ease, transform 360ms ease",
-        opacity: headerReady ? 1 : 0,
-        transform: headerReady ? "translateY(0)" : "translateY(-24px)",
         ...headerBackground,
       }}
       data-ready={headerReady ? "true" : "false"}
+      initial="hidden"
+      animate={headerReady ? "visible" : "hidden"}
+      variants={headerVariants}
     >
       <div
         className="header-inner"
@@ -433,6 +455,6 @@ export default function Header({ user, onSignIn, onSignUp, onSignOut }) {
           )}
         </div>
       </div>
-    </header>
+    </motion.header>
   );
 }

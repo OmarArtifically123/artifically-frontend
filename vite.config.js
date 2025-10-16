@@ -3,8 +3,11 @@ import react from '@vitejs/plugin-react'
 import { visualizer } from 'rollup-plugin-visualizer'
 import million from 'million/compiler'
 import { gzipSync } from 'node:zlib'
+import { resolve as pathResolve, dirname } from 'node:path'
+import { fileURLToPath } from 'node:url'
 
 const KB = 1024
+const __dirname = dirname(fileURLToPath(import.meta.url))
 
 const bundleBudgetPlugin = ({
   jsBudgetBytes = 200 * KB,
@@ -324,6 +327,9 @@ export default defineConfig((configEnv) => {
       environment: 'jsdom',
       setupFiles: './vitest.setup.ts',
       exclude: ['tests/e2e/**'],
+      alias: {
+        'lucide-react': pathResolve(__dirname, 'tests/mocks/lucide-react.ts'),
+      },
       coverage: {
         provider: 'v8',
         reporter: ['text', 'html'],

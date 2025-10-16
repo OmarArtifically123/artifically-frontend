@@ -3,6 +3,7 @@ import { vi } from 'vitest';
 
 import HeroSection from '../HeroSection';
 
+
 vi.mock('../HeroBackground', () => ({
   default: () => <div data-testid="hero-background" />,
 }));

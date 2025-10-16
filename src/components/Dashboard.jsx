@@ -1,5 +1,6 @@
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
+import { motion, useReducedMotion } from "framer-motion";
 import api, { pick } from "../api";
 import { toast } from "./Toast";
 import { useTheme } from "../context/ThemeContext";
@@ -11,6 +12,8 @@ import "../styles/dashboard.css";
 import Button from "./ui/Button";
 import AssistiveHint from "./ui/AssistiveHint";
 import { Icon } from "./icons";
+import useInViewState from "../hooks/useInViewState";
+import motionCatalog from "../design/motion/catalog";
 
 const statusColors = {
   active: { bg: "rgba(16,185,129,0.18)", color: "#10b981" },
@@ -65,10 +68,83 @@ export default function Dashboard({ user, openAuth }) {
   const [viewerCounts, setViewerCounts] = useState({});
   const [loginStreak, setLoginStreak] = useState(1);
   const navigate = useNavigate();
+  const prefersReducedMotion = useReducedMotion();
+  const [marketplaceRef, marketplaceInView] = useInViewState({ threshold: 0.25, rootMargin: "-80px", once: true });
+  const [achievementsRef, achievementsInView] = useInViewState({ threshold: 0.25, rootMargin: "-60px", once: true });
+  const [deploymentsRef, deploymentsInView] = useInViewState({ threshold: 0.2, rootMargin: "-60px", once: true });
+  const lastAutomationRef = useRef(marketplaceShowcase[0]?.id ?? "initial");
+
+  const sectionVariants = useMemo(() => {
+    const hidden = { opacity: 0 };
+    if (!prefersReducedMotion) {
+      hidden.y = 24;
+    }
+    const visible = {
+      opacity: 1,
+      y: 0,
+      transition: {
+        duration: motionCatalog.durations.medium,
+        ease: motionCatalog.easings.out,
+      },
+    };
+    if (prefersReducedMotion) {
+      delete visible.y;
+    }
+    return { hidden, visible };
+  }, [prefersReducedMotion]);
+
+  const listVariants = useMemo(() => {
+    const hidden = { opacity: 0 };
+    if (!prefersReducedMotion) {
+      hidden.y = 16;
+    }
+    const visible = {
+      opacity: 1,
+      y: 0,
+      transition: {
+        duration: motionCatalog.durations.short,
+        ease: motionCatalog.easings.out,
+        staggerChildren: motionCatalog.durations.stagger,
+        delayChildren: motionCatalog.durations.micro,
+      },
+    };
+    if (prefersReducedMotion) {
+      delete visible.y;
+    }
+    return { hidden, visible };
+  }, [prefersReducedMotion]);
+
+  const itemVariants = useMemo(() => {
+    const hidden = { opacity: 0 };
+    if (!prefersReducedMotion) {
+      hidden.y = 12;
+    }
+    const visible = {
+      opacity: 1,
+      y: 0,
+      transition: {
+        duration: motionCatalog.durations.short,
+        ease: motionCatalog.easings.out,
+      },
+    };
+    if (prefersReducedMotion) {
+      delete visible.y;
+    }
+    return { hidden, visible };
+  }, [prefersReducedMotion]);
 
   const handleAutomationDrop = useCallback((automation) => {
+    if (!automation) return;
     setDockedAutomation(automation);
     setDemoMetrics(automation.preview);
+    const automationKey = automation.id ?? automation.name ?? "unknown";
+    if (lastAutomationRef.current !== automationKey) {
+      lastAutomationRef.current = automationKey;
+      toast("Automation added to workspace", {
+        type: "success",
+        description: `${automation.name || "Automation"} is now ready in your live preview.`,
+      });
+    }
   }, []);
 
   const handleDrop = useCallback(
@@ -511,11 +587,7 @@ export default function Dashboard({ user, openAuth }) {
   }
 
   if (loading) {
-    return renderGate(
-      "Loading your dashboard",
-      "We’re fetching your latest deployment metrics.",
-      <div className="loading" style={{ width: "40px", height: "40px", margin: "0 auto" }}></div>
-    );
+    return <DashboardSkeleton darkMode={darkMode} />;
   }
 
   if (error && deployments.length === 0) {
@@ -702,8 +774,12 @@ export default function Dashboard({ user, openAuth }) {
           </div>
         </div>
 
-        <section
+        <motion.section
           data-tour-id="dashboard-marketplace-embed"
+          ref={marketplaceRef}
+          initial="hidden"
+          animate={marketplaceInView ? "visible" : "hidden"}
+          variants={sectionVariants}
           style={{
             background: darkMode ? "rgba(15,23,42,0.75)" : "rgba(255,255,255,0.95)",
             borderRadius: "1.35rem",
@@ -730,16 +806,19 @@ export default function Dashboard({ user, openAuth }) {
               placement="left"
             />
           </header>
-          <div
+          <motion.div
+            initial="hidden"
+            animate={marketplaceInView ? "visible" : "hidden"}
+            variants={listVariants}
             style={{
               display: "grid",
               gap: space("md"),
               gridTemplateColumns: "repeat(auto-fit, minmax(280px, 1fr))",
             }}
           >
-            <div style={{ display: "grid", gap: space("sm") }}>
+            <motion.div style={{ display: "grid", gap: space("sm") }} variants={listVariants}>
               {marketplaceShowcase.map((automation) => (
-                <article
+                <motion.article
                   key={automation.id}
                   draggable
                   onDragStart={handleDragStart(automation)}
@@ -761,21 +840,23 @@ export default function Dashboard({ user, openAuth }) {
                     display: "grid",
                     gap: space("xs"),
                   }}
+                  variants={itemVariants}
                 >
                   <span style={{ fontSize: "0.75rem", color: darkMode ? "#a5b4fc" : "#6366f1" }}>Drag to preview</span>
                   <h3 style={{ margin: 0, fontSize: "1.1rem" }}>{automation.name}</h3>
                   <p style={{ margin: 0, color: darkMode ? "#cbd5e1" : "#475569", lineHeight: 1.5 }}>
                     {automation.description}
                   </p>
-                </article>
+                </motion.article>
               ))}
-            </div>
-            <div
+            </motion.div>
+            <motion.div
               onDrop={handleDrop}
               onDragOver={handleDragOver}
               role="region"
               aria-labelledby="dashboard-dropzone-title"
               aria-describedby="dashboard-dropzone-hint"
+              variants={itemVariants}
               style={{
                 minHeight: "260px",
                 borderRadius: "1.25rem",
@@ -842,19 +923,23 @@ export default function Dashboard({ user, openAuth }) {
                   </div>
                 ))}
               </div>
-            </div>
-          </div>
-        </section>
+            </motion.div>
+          </motion.div>
+        </motion.section>
 
-       <div
-            data-tour-id="dashboard-achievements"
-            style={{
-              background: darkMode ? "rgba(15,23,42,0.75)" : "rgba(255,255,255,0.95)",
-              borderRadius: "1.25rem",
-              padding: space("md"),
-              border: `1px solid ${darkMode ? "rgba(148,163,184,0.25)" : "rgba(148,163,184,0.35)"}`,
-              display: "grid",
-              gap: space("fluid-sm"),
+        <motion.div
+          data-tour-id="dashboard-achievements"
+          ref={achievementsRef}
+          initial="hidden"
+          animate={achievementsInView ? "visible" : "hidden"}
+          variants={sectionVariants}
+          style={{
+            background: darkMode ? "rgba(15,23,42,0.75)" : "rgba(255,255,255,0.95)",
+            borderRadius: "1.25rem",
+            padding: space("md"),
+            border: `1px solid ${darkMode ? "rgba(148,163,184,0.25)" : "rgba(148,163,184,0.35)"}`,
+            display: "grid",
+            gap: space("fluid-sm"),
           }}
         >
           <div
@@ -904,7 +989,10 @@ export default function Dashboard({ user, openAuth }) {
             </div>
           </div>
 
-          <div
+          <motion.div
+            initial="hidden"
+            animate={achievementsInView ? "visible" : "hidden"}
+            variants={listVariants}
             style={{
               display: "grid",
               gap: space("sm"),
@@ -918,7 +1006,7 @@ export default function Dashboard({ user, openAuth }) {
                 : null;
 
               return (
-                <div
+                <motion.div
                   key={achievement.id}
                   style={{
                     borderRadius: "1rem",
@@ -932,6 +1020,7 @@ export default function Dashboard({ user, openAuth }) {
                     display: "grid",
                     gap: space("xs"),
                   }}
+                  variants={itemVariants}
                 >
                   <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
                     <strong style={{ fontSize: "1rem" }}>{achievement.title}</strong>
@@ -950,11 +1039,11 @@ export default function Dashboard({ user, openAuth }) {
                       Unlocked on {unlockedDate}
                     </span>
                   )}
-                </div>
+                </motion.div>
               );
             })}
-          </div>
-        </div>
+          </motion.div>
+        </motion.div>
 
         <section
           data-tour-id="dashboard-badges"
@@ -1067,8 +1156,12 @@ export default function Dashboard({ user, openAuth }) {
         </div>
 
         {deployments.length === 0 ? (
-          <div
+          <motion.div
             className="empty-state"
+            ref={deploymentsRef}
+            initial="hidden"
+            animate={deploymentsInView ? "visible" : "hidden"}
+            variants={sectionVariants}
             style={{
               textAlign: "center",
               padding: space("2xl"),
@@ -1087,10 +1180,14 @@ export default function Dashboard({ user, openAuth }) {
             <Button size="md" variant="primary" magnetic onClick={() => navigate("/marketplace")}>
               <span>Browse Marketplace</span>
             </Button>
-          </div>
+          </motion.div>
         ) : (
-          <div
+          <motion.div
             className="deployments-list"
+            ref={deploymentsRef}
+            initial="hidden"
+            animate={deploymentsInView ? "visible" : "hidden"}
+            variants={listVariants}
             style={{
               display: "grid",
               gap: space("md"),
@@ -1104,7 +1201,7 @@ export default function Dashboard({ user, openAuth }) {
                 : null;
 
               return (
-                <article
+                <motion.article
                   key={deployment.id}
                   style={{
                     borderRadius: "1.25rem",
@@ -1119,6 +1216,7 @@ export default function Dashboard({ user, openAuth }) {
                     display: "grid",
                     gap: space("fluid-sm"),
                   }}
+                  variants={itemVariants}
                 >
                   <header
                     style={{
@@ -1238,10 +1336,10 @@ export default function Dashboard({ user, openAuth }) {
                       </pre>
                     </details>
                   )}
-                </article>
+                </motion.article>
               );
             })}
-          </div>
+          </motion.div>
         )}
 
         {error && deployments.length > 0 && (
@@ -1263,5 +1361,84 @@ export default function Dashboard({ user, openAuth }) {
       </div>
       <OnboardingTour steps={onboardingSteps} />
     </section>
+  );
+  }
+
+function SkeletonLine({ width = "100%", height, className = "" }) {
+  return (
+    <span
+      className={`skeleton-line${className ? ` ${className}` : ""}`}
+      style={{ width, minHeight: height }}
+      aria-hidden="true"
+    />
+  );
+}
+
+function SkeletonSurface({ height, className = "" }) {
+  return (
+    <div
+      className={`skeleton-surface${className ? ` ${className}` : ""}`}
+      style={{ minHeight: height }}
+      aria-hidden="true"
+    />
+  );
+}
+
+function DashboardSkeleton({ darkMode }) {
+  return (
+    <main className="dashboard-shell" aria-busy="true" aria-live="polite">
+      <div
+        className="container"
+        style={{ display: "grid", gap: space("xl"), padding: `${space("xl")} 0` }}
+      >
+        <section style={{ display: "grid", gap: space("xs") }} aria-hidden="true">
+          <SkeletonLine className="skeleton-line--heading" width="55%" />
+          <SkeletonLine width="70%" />
+        </section>
+
+        <section
+          style={{
+            display: "grid",
+            gap: space("md"),
+            gridTemplateColumns: "repeat(auto-fit, minmax(260px, 1fr))",
+          }}
+          aria-hidden="true"
+        >
+          {Array.from({ length: 3 }).map((_, index) => (
+            <div key={index} style={{ display: "grid", gap: space("xs") }}>
+              <SkeletonLine width="40%" />
+              <SkeletonSurface height="140px" />
+            </div>
+          ))}
+        </section>
+
+        <section
+          style={{
+            background: darkMode ? "rgba(15,23,42,0.6)" : "rgba(255,255,255,0.92)",
+            borderRadius: "1.35rem",
+            padding: space("md"),
+            border: `1px solid ${darkMode ? "rgba(148,163,184,0.25)" : "rgba(148,163,184,0.3)"}`,
+            display: "grid",
+            gap: space("sm"),
+          }}
+          aria-hidden="true"
+        >
+          <SkeletonLine width="35%" />
+          <div style={{ display: "grid", gap: space("xs"), gridTemplateColumns: "repeat(3, minmax(0, 1fr))" }}>
+            {Array.from({ length: 3 }).map((_, index) => (
+              <SkeletonSurface key={index} height="88px" />
+            ))}
+          </div>
+        </section>
+
+        <section style={{ display: "grid", gap: space("sm") }} aria-hidden="true">
+          <SkeletonLine width="45%" />
+          {Array.from({ length: 2 }).map((_, index) => (
+            <SkeletonSurface key={index} height="180px" />
+          ))}
+        </section>
+      </div>
+      <span className="sr-only">Loading your dashboard data…</span>
+    </main>
   );
 }

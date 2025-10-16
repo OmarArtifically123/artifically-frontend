@@ -222,7 +222,13 @@ export function ToastHost() {
   }
 
   return createPortal(
-    <div style={{ position: "fixed", top: 20, right: 20, zIndex: 1200 }}>
+    <div
+      style={{ position: "fixed", top: 20, right: 20, zIndex: 1200 }}
+      role="status"
+      aria-live="polite"
+      aria-atomic="true"
+      aria-label="Notifications"
+    >
       <div style={{ display: "grid", gap: space("sm") }}>
         {toasts.map((toastItem) => (
           <ToastItem

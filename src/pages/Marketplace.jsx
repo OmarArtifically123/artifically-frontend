@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useRef, useState, useId } from "react";
+import { motion, useReducedMotion } from "framer-motion";
 import { fetchAutomations } from "../data/automations";
 import { toast } from "../components/Toast";
 import ProductPreview3D from "../components/landing/ProductPreview3D";
@@ -6,6 +7,8 @@ import { calculateSavings } from "../utils/calculateSavings";
 import ROICalculator from "../components/roi/ROICalculator";
 import AssistiveHint from "../components/ui/AssistiveHint";
 import { Icon } from "../components/icons";
+import useInViewState from "../hooks/useInViewState";
+import motionCatalog from "../design/motion/catalog";
 
 const categories = ["All", "Sales", "Support", "Operations", "Finance", "Marketing"];
 const FILTER_STORAGE_KEY = "artifically:marketplace:filters";
@@ -27,6 +30,61 @@ export default function Marketplace() {
   const searchFieldBlurTimeout = useRef();
   const suggestionListRef = useRef(null);
   const queryAppliedRef = useRef(false);
+  const prefersReducedMotion = useReducedMotion();
+  const [featuredRef, featuredInView] = useInViewState({ threshold: 0.35, rootMargin: "-120px", once: true });
+  const [gridRef, gridInView] = useInViewState({ threshold: 0.2, rootMargin: "-80px", once: true });
+
+  const featuredVariants = useMemo(() => {
+    const hidden = { opacity: 0 };
+    if (!prefersReducedMotion) {
+      hidden.y = 18;
+    }
+    const visible = {
+      opacity: 1,
+      y: 0,
+      transition: {
+        duration: motionCatalog.durations.medium,
+        ease: motionCatalog.easings.out,
+      },
+    };
+    if (prefersReducedMotion) {
+      delete visible.y;
+    }
+    return { hidden, visible };
+  }, [prefersReducedMotion]);
+
+  const gridContainerVariants = useMemo(
+    () => ({
+      hidden: { opacity: 0 },
+      visible: {
+        opacity: 1,
+        transition: {
+          duration: motionCatalog.durations.short,
+          ease: motionCatalog.easings.out,
+        },
+      },
+    }),
+    [],
+  );
+
+  const gridItemVariants = useMemo(() => {
+    const hiddenState = { opacity: 0 };
+    if (!prefersReducedMotion) {
+      hiddenState.y = 14;
+    }
+    return {
+      hidden: hiddenState,
+      visible: (index = 0) => ({
+        opacity: 1,
+        y: 0,
+        transition: {
+          duration: motionCatalog.durations.short,
+          ease: motionCatalog.easings.out,
+          delay: Math.min(0.36, index * motionCatalog.durations.stagger),
+        },
+      }),
+    };
+  }, [prefersReducedMotion]);
 
   useEffect(() => {
     let mounted = true;
@@ -442,7 +500,14 @@ export default function Marketplace() {
         </article>
       ) : (
         featured && (
-          <article className="featured-card" aria-labelledby="featured-title">
+          <motion.article
+            ref={featuredRef}
+            className="featured-card"
+            aria-labelledby="featured-title"
+            initial="hidden"
+            animate={featuredInView ? "visible" : "hidden"}
+            variants={featuredVariants}
+          >
             <div className="featured-card__preview">
               <SpotlightPreview automation={featured} />
             </div>
@@ -464,11 +529,11 @@ export default function Marketplace() {
                 </button>
               </div>
             </div>
-          </article>
+          </motion.article>
         )
       )}
 
-      <section aria-live="polite">
+      <section aria-live="polite" aria-busy={loading ? "true" : "false"}>
         {loading ? (
           <div className="automation-grid" aria-hidden="true">
             {Array.from({ length: 6 }).map((_, index) => (
@@ -484,9 +549,15 @@ export default function Marketplace() {
             ))}
           </div>
         ) : (
-          <div className="automation-grid">
+          <motion.div
+            ref={gridRef}
+            className="automation-grid"
+            initial="hidden"
+            animate={gridInView ? "visible" : "hidden"}
+            variants={gridContainerVariants}
+          >
             {filteredAutomations.map((automation, index) => (
-              <button
+              <motion.button
                 key={automation.id}
                 type="button"
                 className="automation-card"
@@ -495,6 +566,8 @@ export default function Marketplace() {
                   cardRefs.current[index] = node;
                 }}
                 onKeyDown={(event) => handleCardKeyDown(event, index)}
+                custom={index}
+                variants={gridItemVariants}
               >
                 <span className="automation-card__icon" aria-hidden="true">
                   <Icon name="cog" size={22} />
@@ -508,9 +581,9 @@ export default function Marketplace() {
                     <span key={tag}>{tag}</span>
                   ))}
                 </div>
-              </button>
+              </motion.button>
             ))}
-          </div>
+          </motion.div>
         )}
       </section>
 
@@ -676,7 +749,17 @@ function QuickViewModal({ automation, onClose }) {
             headingLevel={3}
           />
           <div style={{ display: "flex", gap: "0.75rem", flexWrap: "wrap" }}>
-            <button type="button" className="cta-primary" onClick={onClose}>
+            <button
+              type="button"
+              className="cta-primary"
+              onClick={() => {
+                toast("Pilot request scheduled", {
+                  type: "success",
+                  description: `${automation.name || "Automation"} will be provisioned in your workspace shortly.`,
+                });
+                onClose();
+              }}
+            >
               Launch Pilot
             </button>
             <button type="button" className="cta-secondary" onClick={onClose}>

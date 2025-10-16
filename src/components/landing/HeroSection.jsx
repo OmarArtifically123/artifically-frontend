@@ -1,5 +1,14 @@
 import { useEffect, useMemo, useRef, useState } from "react";
+import {
+  animate,
+  motion,
+  useMotionValue,
+  useMotionValueEvent,
+  useReducedMotion,
+} from "framer-motion";
 import useDocumentVisibility from "../../hooks/useDocumentVisibility";
+import useInViewState from "../../hooks/useInViewState";
+import motionCatalog from "../../design/motion/catalog";
 import HeroBackground from "./HeroBackground";
 import ProductPreview3D from "./ProductPreview3D";
 import ScrollIndicator from "./ScrollIndicator";
@@ -54,35 +63,118 @@ export default function HeroSection({ onPrimary, onSecondary }) {
     return undefined;
   }, []);
 
+  const prefersReducedMotion = useReducedMotion();
+  const [contentRef, contentInView] = useInViewState({ threshold: 0.4, rootMargin: "-80px", once: true });
+  const [previewRef, previewInView] = useInViewState({ threshold: 0.3, rootMargin: "-64px", once: true });
+
+  const heroContentVariants = useMemo(() => {
+    const hidden = { opacity: 0 };
+    if (!prefersReducedMotion) {
+      hidden.y = 24;
+    }
+    const visible = {
+      opacity: 1,
+      y: 0,
+      transition: {
+        duration: motionCatalog.durations.medium,
+        ease: motionCatalog.easings.out,
+        delayChildren: motionCatalog.durations.micro,
+        staggerChildren: motionCatalog.durations.stagger,
+      },
+    };
+    if (prefersReducedMotion) {
+      delete visible.y;
+    }
+    return { hidden, visible };
+  }, [prefersReducedMotion]);
+
+  const heroItemVariants = useMemo(() => {
+    const hidden = { opacity: 0 };
+    if (!prefersReducedMotion) {
+      hidden.y = 16;
+    }
+    const visible = {
+      opacity: 1,
+      y: 0,
+      transition: {
+        duration: motionCatalog.durations.short,
+        ease: motionCatalog.easings.out,
+      },
+    };
+    if (prefersReducedMotion) {
+      delete visible.y;
+    }
+    return { hidden, visible };
+  }, [prefersReducedMotion]);
+
+  const previewVariants = useMemo(() => {
+    const hidden = { opacity: 0 };
+    if (!prefersReducedMotion) {
+      hidden.y = 20;
+    }
+    const visible = {
+      opacity: 1,
+      y: 0,
+      transition: {
+        duration: motionCatalog.durations.long,
+        ease: motionCatalog.easings.out,
+      },
+    };
+    if (prefersReducedMotion) {
+      delete visible.y;
+    }
+    return { hidden, visible };
+  }, [prefersReducedMotion]);
+
   return (
     <section className="page-hero" aria-labelledby="hero-headline">
       <HeroBackground variant="particles" />
       <div className="page-hero__inner">
-        <div className="page-hero__content">
-            <span className="page-hero__eyebrow">
-              <Icon name="zap" size={18} aria-hidden="true" />
-              <span>The Future of AI Automation</span>
-            </span>
-            <h1 id="hero-headline" className="page-hero__headline">
-              Deploy Enterprise AI <GradientText>Automations</GradientText> in Minutes
-            </h1>
-            <p className="page-hero__subheadline">
-              Transform operations with battle-tested automations. No setup hell. No vendor lock-in. Just results.
-            </p>
-            <div className="cta-group">
-              <button type="button" className="cta-primary" onClick={onPrimary}>
-                {primaryLabel}
-              </button>
-              <button type="button" className="cta-secondary" onClick={onSecondary}>
-                {secondaryLabel} → <VideoBadge duration="2 min" />
-              </button>
-            </div>
-            {ctaContext ? <p className="hero-cta-context">{ctaContext}</p> : null}
-            <HeroStats stats={heroStats} />
-            <LogoTicker logos={defaultLogos} gradientId={gradientId} />
-          </div>
+        <motion.div
+          ref={contentRef}
+          className="page-hero__content"
+          initial="hidden"
+          animate={contentInView ? "visible" : "hidden"}
+          variants={heroContentVariants}
+        >
+          <motion.span className="page-hero__eyebrow" variants={heroItemVariants}>
+            <Icon name="zap" size={18} aria-hidden="true" />
+            <span>The Future of AI Automation</span>
+          </motion.span>
+          <motion.h1 id="hero-headline" className="page-hero__headline" variants={heroItemVariants}>
+            Deploy Enterprise AI <GradientText>Automations</GradientText> in Minutes
+          </motion.h1>
+          <motion.p className="page-hero__subheadline" variants={heroItemVariants}>
+            Transform operations with battle-tested automations. No setup hell. No vendor lock-in. Just results.
+          </motion.p>
+          <motion.div className="cta-group" variants={heroItemVariants}>
+            <button type="button" className="cta-primary" onClick={onPrimary}>
+              {primaryLabel}
+            </button>
+            <button type="button" className="cta-secondary" onClick={onSecondary}>
+              {secondaryLabel} → <VideoBadge duration="2 min" />
+            </button>
+          </motion.div>
+          {ctaContext ? (
+            <motion.p className="hero-cta-context" variants={heroItemVariants}>
+              {ctaContext}
+            </motion.p>
+          ) : null}
+          <HeroStats stats={heroStats} prefersReducedMotion={prefersReducedMotion} />
+          <LogoTicker
+            logos={defaultLogos}
+            gradientId={gradientId}
+            prefersReducedMotion={prefersReducedMotion}
+          />
+        </motion.div>
         <div className="page-hero__preview" id="product-preview">
-          <article className="preview-card">
+          <motion.article
+            ref={previewRef}
+            className="preview-card"
+            initial="hidden"
+            animate={previewInView ? "visible" : "hidden"}
+            variants={previewVariants}
+          >
             <span className="preview-card__chip">Live product preview</span>
             <div className="preview-card__stage">
               <ProductPreview3D label="3D preview of automation workflow" />
@@ -91,7 +183,7 @@ export default function HeroSection({ onPrimary, onSecondary }) {
               "We launched our global support automation in under 2 hours. Artifically handled auth, routing, and reporting out of the box."
               <span className="hero-quote__author">— Elena Ruiz, VP Operations</span>
             </p>
-          </article>
+          </motion.article>
         </div>
       </div>
       <div className="page-hero__roi">
@@ -102,142 +194,153 @@ export default function HeroSection({ onPrimary, onSecondary }) {
   );
 }
 
-function HeroStats({ stats }) {
+function HeroStats({ stats, prefersReducedMotion }) {
+  const [statsRef, statsInView] = useInViewState({ threshold: 0.4, once: true });
+
+  const containerVariants = useMemo(() => {
+    const hidden = { opacity: 0 };
+    if (!prefersReducedMotion) {
+      hidden.y = 12;
+    }
+    const visible = {
+      opacity: 1,
+      y: 0,
+      transition: {
+        duration: motionCatalog.durations.short,
+        ease: motionCatalog.easings.out,
+        staggerChildren: motionCatalog.durations.stagger,
+      },
+    };
+    if (prefersReducedMotion) {
+      delete visible.y;
+    }
+    return { hidden, visible };
+  }, [prefersReducedMotion]);
+
   return (
-    <div className="hero-stats" aria-label="Key platform metrics">
-      {stats.map((stat) => (
-        <StatCounter key={stat.label} {...stat} />
+    <motion.div
+      ref={statsRef}
+      className="hero-stats"
+      aria-label="Key platform metrics"
+      initial="hidden"
+      animate={statsInView ? "visible" : "hidden"}
+      variants={containerVariants}
+    >
+      {stats.map((stat, index) => (
+        <StatCounter
+          key={stat.label}
+          index={index}
+          prefersReducedMotion={prefersReducedMotion}
+          inView={statsInView}
+          {...stat}
+        />
       ))}
-    </div>
+    </motion.div>
   );
 }
 
-function StatCounter({ value, suffix = "", label }) {
-  const [display, setDisplay] = useState(0);
-  const rafRef = useRef();
-  const nodeRef = useRef(null);
-  const [shouldAnimate, setShouldAnimate] = useState(false);
+function StatCounter({ value, suffix = "", label, index, prefersReducedMotion, inView }) {
+  const valueMotion = useMotionValue(prefersReducedMotion ? value : 0);
+  const [display, setDisplay] = useState(valueMotion.get());
   const isDocumentVisible = useDocumentVisibility();
-  const [prefersReducedMotion, setPrefersReducedMotion] = useState(() => {
-    if (typeof window === "undefined" || typeof window.matchMedia !== "function") {
-      return false;
-    }
-    return window.matchMedia("(prefers-reduced-motion: reduce)").matches;
-  });
   const hasAnimatedRef = useRef(false);
 
-  useEffect(() => {
-    if (typeof window === "undefined" || typeof window.matchMedia !== "function") {
-      return undefined;
-    }
-
-    const media = window.matchMedia("(prefers-reduced-motion: reduce)");
-    const handleChange = (event) => setPrefersReducedMotion(event.matches);
-    if (typeof media.addEventListener === "function") {
-      media.addEventListener("change", handleChange);
-      return () => media.removeEventListener("change", handleChange);
-    }
-
-    media.addListener(handleChange);
-    return () => media.removeListener(handleChange);
-  }, []);
-
-  useEffect(() => {
-    const node = nodeRef.current;
-    if (!node || typeof IntersectionObserver === "undefined") {
-      setShouldAnimate(true);
-      return undefined;
-    }
-
-    const observer = new IntersectionObserver(
-      (entries) => {
-        entries.forEach((entry) => {
-          if (entry.target === node) {
-            setShouldAnimate(entry.isIntersecting);
-          }
-        });
-      },
-      { threshold: 0.35 },
-    );
-
-    observer.observe(node);
-
-    return () => {
-      observer.unobserve(node);
-      observer.disconnect();
-    };
-  }, []);
-
-  const canAnimate = shouldAnimate && isDocumentVisible;
+  useMotionValueEvent(valueMotion, "change", (latest) => {
+    setDisplay(latest);
+  });
 
   useEffect(() => {
     if (prefersReducedMotion) {
+      valueMotion.set(value);
       setDisplay(value);
-      if (rafRef.current) {
-        cancelAnimationFrame(rafRef.current);
-      }
-      return () => {};
+      return;
     }
 
-    if (!canAnimate) {
+    if (!inView || !isDocumentVisible) {
       if (!hasAnimatedRef.current) {
+        valueMotion.set(0);
         setDisplay(0);
       }
-      if (rafRef.current) {
-        cancelAnimationFrame(rafRef.current);
-      }
-      return () => {};
+      return;
     }
 
-    let isMounted = true;
-    const start = performance.now();
-    const duration = 1800;
     hasAnimatedRef.current = true;
+    const controls = animate(valueMotion, value, {
+      duration: motionCatalog.durations.long,
+      ease: motionCatalog.easings.out,
+    });
 
-    const animate = (now) => {
-      if (!isMounted) return;
-      const progress = Math.min(1, (now - start) / duration);
-      const eased = 1 - Math.pow(1 - progress, 3);
-      setDisplay(value * eased);
-      if (progress < 1) {
-        rafRef.current = requestAnimationFrame(animate);
-      }
-    };
-
-    rafRef.current = requestAnimationFrame(animate);
-
-    return () => {
-      isMounted = false;
-      if (rafRef.current) {
-        cancelAnimationFrame(rafRef.current);
-      }
-    };
-  }, [canAnimate, prefersReducedMotion, value]);
-
-  useEffect(() => {
-    if (!canAnimate) {
-      hasAnimatedRef.current = false;
-    }
-  }, [canAnimate, value]);
+    return () => controls.stop();
+  }, [prefersReducedMotion, inView, isDocumentVisible, value, valueMotion]);
 
   const formatted = useMemo(() => {
+    const currentValue = prefersReducedMotion ? value : display;
     if (value >= 1000) {
-      return `${Math.round(display).toLocaleString()}${suffix}`;
+      return `${Math.round(currentValue).toLocaleString()}${suffix}`;
     }
-    return `${display.toFixed(value % 1 === 0 ? 0 : 1)}${suffix}`;
-  }, [display, suffix, value]);
+    const decimals = Number.isInteger(value) ? 0 : 1;
+    return `${Number(currentValue).toFixed(decimals)}${suffix}`;
+  }, [display, suffix, value, prefersReducedMotion]);
+
+  const itemVariants = useMemo(() => {
+    const hidden = { opacity: 0 };
+    if (!prefersReducedMotion) {
+      hidden.y = 12;
+    }
+    const visible = {
+      opacity: 1,
+      y: 0,
+      transition: {
+        duration: motionCatalog.durations.short,
+        ease: motionCatalog.easings.out,
+        delay: Math.min(0.32, index * motionCatalog.durations.stagger),
+      },
+    };
+    if (prefersReducedMotion) {
+      delete visible.y;
+    }
+    return { hidden, visible };
+  }, [prefersReducedMotion, index]);
 
   return (
-    <div ref={nodeRef} className="hero-stat">
+    <motion.div className="hero-stat" variants={itemVariants}>
       <span className="hero-stat__value">{formatted}</span>
       <span className="hero-stat__label">{label}</span>
-    </div>
+    </motion.div>
   );
 }
 
-function LogoTicker({ logos, gradientId }) {
+function LogoTicker({ logos, gradientId, prefersReducedMotion }) {
+  const [tickerRef, tickerInView] = useInViewState({ threshold: 0.2, once: true });
+
+  const tickerVariants = useMemo(() => {
+    const hidden = { opacity: 0 };
+    if (!prefersReducedMotion) {
+      hidden.y = 16;
+    }
+    const visible = {
+      opacity: 1,
+      y: 0,
+      transition: {
+        duration: motionCatalog.durations.medium,
+        ease: motionCatalog.easings.out,
+      },
+    };
+    if (prefersReducedMotion) {
+      delete visible.y;
+    }
+    return { hidden, visible };
+  }, [prefersReducedMotion]);
+
   return (
-    <div aria-label="Trusted by leading teams" className="trusted-by">
+    <motion.div
+      ref={tickerRef}
+      aria-label="Trusted by leading teams"
+      className="trusted-by"
+      initial="hidden"
+      animate={tickerInView ? "visible" : "hidden"}
+      variants={tickerVariants}
+    >
       <span className="trusted-by__eyebrow">Trusted by teams shipping AI in production</span>
       <div className="trusted-by__logos">
         {logos.map((logo) => (
@@ -252,7 +355,7 @@ function LogoTicker({ logos, gradientId }) {
           <stop offset="100%" stopColor="var(--brand-energy)" />
         </linearGradient>
       </svg>
-    </div>
+    </motion.div>
   );
 }
 
