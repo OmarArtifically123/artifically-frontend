@@ -1,9 +1,9 @@
 import { describe, it, expect } from "vitest";
-import { runA11yCheck } from "../../src/design-system/testing/accessibility";
-import { Button } from "../../src/design-system/components/Button";
-import { Alert } from "../../src/design-system/components/Alert";
-import { TextField } from "../../src/design-system/components/TextField";
-import { Tabs } from "../../src/design-system/components/Tabs";
+import { runA11yCheck } from "../../design-system/testing/accessibility";
+import { Button } from "../../design-system/components/Button";
+import { Alert } from "../../design-system/components/Alert";
+import { TextField } from "../../design-system/components/TextField";
+import { Tabs } from "../../design-system/components/Tabs";
 
 const runAndAssert = async (name: string, element: JSX.Element) => {
   const results = await runA11yCheck(element);
