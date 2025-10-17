@@ -1,3 +1,5 @@
+"use client";
+
 import { memo } from "react";
 import MarketingHomeServer from "../../rsc/MarketingHome.server.jsx";
 

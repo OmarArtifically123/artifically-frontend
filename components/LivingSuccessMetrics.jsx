@@ -1,3 +1,5 @@
+"use client";
+
 import { useMemo } from "react";
 
 const EMPTY_METRICS = {

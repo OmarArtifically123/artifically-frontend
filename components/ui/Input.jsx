@@ -1,3 +1,5 @@
+"use client";
+
 import { forwardRef } from "react";
 import { AnimatePresence, motion } from "framer-motion";
 import { cn } from "../../utils/cn";

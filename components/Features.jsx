@@ -1,3 +1,5 @@
+"use client";
+
 import { Suspense, memo, useEffect, useState } from "react";
 import ThemeToggle from "./ThemeToggle";
 import ServerFeatureHighlights from "./ServerFeatureHighlights";

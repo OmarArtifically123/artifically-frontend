@@ -1,3 +1,5 @@
+"use client";
+
 import type { Decorator, Preview } from "@storybook/react";
 import { useEffect } from "react";
 import type { ReactNode } from "react";

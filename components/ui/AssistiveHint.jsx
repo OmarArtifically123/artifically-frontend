@@ -1,3 +1,5 @@
+"use client";
+
 import { useState } from "react";
 
 export default function AssistiveHint({ id, label = "Need guidance?", message, placement = "bottom" }) {

@@ -1,3 +1,5 @@
+"use client";
+
 import { memo, useCallback, useMemo, useState } from "react";
 
 const joinClasses = (...classes) => classes.filter(Boolean).join(" ");

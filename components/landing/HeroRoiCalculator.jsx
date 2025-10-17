@@ -1,3 +1,5 @@
+"use client";
+
 import { useMemo, useState } from "react";
 import { calculateSavings } from "../../utils/calculateSavings";
 

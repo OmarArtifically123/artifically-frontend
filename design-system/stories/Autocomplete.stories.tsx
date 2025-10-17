@@ -1,3 +1,5 @@
+"use client";
+
 import { useState } from "react";
 import { Autocomplete } from "../components/Autocomplete";
 import type { Meta, StoryObj } from "@storybook/react";

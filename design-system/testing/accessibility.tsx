@@ -1,3 +1,5 @@
+"use client";
+
 import { cleanup, render } from "@testing-library/react";
 import { axe } from "jest-axe";
 import type { ReactElement } from "react";

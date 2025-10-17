@@ -1,3 +1,5 @@
+"use client";
+
 import { useEffect, useMemo, useState } from "react";
 import MarketingHomeServer from "@frontend/rsc/MarketingHome.server.jsx";
 

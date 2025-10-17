@@ -1,3 +1,5 @@
+"use client";
+
 import { useEffect, useMemo, useState } from "react";
 import { achievementsCatalog, defaultAchievementsState } from "../data/achievements";
 import { toast } from "../components/Toast";

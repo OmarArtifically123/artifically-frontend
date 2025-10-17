@@ -1,3 +1,5 @@
+"use client";
+
 import { space } from "../styles/spacing";
 // src/components/DebugHydration.jsx
 import { useEffect, useState } from "react";

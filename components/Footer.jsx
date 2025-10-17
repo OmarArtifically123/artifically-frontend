@@ -1,3 +1,5 @@
+"use client";
+
 import Link from "next/link";
 import { useEffect, useMemo, useState, useId, useRef } from "react";
 import ThemeToggle from "./ThemeToggle";

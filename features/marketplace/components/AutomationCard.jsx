@@ -1,3 +1,5 @@
+"use client";
+
 import { memo, useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useTheme } from "../../../context/ThemeContext";
 import useMicroInteractions from "../../../hooks/useMicroInteractions";

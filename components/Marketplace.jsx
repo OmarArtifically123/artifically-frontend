@@ -1,3 +1,5 @@
+"use client";
+
 import { Suspense, lazy, useCallback, useEffect, useId, useMemo, useRef, useState } from "react";
 import { useDebouncedCallback } from "use-debounce";
 import { formatDistanceToNow } from "date-fns";

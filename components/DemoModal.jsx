@@ -1,3 +1,5 @@
+"use client";
+
 import { useEffect, useMemo, useState } from "react";
 import api from "../api.js";
 import { toast } from "./Toast";

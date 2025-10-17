@@ -1,3 +1,5 @@
+"use client";
+
 import { useEffect, useRef } from "react";
 
 export function StaggeredContainer({ children, threshold = 0.2, className = "", ...props }) {

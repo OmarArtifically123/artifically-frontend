@@ -1,3 +1,5 @@
+"use client";
+
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useTheme } from "../context/ThemeContext";
 import { MicroInteractionProvider } from "../context/MicroInteractionContext";

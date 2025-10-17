@@ -1,3 +1,5 @@
+"use client";
+
 import { useEffect } from "react";
 import { Button } from "../components/Button";
 import { ToastStack, useToastController } from "../components/Toast";

@@ -1,3 +1,5 @@
+"use client";
+
 // components/AuthModal.jsx
 import { useState, useRef, useCallback, useEffect, useMemo } from "react";
 import { useTheme } from "../context/ThemeContext";

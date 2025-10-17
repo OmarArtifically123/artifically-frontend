@@ -1,3 +1,5 @@
+"use client";
+
 import { memo, useMemo, useState } from "react";
 
 const PLAN_DATA = [

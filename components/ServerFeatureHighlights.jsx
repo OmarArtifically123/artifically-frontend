@@ -1,3 +1,5 @@
+"use client";
+
 import { useEffect, useRef, useState } from "react";
 import DOMPurify from "dompurify";
 import FeatureSkeletonGrid from "./skeletons/FeatureSkeleton";

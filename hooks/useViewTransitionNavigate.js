@@ -1,3 +1,5 @@
+"use client";
+
 import { useCallback } from "react";
 import { flushSync } from "react-dom";
 import { useRouter } from "next/navigation";
