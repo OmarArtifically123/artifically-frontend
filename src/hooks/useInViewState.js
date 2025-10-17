@@ -7,9 +7,10 @@ export default function useInViewState({
   threshold = 0.25,
   rootMargin = "0px",
   once = true,
+  initialInView = false,
 } = {}) {
   const nodeRef = useRef(null);
-  const [inView, setInView] = useState(false);
+  const [inView, setInView] = useState(initialInView);
 
   useEffect(() => {
     const node = nodeRef.current;

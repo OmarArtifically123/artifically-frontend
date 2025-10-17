@@ -30,6 +30,14 @@ export default function HeroSection({ onPrimary, onSecondary }) {
   const [primaryLabel, setPrimaryLabel] = useState("Start Free Trial");
   const [secondaryLabel, setSecondaryLabel] = useState("Watch Demo");
   const [ctaContext, setCtaContext] = useState("");
+  const [initialHeroInView] = useState(() => {
+    if (typeof window === "undefined") {
+      return true;
+    }
+    const scrollElement = document.scrollingElement || document.documentElement;
+    const scrollPosition = typeof window.scrollY === "number" ? window.scrollY : scrollElement?.scrollTop || 0;
+    return scrollPosition <= 48;
+  });
 
   useEffect(() => {
     if (typeof window === "undefined") {
@@ -64,8 +72,18 @@ export default function HeroSection({ onPrimary, onSecondary }) {
   }, []);
 
   const prefersReducedMotion = useReducedMotion();
-  const [contentRef, contentInView] = useInViewState({ threshold: 0.4, rootMargin: "-80px", once: true });
-  const [previewRef, previewInView] = useInViewState({ threshold: 0.3, rootMargin: "-64px", once: true });
+  const [contentRef, contentInView] = useInViewState({
+    threshold: 0.4,
+    rootMargin: "-80px",
+    once: true,
+    initialInView: initialHeroInView,
+  });
+  const [previewRef, previewInView] = useInViewState({
+    threshold: 0.3,
+    rootMargin: "-64px",
+    once: true,
+    initialInView: initialHeroInView,
+  });
 
   const heroContentVariants = useMemo(() => {
     const hidden = { opacity: 0 };
@@ -160,11 +178,16 @@ export default function HeroSection({ onPrimary, onSecondary }) {
               {ctaContext}
             </motion.p>
           ) : null}
-          <HeroStats stats={heroStats} prefersReducedMotion={prefersReducedMotion} />
+          <HeroStats
+            stats={heroStats}
+            prefersReducedMotion={prefersReducedMotion}
+            initialInView={initialHeroInView}
+          />
           <LogoTicker
             logos={defaultLogos}
             gradientId={gradientId}
             prefersReducedMotion={prefersReducedMotion}
+            initialInView={initialHeroInView}
           />
         </motion.div>
         <div className="page-hero__preview" id="product-preview">
@@ -194,8 +217,8 @@ export default function HeroSection({ onPrimary, onSecondary }) {
   );
 }
 
-function HeroStats({ stats, prefersReducedMotion }) {
-  const [statsRef, statsInView] = useInViewState({ threshold: 0.4, once: true });
+function HeroStats({ stats, prefersReducedMotion, initialInView }) {
+  const [statsRef, statsInView] = useInViewState({ threshold: 0.4, once: true, initialInView });
 
   const containerVariants = useMemo(() => {
     const hidden = { opacity: 0 };
@@ -310,8 +333,8 @@ function StatCounter({ value, suffix = "", label, index, prefersReducedMotion, i
   );
 }
 
-function LogoTicker({ logos, gradientId, prefersReducedMotion }) {
-  const [tickerRef, tickerInView] = useInViewState({ threshold: 0.2, once: true });
+function LogoTicker({ logos, gradientId, prefersReducedMotion, initialInView }) {
+  const [tickerRef, tickerInView] = useInViewState({ threshold: 0.2, once: true, initialInView });
 
   const tickerVariants = useMemo(() => {
     const hidden = { opacity: 0 };
