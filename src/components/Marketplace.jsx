@@ -11,7 +11,7 @@ import { warmupWasm, wasmAverage } from "../lib/wasmMath";
 import LivingSuccessMetrics from "./LivingSuccessMetrics";
 import MarketplaceCollaborationLayer from "./MarketplaceCollaborationLayer";
 import { space } from "../styles/spacing";
-import AutomationCard from "./AutomationCard.jsx";
+import AutomationCard from "../features/marketplace/components/AutomationCard.jsx";
 import VirtualizedAutomationList from "./VirtualizedAutomationList.jsx";
 import { Icon } from "./icons";
 import {

@@ -1,9 +1,9 @@
 import { memo, useCallback, useEffect, useMemo, useRef, useState } from "react";
-import { useTheme } from "../context/ThemeContext";
-import useMicroInteractions from "../hooks/useMicroInteractions";
-import { space } from "../styles/spacing";
-import Button from "./ui/Button";
-import { Icon } from "./icons";
+import { useTheme } from "../../../context/ThemeContext";
+import useMicroInteractions from "../../../hooks/useMicroInteractions";
+import { space } from "../../../styles/spacing";
+import Button from "../../../components/ui/Button";
+import { Icon } from "../../../components/icons";
 
 const SAMPLE_COMPANIES = [
   "TechCorp",
@@ -786,7 +786,7 @@ function AutomationCardComponent({
     }
 
     try {
-      const worker = new Worker(new URL("../workers/automationPreviewWorker.js", import.meta.url), {
+      const worker = new Worker(new URL("../../../workers/automationPreviewWorker.js", import.meta.url), {
         type: "module",
       });
       workerRef.current = worker;

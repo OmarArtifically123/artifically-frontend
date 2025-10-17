@@ -1,5 +1,7 @@
 /* Enhanced Global CSS - Production Grade */
 
+@import url("../design-system/tokens/tokens.css") layer(tokens);
+
 @font-face {
   font-family: "Inter";
   font-style: normal;
