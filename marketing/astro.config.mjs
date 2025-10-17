@@ -27,10 +27,36 @@ export default defineConfig({
   integrations: [react()],
   vite: {
     resolve: {
-      alias: {
-        "@frontend": fileURLToPath(new URL("../src", import.meta.url)),
-        "@marketing": fileURLToPath(new URL("./src", import.meta.url)),
-      },
+      alias: [
+        {
+          find: "@frontend/rsc",
+          replacement: fileURLToPath(new URL("../rsc", import.meta.url)),
+        },
+        {
+          find: "@frontend/rsc/",
+          replacement: fileURLToPath(new URL("../rsc/", import.meta.url)),
+        },
+        {
+          find: "@frontend/styles",
+          replacement: fileURLToPath(new URL("../styles", import.meta.url)),
+        },
+        {
+          find: "@frontend/styles/",
+          replacement: fileURLToPath(new URL("../styles/", import.meta.url)),
+        },
+        {
+          find: "@frontend",
+          replacement: fileURLToPath(new URL("../src", import.meta.url)),
+        },
+        {
+          find: "@marketing",
+          replacement: fileURLToPath(new URL("./src", import.meta.url)),
+        },
+        {
+          find: /^zustand$/,
+          replacement: fileURLToPath(new URL("../lib/zustand/react-safe.ts", import.meta.url)),
+        },
+      ],
     },
     build: {
       rollupOptions: {
