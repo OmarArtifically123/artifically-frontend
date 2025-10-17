@@ -271,11 +271,23 @@
   overflow: hidden;
 }
 
+.page-hero__preview .hero-preview__fallback[data-enhanced="true"] {
+  position: absolute;
+  inset: 0;
+  height: 100%;
+  opacity: 0;
+  pointer-events: none;
+}
+
 .page-hero__preview .hero-preview__fallback img {
   display: block;
   width: 100%;
   height: auto;
   object-fit: cover;
+}
+
+.page-hero__preview .hero-preview__fallback[data-enhanced="true"] img {
+  height: 100%;
 }
 
 @container hero-content (max-width: 780px) {

@@ -1,6 +1,6 @@
-import type { ReactElement } from "react";
 import { cleanup, render } from "@testing-library/react";
 import { axe } from "jest-axe";
+import type { ReactElement } from "react";
 
 export interface A11yCheckOptions {
   axeOptions?: Parameters<typeof axe>[1];

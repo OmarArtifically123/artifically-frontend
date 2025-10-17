@@ -23,7 +23,10 @@ type IdleTaskOptions = {
 declare global {
   interface Window {
     scheduler?: {
-      postTask: (callback: () => void, options?: { priority?: IdleTaskPriority; delay?: number; signal?: AbortSignal }) => void;
+      postTask: (
+        callback: () => void,
+        options?: { priority?: IdleTaskPriority; delay?: number; signal?: AbortSignal },
+      ) => Promise<void> | void;
     };
   }
 }
@@ -46,11 +49,18 @@ const scheduleIdleTask = (callback: () => void, { priority = "background" }: Idl
 
   if (supportsScheduler && window.scheduler) {
     const controller = new AbortController();
-    window.scheduler.postTask(run, {
+    const task = window.scheduler.postTask(run, {
       priority,
       delay: 0,
       signal: controller.signal,
     });
+    if (typeof task?.catch === "function") {
+      task.catch((error: unknown) => {
+        if (!isAbortError(error)) {
+          console.error("Predictive prefetch task failed", error);
+        }
+      });
+    }
     return () => controller.abort();
   }
 
@@ -64,6 +74,18 @@ const scheduleIdleTask = (callback: () => void, { priority = "background" }: Idl
 };
 
 const toRouteProbabilityMap = (input: RouteProbabilityMap | undefined): RouteProbabilityMap => input ?? {};
+
+const isAbortError = (error: unknown): boolean => {
+  if (error instanceof DOMException) {
+    return error.name === "AbortError";
+  }
+
+  if (typeof error === "object" && error !== null && "name" in error) {
+    return (error as { name?: unknown }).name === "AbortError";
+  }
+
+  return false;
+};
 
 export default function usePredictivePrefetch(
   routeLoaders: RouteLoaders,

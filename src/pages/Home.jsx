@@ -1,4 +1,4 @@
-import { lazy, Suspense, useCallback, useEffect, useState } from "react";
+import { lazy, Suspense, useCallback, useEffect, useLayoutEffect, useState } from "react";
 import ProblemSolutionSection from "../components/landing/ProblemSolutionSection";
 import FeaturesShowcaseSection from "../components/landing/FeaturesShowcaseSection";
 import SocialProofSection from "../components/landing/SocialProofSection";
@@ -9,6 +9,7 @@ import GoalOnboardingWizard from "../components/landing/GoalOnboardingWizard";
 import ServerRenderedHero from "../components/landing/ServerRenderedHero";
 
 const HeroSection = lazy(() => import("../components/landing/HeroSection"));
+const useIsomorphicLayoutEffect = typeof window !== "undefined" ? useLayoutEffect : useEffect;
 
 export default function Home({ openAuth }) {
   const [demoOpen, setDemoOpen] = useState(false);
@@ -71,7 +72,7 @@ export default function Home({ openAuth }) {
 }
 
 function HeroSectionIsland({ onReady, ...props }) {
-  useEffect(() => {
+  useIsomorphicLayoutEffect(() => {
     if (typeof onReady === "function") {
       onReady();
     }

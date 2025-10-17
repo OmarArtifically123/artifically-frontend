@@ -13,6 +13,12 @@ import HeroBackground from "./HeroBackground";
 import ProductPreview3D from "./ProductPreview3D";
 import ScrollIndicator from "./ScrollIndicator";
 import HeroRoiCalculator from "./HeroRoiCalculator";
+import {
+  HERO_PREVIEW_DIMENSIONS,
+  HERO_PREVIEW_IMAGE,
+  HERO_PREVIEW_SIZES,
+  HERO_PREVIEW_SOURCES,
+} from "./heroPreviewAssets";
 import { Icon } from "../icons";
 
 const heroStats = [
@@ -200,6 +206,21 @@ export default function HeroSection({ onPrimary, onSecondary }) {
           >
             <span className="preview-card__chip">Live product preview</span>
             <div className="preview-card__stage">
+              <picture className="hero-preview__fallback" data-enhanced="true" aria-hidden="true">
+                {HERO_PREVIEW_SOURCES.map((source) => (
+                  <source key={source.type} {...source} />
+                ))}
+                <img
+                  src={HERO_PREVIEW_IMAGE}
+                  width={HERO_PREVIEW_DIMENSIONS.width}
+                  height={HERO_PREVIEW_DIMENSIONS.height}
+                  alt=""
+                  loading="eager"
+                  decoding="sync"
+                  fetchpriority="high"
+                  sizes={HERO_PREVIEW_SIZES}
+                />
+              </picture>
               <ProductPreview3D label="3D preview of automation workflow" />
             </div>
             <p className="preview-card__annotation hero-quote">

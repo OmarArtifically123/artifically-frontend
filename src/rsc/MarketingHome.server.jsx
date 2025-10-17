@@ -1,12 +1,10 @@
 import React from "react";
-
-const HERO_PREVIEW_IMAGE = "/images/hero-preview.jpg";
-const HERO_PREVIEW_SOURCES = [
-  { type: "image/avif", srcSet: "/images/hero-preview.avif" },
-  { type: "image/webp", srcSet: "/images/hero-preview.webp" },
-];
-const HERO_PREVIEW_SIZES = "(max-width: 768px) 92vw, (max-width: 1280px) 60vw, 540px";
-const HERO_PREVIEW_DIMENSIONS = { width: 1920, height: 1080 };
+import {
+  HERO_PREVIEW_DIMENSIONS,
+  HERO_PREVIEW_IMAGE,
+  HERO_PREVIEW_SIZES,
+  HERO_PREVIEW_SOURCES,
+} from "../components/landing/heroPreviewAssets";
 
 const HERO_STATS = [
   { label: "Automations", value: "12,500+" },
@@ -81,7 +79,7 @@ export default function MarketingHomeServer() {
             <div className="preview-card__stage" role="presentation">
               <picture className="hero-preview__fallback">
                 {HERO_PREVIEW_SOURCES.map((source) => (
-                  <source key={source.type} {...source} sizes={HERO_PREVIEW_SIZES} />
+                  <source key={source.type} {...source} />
                 ))}
                 <img
                   src={HERO_PREVIEW_IMAGE}
