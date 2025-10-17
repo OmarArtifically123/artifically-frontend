@@ -1770,7 +1770,6 @@ main :where(section, div)[id] {
 /* Glass morphism utility */
 .glass {
   background: var(--bg-glass);
-  backdrop-filter: blur(20px);
   border: 1px solid var(--border-color);
   border-radius: var(--rounded-xl);
 }
