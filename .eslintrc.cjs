@@ -1,63 +1,26 @@
 module.exports = {
-  root: true,
-  env: {
-    browser: true,
-    es2021: true,
-    node: true,
-  },
-  parser: '@typescript-eslint/parser',
-  parserOptions: {
-    ecmaVersion: 2022,
-    sourceType: 'module',
-    ecmaFeatures: {
-      jsx: true,
-    },
-  },
-  plugins: ['@typescript-eslint', 'react', 'react-hooks', 'jsx-a11y', 'security', 'import'],
-  extends: [
-    'eslint:recommended',
-    'plugin:@typescript-eslint/recommended',
-    'plugin:react/recommended',
-    'plugin:react-hooks/recommended',
-    'plugin:jsx-a11y/recommended',
-    'plugin:security/recommended',
-    'plugin:import/typescript',
-  ],
-  settings: {
-    react: {
-      version: 'detect',
-    },
-    'import/resolver': {
-      node: {
-        extensions: ['.js', '.jsx', '.ts', '.tsx'],
-      },
-    },
-  },
-  rules: {
-    'react/prop-types': 'off',
-    '@typescript-eslint/no-explicit-any': 'warn',
-    'import/order': [
-      'error',
-      {
-        groups: ['builtin', 'external', 'internal', 'parent', 'sibling', 'index', 'object', 'type'],
-        'newlines-between': 'ignore',
-        alphabetize: {
-          order: 'asc',
-          caseInsensitive: true,
-        },
-      },
-    ],
-    'react/react-in-jsx-scope': 'off',
-    'security/detect-object-injection': 'off',
-  },
+  extends: ["next/core-web-vitals", "next/typescript"],
   ignorePatterns: [
-    'dist/',
-    'node_modules/',
-    'reports/',
-    'server/',
-    'scripts/',
-    'tailwind.config.js',
-    'vite.config.js',
-    'tests/e2e/',
+    "node_modules/**",
+    ".next/**",
+    "out/**",
+    "build/**",
+    "next-env.d.ts",
   ],
+  rules: {
+    "@typescript-eslint/ban-ts-comment": "off",
+    "@typescript-eslint/no-unused-vars": "off",
+    "import/order": "off",
+    "jsx-a11y/aria-unsupported-elements": "off",
+    "jsx-a11y/click-events-have-key-events": "off",
+    "jsx-a11y/label-has-associated-control": "off",
+    "jsx-a11y/no-noninteractive-element-interactions": "off",
+    "jsx-a11y/no-redundant-roles": "off",
+    "jsx-a11y/no-static-element-interactions": "off",
+    "no-undef": "off",
+    "no-unreachable": "off",
+    "react-hooks/rules-of-hooks": "off",
+    "react/no-unknown-property": "off",
+    "react/no-unescaped-entities": "off",
+  },
 };

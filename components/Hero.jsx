@@ -49,8 +49,8 @@ const loadHeroScene = async () => {
       /* webpackChunkName: "hero-scene" */ "./HeroScene.jsx",
     );
   }
-  const module = await heroSceneModulePromise;
-  return module?.default ?? module;
+  const heroSceneModule = await heroSceneModulePromise;
+  return heroSceneModule?.default ?? heroSceneModule;
 };
 
 export default function Hero({ openAuth, user }) {
