@@ -1,0 +1,31 @@
+{
+  "generatedAt": "2025-10-17T15:22:07.645Z",
+  "targets": {
+    "largestContentfulPaintMs": 3000,
+    "cumulativeLayoutShift": 0.1,
+    "accessibilityScore": 95
+  },
+  "lighthouse": {
+    "mobile": {
+      "requestedUrl": "http://127.0.0.1:4173/",
+      "finalUrl": "http://127.0.0.1:4173/",
+      "performanceScore": 0.79,
+      "largestContentfulPaintMs": 3697.2192999999997,
+      "firstContentfulPaintMs": 1147.2192999999997,
+      "cumulativeLayoutShift": 0,
+      "timeToInteractiveMs": 3697.2192999999997,
+      "source": "2025-10-17T15-10-14-213Z"
+    },
+    "desktop": {
+      "requestedUrl": "http://127.0.0.1:4173/",
+      "finalUrl": "http://127.0.0.1:4173/",
+      "performanceScore": 0.87,
+      "largestContentfulPaintMs": 3499.103,
+      "firstContentfulPaintMs": 949.1030000000001,
+      "cumulativeLayoutShift": 0,
+      "timeToInteractiveMs": 3499.103,
+      "source": "2025-10-17T15-10-14-213Z"
+    }
+  },
+  "webpagetest": null
+}

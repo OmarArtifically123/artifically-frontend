@@ -11,7 +11,7 @@ const FOCUSABLE_SELECTOR = [
   "[tabindex]:not([tabindex='-1'])",
 ].join(",");
 
-export default function HeroDemoModal({ open, onClose }) {
+export default function HeroDemoModal({ open, onClose, dialogId = "hero-demo-modal" }) {
   const dialogRef = useRef(null);
   const focusTrapRef = useRef({ first: null, last: null });
   const previousActiveElementRef = useRef(null);
@@ -126,6 +126,7 @@ export default function HeroDemoModal({ open, onClose }) {
 
   return (
     <div
+      id={dialogId}
       className={overlayClassName}
       role="dialog"
       aria-modal="true"

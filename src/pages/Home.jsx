@@ -15,6 +15,7 @@ export default function Home({ openAuth }) {
   const [demoOpen, setDemoOpen] = useState(false);
   const [enhanceHero, setEnhanceHero] = useState(false);
   const [showStaticHero, setShowStaticHero] = useState(true);
+  const demoDialogId = "hero-demo-modal";
   const handlePrimary = useCallback(() => {
     if (typeof openAuth === "function") {
       openAuth("signup");
@@ -56,6 +57,8 @@ export default function Home({ openAuth }) {
               onReady={handleHeroReady}
               onPrimary={handlePrimary}
               onSecondary={handleSecondary}
+              demoDialogId={demoDialogId}
+              demoOpen={demoOpen}
             />
           </Suspense>
         ) : null}
@@ -66,7 +69,7 @@ export default function Home({ openAuth }) {
         <SocialProofSection />
         <FinalCTASection onSubmit={handleFinalSubmit} />
       </div>
-      <HeroDemoModal open={demoOpen} onClose={handleDemoClose} />
+      <HeroDemoModal open={demoOpen} onClose={handleDemoClose} dialogId={demoDialogId} />
     </>
   );
 }

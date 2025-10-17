@@ -39,6 +39,8 @@
     "security:scan": "npm audit --audit-level=moderate",
     "report:bundle": "node scripts/perf/bundle-report.mjs",
     "report:lighthouse": "node scripts/perf/frontend-lighthouse.mjs",
+    "report:webpagetest": "node scripts/perf/webpagetest-baseline.mjs",
+    "report:dashboard": "node scripts/perf/build-dashboard.mjs",
     "ci:lighthouse": "lhci autorun"
   },
   "dependencies": {

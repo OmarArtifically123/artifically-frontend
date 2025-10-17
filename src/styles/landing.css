@@ -488,6 +488,27 @@
   gap: 1rem;
 }
 
+.product-preview__surface--image {
+  display: block;
+  padding: 0;
+  overflow: hidden;
+}
+
+.product-preview__image-shell {
+  display: block;
+  width: 100%;
+  height: 100%;
+  border-radius: 16px;
+  overflow: hidden;
+}
+
+.product-preview__image-shell img {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
 .product-preview__toolbar {
   display: inline-flex;
   gap: 0.35rem;

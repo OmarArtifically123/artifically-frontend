@@ -377,6 +377,10 @@ const setSecurityHeaders = (req, res, nonce) => {
   res.setHeader("Cross-Origin-Opener-Policy", "same-origin");
   res.setHeader("Cross-Origin-Resource-Policy", "cross-origin");
   res.setHeader("Cross-Origin-Embedder-Policy", "require-corp");
+  res.setHeader("X-Permitted-Cross-Domain-Policies", "none");
+  res.setHeader("X-Download-Options", "noopen");
+  res.setHeader("Origin-Agent-Cluster", "?1");
+  res.setHeader("X-DNS-Prefetch-Control", "on");
   res.setHeader("Content-Security-Policy", buildCspHeader(nonce, req));
 
   if (isSecureRequest(req)) {

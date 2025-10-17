@@ -1,6 +1,26 @@
 import { useEffect, useMemo, useRef, useState, useId } from "react";
 import useDocumentVisibility from "../../hooks/useDocumentVisibility";
 import { getNetworkInformation, prefersLowPower } from "../../utils/networkPreferences";
+import {
+  HERO_PREVIEW_DIMENSIONS,
+  HERO_PREVIEW_IMAGE,
+  HERO_PREVIEW_SOURCES,
+} from "./heroPreviewAssets";
+
+const requestIdle = (callback) => {
+  if (typeof window !== "undefined" && typeof window.requestIdleCallback === "function") {
+    return window.requestIdleCallback(callback, { timeout: 1400 });
+  }
+  return setTimeout(() => callback({ didTimeout: true, timeRemaining: () => 0 }), 160);
+};
+
+const cancelIdle = (handle) => {
+  if (typeof window !== "undefined" && typeof window.cancelIdleCallback === "function") {
+    window.cancelIdleCallback(handle);
+    return;
+  }
+  clearTimeout(handle);
+};
 
 export default function ProductPreview3D({ label = "Automation preview", theme = "dark" }) {
   const containerRef = useRef(null);
@@ -19,15 +39,32 @@ export default function ProductPreview3D({ label = "Automation preview", theme =
   const [prefersLowPowerMode, setPrefersLowPowerMode] = useState(() => prefersLowPower());
   const isDocumentVisible = useDocumentVisibility();
   const descriptionId = useId();
+  const [isEnhanced, setIsEnhanced] = useState(() => typeof window === "undefined");
 
   const allowInteractivity = useMemo(
-    () => !prefersReducedMotion && !prefersLowPowerMode,
-    [prefersLowPowerMode, prefersReducedMotion],
+    () => isEnhanced && !prefersReducedMotion && !prefersLowPowerMode,
+    [isEnhanced, prefersLowPowerMode, prefersReducedMotion],
   );
   const shouldAnimate = allowInteractivity && isInViewport && isDocumentVisible;
   const previewDescription = allowInteractivity
     ? "Interactive 3D preview of the automation workspace that responds to pointer movement."
     : "Static preview of the automation workspace highlighting its layout.";
+
+    useEffect(() => {
+    if (typeof window === "undefined") {
+      return undefined;
+    }
+
+    if (isEnhanced || prefersReducedMotion || prefersLowPowerMode) {
+      return undefined;
+    }
+
+    const handle = requestIdle(() => {
+      setIsEnhanced(true);
+    });
+
+    return () => cancelIdle(handle);
+  }, [isEnhanced, prefersLowPowerMode, prefersReducedMotion]);
 
   useEffect(() => {
     if (typeof window === "undefined" || typeof window.matchMedia !== "function") {
@@ -68,6 +105,10 @@ export default function ProductPreview3D({ label = "Automation preview", theme =
   }, []);
 
   useEffect(() => {
+    if (!isEnhanced) {
+      return undefined;
+    }
+
     const element = containerRef.current;
     if (!element || typeof IntersectionObserver === "undefined") {
       setIsInViewport(true);
@@ -94,6 +135,10 @@ export default function ProductPreview3D({ label = "Automation preview", theme =
   }, []);
 
   useEffect(() => {
+    if (!isEnhanced) {
+      return undefined;
+    }
+
     const frame = frameRef.current;
     if (!frame) return undefined;
 
@@ -136,6 +181,10 @@ export default function ProductPreview3D({ label = "Automation preview", theme =
   }, [allowInteractivity, isInteracting, shouldAnimate]);
 
   useEffect(() => {
+    if (!isEnhanced) {
+      return undefined;
+    }
+
     const frame = frameRef.current;
     if (!frame || !allowInteractivity) return undefined;
 
@@ -170,7 +219,42 @@ export default function ProductPreview3D({ label = "Automation preview", theme =
       frame.removeEventListener("pointerenter", handlePointerEnter);
       frame.removeEventListener("pointerleave", handlePointerLeave);
     };
-  }, [allowInteractivity]);
+  }, [allowInteractivity, isEnhanced]);
+
+  if (!isEnhanced) {
+    const describedBy = `${descriptionId}-fallback`;
+    return (
+      <div ref={containerRef} className={`product-preview product-preview--${theme}`}>
+        <div className="product-preview__glow" aria-hidden="true" />
+        <div
+          className="product-preview__frame"
+          role="img"
+          aria-label={label}
+          aria-describedby={describedBy}
+        >
+          <p id={describedBy} className="sr-only">
+            Static preview of the automation workspace while enhanced interactions finish loading.
+          </p>
+          <div className="product-preview__surface product-preview__surface--image">
+            <picture className="product-preview__image-shell">
+              {HERO_PREVIEW_SOURCES.map((source) => (
+                <source key={source.type} {...source} />
+              ))}
+              <img
+                src={HERO_PREVIEW_IMAGE}
+                alt="Artifically automation workspace preview"
+                width={HERO_PREVIEW_DIMENSIONS.width}
+                height={HERO_PREVIEW_DIMENSIONS.height}
+                loading="eager"
+                decoding="async"
+                sizes="(max-width: 768px) 92vw, (max-width: 1280px) 60vw, 540px"
+              />
+            </picture>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div ref={containerRef} className={`product-preview product-preview--${theme}`}>

@@ -31,7 +31,7 @@ const defaultLogos = [
   "Northwind", "Aurora", "Nimbus", "Atlas", "Velocity", "Zenith", "Skyline", "Lumen",
 ];
 
-export default function HeroSection({ onPrimary, onSecondary }) {
+export default function HeroSection({ onPrimary, onSecondary, demoDialogId, demoOpen }) {
   const gradientId = useMemo(() => `heroGradient-${Math.random().toString(36).slice(2)}`, []);
   const [primaryLabel, setPrimaryLabel] = useState("Start Free Trial");
   const [secondaryLabel, setSecondaryLabel] = useState("Watch Demo");
@@ -175,7 +175,14 @@ export default function HeroSection({ onPrimary, onSecondary }) {
             <button type="button" className="cta-primary" onClick={onPrimary}>
               {primaryLabel}
             </button>
-            <button type="button" className="cta-secondary" onClick={onSecondary}>
+            <button
+              type="button"
+              className="cta-secondary"
+              onClick={onSecondary}
+              aria-haspopup="dialog"
+              aria-controls={demoDialogId || undefined}
+              aria-expanded={typeof demoOpen === "boolean" ? (demoOpen ? "true" : "false") : undefined}
+            >
               {secondaryLabel} → <VideoBadge duration="2 min" />
             </button>
           </motion.div>
