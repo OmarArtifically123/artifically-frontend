@@ -27,6 +27,7 @@ export default defineConfig({
   integrations: [react()],
   vite: {
     resolve: {
+      dedupe: ["react", "react-dom"],
       alias: [
         {
           find: "@frontend/rsc",
@@ -57,6 +58,9 @@ export default defineConfig({
           replacement: fileURLToPath(new URL("../lib/zustand/react-safe.ts", import.meta.url)),
         },
       ],
+    },
+    optimizeDeps: {
+      include: ["react", "react-dom"],
     },
     build: {
       rollupOptions: {
