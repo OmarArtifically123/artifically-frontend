@@ -1,9 +1,12 @@
+// @ts-nocheck
+"use client";
+
 import Link from "next/link";
 import { useCallback, useMemo, useState } from "react";
-import ThemeToggle from "../components/ThemeToggle";
-import { useTheme } from "../context/ThemeContext";
-import { space } from "../styles/spacing";
-import Button from "../components/ui/Button";
+import ThemeToggle from "@/components/ThemeToggle";
+import { useTheme } from "@/context/ThemeContext";
+import { space } from "@/styles/spacing";
+import Button from "@/components/ui/Button";
 
 const tooltipStyle = {
   position: "relative",
@@ -11,7 +14,12 @@ const tooltipStyle = {
   borderBottom: "1px dashed rgba(148,163,184,0.5)",
 };
 
-function TooltipTerm({ label, description }) {
+type TooltipTermProps = {
+  label: string;
+  description: string;
+};
+
+function TooltipTerm({ label, description }: TooltipTermProps) {
   const [visible, setVisible] = useState(false);
 
   return (
@@ -51,7 +59,12 @@ function TooltipTerm({ label, description }) {
   );
 }
 
-function CodeBlock({ language = "", code }) {
+type CodeBlockProps = {
+  language?: string;
+  code: string;
+};
+
+function CodeBlock({ language = "", code }: CodeBlockProps) {
   const [copied, setCopied] = useState(false);
 
   const handleCopy = useCallback(async () => {
@@ -187,7 +200,7 @@ const playgroundSamples = [
   },
 ];
 
-export default function Docs() {
+export default function DocsPage() {
   const { darkMode } = useTheme();
   const [activeSection, setActiveSection] = useState("overview");
   const [playgroundSelection, setPlaygroundSelection] = useState(playgroundSamples[0]);

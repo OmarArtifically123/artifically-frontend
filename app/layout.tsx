@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import AppShell from "@/components/AppShell";
+import { ThemeProvider } from "@/context/ThemeContext";
 import "./globals.css";
 
 export const metadata: Metadata = {
@@ -64,27 +65,29 @@ export default function RootLayout({
         <link rel="preload" href="/fonts/inter-var.woff2" as="font" type="font/woff2" crossOrigin="anonymous" />
         <link rel="preload" href="/fonts/Inter-400-latin.woff2" as="font" type="font/woff2" crossOrigin="anonymous" />
         <link rel="preload" href="/fonts/Inter-600-latin.woff2" as="font" type="font/woff2" crossOrigin="anonymous" />
-          <link
-            rel="preload"
-            href="/images/hero-preview.avif"
-            as="image"
-            type="image/avif"
-            fetchPriority="high"
-            imageSrcSet="/images/hero-preview.avif 1920w"
-            imageSizes="(max-width: 768px) 92vw, (max-width: 1280px) 60vw, 540px"
-          />
-          <link
-            rel="preload"
-            href="/images/hero-preview.webp"
-            as="image"
-            type="image/webp"
-            fetchPriority="high"
-            imageSrcSet="/images/hero-preview.webp 1920w"
-            imageSizes="(max-width: 768px) 92vw, (max-width: 1280px) 60vw, 540px"
-          />
+        <link
+          rel="preload"
+          href="/images/hero-preview.avif"
+          as="image"
+          type="image/avif"
+          fetchPriority="high"
+          imageSrcSet="/images/hero-preview.avif 1920w"
+          imageSizes="(max-width: 768px) 92vw, (max-width: 1280px) 60vw, 540px"
+        />
+        <link
+          rel="preload"
+          href="/images/hero-preview.webp"
+          as="image"
+          type="image/webp"
+          fetchPriority="high"
+          imageSrcSet="/images/hero-preview.webp 1920w"
+          imageSizes="(max-width: 768px) 92vw, (max-width: 1280px) 60vw, 540px"
+        />
       </head>
       <body>
-        <AppShell>{children}</AppShell>
+        <ThemeProvider>
+          <AppShell>{children}</AppShell>
+        </ThemeProvider>
       </body>
     </html>
   );

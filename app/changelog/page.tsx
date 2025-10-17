@@ -1,7 +1,7 @@
 "use client";
 
-import Changelog from "@/pages/Changelog";
+import ChangelogPage from "@/app/(site)/_components/ChangelogPage";
 
 export default function ChangelogRoute() {
-  return <Changelog />;
+  return <ChangelogPage />;
 }

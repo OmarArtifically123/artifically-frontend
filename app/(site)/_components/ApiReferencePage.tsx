@@ -1,7 +1,10 @@
-import { useMemo } from "react";
-import { space } from "../styles/spacing";
+// @ts-nocheck
+"use client";
 
-export default function ApiReference() {
+import { useMemo } from "react";
+import { space } from "@/styles/spacing";
+
+export default function ApiReferencePage() {
   const endpoints = useMemo(
     () => [
       {

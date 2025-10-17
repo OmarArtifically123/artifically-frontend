@@ -1,7 +1,10 @@
-import { useMemo } from "react";
-import { space } from "../styles/spacing";
+// @ts-nocheck
+"use client";
 
-export default function CaseStudies() {
+import { useMemo } from "react";
+import { space } from "@/styles/spacing";
+
+export default function CaseStudiesPage() {
   const studies = useMemo(
     () => [
       {

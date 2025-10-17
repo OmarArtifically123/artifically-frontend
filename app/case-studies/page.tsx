@@ -1,7 +1,7 @@
 "use client";
 
-import CaseStudies from "@/pages/CaseStudies";
+import CaseStudiesPage from "@/app/(site)/_components/CaseStudiesPage";
 
 export default function CaseStudiesRoute() {
-  return <CaseStudies />;
+  return <CaseStudiesPage />;
 }

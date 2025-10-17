@@ -1,7 +1,7 @@
 "use client";
 
-import Docs from "@/pages/Docs";
+import DocsPage from "@/app/(site)/_components/DocsPage";
 
 export default function DocsRoute() {
-  return <Docs />;
+  return <DocsPage />;
 }

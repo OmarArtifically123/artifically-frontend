@@ -1,7 +1,7 @@
 "use client";
 
-import Status from "@/pages/Status";
+import StatusPage from "@/app/(site)/_components/StatusPage";
 
 export default function StatusRoute() {
-  return <Status />;
+  return <StatusPage />;
 }

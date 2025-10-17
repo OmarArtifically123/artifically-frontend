@@ -4,8 +4,8 @@ import ServerFeatureHighlights from "./ServerFeatureHighlights";
 import { useTheme } from "../context/ThemeContext";
 import FeatureSkeletonGrid from "./skeletons/FeatureSkeleton";
 import { space } from "../styles/spacing";
-import { StaggeredContainer, StaggeredItem } from "../src/components/animation/StaggeredList";
-import MagneticButton from "../src/components/animation/MagneticButton";
+import { StaggeredContainer, StaggeredItem } from "./animation/StaggeredList";
+import MagneticButton from "./animation/MagneticButton";
 import { Icon } from "./icons";
 import {
   FALLBACK_FEATURE_HIGHLIGHTS,

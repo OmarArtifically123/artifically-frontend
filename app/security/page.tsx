@@ -1,7 +1,7 @@
 "use client";
 
-import Security from "@/pages/Security";
+import SecurityPage from "@/app/(site)/_components/SecurityPage";
 
 export default function SecurityRoute() {
-  return <Security />;
+  return <SecurityPage />;
 }

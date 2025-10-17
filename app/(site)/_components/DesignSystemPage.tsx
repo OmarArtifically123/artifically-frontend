@@ -1,14 +1,34 @@
+// @ts-nocheck
+"use client";
+
 import { useMemo } from "react";
-import tokens from "../src/styles/tokens.json";
-import ThemeToggle from "../components/ThemeToggle";
-import ContrastToggle from "../components/ContrastToggle";
-import { Icon } from "../components/icons";
+import tokens from "@/styles/tokens.json";
+import ThemeToggle from "@/components/ThemeToggle";
+import ContrastToggle from "@/components/ContrastToggle";
+import { Icon } from "@/components/icons";
 
-const BRAND_SETS = tokens.color?.brandSets ?? {};
-const SPACING_TOKENS = tokens.spacing ?? {};
-const TYPOGRAPHY_TOKENS = tokens.typography ?? {};
+type BrandSets = Record<
+  string,
+  {
+    primary: string;
+    accent: string;
+    success: string;
+    primaryP3?: string;
+    accentP3?: string;
+  }
+>;
 
-function ColorSwatch({ name, value, description }) {
+const BRAND_SETS: BrandSets = tokens.color?.brandSets ?? {};
+const SPACING_TOKENS: Record<string, string> = tokens.spacing ?? {};
+const TYPOGRAPHY_TOKENS: { size?: Record<string, string> } = tokens.typography ?? {};
+
+type ColorSwatchProps = {
+  name: string;
+  value: string;
+  description?: string;
+};
+
+function ColorSwatch({ name, value, description }: ColorSwatchProps) {
   return (
     <div className="design-token-card" aria-label={`${name} ${description ?? "color"}`}>
       <div className="design-token-card__swatch" style={{ background: value }} />
@@ -58,9 +78,12 @@ function ThemePreview() {
   );
 }
 
-export default function DesignSystem() {
-  const spacingEntries = useMemo(() => Object.entries(SPACING_TOKENS), []);
-  const typographySizes = useMemo(() => Object.entries(TYPOGRAPHY_TOKENS.size ?? {}), []);
+export default function DesignSystemPage() {
+  const spacingEntries = useMemo(() => Object.entries(SPACING_TOKENS) as Array<[string, string]>, []);
+  const typographySizes = useMemo(
+    () => Object.entries(TYPOGRAPHY_TOKENS.size ?? {}) as Array<[string, string]>,
+    [],
+  );
 
   return (
     <main className="design-system" data-animate-root>
@@ -152,7 +175,7 @@ export default function DesignSystem() {
       <section aria-labelledby="design-tokens-raw">
         <div className="design-system__section-header">
           <h2 id="design-tokens-raw">Raw tokens</h2>
-          <p>Tokens are sourced from <code>src/styles/tokens.json</code> and applied globally as CSS custom properties.</p>
+          <p>Tokens are sourced from <code>styles/tokens.json</code> and applied globally as CSS custom properties.</p>
         </div>
         <pre className="design-token-json" role="presentation">
           {JSON.stringify({ color: tokens.color, spacing: tokens.spacing, typography: tokens.typography }, null, 2)}

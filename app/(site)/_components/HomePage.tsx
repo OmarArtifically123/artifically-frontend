@@ -1,17 +1,33 @@
-import { lazy, Suspense, useCallback, useEffect, useLayoutEffect, useState } from "react";
-import ProblemSolutionSection from "../components/landing/ProblemSolutionSection";
-import FeaturesShowcaseSection from "../components/landing/FeaturesShowcaseSection";
-import SocialProofSection from "../components/landing/SocialProofSection";
-import FinalCTASection from "../components/landing/FinalCTASection";
-import HeroDemoModal from "../components/landing/HeroDemoModal";
-import PersonaScenarioSection from "../components/landing/PersonaScenarioSection";
-import GoalOnboardingWizard from "../components/landing/GoalOnboardingWizard";
-import ServerRenderedHero from "../components/landing/ServerRenderedHero";
+// @ts-nocheck
+"use client";
 
-const HeroSection = lazy(() => import("../components/landing/HeroSection"));
+import {
+  type ComponentProps,
+  lazy,
+  Suspense,
+  useCallback,
+  useEffect,
+  useLayoutEffect,
+  useState,
+} from "react";
+import type { AuthMode } from "@/context/AppShellContext";
+import ProblemSolutionSection from "@/components/landing/ProblemSolutionSection";
+import FeaturesShowcaseSection from "@/components/landing/FeaturesShowcaseSection";
+import SocialProofSection from "@/components/landing/SocialProofSection";
+import FinalCTASection from "@/components/landing/FinalCTASection";
+import HeroDemoModal from "@/components/landing/HeroDemoModal";
+import PersonaScenarioSection from "@/components/landing/PersonaScenarioSection";
+import GoalOnboardingWizard from "@/components/landing/GoalOnboardingWizard";
+import ServerRenderedHero from "@/components/landing/ServerRenderedHero";
+
+type HomePageProps = {
+  openAuth?: (mode?: AuthMode) => void;
+};
+
+const HeroSection = lazy(() => import("@/components/landing/HeroSection"));
 const useIsomorphicLayoutEffect = typeof window !== "undefined" ? useLayoutEffect : useEffect;
 
-export default function Home({ openAuth }) {
+export default function HomePage({ openAuth }: HomePageProps) {
   const [demoOpen, setDemoOpen] = useState(false);
   const [enhanceHero, setEnhanceHero] = useState(false);
   const [showStaticHero, setShowStaticHero] = useState(true);
@@ -74,7 +90,11 @@ export default function Home({ openAuth }) {
   );
 }
 
-function HeroSectionIsland({ onReady, ...props }) {
+type HeroSectionIslandProps = {
+  onReady?: () => void;
+} & ComponentProps<typeof HeroSection>;
+
+function HeroSectionIsland({ onReady, ...props }: HeroSectionIslandProps) {
   useIsomorphicLayoutEffect(() => {
     if (typeof onReady === "function") {
       onReady();

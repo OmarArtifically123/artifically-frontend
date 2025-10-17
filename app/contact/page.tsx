@@ -1,7 +1,7 @@
 "use client";
 
-import Contact from "@/pages/Contact";
+import ContactPage from "@/app/(site)/_components/ContactPage";
 
 export default function ContactRoute() {
-  return <Contact />;
+  return <ContactPage />;
 }

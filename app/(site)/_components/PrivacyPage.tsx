@@ -1,5 +1,8 @@
-import { space } from "../styles/spacing";
-export default function Privacy() {
+// @ts-nocheck
+"use client";
+
+import { space } from "@/styles/spacing";
+export default function PrivacyPage() {
   const sections = [
     {
       title: "Information we collect",

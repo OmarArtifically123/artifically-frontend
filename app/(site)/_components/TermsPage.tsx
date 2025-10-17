@@ -1,5 +1,8 @@
-import { space } from "../styles/spacing";
-export default function Terms() {
+// @ts-nocheck
+"use client";
+
+import { space } from "@/styles/spacing";
+export default function TermsPage() {
   const terms = [
     {
       title: "1. Agreement",

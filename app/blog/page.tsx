@@ -1,7 +1,7 @@
 "use client";
 
-import Blog from "@/pages/Blog";
+import BlogPage from "@/app/(site)/_components/BlogPage";
 
 export default function BlogRoute() {
-  return <Blog />;
+  return <BlogPage />;
 }

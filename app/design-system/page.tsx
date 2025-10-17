@@ -1,7 +1,7 @@
 "use client";
 
-import DesignSystem from "@/pages/DesignSystem";
+import DesignSystemPage from "@/app/(site)/_components/DesignSystemPage";
 
 export default function DesignSystemRoute() {
-  return <DesignSystem />;
+  return <DesignSystemPage />;
 }

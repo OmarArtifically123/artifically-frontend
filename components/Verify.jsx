@@ -1,11 +1,11 @@
 import { useRouter, useSearchParams } from "next/navigation";
 import { useEffect, useState } from "react";
-import api, { pick } from "../src/api";
+import api, { pick } from "../api.js";
 import { toast } from "./Toast";
 import ThemeToggle from "./ThemeToggle";
 import { useTheme } from "../context/ThemeContext";
 import { space } from "../styles/spacing";
-import Button from "../src/components/ui/Button";
+import Button from "./ui/Button";
 import { Icon } from "./icons";
 
 export default function Verify({ onVerified }) {

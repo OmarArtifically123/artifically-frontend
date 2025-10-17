@@ -1,4 +1,4 @@
-import api from "../src/api.js";
+import api from "../api.js";
 import { MARKETPLACE_ENTRIES } from "./marketplaceCatalog.js";
 
 export const SAMPLE_AUTOMATIONS = MARKETPLACE_ENTRIES.map((automation) => ({

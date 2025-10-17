@@ -3,9 +3,9 @@ import { useEffect, useMemo, useState, useId, useRef } from "react";
 import ThemeToggle from "./ThemeToggle";
 import { useTheme } from "../context/ThemeContext";
 import { space } from "../styles/spacing";
-import Button from "../src/components/ui/Button";
-import Input from "../src/components/ui/Input";
-import LogoWordmark from "../src/components/ui/LogoWordmark";
+import Button from "./ui/Button";
+import Input from "./ui/Input";
+import LogoWordmark from "./ui/LogoWordmark";
 import { Icon } from "./icons";
 
 const FALLBACK_YEAR = new Date().getUTCFullYear();

@@ -1,7 +1,10 @@
-import { useMemo } from "react";
-import { space } from "../styles/spacing";
+// @ts-nocheck
+"use client";
 
-export default function Status() {
+import { useMemo } from "react";
+import { space } from "@/styles/spacing";
+
+export default function StatusPage() {
   const systems = useMemo(
     () => [
       {

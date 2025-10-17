@@ -1,7 +1,7 @@
 "use client";
 
-import HelpCenter from "@/pages/HelpCenter";
+import HelpCenterPage from "@/app/(site)/_components/HelpCenterPage";
 
 export default function HelpCenterRoute() {
-  return <HelpCenter />;
+  return <HelpCenterPage />;
 }

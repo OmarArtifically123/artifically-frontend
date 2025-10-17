@@ -1,13 +1,34 @@
-import { useState } from "react";
-import ROICalculator from "../components/roi/ROICalculator";
-import { Icon } from "../components/icons";
+// @ts-nocheck
+"use client";
 
-const billingOptions = [
+import { useState } from "react";
+import ROICalculator from "@/components/roi/ROICalculator";
+import { Icon } from "@/components/icons";
+
+type BillingCadence = "monthly" | "annual";
+
+type BillingOption = {
+  id: BillingCadence;
+  label: string;
+};
+
+const billingOptions: BillingOption[] = [
   { id: "monthly", label: "Monthly" },
   { id: "annual", label: "Annual (Save 20%)" },
 ];
 
-const pricingTiers = [
+type PricingTier = {
+  id: string;
+  name: string;
+  icon: string;
+  priceMonthly: number;
+  priceAnnual: number;
+  spotlight: boolean;
+  features: string[];
+  custom?: string;
+};
+
+const pricingTiers: PricingTier[] = [
   {
     id: "starter",
     name: "Starter",
@@ -52,7 +73,12 @@ const pricingTiers = [
   },
 ];
 
-const faqItems = [
+type FaqItemData = {
+  question: string;
+  answer: string;
+};
+
+const faqItems: FaqItemData[] = [
   {
     question: "How does billing work?",
     answer:
@@ -75,8 +101,8 @@ const faqItems = [
   },
 ];
 
-export default function Pricing() {
-  const [billing, setBilling] = useState("annual");
+export default function PricingPage() {
+  const [billing, setBilling] = useState<BillingCadence>("annual");
   const [openFaqs, setOpenFaqs] = useState([faqItems[0].question]);
 
   const multiplier = billing === "annual" ? 12 * 0.8 : 1;
@@ -156,7 +182,13 @@ export default function Pricing() {
   );
 }
 
-function PricingCard({ tier, multiplier, billing }) {
+type PricingCardProps = {
+  tier: PricingTier;
+  multiplier: number;
+  billing: BillingCadence;
+};
+
+function PricingCard({ tier, multiplier, billing }: PricingCardProps) {
   const isCustom = tier.custom;
   const price = tier.priceMonthly * multiplier;
   const displayPrice = isCustom
@@ -229,7 +261,15 @@ function PricingCard({ tier, multiplier, billing }) {
   );
 }
 
-function FaqItem({ item, isOpen, panelId, triggerId, onToggle }) {
+type FaqItemProps = {
+  item: FaqItemData;
+  isOpen: boolean;
+  panelId: string;
+  triggerId: string;
+  onToggle: () => void;
+};
+
+function FaqItem({ item, isOpen, panelId, triggerId, onToggle }: FaqItemProps) {
   return (
     <article
       className="feature-card"

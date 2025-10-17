@@ -4,7 +4,7 @@ import {
   HERO_PREVIEW_IMAGE,
   HERO_PREVIEW_SIZES,
   HERO_PREVIEW_SOURCES,
-} from "../../components/landing/heroPreviewAssets";
+} from "../components/landing/heroPreviewAssets";
 
 const HERO_STATS = [
   { label: "Automations", value: "12,500+" },

@@ -1,7 +1,7 @@
 "use client";
 
-import Marketplace from "@/pages/Marketplace";
+import MarketplacePage from "@/app/(site)/_components/MarketplacePage";
 
 export default function MarketplaceRoute() {
-  return <Marketplace />;
+  return <MarketplacePage />;
 }

@@ -1,19 +1,22 @@
+// @ts-nocheck
+"use client";
+
 import { useEffect, useMemo, useRef, useState, useId } from "react";
 import { motion, useReducedMotion } from "framer-motion";
-import { fetchAutomations } from "../data/automations";
-import { toast } from "../components/Toast";
-import ProductPreview3D from "../components/landing/ProductPreview3D";
-import { calculateSavings } from "../utils/calculateSavings";
-import ROICalculator from "../components/roi/ROICalculator";
-import AssistiveHint from "../components/ui/AssistiveHint";
-import { Icon } from "../components/icons";
-import useInViewState from "../hooks/useInViewState";
-import motionCatalog from "../design/motion/catalog";
+import { fetchAutomations } from "@/data/automations";
+import { toast } from "@/components/Toast";
+import ProductPreview3D from "@/components/landing/ProductPreview3D";
+import { calculateSavings } from "@/utils/calculateSavings";
+import ROICalculator from "@/components/roi/ROICalculator";
+import AssistiveHint from "@/components/ui/AssistiveHint";
+import { Icon } from "@/components/icons";
+import useInViewState from "@/hooks/useInViewState";
+import motionCatalog from "@/design/motion/catalog";
 
 const categories = ["All", "Sales", "Support", "Operations", "Finance", "Marketing"];
 const FILTER_STORAGE_KEY = "artifically:marketplace:filters";
 
-export default function Marketplace() {
+export default function MarketplacePage() {
   const [automations, setAutomations] = useState([]);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState("");

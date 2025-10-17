@@ -2,7 +2,7 @@
 
 import Dashboard from "@/components/Dashboard";
 import RouteShell from "@/components/skeletons/RouteShell";
-import Home from "@/pages/Home";
+import HomePage from "@/app/(site)/_components/HomePage";
 import { useAppShell } from "@/context/AppShellContext";
 
 export default function DashboardRoute() {
@@ -13,7 +13,7 @@ export default function DashboardRoute() {
   }
 
   if (!user) {
-    return <Home openAuth={openAuth} />;
+    return <HomePage openAuth={openAuth} />;
   }
 
   return <Dashboard user={user} openAuth={openAuth} />;

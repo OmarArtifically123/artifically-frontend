@@ -1,8 +1,8 @@
 import { useEffect, useMemo, useState } from "react";
-import api from "../src/api";
+import api from "../api.js";
 import { toast } from "./Toast";
 import { useTheme } from "../context/ThemeContext";
-import Button from "../src/components/ui/Button";
+import Button from "./ui/Button";
 import { Icon } from "./icons";
 
 const clamp = (value, min, max) => Math.min(Math.max(value, min), max);

@@ -1,7 +1,7 @@
 "use client";
 
-import DesignSystem from "@/pages/DesignSystem";
+import ApiReferencePage from "@/app/(site)/_components/ApiReferencePage";
 
-export default function DesignSystemRoute() {
-  return <DesignSystem />;
+export default function ApiReferenceRoute() {
+  return <ApiReferencePage />;
 }

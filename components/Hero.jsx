@@ -10,13 +10,13 @@ import {
 } from "react";
 import { createPortal } from "react-dom";
 import { AnimatePresence, motion, useReducedMotion } from "framer-motion";
-import MagneticButton from "../src/components/animation/MagneticButton.jsx";
+import MagneticButton from "./animation/MagneticButton.jsx";
 import useMicroInteractions from "../hooks/useMicroInteractions.js";
 import { BlurImage } from "./media/OptimizedImage.js";
 import { useTheme } from "../context/ThemeContext.jsx";
-import Button from "../src/components/ui/Button.js";
-import Input from "../src/components/ui/Input.jsx";
-import useDocumentVisibility from "../src/hooks/useDocumentVisibility.js";
+import Button from "./ui/Button.js";
+import Input from "./ui/Input.jsx";
+import useDocumentVisibility from "../hooks/useDocumentVisibility";
 import { Icon } from "./icons/index.js";
 
 const HERO_PREVIEW_IMAGE = "/images/hero-preview.jpg";

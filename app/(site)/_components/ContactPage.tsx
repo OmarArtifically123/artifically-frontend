@@ -1,7 +1,10 @@
+// @ts-nocheck
+"use client";
+
 import { useEffect, useMemo, useRef, useState } from "react";
-import { space } from "../styles/spacing";
-import Button from "../components/ui/Button";
-import Input from "../components/ui/Input";
+import { space } from "@/styles/spacing";
+import Button from "@/components/ui/Button";
+import Input from "@/components/ui/Input";
 
 const FORM_DEFAULTS = {
   name: "",
@@ -166,7 +169,7 @@ function getSmartPrefill(stored = {}) {
   return guesses;
 }
 
-export default function Contact() {
+export default function ContactPage() {
   const storedPreferences = useMemo(() => getStoredPreferences(), []);
   const [isHydrated, setIsHydrated] = useState(false);
   const smartDefaults = useMemo(

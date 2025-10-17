@@ -1,7 +1,7 @@
 "use client";
 
-import ApiReference from "@/pages/ApiReference";
+import ApiReferencePage from "@/app/(site)/_components/ApiReferencePage";
 
 export default function ApiReferenceRoute() {
-  return <ApiReference />;
+  return <ApiReferencePage />;
 }

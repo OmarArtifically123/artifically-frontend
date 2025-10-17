@@ -1,7 +1,10 @@
-import { useMemo } from "react";
-import { space } from "../styles/spacing";
+// @ts-nocheck
+"use client";
 
-export default function Blog() {
+import { useMemo } from "react";
+import { space } from "@/styles/spacing";
+
+export default function BlogPage() {
   const posts = useMemo(
     () => [
       {

@@ -1,7 +1,7 @@
 "use client";
 
-import Privacy from "@/pages/Privacy";
+import PrivacyPage from "@/app/(site)/_components/PrivacyPage";
 
 export default function PrivacyRoute() {
-  return <Privacy />;
+  return <PrivacyPage />;
 }

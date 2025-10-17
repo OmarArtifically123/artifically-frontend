@@ -1,5 +1,8 @@
+// @ts-nocheck
+"use client";
+
 import { useMemo, useState } from "react";
-import { space } from "../styles/spacing";
+import { space } from "@/styles/spacing";
 
 const faqs = [
   {
@@ -19,7 +22,7 @@ const faqs = [
   },
 ];
 
-export default function HelpCenter() {
+export default function HelpCenterPage() {
   const [activeIndex, setActiveIndex] = useState(0);
   const contactOptions = useMemo(
     () => [
