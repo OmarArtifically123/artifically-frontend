@@ -5,9 +5,10 @@ import { dirname, join } from "node:path";
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
 const repoRoot = join(__dirname, "..", "..");
-const tokensPath = join(repoRoot, "src", "design-system", "tokens", "tokens.json");
-const cssOutPath = join(repoRoot, "src", "design-system", "tokens", "tokens.css");
-const tsOutPath = join(repoRoot, "src", "design-system", "tokens", "index.ts");
+const tokensDir = join(repoRoot, "design-system", "tokens");
+const tokensPath = join(tokensDir, "tokens.json");
+const cssOutPath = join(tokensDir, "tokens.css");
+const tsOutPath = join(tokensDir, "index.ts");
 
 const raw = await readFile(tokensPath, "utf8");
 const tokens = JSON.parse(raw);

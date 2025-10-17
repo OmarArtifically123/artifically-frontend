@@ -1,4 +1,5 @@
-import { Link, useLocation } from "react-router-dom";
+import Link from "next/link";
+import { usePathname } from "next/navigation";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { motion, useReducedMotion } from "framer-motion";
 import ThemeToggle from "./ThemeToggle";
@@ -15,7 +16,7 @@ import { Icon } from "./icons";
 
 export default function Header({ user, onSignIn, onSignUp, onSignOut }) {
   const navigate = useViewTransitionNavigate();
-  const { pathname } = useLocation();
+  const pathname = usePathname() ?? "/";
   const { darkMode } = useTheme();
   const [scrolled, setScrolled] = useState(false);
   const [predictedNav, setPredictedNav] = useState(null);
@@ -360,7 +361,7 @@ export default function Header({ user, onSignIn, onSignUp, onSignOut }) {
                           {item.items.map((entry) => (
                             <Link
                               key={entry.path}
-                              to={entry.path}
+                              href={entry.path}
                               role="menuitem"
                               className="nav-menu__link"
                               data-prefetch-route={entry.path}
@@ -393,7 +394,7 @@ export default function Header({ user, onSignIn, onSignUp, onSignOut }) {
                   style={{ display: "flex" }}
                 >
                   <Link
-                    to={path}
+                    href={path}
                     data-prefetch-route={path}
                     className="nav-item"
                     transition={{ type: "spring", stiffness: 320, damping: 24 }}

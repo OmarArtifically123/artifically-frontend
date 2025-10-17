@@ -1,5 +1,5 @@
+import { useRouter, useSearchParams } from "next/navigation";
 import { useEffect, useState } from "react";
-import { useSearchParams, useNavigate } from "react-router-dom";
 import api, { pick } from "../src/api";
 import { toast } from "./Toast";
 import ThemeToggle from "./ThemeToggle";
@@ -10,14 +10,14 @@ import { Icon } from "./icons";
 
 export default function Verify({ onVerified }) {
   const { darkMode } = useTheme();
-  const [params] = useSearchParams();
+  const searchParams = useSearchParams();
   const [status, setStatus] = useState("loading");
   const [email, setEmail] = useState("");
   const [resending, setResending] = useState(false);
-  const navigate = useNavigate();
+  const router = useRouter();
 
   useEffect(() => {
-    const token = params.get("token");
+    const token = searchParams.get("token");
     if (!token) {
       setStatus("error");
       toast("Missing verification token", { type: "error" });
@@ -39,14 +39,14 @@ export default function Verify({ onVerified }) {
 
         setStatus("success");
         toast("Email verified! You’re good to go.", { type: "success" });
-        setTimeout(() => navigate("/dashboard"), 1500);
+        setTimeout(() => router.push("/dashboard"), 1500);
       } catch (err) {
         setStatus("error");
         const msg = err?.response?.data?.message || err?.message || "Verification failed";
         toast(msg, { type: "error" });
       }
     })();
-  }, []);
+  }, [onVerified, router, searchParams]);
 
   const resend = async () => {
     if (!email) {

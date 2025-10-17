@@ -2,9 +2,9 @@
 
 import { createContext, useContext } from "react";
 
-type AuthMode = "signin" | "signup";
+export type AuthMode = "signin" | "signup";
 
-type AuthUser = {
+export type AuthUser = {
   verified?: boolean;
   [key: string]: unknown;
 } | null;

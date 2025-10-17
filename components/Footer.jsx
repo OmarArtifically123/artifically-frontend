@@ -1,4 +1,4 @@
-import { Link } from "react-router-dom";
+import Link from "next/link";
 import { useEffect, useMemo, useState, useId, useRef } from "react";
 import ThemeToggle from "./ThemeToggle";
 import { useTheme } from "../context/ThemeContext";
@@ -349,7 +349,7 @@ export default function Footer() {
                   {links.map((link) => (
                     <li key={link.name}>
                       <Link
-                        to={link.path}
+                        href={link.path}
                         style={{
                           display: "flex",
                           flexDirection: "column",

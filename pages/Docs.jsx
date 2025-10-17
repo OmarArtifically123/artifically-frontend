@@ -1,5 +1,5 @@
+import Link from "next/link";
 import { useCallback, useMemo, useState } from "react";
-import { Link } from "react-router-dom";
 import ThemeToggle from "../components/ThemeToggle";
 import { useTheme } from "../context/ThemeContext";
 import { space } from "../styles/spacing";
@@ -386,11 +386,11 @@ export default function Docs() {
             </header>
             <ol style={{ display: "grid", gap: space("sm"), paddingLeft: space("md"), color: "var(--gray-300)" }}>
               <li>
-                Create your workspace via the <Link to="/pricing">enterprise trial</Link> and invite teammates for
+                Create your workspace via the <Link href="/pricing">enterprise trial</Link> and invite teammates for
                 shared controls.
               </li>
               <li>
-                Select a template from the <Link to="/marketplace">automation marketplace</Link> and tailor parameters.
+                Select a template from the <Link href="/marketplace">automation marketplace</Link> and tailor parameters.
               </li>
               <li>
                 Connect integrations, configure <TooltipTerm label="webhooks" description="HTTP callbacks that Artifically triggers when automation state changes." />, and set rollout gates.

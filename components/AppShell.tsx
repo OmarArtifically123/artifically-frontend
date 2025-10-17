@@ -22,7 +22,7 @@ import RouteShell from "@/components/skeletons/RouteShell";
 import { ToastHost, toast } from "@/components/Toast";
 import Button from "@/components/ui/Button";
 import usePredictivePrefetch from "@/hooks/usePredictivePrefetch";
-import { AppShellProvider } from "@/context/AppShellContext";
+import { AppShellProvider, type AuthMode, type AuthUser } from "@/context/AppShellContext";
 import { applyDesignTokens } from "@/styles/applyDesignTokens";
 
 const Footer = lazy(() => import("@/components/Footer"));
@@ -61,13 +61,6 @@ const routeLoaders = {
   "/dashboard": () => import("@/components/Dashboard"),
   "/verify": () => import("@/components/Verify"),
 };
-
-type AuthMode = "signin" | "signup";
-
-type AuthUser = {
-  verified?: boolean;
-  [key: string]: unknown;
-} | null;
 
 type AuthenticatedPayload = {
   user?: AuthUser;

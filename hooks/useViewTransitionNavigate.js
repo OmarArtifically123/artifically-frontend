@@ -1,6 +1,6 @@
 import { useCallback } from "react";
 import { flushSync } from "react-dom";
-import { useNavigate } from "react-router-dom";
+import { useRouter } from "next/navigation";
 
 const supportsViewTransitions = () => {
   if (typeof document === "undefined" || typeof window === "undefined") {
@@ -16,19 +16,28 @@ const supportsViewTransitions = () => {
   }
 };
 
+const navigateWithOptions = (router, to, options) => {
+  const method = options?.replace ? router.replace : router.push;
+  if (options?.scroll !== undefined) {
+    method(to, { scroll: options.scroll });
+    return;
+  }
+  method(to);
+};
+
 export default function useViewTransitionNavigate() {
-  const navigate = useNavigate();
+  const router = useRouter();
 
   return useCallback(
     (to, options) => {
       if (!supportsViewTransitions()) {
-        navigate(to, options);
+        navigateWithOptions(router, to, options);
         return;
       }
 
       const transition = document.startViewTransition(() => {
         flushSync(() => {
-          navigate(to, options);
+          navigateWithOptions(router, to, options);
         });
       });
 
@@ -36,6 +45,6 @@ export default function useViewTransitionNavigate() {
         /* noop */
       });
     },
-    [navigate],
+    [router],
   );
 }

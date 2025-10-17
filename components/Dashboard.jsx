@@ -1,6 +1,6 @@
-import { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useRouter } from "next/navigation";
 import { motion, useReducedMotion } from "framer-motion";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import api, { pick } from "../src/api";
 import { toast } from "./Toast";
 import { useTheme } from "../context/ThemeContext";
@@ -67,7 +67,7 @@ export default function Dashboard({ user, openAuth }) {
   const [error, setError] = useState(null);
   const [viewerCounts, setViewerCounts] = useState({});
   const [loginStreak, setLoginStreak] = useState(1);
-  const navigate = useNavigate();
+  const router = useRouter();
   const prefersReducedMotion = useReducedMotion();
   const [marketplaceRef, marketplaceInView] = useInViewState({ threshold: 0.25, rootMargin: "-80px", once: true });
   const [achievementsRef, achievementsInView] = useInViewState({ threshold: 0.25, rootMargin: "-60px", once: true });
@@ -630,7 +630,7 @@ export default function Dashboard({ user, openAuth }) {
               variant="primary"
               data-tour-id="dashboard-action-button"
               magnetic
-              onClick={() => navigate("/marketplace")}
+              onClick={() => router.push("/marketplace")}
             >
               <span>+ Add Automation</span>
             </Button>
@@ -796,7 +796,7 @@ export default function Dashboard({ user, openAuth }) {
                 Drag automations into the live preview or press Enter on a card to simulate performance.
               </p>
             </div>
-            <Button size="sm" variant="primary" magnetic onClick={() => navigate("/marketplace")}>
+            <Button size="sm" variant="primary" magnetic onClick={() => router.push("/marketplace")}>
               <span>Browse marketplace</span>
             </Button>
             <AssistiveHint
@@ -1177,7 +1177,7 @@ export default function Dashboard({ user, openAuth }) {
             <p style={{ color: darkMode ? "#94a3b8" : "#475569", maxWidth: "400px", margin: `0 auto ${space("md")}` }}>
               Browse the marketplace to deploy your first AI automation and start transforming your business operations.
             </p>
-            <Button size="md" variant="primary" magnetic onClick={() => navigate("/marketplace")}>
+            <Button size="md" variant="primary" magnetic onClick={() => router.push("/marketplace")}>
               <span>Browse Marketplace</span>
             </Button>
           </motion.div>
