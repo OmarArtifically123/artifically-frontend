@@ -10,7 +10,7 @@ const toneIcon: Record<AlertTone, string> = {
   danger: "⛔",
 };
 
-export interface AlertProps extends HTMLAttributes<HTMLDivElement> {
+export interface AlertProps extends Omit<HTMLAttributes<HTMLDivElement>, "title"> {
   tone?: AlertTone;
   title?: ReactNode;
   description?: ReactNode;

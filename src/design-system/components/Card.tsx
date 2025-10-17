@@ -1,7 +1,7 @@
 import { cn } from "../utils/cn";
 import type { HTMLAttributes, ReactNode } from "react";
 
-export interface CardProps extends HTMLAttributes<HTMLDivElement> {
+export interface CardProps extends Omit<HTMLAttributes<HTMLDivElement>, "title"> {
   title?: ReactNode;
   subtitle?: ReactNode;
   media?: ReactNode;

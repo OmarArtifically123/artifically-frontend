@@ -1,7 +1,7 @@
 import { cn } from "../utils/cn";
-import type { ReactNode } from "react";
+import type { HTMLAttributes, ReactNode } from "react";
 
-export interface HeroProps extends React.HTMLAttributes<HTMLElement> {
+export interface HeroProps extends Omit<HTMLAttributes<HTMLElement>, "title"> {
   eyebrow?: ReactNode;
   title: ReactNode;
   description?: ReactNode;
