@@ -224,7 +224,7 @@ export default function HeroSection({ onPrimary, onSecondary, demoDialogId, demo
                   alt=""
                   loading="eager"
                   decoding="sync"
-                  fetchpriority="high"
+                  fetchPriority="high"
                   sizes={HERO_PREVIEW_SIZES}
                 />
               </picture>

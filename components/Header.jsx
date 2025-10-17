@@ -27,8 +27,7 @@ export default function Header({ user, onSignIn, onSignUp, onSignOut }) {
   });
   const observerRef = useRef(null);
   const { dispatchInteraction } = useMicroInteractions();
-  const isServer = typeof window === "undefined";
-  const [headerReady, setHeaderReady] = useState(isServer);
+  const [headerReady, setHeaderReady] = useState(false);
   const prefersReducedMotion = useReducedMotion();
 
   const headerVariants = useMemo(() => {
@@ -64,11 +63,11 @@ export default function Header({ user, onSignIn, onSignUp, onSignOut }) {
   }, []);
 
   useEffect(() => {
-    if (isServer) return undefined;
+    if (typeof window === "undefined") return undefined;
 
     const timer = window.setTimeout(() => setHeaderReady(true), 0);
     return () => window.clearTimeout(timer);
-  }, [isServer]);
+  }, []);
 
   const commitPrediction = useCallback(
     (path, ttl = 1600) => {
@@ -355,7 +354,7 @@ export default function Header({ user, onSignIn, onSignUp, onSignOut }) {
                       <details className="nav-menu" data-enhanced>
                         <summary aria-haspopup="menu">
                           <span>{item.label}</span>
-                          <Icon name="chevron-down" size={16} aria-hidden="true" />
+                          <Icon name="chevronDown" size={16} aria-hidden="true" />
                         </summary>
                         <div className="nav-menu__panel" role="menu">
                           {item.items.map((entry) => (
