@@ -261,6 +261,20 @@
   view-transition-name: hero-preview;
 }
 
+.page-hero__preview .hero-preview__fallback {
+  width: 100%;
+  display: block;
+  border-radius: var(--landing-radius-xl);
+  overflow: hidden;
+}
+
+.page-hero__preview .hero-preview__fallback img {
+  display: block;
+  width: 100%;
+  height: auto;
+  object-fit: cover;
+}
+
 @container hero-content (max-width: 780px) {
   .cta-group {
     flex-direction: column;

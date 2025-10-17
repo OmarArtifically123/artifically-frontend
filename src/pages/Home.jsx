@@ -47,7 +47,7 @@ export default function Home({ openAuth }) {
 
   return (
     <>
-      <main>
+      <div className="home-page" role="presentation">
         <ServerRenderedHero hidden={!showStaticHero} />
         {enhanceHero ? (
           <Suspense fallback={null}>
@@ -64,7 +64,7 @@ export default function Home({ openAuth }) {
         <GoalOnboardingWizard />
         <SocialProofSection />
         <FinalCTASection onSubmit={handleFinalSubmit} />
-      </main>
+      </div>
       <HeroDemoModal open={demoOpen} onClose={handleDemoClose} />
     </>
   );

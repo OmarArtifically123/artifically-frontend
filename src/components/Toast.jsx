@@ -221,11 +221,14 @@ export function ToastHost() {
     return null;
   }
 
+  const hasAssertiveToast = toasts.some((toastItem) => toastItem.type === "error" || toastItem.type === "warn");
+  const liveMode = hasAssertiveToast ? "assertive" : "polite";
+
   return createPortal(
     <div
       style={{ position: "fixed", top: 20, right: 20, zIndex: 1200 }}
       role="status"
-      aria-live="polite"
+      aria-live={liveMode}
       aria-atomic="true"
       aria-label="Notifications"
     >

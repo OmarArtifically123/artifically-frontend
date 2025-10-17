@@ -4297,6 +4297,13 @@ main :where(section, div)[id] {
   object-fit: cover;
 }
 
+.hero[data-hero-version="reimagined"] .hero-preview__fallback img {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
 .hero[data-hero-version="reimagined"] .hero-fallback {
   position: relative;
   display: flex;

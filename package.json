@@ -34,7 +34,8 @@
     "postinstall": "node scripts/assets/materialize-static-assets.mjs && partytown copylib public/~partytown",
     "security:scan": "npm audit --audit-level=moderate",
     "report:bundle": "node scripts/perf/bundle-report.mjs",
-    "report:lighthouse": "node scripts/perf/frontend-lighthouse.mjs"
+    "report:lighthouse": "node scripts/perf/frontend-lighthouse.mjs",
+    "ci:lighthouse": "lhci autorun"
   },
   "dependencies": {
     "@builder.io/partytown": "^0.8.1",

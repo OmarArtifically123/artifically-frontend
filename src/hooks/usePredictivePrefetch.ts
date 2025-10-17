@@ -76,6 +76,7 @@ export default function usePredictivePrefetch(
   const persistIdleCancel = useRef<CancelFn | null>(null);
   const prefetchedRoutesRef = useRef<Set<string>>(new Set());
   const [hasUserEngaged, setHasUserEngaged] = useState(false);
+  const [hasPointerIntent, setHasPointerIntent] = useState(false);
   const [connectionConstrained, setConnectionConstrained] = useState<boolean>(() => prefersLowPower());
 
   const loaders = useMemo<RouteLoaders>(() => routeLoaders ?? {}, [routeLoaders]);
@@ -85,18 +86,29 @@ export default function usePredictivePrefetch(
       return undefined;
     }
 
+    let pointerRegistered = false;
+    const markPointerIntent = () => {
+      if (!pointerRegistered) {
+        pointerRegistered = true;
+        setHasPointerIntent(true);
+      }
+      setHasUserEngaged(true);
+    };
+
     const markEngaged = () => {
       setHasUserEngaged(true);
     };
 
-    window.addEventListener("pointermove", markEngaged, { once: true, passive: true });
+    window.addEventListener("pointermove", markPointerIntent, { once: true, passive: true });
+    window.addEventListener("pointerdown", markPointerIntent, { once: true, passive: true });
+    window.addEventListener("touchstart", markPointerIntent, { once: true, passive: true });
     window.addEventListener("keydown", markEngaged, { once: true });
-    window.addEventListener("touchstart", markEngaged, { once: true, passive: true });
 
     return () => {
-      window.removeEventListener("pointermove", markEngaged);
+      window.removeEventListener("pointermove", markPointerIntent);
+      window.removeEventListener("pointerdown", markPointerIntent);
+      window.removeEventListener("touchstart", markPointerIntent);
       window.removeEventListener("keydown", markEngaged);
-      window.removeEventListener("touchstart", markEngaged);
     };
   }, []);
 
@@ -254,7 +266,7 @@ export default function usePredictivePrefetch(
       idleCancel.current();
     }
 
-    if (!hasUserEngaged || connectionConstrained) {
+    if (!hasUserEngaged || !hasPointerIntent || connectionConstrained) {
       return () => {
         if (idleCancel.current) {
           idleCancel.current();
@@ -279,7 +291,7 @@ export default function usePredictivePrefetch(
         persistIdleCancel.current = null;
       }
     };
-  }, [connectionConstrained, currentPathname, hasUserEngaged, loaders]);
+  }, [connectionConstrained, currentPathname, hasPointerIntent, hasUserEngaged, loaders]);
 
   useEffect(() => {
     if (typeof document === "undefined") {
@@ -301,6 +313,10 @@ export default function usePredictivePrefetch(
         setHasUserEngaged(true);
       }
 
+      if (!hasPointerIntent && event.type.startsWith("pointer")) {
+        setHasPointerIntent(true);
+      }
+
       const model = modelRef.current;
       recordRouteTransition(model, currentPathname, route, 0.35);
 
@@ -320,7 +336,7 @@ export default function usePredictivePrefetch(
       document.removeEventListener("pointerenter", handler, { capture: true });
       document.removeEventListener("focusin", handler, { capture: true });
     };
-  }, [connectionConstrained, currentPathname, hasUserEngaged, loaders]);
+  }, [connectionConstrained, currentPathname, hasPointerIntent, hasUserEngaged, loaders]);
 
   return {
     prefetch: (path: string) => loaders[path]?.(),

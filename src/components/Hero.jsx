@@ -20,9 +20,11 @@ import useDocumentVisibility from "../hooks/useDocumentVisibility";
 import { Icon } from "./icons";
 
 const HERO_PREVIEW_IMAGE = "/images/hero-preview.jpg";
+const HERO_PREVIEW_DIMENSIONS = { width: 1920, height: 1080 };
+const HERO_PREVIEW_SIZES = "(max-width: 768px) 92vw, (max-width: 1280px) 60vw, 540px";
 const HERO_PREVIEW_SOURCES = [
-  { type: "image/avif", srcSet: "/images/hero-preview.avif" },
-  { type: "image/webp", srcSet: "/images/hero-preview.webp" },
+  { type: "image/avif", srcSet: "/images/hero-preview.avif", sizes: HERO_PREVIEW_SIZES },
+  { type: "image/webp", srcSet: "/images/hero-preview.webp", sizes: HERO_PREVIEW_SIZES },
 ];
 const HERO_PREVIEW_BLUR = "/images/hero-preview-blur.jpg";
 
@@ -1443,9 +1445,12 @@ function HeroFallbackIllustration({ darkMode }) {
         loading="eager"
         decoding="sync"
         fetchPriority="high"
+        width={HERO_PREVIEW_DIMENSIONS.width}
+        height={HERO_PREVIEW_DIMENSIONS.height}
+        sizes={HERO_PREVIEW_SIZES}
         wrapperProps={{
           "data-enhanced": "true",
-          className: "hero-fallback__media",
+          className: "hero-fallback__media hero-preview__fallback",
         }}
       />
       <div className="hero-fallback__overlay">

@@ -240,12 +240,21 @@ export const getStructuredData = (requestUrl) => {
       "@id": `${SITE_URL}#organization`,
       name: "Artifically",
       url: SITE_URL,
+      description: "Artifically is the enterprise platform for deploying AI-powered automations in minutes.",
+      slogan: "Deploy Enterprise AI Automations in Minutes",
+      foundingDate: "2021-06-01",
       logo: `${SITE_URL}/android-chrome-512x512.png`,
       sameAs: [
         "https://www.linkedin.com/company/artifically",
         "https://twitter.com/artifically",
         "https://github.com/artifically",
       ],
+      address: {
+        "@type": "PostalAddress",
+        addressLocality: "Abu Dhabi",
+        addressRegion: "GCC",
+        addressCountry: "UAE",
+      },
       contactPoint: [
         {
           "@type": "ContactPoint",

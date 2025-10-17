@@ -1,5 +1,13 @@
 import React from "react";
 
+const HERO_PREVIEW_IMAGE = "/images/hero-preview.jpg";
+const HERO_PREVIEW_SOURCES = [
+  { type: "image/avif", srcSet: "/images/hero-preview.avif" },
+  { type: "image/webp", srcSet: "/images/hero-preview.webp" },
+];
+const HERO_PREVIEW_SIZES = "(max-width: 768px) 92vw, (max-width: 1280px) 60vw, 540px";
+const HERO_PREVIEW_DIMENSIONS = { width: 1920, height: 1080 };
+
 const HERO_STATS = [
   { label: "Automations", value: "12,500+" },
   { label: "Uptime", value: "98.6%" },
@@ -71,7 +79,22 @@ export default function MarketingHomeServer() {
           <article className="preview-card">
             <span className="preview-card__chip">Live product preview</span>
             <div className="preview-card__stage" role="presentation">
-              <div className="product-preview">
+              <picture className="hero-preview__fallback">
+                {HERO_PREVIEW_SOURCES.map((source) => (
+                  <source key={source.type} {...source} sizes={HERO_PREVIEW_SIZES} />
+                ))}
+                <img
+                  src={HERO_PREVIEW_IMAGE}
+                  width={HERO_PREVIEW_DIMENSIONS.width}
+                  height={HERO_PREVIEW_DIMENSIONS.height}
+                  alt="Artifically automation workspace preview"
+                  loading="eager"
+                  decoding="sync"
+                  fetchPriority="high"
+                  sizes={HERO_PREVIEW_SIZES}
+                />
+              </picture>
+              <div className="product-preview" aria-hidden="true">
                 <div className="product-preview__frame">
                   <div className="product-preview__surface" />
                 </div>
