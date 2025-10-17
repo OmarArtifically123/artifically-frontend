@@ -1,3 +1,5 @@
+"use client";
+
 import { space } from "../styles/spacing";
 // src/components/Toast.jsx
 import { useEffect, useMemo, useState } from "react";
@@ -207,7 +209,8 @@ export function toast(message, opts = {}) {
 // ---------------------------
 export function ToastHost() {
   const [toasts, _setToasts] = useState([]);
-  
+  const [isMounted, setIsMounted] = useState(false);
+
   useEffect(() => {
     setToasts = _setToasts;
     return () => {
@@ -217,7 +220,11 @@ export function ToastHost() {
     };
   }, [_setToasts]);
 
-  if (typeof document === "undefined") {
+  useEffect(() => {
+    setIsMounted(true);
+  }, []);
+
+  if (!isMounted || typeof document === "undefined") {
     return null;
   }
 
