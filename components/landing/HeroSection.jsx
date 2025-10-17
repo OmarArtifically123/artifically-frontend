@@ -19,7 +19,7 @@ import {
   HERO_PREVIEW_SIZES,
   HERO_PREVIEW_SOURCES,
 } from "./heroPreviewAssets";
-import { Icon } from "../../../components/icons";
+import { Icon } from "../icons";
 
 const heroStats = [
   { label: "Automations", value: 12500, suffix: "+" },

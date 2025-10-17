@@ -1,5 +1,5 @@
 import CTABackground from "./CTABackground";
-import { Icon } from "../../../components/icons";
+import { Icon } from "../icons";
 
 export default function FinalCTASection({ onSubmit }) {
   return (

@@ -1,5 +1,5 @@
 import useIntersectionLazy from "../../hooks/useIntersectionLazy";
-import { Icon } from "../../../components/icons";
+import { Icon } from "../icons";
 
 const painPoints = [
   {

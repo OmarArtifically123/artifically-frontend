@@ -1,5 +1,5 @@
 import { useMemo, useState } from "react";
-import { Icon } from "../../../components/icons";
+import { Icon } from "../icons";
 
 const featureTabs = [
   {

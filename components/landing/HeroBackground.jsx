@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from "react";
-import useDocumentVisibility from "../../src/hooks/useDocumentVisibility";
+import useDocumentVisibility from "../../hooks/useDocumentVisibility";
 import { getNetworkInformation, prefersLowPower } from "../../utils/networkPreferences";
 
 function createParticles(width, height, count) {
