@@ -235,12 +235,22 @@ export default function ExperienceLayer({ children, enableExperience = false }) 
           });
 
           elements.forEach((element, index) => {
-            timelineRef.current?.fromTo(
-              element,
-              { autoAlpha: 0, y: 42 },
-              { autoAlpha: 1, y: 0, duration: 0.9, delay: index * 0.08 },
-              0,
-            );
+            const mode = element.dataset.experienceAnimate ?? "lift";
+
+            if (mode === "static") {
+              gsap.set(element, { autoAlpha: 1, y: 0, clearProps: "transform" });
+              return;
+            }
+
+            const fromVars = { autoAlpha: 0 };
+            const toVars = { autoAlpha: 1, duration: 0.9, delay: index * 0.08 };
+
+            if (mode !== "fade") {
+              fromVars.y = 42;
+              toVars.y = 0;
+            }
+
+            timelineRef.current?.fromTo(element, fromVars, toVars, 0);
           });
         }, containerRef);
       } catch (error) {
@@ -266,8 +276,8 @@ export default function ExperienceLayer({ children, enableExperience = false }) 
         reducedMotion={reducedMotion}
       />
       <div ref={containerRef} className="experience-shell" data-theme-key={theme.themeKey}>
-        <div className="experience-backdrop" aria-hidden="true" data-experience-animate />
-        <div className="experience-content" data-experience-animate>
+        <div className="experience-backdrop" aria-hidden="true" data-experience-animate="backdrop" />
+        <div className="experience-content" data-experience-animate="static">
           {children}
         </div>
       </div>

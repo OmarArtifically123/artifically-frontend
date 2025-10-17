@@ -231,11 +231,15 @@ export default function Header({ user, onSignIn, onSignUp, onSignOut }) {
 
   const headerBackground = useMemo(
     () => ({
-      backgroundColor: "var(--bg-primary)",
-      borderBottom: "1px solid var(--border-color)",
-      boxShadow: scrolled ? "var(--shadow-md)" : "none",
+      background: darkMode ? "var(--glass-gradient-primary)" : "var(--glass-gradient-primary-light)",
+      borderBottom: `1px solid ${darkMode ? "var(--glass-border-primary)" : "var(--glass-border-primary-light)"}`,
+      boxShadow: scrolled
+        ? darkMode
+          ? "var(--shadow-ambient), var(--shadow-glow)"
+          : "var(--shadow-md)"
+        : "inset 0 1px 0 0 var(--glass-highlight)",
     }),
-    [scrolled],
+    [darkMode, scrolled]
   );
 
   return (
@@ -267,6 +271,21 @@ export default function Header({ user, onSignIn, onSignUp, onSignOut }) {
           position: "relative",
         }}
       >
+        <div
+          aria-hidden="true"
+          style={{
+            position: "absolute",
+            inset: 0,
+            borderRadius: "1.5rem",
+            background: darkMode
+              ? "radial-gradient(circle at 20% 20%, color-mix(in oklch, var(--brand-energy) 30%, transparent), transparent 55%), radial-gradient(circle at 80% 30%, color-mix(in oklch, var(--brand-glow) 35%, transparent), transparent 55%)"
+              : "radial-gradient(circle at 20% 20%, color-mix(in oklch, var(--brand-energy) 24%, transparent), transparent 55%), radial-gradient(circle at 80% 30%, color-mix(in oklch, var(--brand-glow) 28%, transparent), transparent 55%)",
+            opacity: scrolled ? 1 : 0.65,
+            transition: "opacity var(--transition-normal)",
+            pointerEvents: "none",
+          }}
+        />
+
         <div
           className="brand brand--interactive"
           onClick={(event) => {
