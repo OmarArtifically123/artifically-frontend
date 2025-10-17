@@ -187,7 +187,7 @@ export default function HeroBackground({ variant = "particles" }) {
 
   return (
     <div ref={containerRef} className="hero-background" aria-hidden="true">
-      <canvas ref={canvasRef} />
+      <canvas ref={canvasRef} aria-hidden="true" />
     </div>
   );
 }

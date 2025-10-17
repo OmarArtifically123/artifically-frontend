@@ -11,6 +11,7 @@ import {
 import { Route, Routes, useLocation, useNavigate } from "react-router-dom";
 
 import apiClient, { pick } from "./api";
+import BackToTopButton from "./components/BackToTopButton";
 import ExperienceLayer from "./components/ExperienceLayer";
 import GlobalProgressBar from "./components/GlobalProgressBar";
 import Header from "./components/Header";
@@ -584,6 +585,7 @@ export default function App() {
       )}
 
       <ToastHost />
+      <BackToTopButton />
       <SpeedInsights />
     </ExperienceLayer>
   );

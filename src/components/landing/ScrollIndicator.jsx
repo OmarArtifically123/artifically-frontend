@@ -9,10 +9,12 @@ export default function ScrollIndicator({ targetId, label = "Scroll to explore" 
 
   return (
     <button type="button" className="hero-scroll-indicator" onClick={handleScroll} aria-label={label}>
-      <span className="hero-scroll-indicator__track">
-        <span className="hero-scroll-indicator__dot" />
+      <span className="hero-scroll-indicator__track" aria-hidden="true">
+        <span className="hero-scroll-indicator__dot" aria-hidden="true" />
       </span>
-      <span className="hero-scroll-indicator__label">Scroll</span>
+      <span className="hero-scroll-indicator__label" aria-hidden="true">
+        Scroll
+      </span>
     </button>
   );
 }
