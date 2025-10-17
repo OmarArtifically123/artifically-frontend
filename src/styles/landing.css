@@ -61,6 +61,9 @@
   background: url("data:image/svg+xml,%3Csvg width='600' height='600' viewBox='0 0 600 600' fill='none' xmlns='http://www.w3.org/2000/svg'%3E%3Cg opacity='0.06'%3E%3Cpath d='M0 60H600M60 0V600' stroke='white' stroke-width='1'/%3E%3C/g%3E%3C/svg%3E");
   mix-blend-mode: screen;
   z-index: -1;
+  pointer-events: none;
+  transform: translateZ(0);
+  will-change: opacity;
 }
 
 .page-hero__inner {
