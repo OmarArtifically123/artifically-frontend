@@ -1,4 +1,4 @@
-import { dirname, resolve } from "path";
+import path, { dirname, resolve } from "path";
 import { fileURLToPath } from "url";
 
 const __filename = fileURLToPath(import.meta.url);
@@ -10,14 +10,17 @@ const nextConfig = {
   images: {
     domains: ["artifically.com"],
   },
-  experimental: {
-    appDir: true,
-  },
   webpack(config) {
+    // ✅ Force all React-based packages (Zustand, Drei, Fiber, etc.) to use your main React instance
     config.resolve.alias = {
       ...(config.resolve.alias ?? {}),
-      "zustand$": resolve(__dirname, "lib/zustand/react-safe.ts"),
+      react: resolve(__dirname, "node_modules/react"),
+      "react-dom": resolve(__dirname, "node_modules/react-dom"),
+      "@react-three/fiber": resolve(__dirname, "node_modules/@react-three/fiber"),
+      "@react-three/drei": resolve(__dirname, "node_modules/@react-three/drei"),
+      zustand: resolve(__dirname, "node_modules/zustand"),
     };
+
     return config;
   },
 };
