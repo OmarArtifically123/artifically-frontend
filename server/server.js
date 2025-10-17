@@ -4,6 +4,7 @@ import path from "path";
 import http from "http";
 import crypto from "crypto";
 import cookie from "cookie";
+import { Readable } from "node:stream";
 import { fileURLToPath, pathToFileURL } from "url";
 import {
   buildSitemapXml,
@@ -24,6 +25,17 @@ const AUTH_RATE_LIMIT = { limit: 10, windowMs: 60 * 1000 };
 const rateLimitBuckets = new Map();
 const upstreamApiBase = process.env.API_UPSTREAM_URL || process.env.VITE_API_URL || "";
 const normalizedUpstreamBase = upstreamApiBase.replace(/\/$/, "");
+
+const MARKETING_ROUTES = new Set(["/", "/pricing"]);
+const MARKETING_ASSET_PREFIX = "/_astro/";
+const marketingDevOrigin = process.env.MARKETING_DEV_SERVER_URL;
+const marketingDevPort = Number(process.env.MARKETING_DEV_PORT) || 4321;
+const resolvedMarketingDevOrigin = marketingDevOrigin || (isProd ? null : `http://localhost:${marketingDevPort}`);
+const marketingDistDir = path.resolve(__dirname, "../dist/marketing");
+const marketingClientDir = path.join(marketingDistDir, "client");
+const marketingServerEntry = path.join(marketingDistDir, "server", "entry.mjs");
+let marketingMiddleware = null;
+let marketingMiddlewareLoaded = false;
 
 if (!normalizedUpstreamBase) {
   console.warn(
@@ -88,6 +100,177 @@ const parseCookies = (req) => {
     console.warn("Failed to parse cookies", error);
     return {};
   }
+};
+
+const safeJoin = (rootDir, requestPath) => {
+  let decoded = "";
+  try {
+    decoded = decodeURIComponent(requestPath.replace(/^\/+/, ""));
+  } catch (_error) {
+    return null;
+  }
+  const normalized = path.normalize(decoded);
+  const filePath = path.join(rootDir, normalized);
+  if (!filePath.startsWith(rootDir)) {
+    return null;
+  }
+  return filePath;
+};
+
+const isMarketingPath = (pathname = "/") => {
+  if (MARKETING_ROUTES.has(pathname)) {
+    return true;
+  }
+  return false;
+};
+
+const serveMarketingStatic = (pathname, res) => {
+  if (!pathname.startsWith(MARKETING_ASSET_PREFIX)) {
+    return false;
+  }
+  const filePath = safeJoin(marketingClientDir, pathname.replace(MARKETING_ASSET_PREFIX, ""));
+  if (!filePath) {
+    return false;
+  }
+  return serveStaticFile(filePath, res);
+};
+
+const proxyMarketingDev = async (req, res) => {
+  if (!resolvedMarketingDevOrigin) {
+    return false;
+  }
+
+  const method = (req.method || "GET").toUpperCase();
+  if (!isMarketingPath((req.url || "/").split("?")[0]) && !(req.url || "").startsWith(MARKETING_ASSET_PREFIX)) {
+    return false;
+  }
+
+  if (!["GET", "HEAD"].includes(method)) {
+    return false;
+  }
+
+  const target = new URL(req.url || "/", resolvedMarketingDevOrigin);
+
+  const headers = new Headers();
+  for (const [key, value] of Object.entries(req.headers)) {
+    if (value === undefined) continue;
+    if (Array.isArray(value)) {
+      headers.set(key, value.join(","));
+    } else {
+      headers.set(key, value);
+    }
+  }
+
+  const controller = new AbortController();
+  req.on("close", () => controller.abort());
+
+  try {
+    const response = await fetch(target, {
+      method,
+      headers,
+      redirect: "manual",
+      signal: controller.signal,
+    });
+
+    res.statusCode = response.status;
+    response.headers.forEach((value, key) => {
+      if (key.toLowerCase() === "transfer-encoding") {
+        return;
+      }
+      res.setHeader(key, value);
+    });
+
+    if (method === "HEAD" || !response.body) {
+      res.end();
+      return true;
+    }
+
+    const stream = Readable.fromWeb(response.body);
+    stream.on("error", (error) => {
+      console.error("Marketing dev proxy stream error", error);
+      if (!res.headersSent) {
+        res.statusCode = 502;
+      }
+      res.end();
+    });
+    stream.pipe(res);
+    return true;
+  } catch (error) {
+    if (error.name !== "AbortError") {
+      console.error("Marketing dev proxy failed", error);
+    }
+    if (!res.headersSent) {
+      res.statusCode = 502;
+    }
+    res.end("Marketing dev server unreachable");
+    return true;
+  }
+};
+
+const ensureMarketingMiddleware = async () => {
+  if (marketingMiddlewareLoaded) {
+    return marketingMiddleware;
+  }
+  marketingMiddlewareLoaded = true;
+  if (!fs.existsSync(marketingServerEntry)) {
+    console.warn("Marketing server entry not found at", marketingServerEntry);
+    marketingMiddleware = null;
+    return marketingMiddleware;
+  }
+  try {
+    const module = await import(pathToFileURL(marketingServerEntry).href);
+    marketingMiddleware = module?.handler || module?.default || null;
+  } catch (error) {
+    console.error("Failed to load marketing middleware", error);
+    marketingMiddleware = null;
+  }
+  return marketingMiddleware;
+};
+
+const handleMarketingRequest = async (req, res, environment) => {
+  const url = req.url || "/";
+  const pathname = url.split("?")[0];
+
+  if (serveMarketingStatic(pathname, res)) {
+    return true;
+  }
+
+  if (!isMarketingPath(pathname)) {
+    return false;
+  }
+
+  if (environment === "development") {
+    return proxyMarketingDev(req, res);
+  }
+
+  const middleware = await ensureMarketingMiddleware();
+  if (!middleware) {
+    console.warn("Marketing middleware unavailable, falling back to React app");
+    return false;
+  }
+
+  return await new Promise((resolve) => {
+    let resolved = false;
+    const finalize = (handled) => {
+      if (resolved) return;
+      resolved = true;
+      res.off("finish", onFinish);
+      res.off("close", onClose);
+      resolve(handled);
+    };
+    const onFinish = () => finalize(true);
+    const onClose = () => finalize(res.writableEnded);
+
+    res.once("finish", onFinish);
+    res.once("close", onClose);
+
+    try {
+      middleware(req, res, () => finalize(false));
+    } catch (error) {
+      console.error("Marketing middleware execution failed", error);
+      finalize(false);
+    }
+  });
 };
 
 const getRequestCookies = (req) => {
@@ -571,6 +754,10 @@ async function createDevServer() {
       return;
     }
 
+    if (await handleMarketingRequest(req, res, "development")) {
+      return;
+    }
+
     if (url.startsWith("/rsc/features")) {
       try {
         const mod = await vite.ssrLoadModule("/src/entry-server.jsx");
@@ -847,6 +1034,10 @@ async function createProdServer() {
     }
 
     if (handleSeoRoutes(req, res, "production")) {
+      return;
+    }
+
+    if (await handleMarketingRequest(req, res, "production")) {
       return;
     }
     if (url.startsWith("/rsc/features")) {

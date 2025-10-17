@@ -4236,8 +4236,7 @@ main :where(section, div)[id] {
   inset: clamp(1.5rem, 3vw, 2.75rem);
   border-radius: inherit;
   background: var(--hero-preview-inner-glow);
-  filter: blur(45px);
-  opacity: 0.85;
+  opacity: 0.72;
   z-index: 0;
 }
 

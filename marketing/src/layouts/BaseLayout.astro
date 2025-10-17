@@ -1,0 +1,79 @@
+---
+import "@frontend/styles/global.css";
+import "@frontend/styles/landing.css";
+import "../styles/marketing.css";
+
+interface Props {
+  title?: string;
+  description?: string;
+  canonical?: string;
+  pageClass?: string;
+  structuredData?: Record<string, unknown> | Record<string, unknown>[];
+}
+
+const {
+  title = "Artifically — Enterprise AI automation platform",
+  description = "Launch compliant AI automations in minutes with audited workflows, observability, and deep enterprise integrations.",
+  canonical = "https://artifically.com/",
+  pageClass = "",
+  structuredData = [],
+} = Astro.props as Props;
+
+const structuredPayload = Array.isArray(structuredData) ? structuredData : [structuredData];
+---
+<!DOCTYPE html>
+<html lang="en" class="marketing">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>{title}</title>
+    <meta name="description" content={description} />
+    <link rel="canonical" href={canonical} />
+    <meta property="og:type" content="website" />
+    <meta property="og:title" content={title} />
+    <meta property="og:description" content={description} />
+    <meta property="og:url" content={canonical} />
+    <meta property="og:image" content="/images/hero-preview.jpg" />
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:title" content={title} />
+    <meta name="twitter:description" content={description} />
+    <meta name="twitter:image" content="/images/hero-preview.jpg" />
+    <link rel="preload" as="font" type="font/woff2" href="/fonts/inter-var.woff2" crossorigin="anonymous" />
+    {structuredPayload.filter(Boolean).map((schema) => (
+      <script type="application/ld+json">{JSON.stringify(schema)}</script>
+    ))}
+  </head>
+  <body class={`marketing-body ${pageClass}`}>
+    <div class="marketing-shell">
+      <header class="marketing-header">
+        <div class="marketing-header__inner">
+          <a href="/" class="marketing-logo" aria-label="Artifically home">
+            <span style="font-weight: 700; font-size: 1.1rem; letter-spacing: 0.08em; text-transform: uppercase;">Artifically</span>
+          </a>
+          <nav class="marketing-nav" aria-label="Primary">
+            <a href="/" data-active={Astro.url.pathname === "/"}>Platform</a>
+            <a href="/pricing" data-active={Astro.url.pathname === "/pricing"}>Pricing</a>
+            <a href="/marketplace">Marketplace</a>
+            <a href="/case-studies">Case Studies</a>
+            <a href="/docs">Docs</a>
+            <a class="marketing-nav__cta" href="/signup">Start free trial</a>
+          </nav>
+        </div>
+      </header>
+      <main id="main-content" class="marketing-main">
+        <slot />
+      </main>
+      <footer class="marketing-footer">
+        <div class="marketing-footer__inner">
+          <span>© {new Date().getFullYear()} Artifically. Built for enterprise scale.</span>
+          <div style="display:flex; gap:1rem; flex-wrap:wrap;">
+            <a href="/privacy">Privacy</a>
+            <a href="/terms">Terms</a>
+            <a href="/security">Security</a>
+            <a href="/status">Status</a>
+          </div>
+        </div>
+      </footer>
+    </div>
+  </body>
+</html>

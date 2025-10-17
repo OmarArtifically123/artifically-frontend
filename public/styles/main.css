@@ -9,10 +9,11 @@
 .hero[data-animate-root="true"],
 .hero[data-animate-root] {
   position: relative;
+  isolation: isolate;
 }
 
-.hero[data-animate-root="true"]::after,
-.hero[data-animate-root]::after {
+.hero[data-animate-root="true"]::before,
+.hero[data-animate-root]::before {
   content: "";
   position: fixed;
   inset: 0;
@@ -21,15 +22,32 @@
   pointer-events: none;
   background: var(--deferred-hero-glow);
   opacity: 0.75;
-  filter: blur(36px);
-  z-index: 0;
+  z-index: -1;
   transform: translateZ(0);
   transition: opacity 280ms ease;
 }
 
-.hero[data-animate-root="true"][data-ready="false"]::after,
-.hero[data-animate-root][data-ready="false"]::after {
+.hero[data-animate-root="true"][data-ready="false"]::before,
+.hero[data-animate-root][data-ready="false"]::before {
   opacity: 0.4;
+}
+
+.hero[data-animate-root="true"]::after,
+.hero[data-animate-root]::after {
+  content: "";
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: 0;
+  bottom: -16vh;
+  pointer-events: none;
+  background: linear-gradient(
+    180deg,
+    color-mix(in srgb, var(--bg-to) 0%, transparent) 0%,
+    color-mix(in srgb, var(--bg-to) 85%, transparent) 70%,
+    var(--bg-to) 100%
+  );
+  z-index: -1;
 }
 
 .marketplace[data-glass="true"] {

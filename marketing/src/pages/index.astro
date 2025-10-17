@@ -1,0 +1,122 @@
+---
+import BaseLayout from "../layouts/BaseLayout.astro";
+import HeroIsland from "../components/HeroIsland.jsx";
+import PricingMatrix from "../components/PricingMatrix.jsx";
+import Testimonials from "../components/Testimonials.jsx";
+
+const heroSchema = {
+  "@context": "https://schema.org",
+  "@type": "WebSite",
+  name: "Artifically Platform",
+  url: "https://artifically.com/",
+  potentialAction: {
+    "@type": "SearchAction",
+    target: "https://artifically.com/marketplace?query={search_term_string}",
+    "query-input": "required name=search_term_string",
+  },
+};
+
+const breadcrumbSchema = {
+  "@context": "https://schema.org",
+  "@type": "BreadcrumbList",
+  itemListElement: [
+    { "@type": "ListItem", position: 1, name: "Home", item: "https://artifically.com/" },
+  ],
+};
+
+const differentiators = [
+  {
+    title: "Hybrid rendering built-in",
+    description:
+      "Astro delivers instant Time-to-First-Byte while React Server Components hydrate advanced previews once the network is ready.",
+  },
+  {
+    title: "Enterprise guardrails",
+    description:
+      "Fine-grained policy controls, SCIM provisioning, and signed execution logs keep compliance teams in the loop.",
+  },
+  {
+    title: "Composable integrations",
+    description:
+      "250+ connectors for ERPs, CRMs, knowledge bases, and on-premises data sources with regional residency guarantees.",
+  },
+];
+
+const impactCards = [
+  {
+    title: "Deploy safely",
+    body: "Policy-aware workflows catch regressions before they reach production with automated approvals and replay sandboxes.",
+  },
+  {
+    title: "Observe everything",
+    body: "Streaming analytics provide live ROI snapshots, anomaly alerts, and customizable governance dashboards for leadership.",
+  },
+  {
+    title: "Scale globally",
+    body: "Dedicated regional data planes and resilience primitives keep automations online across 40+ regions.",
+  },
+];
+---
+<BaseLayout
+  title="Artifically — Launch enterprise AI automations in minutes"
+  description="Blend Astro SSR with React Server Components to ship marketing pages that stream instantly while preserving interactivity."
+  canonical="https://artifically.com/"
+  structuredData={[heroSchema, breadcrumbSchema]}
+>
+  <HeroIsland client:load endpoint="/rsc/marketing/home" />
+
+  <section class="marketing-section" aria-labelledby="why-artifically">
+    <div>
+      <h2 id="why-artifically">Why teams choose Artifically</h2>
+      <p class="marketing-section__lede">
+        Ship automation programs with the confidence of audited change control, streaming observability, and best-in-class customer experience tooling.
+      </p>
+    </div>
+    <div class="marketing-feature-grid">
+      {differentiators.map((item) => (
+        <article class="marketing-feature-card" key={item.title}>
+          <h3>{item.title}</h3>
+          <p>{item.description}</p>
+        </article>
+      ))}
+    </div>
+  </section>
+
+  <section class="marketing-section" aria-labelledby="impact">
+    <div>
+      <h2 id="impact">Operational impact that compounds</h2>
+      <p class="marketing-section__lede">
+        End-to-end visibility means automation, revenue, and operations teams share the same truth—from trigger to outcome.
+      </p>
+    </div>
+    <div class="marketing-bento">
+      {impactCards.map((card) => (
+        <article class="marketing-bento__card" key={card.title}>
+          <h3>{card.title}</h3>
+          <p>{card.body}</p>
+        </article>
+      ))}
+    </div>
+  </section>
+
+  <section class="marketing-section">
+    <PricingMatrix client:idle />
+  </section>
+
+  <section class="marketing-section">
+    <Testimonials client:visible />
+  </section>
+
+  <section class="marketing-section">
+    <div class="marketing-cta">
+      <h2>Ready to orchestrate automations across every team?</h2>
+      <p>
+        Connect to your existing stack, define guardrails, and ship production-ready workflows with real-time telemetry in under a day.
+      </p>
+      <div class="marketing-cta__actions">
+        <a href="/signup">Start free trial</a>
+        <a href="/contact">Talk to sales</a>
+      </div>
+    </div>
+  </section>
+</BaseLayout>

@@ -90,7 +90,7 @@ export default function MarketingHomeServer() {
                   alt="Artifically automation workspace preview"
                   loading="eager"
                   decoding="sync"
-                  fetchPriority="high"
+                  fetchpriority="high"
                   sizes={HERO_PREVIEW_SIZES}
                 />
               </picture>

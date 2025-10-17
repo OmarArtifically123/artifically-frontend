@@ -1,0 +1,496 @@
+:root {
+  --marketing-max-width: min(1200px, 92vw);
+  --marketing-text-color: var(--gray-100);
+  --marketing-muted: color-mix(in oklch, white 86%, var(--gray-900));
+  --marketing-border: color-mix(in oklch, transparent 65%, var(--landing-border));
+  --marketing-surface: color-mix(in oklch, var(--landing-surface) 75%, transparent);
+  --marketing-card-surface: color-mix(in oklch, var(--glass-gradient-primary) 35%, transparent);
+  --marketing-grid-gap: clamp(2rem, 5vw, 3.5rem);
+  --marketing-radius: clamp(1.5rem, 2vw, 2.5rem);
+  --marketing-elevated-shadow: 0 28px 80px color-mix(in oklch, var(--brand-depth) 35%, transparent);
+}
+
+body.marketing-body {
+  font-family: var(--font-body);
+  background: radial-gradient(circle at 0% -10%, color-mix(in oklch, var(--brand-glow) 25%, transparent) 0%, transparent 55%),
+    radial-gradient(circle at 90% 5%, color-mix(in oklch, var(--brand-energy) 30%, transparent) 0%, transparent 48%),
+    linear-gradient(160deg, color-mix(in oklch, var(--brand-depth) 80%, black) 0%, color-mix(in oklch, var(--brand-muted) 15%, black) 100%);
+  color: var(--marketing-text-color);
+  min-height: 100vh;
+  margin: 0;
+  overflow-x: hidden;
+  background-attachment: fixed;
+}
+
+.marketing-shell {
+  display: grid;
+  min-height: 100vh;
+  grid-template-rows: auto 1fr auto;
+}
+
+.marketing-header {
+  position: sticky;
+  top: 0;
+  z-index: 20;
+  backdrop-filter: blur(18px);
+  background: color-mix(in oklch, transparent 60%, var(--glass-gradient-primary));
+  border-bottom: 1px solid var(--marketing-border);
+}
+
+.marketing-header__inner {
+  width: var(--marketing-max-width);
+  margin: 0 auto;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1.5rem;
+  padding: clamp(1rem, 1.5vw, 1.75rem) 0;
+}
+
+.marketing-nav {
+  display: flex;
+  gap: clamp(1rem, 2vw, 2rem);
+  align-items: center;
+}
+
+.marketing-nav a {
+  color: color-mix(in oklch, white 85%, var(--gray-400));
+  font-weight: 500;
+  text-decoration: none;
+  font-size: var(--text-sm);
+  position: relative;
+  transition: color 0.2s ease;
+}
+
+.marketing-nav a::after {
+  content: "";
+  position: absolute;
+  inset-inline: 0;
+  bottom: -0.4rem;
+  height: 2px;
+  background: var(--primary-gradient);
+  border-radius: 999px;
+  opacity: 0;
+  transform: scaleX(0.5);
+  transition: opacity 0.2s ease, transform 0.2s ease;
+}
+
+.marketing-nav a:hover,
+.marketing-nav a:focus-visible {
+  color: white;
+}
+
+.marketing-nav a:hover::after,
+.marketing-nav a:focus-visible::after,
+.marketing-nav a[data-active="true"]::after {
+  opacity: 1;
+  transform: scaleX(1);
+}
+
+.marketing-nav__cta {
+  padding: 0.65rem 1.45rem;
+  border-radius: 999px;
+  font-weight: 600;
+  background: var(--primary-gradient);
+  color: var(--gray-900);
+  box-shadow: var(--shadow-glow);
+}
+
+main.marketing-main {
+  display: grid;
+  gap: clamp(4rem, 8vw, 7rem);
+  padding: clamp(2rem, 4vw, 4rem) 0 clamp(4rem, 8vw, 7rem);
+}
+
+.marketing-section {
+  width: var(--marketing-max-width);
+  margin: 0 auto;
+  display: grid;
+  gap: clamp(1.5rem, 2vw, 2.5rem);
+}
+
+.marketing-section h2 {
+  font-size: clamp(2rem, 4vw, 3rem);
+  line-height: 1.1;
+  margin: 0;
+  font-family: var(--font-heading);
+}
+
+.marketing-section__lede {
+  color: var(--marketing-muted);
+  max-width: 70ch;
+  font-size: var(--text-lg);
+}
+
+.marketing-feature-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+  gap: clamp(1.5rem, 2vw, 2.25rem);
+}
+
+.marketing-feature-card {
+  padding: clamp(1.5rem, 2vw, 2rem);
+  border-radius: var(--marketing-radius);
+  background: var(--marketing-card-surface);
+  border: 1px solid var(--marketing-border);
+  box-shadow: 0 20px 45px color-mix(in oklch, var(--brand-depth) 30%, transparent);
+  display: grid;
+  gap: 1rem;
+}
+
+.marketing-feature-card h3 {
+  margin: 0;
+  font-size: var(--text-xl);
+}
+
+.marketing-feature-card p {
+  margin: 0;
+  color: var(--marketing-muted);
+  font-size: var(--text-base);
+}
+
+.marketing-bento {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: var(--marketing-grid-gap);
+}
+
+.marketing-bento__card {
+  border-radius: var(--marketing-radius);
+  padding: clamp(1.75rem, 2.2vw, 2.5rem);
+  background: color-mix(in oklch, transparent 55%, var(--glass-gradient-primary));
+  border: 1px solid var(--marketing-border);
+  box-shadow: var(--marketing-elevated-shadow);
+  display: grid;
+  gap: 1rem;
+}
+
+.marketing-bento__card h3 {
+  margin: 0;
+  font-size: clamp(1.5rem, 2.5vw, 2.15rem);
+}
+
+.marketing-cta {
+  text-align: center;
+  background: radial-gradient(circle at top, color-mix(in oklch, var(--brand-glow) 35%, transparent) 0%, transparent 65%),
+    color-mix(in oklch, var(--brand-depth) 80%, black);
+  padding: clamp(3rem, 6vw, 5rem);
+  border-radius: calc(var(--marketing-radius) * 1.35);
+  border: 1px solid var(--marketing-border);
+  box-shadow: var(--shadow-ambient);
+}
+
+.marketing-cta h2 {
+  font-size: clamp(2.25rem, 4vw, 3.25rem);
+  margin-bottom: 1rem;
+}
+
+.marketing-cta p {
+  max-width: 58ch;
+  margin: 0 auto 2rem;
+  font-size: var(--text-lg);
+  color: var(--marketing-muted);
+}
+
+.marketing-cta__actions {
+  display: flex;
+  justify-content: center;
+  gap: 1rem;
+  flex-wrap: wrap;
+}
+
+.marketing-cta__actions a {
+  padding: 0.85rem 1.85rem;
+  border-radius: 999px;
+  font-weight: 600;
+  text-decoration: none;
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.marketing-cta__actions a:first-of-type {
+  background: var(--primary-gradient);
+  color: var(--gray-900);
+  box-shadow: var(--shadow-glow);
+}
+
+.marketing-cta__actions a:last-of-type {
+  border: 1px solid var(--marketing-border);
+  background: color-mix(in oklch, transparent 60%, var(--glass-gradient-primary));
+  color: var(--marketing-text-color);
+}
+
+.marketing-cta__actions a:hover {
+  transform: translateY(-2px);
+}
+
+.marketing-footer {
+  border-top: 1px solid var(--marketing-border);
+  padding: clamp(2rem, 3vw, 3rem) 0;
+  background: color-mix(in oklch, transparent 70%, var(--glass-gradient-primary));
+}
+
+.marketing-footer__inner {
+  width: var(--marketing-max-width);
+  margin: 0 auto;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 1.5rem;
+  justify-content: space-between;
+  align-items: center;
+  color: color-mix(in oklch, white 75%, var(--gray-400));
+}
+
+.hero-island {
+  position: relative;
+  width: 100%;
+}
+
+.hero-island[data-status="loading"]::after {
+  content: "Loading live preview…";
+  position: absolute;
+  inset: auto 1.5rem 1.5rem auto;
+  font-size: var(--text-sm);
+  color: color-mix(in oklch, white 70%, var(--gray-500));
+  letter-spacing: 0.08em;
+}
+
+.hero-island[data-status="error"]::after {
+  content: "Live preview unavailable";
+  position: absolute;
+  inset: auto 1.5rem 1.5rem auto;
+  font-size: var(--text-sm);
+  color: color-mix(in oklch, var(--warning-bold) 55%, white);
+  letter-spacing: 0.08em;
+}
+
+.hero-island__fallback[hidden] {
+  display: none;
+}
+
+.marketing-testimonial {
+  position: relative;
+  overflow: hidden;
+  border-radius: var(--marketing-radius);
+  border: 1px solid var(--marketing-border);
+  background: color-mix(in oklch, transparent 50%, var(--glass-gradient-primary));
+  box-shadow: var(--marketing-elevated-shadow);
+  padding: clamp(2rem, 3vw, 3rem);
+}
+
+.marketing-testimonial blockquote {
+  margin: 0;
+  font-size: clamp(1.2rem, 2vw, 1.6rem);
+  line-height: 1.6;
+  color: var(--marketing-muted);
+}
+
+.marketing-testimonial footer {
+  margin-top: 1.5rem;
+  font-weight: 600;
+  color: white;
+}
+
+.marketing-testimonial__role {
+  display: block;
+  font-weight: 400;
+  color: color-mix(in oklch, white 70%, var(--gray-400));
+  font-size: var(--text-sm);
+}
+
+.pricing-matrix {
+  display: grid;
+  gap: clamp(2rem, 3vw, 3rem);
+}
+
+.pricing-matrix__header {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  gap: 1.5rem;
+  align-items: center;
+}
+
+.pricing-matrix__header h2 {
+  margin-bottom: 0.5rem;
+}
+
+.pricing-matrix__header p {
+  margin: 0;
+  color: var(--marketing-muted);
+  max-width: 45ch;
+}
+
+.pricing-matrix__toggle {
+  display: inline-flex;
+  padding: 0.4rem;
+  border-radius: 999px;
+  background: color-mix(in oklch, transparent 55%, var(--glass-gradient-primary));
+  border: 1px solid var(--marketing-border);
+  gap: 0.25rem;
+}
+
+.pricing-matrix__toggle label {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  padding: 0.35rem 0.85rem;
+  border-radius: 999px;
+  cursor: pointer;
+  font-size: var(--text-sm);
+  transition: background 0.2s ease, color 0.2s ease;
+}
+
+.pricing-matrix__toggle label[data-active="true"] {
+  background: var(--primary-gradient);
+  color: var(--gray-900);
+  font-weight: 600;
+}
+
+.pricing-matrix__toggle input {
+  display: none;
+}
+
+.pricing-matrix__grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+  gap: clamp(1.5rem, 2.5vw, 2.75rem);
+}
+
+.pricing-card {
+  position: relative;
+  border-radius: var(--marketing-radius);
+  border: 1px solid var(--marketing-border);
+  background: color-mix(in oklch, transparent 50%, var(--glass-gradient-primary));
+  box-shadow: var(--marketing-elevated-shadow);
+  padding: clamp(1.75rem, 2.5vw, 2.5rem);
+  display: grid;
+  gap: 1rem;
+}
+
+.pricing-card[data-featured="true"] {
+  border-color: color-mix(in oklch, var(--brand-glow) 45%, transparent);
+  box-shadow: 0 30px 70px color-mix(in oklch, var(--brand-glow) 28%, transparent);
+}
+
+.pricing-card__badge {
+  position: absolute;
+  top: 1.25rem;
+  right: 1.25rem;
+  font-size: var(--text-xs);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  background: var(--primary-gradient);
+  color: var(--gray-900);
+  padding: 0.35rem 0.85rem;
+  border-radius: 999px;
+  font-weight: 600;
+}
+
+.pricing-card header h3 {
+  margin: 0 0 0.35rem;
+  font-size: clamp(1.45rem, 2vw, 1.75rem);
+}
+
+.pricing-card header p {
+  margin: 0;
+  color: var(--marketing-muted);
+}
+
+.pricing-card__price {
+  font-size: clamp(2rem, 3vw, 2.5rem);
+  display: flex;
+  align-items: baseline;
+  gap: 0.5rem;
+}
+
+.pricing-card__price span {
+  font-size: var(--text-sm);
+  color: var(--marketing-muted);
+}
+
+.pricing-card ul {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  display: grid;
+  gap: 0.75rem;
+  font-size: var(--text-base);
+  color: var(--marketing-muted);
+}
+
+.pricing-card__cta {
+  margin-top: auto;
+  display: inline-flex;
+  justify-content: center;
+  align-items: center;
+  padding: 0.75rem 1.4rem;
+  border-radius: 999px;
+  text-decoration: none;
+  font-weight: 600;
+  color: var(--gray-900);
+  background: var(--primary-gradient);
+  box-shadow: var(--shadow-glow);
+}
+
+.pricing-card[data-plan="enterprise"] .pricing-card__cta {
+  background: color-mix(in oklch, transparent 60%, var(--glass-gradient-primary));
+  color: var(--marketing-text-color);
+  border: 1px solid var(--marketing-border);
+}
+
+.marketing-testimonials {
+  display: grid;
+  gap: clamp(1.75rem, 3vw, 3rem);
+}
+
+.marketing-testimonials__headline {
+  display: grid;
+  gap: 0.75rem;
+}
+
+.marketing-testimonials__headline p {
+  margin: 0;
+  color: var(--marketing-muted);
+  max-width: 60ch;
+}
+
+.marketing-testimonials__selector {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+}
+
+.marketing-testimonials__selector button {
+  border: 1px solid var(--marketing-border);
+  border-radius: 999px;
+  padding: 0.5rem 1rem;
+  background: color-mix(in oklch, transparent 60%, var(--glass-gradient-primary));
+  color: var(--marketing-text-color);
+  font-weight: 500;
+  cursor: pointer;
+  transition: background 0.2s ease, transform 0.2s ease;
+}
+
+.marketing-testimonials__selector button[data-active="true"],
+.marketing-testimonials__selector button:hover,
+.marketing-testimonials__selector button:focus-visible {
+  background: var(--primary-gradient);
+  color: var(--gray-900);
+  transform: translateY(-1px);
+}
+
+.marketing-testimonials__selector span {
+  font-size: var(--text-sm);
+}
+
+@media (max-width: 720px) {
+  .marketing-header__inner {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .marketing-nav {
+    flex-wrap: wrap;
+    row-gap: 0.75rem;
+  }
+}
