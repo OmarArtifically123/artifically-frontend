@@ -1,4 +1,4 @@
-@layer tokens { }
+@import "./tokens/tokens.css" layer(tokens);
 
 @layer design-system-base {
   :root {
@@ -11,6 +11,16 @@
     font-family: var(--ads-typography-families-sans, 'Inter', sans-serif);
   }
 
+  .ads-story-surface {
+    min-height: 100vh;
+    width: 100%;
+    background: var(--ads-color-semantic-background-muted, #f8fafc);
+    color: var(--ads-color-semantic-text-default, #0f172a);
+    padding: var(--ads-spacing-scale-8, 2rem);
+    display: grid;
+    place-items: center;
+  }
+  
   .ads-heading {
     font-weight: var(--ads-typography-weights-semibold, 600);
     color: var(--ads-color-semantic-text-strong, #0f172a);

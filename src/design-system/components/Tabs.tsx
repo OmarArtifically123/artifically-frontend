@@ -13,9 +13,10 @@ export interface TabsProps {
   defaultActiveId?: string;
   onChange?: (id: string) => void;
   className?: string;
+  ariaLabel?: string;
 }
 
-export function Tabs({ items, defaultActiveId, onChange, className }: TabsProps) {
+export function Tabs({ items, defaultActiveId, onChange, className, ariaLabel }: TabsProps) {
   const fallbackId = useId();
   const resolvedItems = items.map<Required<TabItem>>((item, index) => ({
     ...item,
@@ -29,12 +30,13 @@ export function Tabs({ items, defaultActiveId, onChange, className }: TabsProps)
 
   return (
     <div className={cn("ads-tabs", className)}>
-      <div className="ads-tabs__list" role="tablist">
+      <div className="ads-tabs__list" role="tablist" aria-label={ariaLabel}>
         {resolvedItems.map((item) => (
           <button
             key={item.id}
             className="ads-tabs__trigger"
             role="tab"
+            id={item.id}
             type="button"
             data-active={item.id === activeId ? "true" : undefined}
             aria-selected={item.id === activeId}
