@@ -35,6 +35,7 @@ export default function IndustrySolutionPage({ params }: IndustrySolutionPagePro
 
   if (!entry) {
     notFound();
+    return null;
   }
 
   return (

@@ -6,14 +6,14 @@ type BaseSolution = {
   description: string;
 };
 
-type DescribedSolution = BaseSolution & {
+export type IndustrySolution = BaseSolution & {
   icon: IconName;
   headline: string;
   summary: string;
   highlights: string[];
 };
 
-type CaseStudySolution = {
+export type CaseStudySolution = {
   slug: string;
   name: string;
   initials: string;
@@ -23,14 +23,14 @@ type CaseStudySolution = {
   summary: string;
 };
 
-type TeamSizeSolution = BaseSolution & {
+export type TeamSizeSolution = BaseSolution & {
   icon: IconName;
   focus: string;
   summary: string;
   highlights: string[];
 };
 
-export const industrySolutions: DescribedSolution[] = [
+export const industrySolutions: IndustrySolution[] = [
   {
     slug: "ecommerce-retail",
     title: "E-commerce & Retail",
@@ -296,25 +296,54 @@ export const caseStudySolutions: CaseStudySolution[] = [
   },
 ];
 
-export const industrySolutionMap = new Map(industrySolutions.map((entry) => [entry.slug, entry]));
-export const teamSizeSolutionMap = new Map(teamSizeSolutions.map((entry) => [entry.slug, entry]));
-export const caseStudySolutionMap = new Map(caseStudySolutions.map((entry) => [entry.slug, entry]));
+export const industrySolutionMap = new Map<string, IndustrySolution>(
+  industrySolutions.map((entry) => [entry.slug, entry]),
+);
 
-export const industrySolutionLinks = industrySolutions.map((entry) => ({
+export const teamSizeSolutionMap = new Map<string, TeamSizeSolution>(
+  teamSizeSolutions.map((entry) => [entry.slug, entry]),
+);
+
+export const caseStudySolutionMap = new Map<string, CaseStudySolution>(
+  caseStudySolutions.map((entry) => [entry.slug, entry]),
+);
+
+export type IndustrySolutionLink = {
+  href: string;
+  title: string;
+  description: string;
+  icon: IconName;
+};
+
+export const industrySolutionLinks: IndustrySolutionLink[] = industrySolutions.map((entry) => ({
   href: `/solutions/industry/${entry.slug}`,
   title: entry.title,
   description: entry.description,
   icon: entry.icon,
 }));
 
-export const teamSizeSolutionLinks = teamSizeSolutions.map((entry) => ({
+export type TeamSizeSolutionLink = {
+  href: string;
+  title: string;
+  description: string;
+  icon: IconName;
+};
+
+export const teamSizeSolutionLinks: TeamSizeSolutionLink[] = teamSizeSolutions.map((entry) => ({
   href: `/solutions/team-size/${entry.slug}`,
   title: entry.title,
   description: entry.description,
   icon: entry.icon,
 }));
 
-export const caseStudyLinks = caseStudySolutions.map((entry) => ({
+export type CaseStudyLink = {
+  href: string;
+  name: string;
+  initials: string;
+  theme: string;
+};
+
+export const caseStudyLinks: CaseStudyLink[] = caseStudySolutions.map((entry) => ({
   href: `/case-studies/${entry.slug}`,
   name: entry.name,
   initials: entry.initials,

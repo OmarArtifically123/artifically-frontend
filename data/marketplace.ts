@@ -77,9 +77,20 @@ export const marketplaceListings: MarketplaceListing[] = [
   },
 ];
 
-export const marketplaceListingMap = new Map(marketplaceListings.map((listing) => [listing.slug, listing]));
+export const marketplaceListingMap = new Map<string, MarketplaceListing>(
+  marketplaceListings.map((listing) => [listing.slug, listing]),
+);
 
-export const featuredMarketplaceListings = marketplaceListings.map((listing) => ({
+export type MarketplaceListingSummary = {
+  badge: string;
+  title: string;
+  description: string;
+  rating: string;
+  price: string;
+  href: string;
+};
+
+export const featuredMarketplaceListings: MarketplaceListingSummary[] = marketplaceListings.map((listing) => ({
   badge: listing.badge,
   title: listing.title,
   description: listing.description,

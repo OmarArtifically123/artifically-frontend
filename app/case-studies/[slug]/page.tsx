@@ -30,6 +30,7 @@ export default function CaseStudyPage({ params }: CaseStudyPageProps) {
 
   if (!entry) {
     notFound();
+    return null;
   }
 
   return (

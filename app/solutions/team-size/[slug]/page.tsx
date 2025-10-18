@@ -30,6 +30,7 @@ export default function TeamSizeSolutionPage({ params }: TeamSizePageProps) {
 
   if (!entry) {
     notFound();
+    return null;
   }
 
   return (

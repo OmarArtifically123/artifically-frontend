@@ -30,6 +30,7 @@ export default function MarketplaceListingPage({ params }: MarketplacePageProps)
 
   if (!listing) {
     notFound();
+    return null;
   }
 
   return (
