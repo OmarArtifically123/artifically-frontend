@@ -1,3 +1,5 @@
+"use client";
+
 import useIntersectionLazy from "../../hooks/useIntersectionLazy";
 import { Icon } from "../icons";
 
