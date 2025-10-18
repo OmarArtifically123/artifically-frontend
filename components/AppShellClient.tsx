@@ -81,6 +81,21 @@ const cancelIdle = (id: number | ReturnType<typeof setTimeout>) => {
   clearTimeout(id as ReturnType<typeof setTimeout>);
 };
 
+const SESSION_COOKIE_NAME = "__Host-artifically-session";
+
+const hasBrowserSession = () => {
+  if (typeof document === "undefined") {
+    return false;
+  }
+
+  try {
+    return document.cookie.split(";").some((cookie) => cookie.trim().startsWith(`${SESSION_COOKIE_NAME}=`));
+  } catch (error) {
+    console.warn("Unable to inspect session cookie", error);
+    return false;
+  }
+};
+
 type AuthenticatedPayload = {
   user?: AuthUser;
   notice?: string | null;
@@ -126,6 +141,12 @@ export default function AppShellClient({ children }: AppShellClientProps) {
       return undefined;
     }
 
+    if (!hasBrowserSession()) {
+      setUser(null);
+      setAuthChecking(false);
+      return undefined;
+    }
+    
     let mounted = true;
     setAuthChecking(true);
 

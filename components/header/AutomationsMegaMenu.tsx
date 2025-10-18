@@ -4,6 +4,8 @@ import Link from "next/link";
 import { useEffect, useState, type MouseEvent } from "react";
 import { createPortal } from "react-dom";
 
+import { featuredMarketplaceListings } from "@/data/marketplace";
+
 import { Icon } from "../icons";
 import type { IconName } from "../icons";
 type FunctionLink = {
@@ -11,15 +13,6 @@ type FunctionLink = {
   title: string;
   description: string;
   icon: IconName;
-};
-
-type FeaturedAutomation = {
-  badge: string;
-  title: string;
-  description: string;
-  rating: string;
-  price: string;
-  href: string;
 };
 
 type QuickAction = {
@@ -78,41 +71,6 @@ const FUNCTION_LINKS: FunctionLink[] = [
     title: "IT & DevOps",
     description: "Incident management, deployment automation, monitoring",
     icon: "cog",
-  },
-];
-
-const FEATURED_AUTOMATIONS: FeaturedAutomation[] = [
-  {
-    badge: "MOST POPULAR",
-    title: "AI Sales Email Generator",
-    description: "Draft personalized outbound emails at scale using your CRM data and AI.",
-    rating: "⭐ 4.9 (234)",
-    price: "Free",
-    href: "/marketplace/ai-sales-email-generator",
-  },
-  {
-    badge: "NEW",
-    title: "Realtime Support Triage",
-    description: "Route tickets to the right agent instantly with intent and sentiment detection.",
-    rating: "⭐ 5.0 (89)",
-    price: "Free",
-    href: "/marketplace/realtime-support-triage",
-  },
-  {
-    badge: "TRENDING",
-    title: "Marketing Asset Repurposer",
-    description: "Turn webinars into blogs, social posts, and nurture sequences automatically.",
-    rating: "⭐ 4.8 (142)",
-    price: "Free",
-    href: "/marketplace/marketing-asset-repurposer",
-  },
-  {
-    badge: "MOST POPULAR",
-    title: "Finance Reconciliation Copilot",
-    description: "Match invoices and payments nightly with exception routing and alerts.",
-    rating: "⭐ 4.7 (167)",
-    price: "Free",
-    href: "/marketplace/finance-reconciliation-copilot",
   },
 ];
 
@@ -210,7 +168,7 @@ export default function AutomationsMegaMenu({ state, onRequestClose, onNavigate 
           <div className="automations-mega__column automations-mega__column--featured">
             <p className="automations-mega__section-label">FEATURED AUTOMATIONS</p>
             <div className="automations-mega__featured-grid">
-              {FEATURED_AUTOMATIONS.map((card) => (
+              {featuredMarketplaceListings.map((card) => (
                 <Link
                   key={card.href}
                   href={card.href}

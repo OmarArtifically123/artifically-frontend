@@ -235,6 +235,29 @@ export default function Header({ user, onSignIn, onSignUp, onSignOut }) {
     }
   }, [solutionsMenuState]);
 
+  useEffect(() => {
+    if (solutionsMenuState === "closed") {
+      return undefined;
+    }
+
+    const handlePointerDown = (event) => {
+      const panel = document.querySelector(".solutions-mega__panel");
+      if (!panel) {
+        return;
+      }
+      if (
+        panel.contains(event.target) ||
+        solutionsTriggerRef.current?.contains(event.target)
+      ) {
+        return;
+      }
+      closeSolutionsMenu({ focusTrigger: false });
+    };
+
+    document.addEventListener("pointerdown", handlePointerDown);
+    return () => document.removeEventListener("pointerdown", handlePointerDown);
+  }, [solutionsMenuState, closeSolutionsMenu]);
+  
   const commitPrediction = useCallback(
     (path, ttl = 1600) => {
       if (!path || path === pathname) {
@@ -689,7 +712,7 @@ export default function Header({ user, onSignIn, onSignUp, onSignOut }) {
                     </StaggeredItem>
                   );
                 }
-                
+
                 const isActive = item.sections.some((section) =>
                   section.links.some((link) => link.path === pathname),
                 );
