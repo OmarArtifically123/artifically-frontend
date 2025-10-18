@@ -53,10 +53,6 @@ export default defineConfig({
           find: "@marketing",
           replacement: fileURLToPath(new URL("./src", import.meta.url)),
         },
-        {
-          find: /^zustand$/,
-          replacement: fileURLToPath(new URL("../lib/zustand/react-safe.ts", import.meta.url)),
-        },
       ],
     },
     optimizeDeps: {

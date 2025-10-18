@@ -1,4 +1,4 @@
-import path, { dirname, resolve } from "path";
+import { dirname, resolve } from "path";
 import { fileURLToPath } from "url";
 
 const __filename = fileURLToPath(import.meta.url);
@@ -11,13 +11,14 @@ const nextConfig = {
     domains: ["artifically.com"],
   },
   webpack(config) {
-    // ✅ Ensure third-party React ecosystem packages resolve to the workspace copy without
-    //    overriding Next.js' own React runtime (which provides required experimental APIs).
+    // ✅ Resolve React ecosystem packages correctly without overriding Next.js' runtime
     config.resolve.alias = {
       ...(config.resolve.alias ?? {}),
+      react: resolve(__dirname, "node_modules/react"),
+      "react-dom": resolve(__dirname, "node_modules/react-dom"),
       "@react-three/fiber": resolve(__dirname, "node_modules/@react-three/fiber"),
       "@react-three/drei": resolve(__dirname, "node_modules/@react-three/drei"),
-      "zustand$": resolve(__dirname, "lib/zustand/react-safe.ts"),
+      zustand: resolve(__dirname, "node_modules/zustand"),
     };
 
     return config;
