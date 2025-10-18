@@ -33,7 +33,7 @@ const defaultLogos = [
   "Northwind", "Aurora", "Nimbus", "Atlas", "Velocity", "Zenith", "Skyline", "Lumen",
 ];
 
-export default function HeroSection({ onPrimary, onSecondary, demoDialogId, demoOpen }) {
+export default function HeroSection({ onPrimary, onSecondary, demoDialogId, demoOpen, onReady }) {
   const gradientId = useMemo(() => `heroGradient-${Math.random().toString(36).slice(2)}`, []);
   const [primaryLabel, setPrimaryLabel] = useState("Start Free Trial");
   const [secondaryLabel, setSecondaryLabel] = useState("Watch Demo");
@@ -93,6 +93,12 @@ export default function HeroSection({ onPrimary, onSecondary, demoDialogId, demo
     initialInView: initialHeroInView,
   });
 
+  useEffect(() => {
+    if (typeof onReady === "function") {
+      onReady();
+    }
+  }, [onReady]);
+  
   const heroContentVariants = useMemo(() => {
     const hidden = { opacity: 0 };
     if (!prefersReducedMotion) {
