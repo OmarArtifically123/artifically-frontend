@@ -8,6 +8,7 @@ function ServerRenderedHero({ hidden = false }) {
     <div
       className="marketing-rsc-shell"
       data-enhanced="false"
+      data-hero-static="true"
       hidden={hidden}
       aria-hidden={hidden}
     >

@@ -15,6 +15,9 @@ type AppShellContextValue = {
   setUser: (user: AuthUser) => void;
   user: AuthUser;
   authChecking: boolean;
+  signOut: () => void | Promise<void>;
+  isHydrated: boolean;
+  isNavigating: boolean;
 };
 
 const AppShellContext = createContext<AppShellContextValue | undefined>(undefined);

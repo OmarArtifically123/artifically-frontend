@@ -1,5 +1,5 @@
-import HomePageClient from "@/app/(site)/_components/HomePageClient";
+import HomePage from "@/app/(site)/_components/HomePage";
 
 export default function HomeRoute() {
-  return <HomePageClient />;
+  return <HomePage />;
 }
