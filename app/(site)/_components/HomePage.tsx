@@ -10,6 +10,7 @@ import {
   useLayoutEffect,
   useState,
 } from "react";
+import { ErrorBoundary } from "react-error-boundary";
 import type { AuthMode } from "@/context/AppShellContext";
 import ProblemSolutionSection from "@/components/landing/ProblemSolutionSection";
 import FeaturesShowcaseSection from "@/components/landing/FeaturesShowcaseSection";
@@ -63,20 +64,30 @@ export default function HomePage({ openAuth }: HomePageProps) {
     setEnhanceHero(true);
   }, []);
 
+  const handleHeroError = useCallback((error: unknown) => {
+    if (process.env.NODE_ENV !== "production") {
+      // eslint-disable-next-line no-console -- Surface lazy loading issues in development
+      console.error("Hero enhancement failed", error);
+    }
+    setEnhanceHero(false);
+  }, []);
+
   return (
     <>
       <div className="home-page" role="presentation">
         <ServerRenderedHero hidden={!showStaticHero} />
         {enhanceHero ? (
-          <Suspense fallback={null}>
-            <HeroSectionIsland
-              onReady={handleHeroReady}
-              onPrimary={handlePrimary}
-              onSecondary={handleSecondary}
-              demoDialogId={demoDialogId}
-              demoOpen={demoOpen}
-            />
-          </Suspense>
+          <ErrorBoundary fallback={null} onError={handleHeroError}>
+            <Suspense fallback={null}>
+              <HeroSectionIsland
+                onReady={handleHeroReady}
+                onPrimary={handlePrimary}
+                onSecondary={handleSecondary}
+                demoDialogId={demoDialogId}
+                demoOpen={demoOpen}
+              />
+            </Suspense>
+          </ErrorBoundary>
         ) : null}
         <PersonaScenarioSection />
         <ProblemSolutionSection />
