@@ -1,5 +1,8 @@
+import React from 'react';
+import './setupDom';
+import '@testing-library/jest-dom/vitest';
 import { render, screen } from '@testing-library/react';
-import { vi } from 'vitest';
+import { describe, expect, it, vi } from 'vitest';
 
 import HeroSection from '../HeroSection';
 
@@ -25,7 +28,14 @@ describe('HeroSection', () => {
     const handlePrimary = vi.fn();
     const handleSecondary = vi.fn();
 
-    render(<HeroSection onPrimary={handlePrimary} onSecondary={handleSecondary} />);
+    render(
+      <HeroSection
+        onPrimary={handlePrimary}
+        onSecondary={handleSecondary}
+        demoDialogId="demo-dialog"
+        demoOpen={false}
+      />,
+    );
 
     expect(
       screen.getByRole('heading', {

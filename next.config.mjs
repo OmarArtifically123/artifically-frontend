@@ -11,15 +11,20 @@ const nextConfig = {
     domains: ["artifically.com"],
   },
   webpack(config) {
-    // ✅ Resolve React ecosystem packages correctly without overriding Next.js' runtime
-    config.resolve.alias = {
-      ...(config.resolve.alias ?? {}),
-      react: resolve(__dirname, "node_modules/react"),
-      "react-dom": resolve(__dirname, "node_modules/react-dom"),
-      "@react-three/fiber": resolve(__dirname, "node_modules/@react-three/fiber"),
-      "@react-three/drei": resolve(__dirname, "node_modules/@react-three/drei"),
-      zustand: resolve(__dirname, "node_modules/zustand"),
+    // ✅ Ensure peer dependencies resolve to the project copy without clobbering Next.js internals
+    const alias = { ...(config.resolve.alias ?? {}) };
+
+    const ensureAlias = (key, target) => {
+      if (!alias[key]) {
+        alias[key] = resolve(__dirname, target);
+      }
     };
+
+    ensureAlias("@react-three/fiber", "node_modules/@react-three/fiber");
+    ensureAlias("@react-three/drei", "node_modules/@react-three/drei");
+    ensureAlias("zustand", "node_modules/zustand");
+
+    config.resolve.alias = alias;
 
     return config;
   },

@@ -1,7 +1,8 @@
+import React from "react";
 import { act, render, screen, waitFor } from "@testing-library/react";
 import { describe, expect, it } from "vitest";
-import { ThemeProvider } from "../../context/ThemeContext.jsx";
-import { toast, ToastHost } from "../../../components/Toast.jsx";
+import { ThemeProvider } from "@/context/ThemeContext";
+import { toast, ToastHost } from "@/components/Toast";
 
 describe("ToastHost", () => {
   it("exposes an aria live region for announcements", async () => {

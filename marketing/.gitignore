@@ -1,0 +1,44 @@
+# ─── Node ────────────────────────────────────────────────
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+package-lock.json
+
+# ─── Build Artifacts ─────────────────────────────────────
+dist/
+.cache/
+.out/
+astro.build/
+.vercel/
+.netlify/
+.tmp/
+temp/
+build/
+
+# ─── Environment / Secrets ───────────────────────────────
+.env
+.env.local
+.env.production
+.env.development
+.env.*.local
+
+# ─── Logs / Reports ─────────────────────────────────────
+*.log
+*.tsbuildinfo
+*.eslintcache
+*.DS_Store
+
+# ─── Astro Specific ──────────────────────────────────────
+.astro/
+astro.config.ts.timestamp-*
+astro.config.mjs.timestamp-*
+
+# ─── Editor / IDE ────────────────────────────────────────
+.vscode/
+.idea/
+*.swp
+
+# ─── OS / Misc ───────────────────────────────────────────
+Thumbs.db
+.DS_Store
