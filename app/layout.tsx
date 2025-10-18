@@ -1,6 +1,7 @@
 import type { Metadata, Viewport } from "next";
 import AppShell from "@/components/AppShell";
 import { ThemeProvider } from "@/context/ThemeContext";
+import { getThemeBootstrapScript } from "@/lib/themeScript";
 import "./globals.css";
 
 export const metadata: Metadata = {
@@ -49,6 +50,8 @@ export const viewport: Viewport = {
   themeColor: "#6366f1",
 };
 
+const themeBootstrapScript = getThemeBootstrapScript();
+
 export default function RootLayout({
   children,
 }: {
@@ -59,6 +62,10 @@ export default function RootLayout({
       <head>
         <meta name="viewport" content="width=device-width, initial-scale=1" />
         <meta name="msapplication-TileColor" content="#6366f1" />
+        <script
+          id="theme-bootstrap"
+          dangerouslySetInnerHTML={{ __html: themeBootstrapScript }}
+        />
         <link rel="dns-prefetch" href="https://fonts.googleapis.com" />
         <link rel="dns-prefetch" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
         <link rel="dns-prefetch" href="https://cdn.jsdelivr.net" />

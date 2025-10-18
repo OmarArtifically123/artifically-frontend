@@ -8,6 +8,8 @@ export function getSSRDiagnostics() {
   return {
     ssrSuccess: Boolean(window.__SSR_SUCCESS__),
     ssrDebug: window.__SSR_DEBUG__ || null,
+    theme: window.__SSR_THEME__ || null,
+    contrast: window.__SSR_CONTRAST__ || null,
     ssrFallback: Boolean(document.querySelector('meta[name="x-ssr-fallback"]')),
     hasPrerenderedContent: Boolean(root?.hasChildNodes?.()),
     hasReactRoot: Boolean(document.querySelector("[data-reactroot]")),
@@ -48,6 +50,8 @@ export function logSSRStatus() {
     console.group("🔍 SSR Diagnostics");
     console.log("SSR Success:", diagnostics.ssrSuccess);
     console.log("SSR Debug Payload:", diagnostics.ssrDebug);
+    console.log("Resolved Theme:", diagnostics.theme);
+    console.log("Resolved Contrast:", diagnostics.contrast);
     console.log("Has Prerendered Content:", diagnostics.hasPrerenderedContent);
     console.log("Has Initial Loading Skeleton:", diagnostics.hasInitialLoading);
     if (diagnostics.ssrFallback) {

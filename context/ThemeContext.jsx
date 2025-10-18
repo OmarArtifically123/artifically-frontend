@@ -2,21 +2,32 @@
 
 import { createContext, useContext, useEffect, useMemo, useState, useCallback } from "react";
 
+import {
+  CONTRAST_DEFAULT,
+  CONTRAST_HIGH,
+  CONTRAST_OPTIONS,
+  CONTRAST_STORAGE_KEY,
+  THEME_DARK,
+  THEME_LIGHT,
+  THEME_OPTIONS,
+  THEME_STORAGE_KEY,
+} from "./themeConstants";
+
 const ThemeContext = createContext();
-const STORAGE_KEY = "theme";
-const CONTRAST_STORAGE_KEY = "theme-contrast";
-const CONTRAST_DEFAULT = "standard";
+
+const THEME_SET = new Set(THEME_OPTIONS);
+const CONTRAST_SET = new Set(CONTRAST_OPTIONS);
 
 const resolveContrastAttribute = () => {
   if (typeof document === "undefined") return null;
 
   const attr = document.documentElement.getAttribute("data-contrast");
-  if (attr === "high" || attr === CONTRAST_DEFAULT) {
+  if (attr && CONTRAST_SET.has(attr)) {
     return attr;
   }
 
   const bodyAttr = document.body?.dataset?.contrast;
-  if (bodyAttr === "high" || bodyAttr === CONTRAST_DEFAULT) {
+  if (bodyAttr && CONTRAST_SET.has(bodyAttr)) {
     return bodyAttr;
   }
 
@@ -27,12 +38,12 @@ const resolveThemeAttribute = () => {
   if (typeof document === "undefined") return null;
 
   const attr = document.documentElement.getAttribute("data-theme");
-  if (attr === "dark" || attr === "light") {
+  if (attr && THEME_SET.has(attr)) {
     return attr;
   }
 
   const bodyAttr = document.body?.dataset?.theme;
-  if (bodyAttr === "dark" || bodyAttr === "light") {
+  if (bodyAttr && THEME_SET.has(bodyAttr)) {
     return bodyAttr;
   }
 
@@ -41,16 +52,16 @@ const resolveThemeAttribute = () => {
 
 const detectPreferredTheme = () => {
   if (typeof window === "undefined" || !window.matchMedia) {
-    return "dark";
+    return THEME_DARK;
   }
-  return window.matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light";
+  return window.matchMedia("(prefers-color-scheme: dark)").matches ? THEME_DARK : THEME_LIGHT;
 };
 
 const detectPreferredContrast = () => {
   if (typeof window === "undefined" || !window.matchMedia) {
     return CONTRAST_DEFAULT;
   }
-  return window.matchMedia("(prefers-contrast: more)").matches ? "high" : CONTRAST_DEFAULT;
+  return window.matchMedia("(prefers-contrast: more)").matches ? CONTRAST_HIGH : CONTRAST_DEFAULT;
 };
 
 const readStoredTheme = () => {
@@ -58,8 +69,8 @@ const readStoredTheme = () => {
     return null;
   }
 
-  const stored = window.localStorage.getItem(STORAGE_KEY);
-  return stored === "light" || stored === "dark" ? stored : null;
+  const stored = window.localStorage.getItem(THEME_STORAGE_KEY);
+  return THEME_SET.has(stored) ? stored : null;
 };
 
 const readStoredContrast = () => {
@@ -68,7 +79,7 @@ const readStoredContrast = () => {
   }
 
   const stored = window.localStorage.getItem(CONTRAST_STORAGE_KEY);
-  return stored === "high" || stored === CONTRAST_DEFAULT ? stored : null;
+  return CONTRAST_SET.has(stored) ? stored : null;
 };
 
 const getInitialTheme = () => {
@@ -77,7 +88,7 @@ const getInitialTheme = () => {
     return fromDom;
   }
 
-  return "dark";
+  return THEME_DARK;
 };
 
 const getInitialContrast = () => {
@@ -121,7 +132,8 @@ export function ThemeProvider({ children }) {
     }
 
     if (typeof window !== "undefined") {
-      window.localStorage.setItem(STORAGE_KEY, theme);
+      window.localStorage.setItem(THEME_STORAGE_KEY, theme);
+      window.__SSR_THEME__ = theme;
     }
   }, [theme]);
 
@@ -137,6 +149,7 @@ export function ThemeProvider({ children }) {
 
     if (typeof window !== "undefined") {
       window.localStorage.setItem(CONTRAST_STORAGE_KEY, contrast);
+      window.__SSR_CONTRAST__ = contrast;
     }
   }, [contrast]);
 
@@ -144,11 +157,11 @@ export function ThemeProvider({ children }) {
     if (typeof window === "undefined" || !window.matchMedia) return;
     const media = window.matchMedia("(prefers-color-scheme: dark)");
     const handleChange = (event) => {
-      const stored = window.localStorage.getItem(STORAGE_KEY);
-      if (stored === "light" || stored === "dark") {
+      const stored = window.localStorage.getItem(THEME_STORAGE_KEY);
+      if (stored && THEME_SET.has(stored)) {
         return;
       }
-      setTheme(event.matches ? "dark" : "light");
+      setTheme(event.matches ? THEME_DARK : THEME_LIGHT);
     };
     media.addEventListener?.("change", handleChange);
     return () => media.removeEventListener?.("change", handleChange);
@@ -159,31 +172,31 @@ export function ThemeProvider({ children }) {
     const media = window.matchMedia("(prefers-contrast: more)");
     const handleChange = (event) => {
       const stored = window.localStorage.getItem(CONTRAST_STORAGE_KEY);
-      if (stored === "high" || stored === CONTRAST_DEFAULT) {
+      if (stored && CONTRAST_SET.has(stored)) {
         return;
       }
-      setContrast(event.matches ? "high" : CONTRAST_DEFAULT);
+      setContrast(event.matches ? CONTRAST_HIGH : CONTRAST_DEFAULT);
     };
     media.addEventListener?.("change", handleChange);
     return () => media.removeEventListener?.("change", handleChange);
   }, []);
 
   const toggleTheme = useCallback(() => {
-    setTheme((prev) => (prev === "dark" ? "light" : "dark"));
+    setTheme((prev) => (prev === THEME_DARK ? THEME_LIGHT : THEME_DARK));
   }, []);
 
   const toggleContrast = useCallback(() => {
-    setContrast((prev) => (prev === "high" ? CONTRAST_DEFAULT : "high"));
+    setContrast((prev) => (prev === CONTRAST_HIGH ? CONTRAST_DEFAULT : CONTRAST_HIGH));
   }, []);
 
   const value = useMemo(
     () => ({
       theme,
-      darkMode: theme === "dark",
+      darkMode: theme === THEME_DARK,
       toggleTheme,
       setTheme,
       contrast,
-      highContrast: contrast === "high",
+      highContrast: contrast === CONTRAST_HIGH,
       toggleContrast,
       setContrast,
     }),
