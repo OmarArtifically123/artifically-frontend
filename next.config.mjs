@@ -17,7 +17,7 @@ const nextConfig = {
       ...(config.resolve.alias ?? {}),
       "@react-three/fiber": resolve(__dirname, "node_modules/@react-three/fiber"),
       "@react-three/drei": resolve(__dirname, "node_modules/@react-three/drei"),
-      zustand: resolve(__dirname, "node_modules/zustand"),
+      "zustand$": resolve(__dirname, "lib/zustand/react-safe.ts"),
     };
 
     return config;

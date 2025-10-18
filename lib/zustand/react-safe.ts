@@ -15,11 +15,20 @@ const isServerEnvironment =
   typeof window.navigator === "undefined" ||
   /ServerSideRendering|^Deno\//.test(window.navigator.userAgent ?? "");
 
-function useIsomorphicLayoutEffect(effect: React.EffectCallback, deps?: React.DependencyList) {
-  const hookName: "useEffect" | "useLayoutEffect" =
-    !isServerEnvironment && typeof React.useLayoutEffect === "function" ? "useLayoutEffect" : "useEffect";
+  function resolveEffectHook() {
+  const layoutEffect = Reflect.get(React, "useLayoutEffect") as
+    | typeof React.useEffect
+    | undefined;
 
-  const hook = React[hookName] as typeof React.useEffect;
+  if (!isServerEnvironment && typeof layoutEffect === "function") {
+    return layoutEffect;
+  }
+
+  return Reflect.get(React, "useEffect") as typeof React.useEffect;
+}
+
+function useIsomorphicLayoutEffect(effect: React.EffectCallback, deps?: React.DependencyList) {
+  const hook = resolveEffectHook();
   return hook(effect, deps);
 }
 
