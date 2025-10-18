@@ -113,6 +113,24 @@ export default function Header({ user, onSignIn, onSignUp, onSignOut }) {
     };
   }, [automationsMenuState]);
 
+  const closeAutomationsMenu = useCallback(
+    (options = {}) => {
+      if (options.focusTrigger) {
+        automationsRestoreFocusRef.current = true;
+      }
+      setAutomationsMenuState((current) => {
+        if (prefersReducedMotion) {
+          return "closed";
+        }
+        if (current === "closed") {
+          return current;
+        }
+        return "closing";
+      });
+    },
+    [prefersReducedMotion],
+  );
+
   useEffect(() => {
     if (automationsMenuState === "closed") {
       return undefined;
@@ -390,24 +408,6 @@ export default function Header({ user, onSignIn, onSignUp, onSignOut }) {
     if (typeof window === "undefined") return;
     window.dispatchEvent(new CustomEvent("command-palette:open"));
   }, []);
-
-  const closeAutomationsMenu = useCallback(
-    (options = {}) => {
-      if (options.focusTrigger) {
-        automationsRestoreFocusRef.current = true;
-      }
-      setAutomationsMenuState((current) => {
-        if (prefersReducedMotion) {
-          return "closed";
-        }
-        if (current === "closed") {
-          return current;
-        }
-        return "closing";
-      });
-    },
-    [prefersReducedMotion],
-  );
 
   const toggleAutomationsMenu = useCallback(() => {
     setAutomationsMenuState((current) => {
