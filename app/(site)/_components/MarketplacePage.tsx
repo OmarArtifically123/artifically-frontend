@@ -1,9 +1,8 @@
 // @ts-nocheck
 "use client";
 
-import { useEffect, useMemo, useRef, useState, useId } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState, useId } from "react";
 import { motion, useReducedMotion } from "framer-motion";
-import { fetchAutomations } from "@/data/automations";
 import { toast } from "@/components/Toast";
 import ProductPreview3D from "@/components/landing/ProductPreview3D";
 import { calculateSavings } from "@/utils/calculateSavings";
@@ -12,13 +11,22 @@ import AssistiveHint from "@/components/ui/AssistiveHint";
 import { Icon } from "@/components/icons";
 import useInViewState from "@/hooks/useInViewState";
 import motionCatalog from "@/design/motion/catalog";
+import { useAutomationVote, useMarketplaceAutomations } from "@/hooks/useMarketplaceData";
 
 const categories = ["All", "Sales", "Support", "Operations", "Finance", "Marketing"];
 const FILTER_STORAGE_KEY = "artifically:marketplace:filters";
 
 export default function MarketplacePage() {
-  const [automations, setAutomations] = useState([]);
-  const [loading, setLoading] = useState(true);
+  const {
+    automations: automationList,
+    isLoading: automationsLoading,
+    isFetching: automationsFetching,
+    error: automationsError,
+  } = useMarketplaceAutomations();
+  const automations = automationList;
+  const loading = automationsLoading;
+  const busy = loading || automationsFetching;
+  const [pendingVoteId, setPendingVoteId] = useState(null);
   const [search, setSearch] = useState("");
   const [activeCategory, setActiveCategory] = useState("All");
   const [sort, setSort] = useState("trending");
@@ -36,6 +44,7 @@ export default function MarketplacePage() {
   const prefersReducedMotion = useReducedMotion();
   const [featuredRef, featuredInView] = useInViewState({ threshold: 0.35, rootMargin: "-120px", once: true });
   const [gridRef, gridInView] = useInViewState({ threshold: 0.2, rootMargin: "-80px", once: true });
+  const { mutate: registerVote } = useAutomationVote();
 
   const featuredVariants = useMemo(() => {
     const hidden = { opacity: 0 };
@@ -90,29 +99,65 @@ export default function MarketplacePage() {
   }, [prefersReducedMotion]);
 
   useEffect(() => {
-    let mounted = true;
+    if (!automationsError) {
+      return;
+    }
 
-    fetchAutomations()
-      .then((data) => {
-        if (!mounted) return;
-        const list = Array.isArray(data) ? data : [];
-        setAutomations(list);
-        setFeatured(list[0] ?? null);
-      })
-      .catch((error) => {
-        console.error(error);
-        toast("Unable to load automations", { type: "error" });
-      })
-      .finally(() => {
-        if (mounted) {
-          setLoading(false);
+    const message =
+      automationsError instanceof Error
+        ? automationsError.message
+        : "Unable to load automations";
+    toast(message, { type: "error" });
+  }, [automationsError]);
+
+  useEffect(() => {
+    if (!automations.length) {
+      setFeatured(null);
+      return;
+    }
+
+    setFeatured((current) => {
+      if (current) {
+        const existing = automations.find((automation) => automation.id === current.id);
+        if (existing) {
+          return existing;
         }
-      });
+      }
 
-    return () => {
-      mounted = false;
-    };
-  }, []);
+    return automations[0];
+    });
+  }, [automations]);
+
+  useEffect(() => {
+    if (!quickView) {
+      return;
+    }
+
+    const updated = automations.find((automation) => automation.id === quickView.id);
+    if (updated && updated !== quickView) {
+      setQuickView(updated);
+    }
+  }, [automations, quickView]);
+
+  const handleTeamVote = useCallback(
+    (automation) => {
+      if (!automation || !automation.id) {
+        toast("Select an automation to record a vote.", { type: "warn" });
+        return;
+      }
+
+      setPendingVoteId(automation.id);
+      registerVote(
+        { automationId: automation.id, delta: 1 },
+        {
+          onSettled: () => {
+            setPendingVoteId(null);
+          },
+        },
+      );
+    },
+    [registerVote],
+  );
 
   useEffect(() => {
     return () => {
@@ -494,8 +539,10 @@ export default function MarketplacePage() {
               <span className="skeleton skeleton--metric" />
               <span className="skeleton skeleton--metric" />
               <span className="skeleton skeleton--metric" />
+              <span className="skeleton skeleton--metric" />
             </div>
             <div className="cta-group">
+              <span className="skeleton skeleton--button" />
               <span className="skeleton skeleton--button" />
               <span className="skeleton skeleton--button" />
             </div>
@@ -522,7 +569,22 @@ export default function MarketplacePage() {
                 <Metric icon="zap" label="Avg ROI" value={`${featured.roi ?? 4.8}x`} />
                 <Metric icon="hourglass" label="Time to deploy" value={featured.timeToDeploy ?? "45 min"} />
                 <Metric icon="brain" label="AI coverage" value={featured.aiCoverage ?? "Full"} />
+                <Metric
+                  icon="sparkles"
+                  label="Interaction speed"
+                  value={`${Math.round(featured.performance?.avgInteractionMs ?? 180)} ms`}
+                />
               </div>
+              <p
+                style={{
+                  marginTop: "0.75rem",
+                  color: "color-mix(in oklch, white 74%, var(--gray-300))",
+                  fontSize: "0.95rem",
+                }}
+                aria-live="polite"
+              >
+                {Number(featured.teamVotes ?? 0).toLocaleString()} teams have shortlisted this automation.
+              </p>
               <div className="cta-group">
                 <button type="button" className="cta-primary" onClick={() => setQuickView(featured)}>
                   Try Demo
@@ -530,13 +592,34 @@ export default function MarketplacePage() {
                 <button type="button" className="cta-secondary" onClick={() => setQuickView(featured)}>
                   Learn More
                 </button>
+                <button
+                  type="button"
+                  onClick={() => handleTeamVote(featured)}
+                  disabled={pendingVoteId === featured.id}
+                  style={{
+                    display: "inline-flex",
+                    alignItems: "center",
+                    gap: "0.5rem",
+                    padding: "0.75rem 1rem",
+                    borderRadius: "999px",
+                    border: "1px solid color-mix(in oklch, white 26%, transparent)",
+                    background: "color-mix(in oklch, var(--glass-3) 60%, transparent)",
+                    color: "white",
+                    fontWeight: 600,
+                    transition: "background 0.2s ease, color 0.2s ease",
+                  }}
+                  aria-live="polite"
+                >
+                  <Icon name="vote" size={18} />
+                  <span>{pendingVoteId === featured.id ? "Syncing vote…" : "Shortlist vote"}</span>
+                </button>
               </div>
             </div>
           </motion.article>
         )
       )}
 
-      <section aria-live="polite" aria-busy={loading ? "true" : "false"}>
+      <section aria-live="polite" aria-busy={busy ? "true" : "false"}>
         {loading ? (
           <div className="automation-grid" aria-hidden="true">
             {Array.from({ length: 6 }).map((_, index) => (
@@ -584,6 +667,20 @@ export default function MarketplacePage() {
                     <span key={tag}>{tag}</span>
                   ))}
                 </div>
+                <div
+                  style={{
+                    display: "flex",
+                    justifyContent: "space-between",
+                    alignItems: "center",
+                    marginTop: "0.75rem",
+                    fontSize: "0.85rem",
+                    color: "color-mix(in oklch, white 70%, var(--gray-300))",
+                  }}
+                  aria-live="polite"
+                >
+                  <span>{Number(automation.teamVotes ?? 0).toLocaleString()} votes</span>
+                  <span>{Math.round(automation.performance?.avgInteractionMs ?? 180)} ms</span>
+                </div>
               </motion.button>
             ))}
           </motion.div>
@@ -591,7 +688,12 @@ export default function MarketplacePage() {
       </section>
 
       {quickView && (
-        <QuickViewModal automation={quickView} onClose={() => setQuickView(null)} />
+        <QuickViewModal
+          automation={quickView}
+          onClose={() => setQuickView(null)}
+          onVote={handleTeamVote}
+          isVoting={pendingVoteId === quickView.id}
+        />
       )}
     </main>
   );
@@ -610,13 +712,15 @@ function SpotlightPreview({ automation }) {
   );
 }
 
-function QuickViewModal({ automation, onClose }) {
+function QuickViewModal({ automation, onClose, onVote, isVoting }) {
   const dialogRef = useRef(null);
   const [teamSize, setTeamSize] = useState(automation.teamSizeHint ?? 45);
   const [hourlyRate, setHourlyRate] = useState(automation.hourlyRateHint ?? 95);
   const [savings, setSavings] = useState(() => calculateSavings(teamSize, hourlyRate));
   const focusTrapRef = useRef({ first: null, last: null });
   const previouslyFocusedRef = useRef(null);
+  const totalVotes = Number(automation.teamVotes ?? 0);
+  const interactionMs = Math.round(automation.performance?.avgInteractionMs ?? 180);
 
   useEffect(() => {
     const handleKeyDown = (event) => {
@@ -732,6 +836,7 @@ function QuickViewModal({ automation, onClose }) {
           <div className="metric-grid">
             <Metric icon="zap" label="ROI" value={`${automation.roi ?? savings.roi.toFixed(1)}x`} />
             <Metric icon="hourglass" label="Time saved" value={`${automation.timeSaved ?? savings.hoursSavedPerWeek} hrs/week`} />
+            <Metric icon="sparkles" label="Interaction speed" value={`${interactionMs} ms`} />
             <Metric icon="boxes" label="Integrations" value={(automation.integrations || []).slice(0, 2).join(", ") || "10+"} />
           </div>
           <ROICalculator
@@ -765,10 +870,40 @@ function QuickViewModal({ automation, onClose }) {
             >
               Launch Pilot
             </button>
+            <button
+              type="button"
+              onClick={() => onVote?.(automation)}
+              disabled={isVoting}
+              style={{
+                display: "inline-flex",
+                alignItems: "center",
+                gap: "0.5rem",
+                padding: "0.75rem 1rem",
+                borderRadius: "999px",
+                border: "1px solid color-mix(in oklch, white 24%, transparent)",
+                background: "color-mix(in oklch, var(--glass-3) 55%, transparent)",
+                color: "white",
+                fontWeight: 600,
+                transition: "background 0.2s ease, color 0.2s ease",
+              }}
+            >
+              <Icon name="vote" size={18} />
+              <span>{isVoting ? "Syncing vote…" : "Shortlist for my team"}</span>
+            </button>
             <button type="button" className="cta-secondary" onClick={onClose}>
               Close
             </button>
           </div>
+          <p
+            style={{
+              marginTop: "0.5rem",
+              color: "color-mix(in oklch, white 72%, var(--gray-300))",
+              fontSize: "0.9rem",
+            }}
+            aria-live="polite"
+          >
+            {totalVotes.toLocaleString()} teams have shortlisted this automation.
+          </p>
         </div>
       </div>
     </div>

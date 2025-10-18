@@ -1,9 +1,5 @@
-"use client";
-
-import HomePage from "@/app/(site)/_components/HomePage";
-import { useAppShell } from "@/context/AppShellContext";
+import HomePageClient from "@/app/(site)/_components/HomePageClient";
 
 export default function HomeRoute() {
-  const { openAuth } = useAppShell();
-  return <HomePage openAuth={openAuth} />;
+  return <HomePageClient />;
 }

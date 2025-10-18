@@ -1,9 +1,28 @@
 import api from "../api.js";
 import { MARKETPLACE_ENTRIES } from "./marketplaceCatalog.js";
 
-export const SAMPLE_AUTOMATIONS = MARKETPLACE_ENTRIES.map((automation) => ({
-  ...automation,
-}));
+const enhanceAutomation = (automation = {}, index = 0) => {
+  const voteFallback = 120 + (index % 6) * 18;
+  const teamVotes = typeof automation.teamVotes === "number" ? automation.teamVotes : voteFallback;
+  const avgInteractionMs = Math.max(120, Math.round(automation?.performance?.avgInteractionMs ?? 200 - index * 6));
+  const fps = automation?.performance?.fps ?? 60;
+
+  return {
+    ...automation,
+    teamVotes,
+    performance: {
+      ...(automation.performance ?? {}),
+      avgInteractionMs,
+      fps,
+    },
+  };
+};
+
+const enhanceAutomationList = (list = []) => list.map((automation, index) => enhanceAutomation(automation, index));
+
+export const SAMPLE_AUTOMATIONS = MARKETPLACE_ENTRIES.map((automation, index) =>
+  enhanceAutomation({ ...automation }, index),
+);
 
 export async function fetchAutomations() {
   try {
@@ -63,9 +82,9 @@ export async function fetchAutomations() {
     if (validAutomations.length !== automations.length) {
       console.warn(`Filtered out ${automations.length - validAutomations.length} invalid automation(s)`);
     }
-    
-     if (validAutomations.length > 0) {
-      return validAutomations;
+
+    if (validAutomations.length > 0) {
+      return enhanceAutomationList(validAutomations);
     }
 
     if (import.meta.env.DEV) {

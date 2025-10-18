@@ -18,6 +18,7 @@ import BackToTopButton from "@/components/BackToTopButton";
 import ExperienceLayer from "@/components/ExperienceLayer";
 import GlobalProgressBar from "@/components/GlobalProgressBar";
 import Header from "@/components/Header";
+import ReactQueryProvider from "@/components/providers/ReactQueryProvider";
 import RouteShell from "@/components/skeletons/RouteShell";
 import { ToastHost, toast } from "@/components/Toast";
 import Button from "@/components/ui/Button";
@@ -335,8 +336,9 @@ export default function AppShell({ children }: AppShellProps) {
   );
 
   return (
-    <AppShellProvider value={contextValue}>
-      <ExperienceLayer enableExperience={enableExperience}>
+    <ReactQueryProvider>
+      <AppShellProvider value={contextValue}>
+        <ExperienceLayer enableExperience={enableExperience}>
         <GlobalProgressBar active={isNavigating || authChecking} />
         <a href="#main-content" className="skip-link">
           Skip to main content
@@ -396,5 +398,6 @@ export default function AppShell({ children }: AppShellProps) {
         <SpeedInsights />
       </ExperienceLayer>
     </AppShellProvider>
+    </ReactQueryProvider>
   );
 }

@@ -1,5 +1,3 @@
-"use client";
-
 import Verify from "@/components/Verify";
 import { useAppShell, type AuthUser } from "@/context/AppShellContext";
 
