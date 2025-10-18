@@ -1,4 +1,4 @@
-import type { Metadata } from "next";
+import type { Metadata, Viewport } from "next";
 import AppShell from "@/components/AppShell";
 import { ThemeProvider } from "@/context/ThemeContext";
 import "./globals.css";
@@ -22,7 +22,6 @@ export const metadata: Metadata = {
     ],
   },
   manifest: "/site.webmanifest",
-  themeColor: "#6366f1",
   openGraph: {
     type: "website",
     url: "https://artifically.com/",
@@ -44,6 +43,10 @@ export const metadata: Metadata = {
     description: "Deploy Enterprise AI Automations in Minutes",
     images: ["https://artifically.com/twitter-image.png"],
   },
+};
+
+export const viewport: Viewport = {
+  themeColor: "#6366f1",
 };
 
 export default function RootLayout({

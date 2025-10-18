@@ -11,11 +11,10 @@ const nextConfig = {
     domains: ["artifically.com"],
   },
   webpack(config) {
-    // ✅ Force all React-based packages (Zustand, Drei, Fiber, etc.) to use your main React instance
+    // ✅ Ensure third-party React ecosystem packages resolve to the workspace copy without
+    //    overriding Next.js' own React runtime (which provides required experimental APIs).
     config.resolve.alias = {
       ...(config.resolve.alias ?? {}),
-      react: resolve(__dirname, "node_modules/react"),
-      "react-dom": resolve(__dirname, "node_modules/react-dom"),
       "@react-three/fiber": resolve(__dirname, "node_modules/@react-three/fiber"),
       "@react-three/drei": resolve(__dirname, "node_modules/@react-three/drei"),
       zustand: resolve(__dirname, "node_modules/zustand"),
