@@ -16,6 +16,7 @@ import motionCatalog from "../design/motion/catalog";
 import useViewTransitionNavigate from "../hooks/useViewTransitionNavigate";
 import { Icon } from "./icons";
 import AutomationsMegaMenu from "./header/AutomationsMegaMenu";
+import SolutionsMegaMenu from "./header/SolutionsMegaMenu";
 
 export default function Header({ user, onSignIn, onSignUp, onSignOut }) {
   const navigate = useViewTransitionNavigate();
@@ -26,6 +27,8 @@ export default function Header({ user, onSignIn, onSignUp, onSignOut }) {
   const predictionTimerRef = useRef(null);
   const automationsTriggerRef = useRef(null);
   const automationsRestoreFocusRef = useRef(false);
+  const solutionsTriggerRef = useRef(null);
+  const solutionsRestoreFocusRef = useRef(false);
   const scrollIntentRef = useRef({
     y: typeof window !== "undefined" ? window.scrollY : 0,
     time: typeof performance !== "undefined" ? performance.now() : Date.now(),
@@ -35,6 +38,7 @@ export default function Header({ user, onSignIn, onSignUp, onSignOut }) {
   const [headerReady, setHeaderReady] = useState(false);
   const prefersReducedMotion = useReducedMotion();
   const [automationsMenuState, setAutomationsMenuState] = useState("closed");
+  const [solutionsMenuState, setSolutionsMenuState] = useState("closed");
 
   const headerVariants = useMemo(() => {
     const hidden = { opacity: 0 };
@@ -100,6 +104,30 @@ export default function Header({ user, onSignIn, onSignUp, onSignOut }) {
   }, [automationsMenuState, prefersReducedMotion]);
 
   useEffect(() => {
+    if (solutionsMenuState === "opening") {
+      if (prefersReducedMotion) {
+        setSolutionsMenuState("open");
+        return undefined;
+      }
+      const timer = window.setTimeout(() => {
+        setSolutionsMenuState("open");
+      }, 400);
+      return () => window.clearTimeout(timer);
+    }
+    if (solutionsMenuState === "closing") {
+      if (prefersReducedMotion) {
+        setSolutionsMenuState("closed");
+        return undefined;
+      }
+      const timer = window.setTimeout(() => {
+        setSolutionsMenuState("closed");
+      }, 250);
+      return () => window.clearTimeout(timer);
+    }
+    return undefined;
+  }, [solutionsMenuState, prefersReducedMotion]);
+
+  useEffect(() => {
     if (typeof document === "undefined") {
       return undefined;
     }
@@ -113,12 +141,44 @@ export default function Header({ user, onSignIn, onSignUp, onSignOut }) {
     };
   }, [automationsMenuState]);
 
+  useEffect(() => {
+    if (typeof document === "undefined") {
+      return undefined;
+    }
+    if (solutionsMenuState === "closed") {
+      document.body.classList.remove("solutions-mega-open");
+      return undefined;
+    }
+    document.body.classList.add("solutions-mega-open");
+    return () => {
+      document.body.classList.remove("solutions-mega-open");
+    };
+  }, [solutionsMenuState]);
+
   const closeAutomationsMenu = useCallback(
     (options = {}) => {
       if (options.focusTrigger) {
         automationsRestoreFocusRef.current = true;
       }
       setAutomationsMenuState((current) => {
+        if (prefersReducedMotion) {
+          return "closed";
+        }
+        if (current === "closed") {
+          return current;
+        }
+        return "closing";
+      });
+    },
+    [prefersReducedMotion],
+  );
+
+  const closeSolutionsMenu = useCallback(
+    (options = {}) => {
+      if (options.focusTrigger) {
+        solutionsRestoreFocusRef.current = true;
+      }
+      setSolutionsMenuState((current) => {
         if (prefersReducedMotion) {
           return "closed";
         }
@@ -152,6 +212,28 @@ export default function Header({ user, onSignIn, onSignUp, onSignOut }) {
       automationsTriggerRef.current?.focus({ preventScroll: true });
     }
   }, [automationsMenuState]);
+
+  useEffect(() => {
+    if (solutionsMenuState === "closed") {
+      return undefined;
+    }
+    const handleKeyDown = (event) => {
+      if (event.key === "Escape") {
+        event.preventDefault();
+        closeSolutionsMenu({ focusTrigger: true });
+      }
+    };
+
+    window.addEventListener("keydown", handleKeyDown);
+    return () => window.removeEventListener("keydown", handleKeyDown);
+  }, [solutionsMenuState, closeSolutionsMenu]);
+
+  useEffect(() => {
+    if (solutionsMenuState === "closed" && solutionsRestoreFocusRef.current) {
+      solutionsRestoreFocusRef.current = false;
+      solutionsTriggerRef.current?.focus({ preventScroll: true });
+    }
+  }, [solutionsMenuState]);
 
   const commitPrediction = useCallback(
     (path, ttl = 1600) => {
@@ -410,6 +492,7 @@ export default function Header({ user, onSignIn, onSignUp, onSignOut }) {
   }, []);
 
   const toggleAutomationsMenu = useCallback(() => {
+    closeSolutionsMenu();
     setAutomationsMenuState((current) => {
       const isOpen = current === "open" || current === "opening";
       if (prefersReducedMotion) {
@@ -417,7 +500,18 @@ export default function Header({ user, onSignIn, onSignUp, onSignOut }) {
       }
       return isOpen ? "closing" : "opening";
     });
-  }, [prefersReducedMotion]);
+  }, [closeSolutionsMenu, prefersReducedMotion]);
+
+  const toggleSolutionsMenu = useCallback(() => {
+    closeAutomationsMenu();
+    setSolutionsMenuState((current) => {
+      const isOpen = current === "open" || current === "opening";
+      if (prefersReducedMotion) {
+        return isOpen ? "closed" : "open";
+      }
+      return isOpen ? "closing" : "opening";
+    });
+  }, [closeAutomationsMenu, prefersReducedMotion]);
 
   const handleLinkNavigation = useCallback(
     (event, path, options) => {
@@ -531,6 +625,7 @@ export default function Header({ user, onSignIn, onSignUp, onSignOut }) {
                           aria-haspopup="dialog"
                           aria-expanded={isMenuOpen ? "true" : "false"}
                           onClick={() => {
+                            closeSolutionsMenu();
                             if (automationsMenuState === "open" || automationsMenuState === "opening") {
                               closeAutomationsMenu({ focusTrigger: false });
                             } else {
@@ -546,6 +641,47 @@ export default function Header({ user, onSignIn, onSignUp, onSignOut }) {
                           onRequestClose={() => closeAutomationsMenu({ focusTrigger: true })}
                           onNavigate={(event, path) => {
                             closeAutomationsMenu();
+                            handleLinkNavigation(event, path);
+                          }}
+                        />
+                      </div>
+                    </StaggeredItem>
+                  );
+                }
+
+                if (item.label === "Solutions") {
+                  const isMenuOpen = solutionsMenuState === "open" || solutionsMenuState === "opening";
+                  const routeMatch =
+                    pathname.startsWith("/solutions") || pathname.startsWith("/case-studies");
+                  const isActive = isMenuOpen || routeMatch;
+                  return (
+                    <StaggeredItem key={item.label} index={index} style={{ display: "flex" }}>
+                      <div className={`nav-item nav-item--mega${isActive ? " nav-item--active" : ""}`}>
+                        <button
+                          type="button"
+                          ref={solutionsTriggerRef}
+                          className={["nav-trigger", isActive ? "nav-trigger--active" : ""]
+                            .filter(Boolean)
+                            .join(" ")}
+                          aria-haspopup="dialog"
+                          aria-expanded={isMenuOpen ? "true" : "false"}
+                          onClick={() => {
+                            closeAutomationsMenu();
+                            if (solutionsMenuState === "open" || solutionsMenuState === "opening") {
+                              closeSolutionsMenu({ focusTrigger: false });
+                            } else {
+                              toggleSolutionsMenu();
+                            }
+                          }}
+                        >
+                          <span>{item.label}</span>
+                          <Icon name="chevronDown" size={16} aria-hidden="true" />
+                        </button>
+                        <SolutionsMegaMenu
+                          state={solutionsMenuState}
+                          onRequestClose={() => closeSolutionsMenu({ focusTrigger: true })}
+                          onNavigate={(event, path) => {
+                            closeSolutionsMenu();
                             handleLinkNavigation(event, path);
                           }}
                         />
