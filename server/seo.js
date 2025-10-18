@@ -101,33 +101,7 @@ const escapeXml = (value) =>
     .replace(/"/g, "&quot;");
 
 export const buildSitemapXml = () => {
-  const urls = new Map();
-  const now = new Date().toISOString();
-
-  for (const route of STATIC_ROUTES) {
-    const canonicalPath = getCanonicalPath(route.path);
-    const loc = `${SITE_URL}${canonicalPath}`;
-    urls.set(loc, {
-      loc,
-      lastmod: now,
-      changefreq: route.changefreq,
-      priority: route.priority,
-    });
-  }
-
-  for (const automation of MARKETPLACE_ENTRIES) {
-    const productUrl = `${SITE_URL}${MARKETPLACE_CANONICAL_BASE}?automation=${encodeURIComponent(
-      automation.id,
-    )}`;
-    urls.set(productUrl, {
-      loc: productUrl,
-      lastmod: now,
-      changefreq: "weekly",
-      priority: 0.6,
-    });
-  }
-
-  const urlset = Array.from(urls.values())
+  const urlset = createSitemapRecords()
     .map(
       (item) =>
         `  <url>\n    <loc>${escapeXml(item.loc)}</loc>\n    <lastmod>${escapeXml(item.lastmod)}</lastmod>\n    <changefreq>${escapeXml(
@@ -230,6 +204,44 @@ const buildProductNodes = () => {
   }));
 };
 
+const createSitemapRecords = () => {
+  const now = new Date().toISOString();
+  const urls = new Map();
+
+  for (const route of STATIC_ROUTES) {
+    const canonicalPath = getCanonicalPath(route.path);
+    const loc = `${SITE_URL}${canonicalPath}`;
+    urls.set(loc, {
+      loc,
+      lastmod: now,
+      changefreq: route.changefreq,
+      priority: route.priority,
+    });
+  }
+
+  for (const automation of MARKETPLACE_ENTRIES) {
+    const productUrl = `${SITE_URL}${MARKETPLACE_CANONICAL_BASE}?automation=${encodeURIComponent(
+      automation.id,
+    )}`;
+    urls.set(productUrl, {
+      loc: productUrl,
+      lastmod: now,
+      changefreq: "weekly",
+      priority: 0.6,
+    });
+  }
+
+  return Array.from(urls.values());
+};
+
+export const getSitemapEntries = () =>
+  createSitemapRecords().map(({ loc, lastmod, changefreq, priority }) => ({
+    url: loc,
+    lastModified: lastmod,
+    changeFrequency: changefreq,
+    priority,
+  }));
+  
 export const getStructuredData = (requestUrl) => {
   const canonicalUrl = getCanonicalUrl(requestUrl);
   const canonicalPath = new URL(canonicalUrl).pathname;
