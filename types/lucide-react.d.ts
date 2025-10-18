@@ -45,6 +45,7 @@ declare module "lucide-react" {
   export const Headphones: LucideIcon;
   export const Hospital: LucideIcon;
   export const Hourglass: LucideIcon;
+  export const Megaphone: LucideIcon;
   export const Info: LucideIcon;
   export const Laptop: LucideIcon;
   export const LineChart: LucideIcon;
