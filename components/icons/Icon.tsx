@@ -2,6 +2,7 @@
 
 import {
   ArrowRight,
+  Calendar,
   BarChart3,
   BookOpen,
   Bot,
@@ -19,6 +20,7 @@ import {
   Contrast,
   DoorClosed,
   ChevronDown,
+  Grid3X3,
   FlaskConical,
   Flame,
   Gift,
@@ -32,6 +34,7 @@ import {
   LineChart,
   Lock,
   MessageCircle,
+  Megaphone,
   Moon,
   PartyPopper,
   PlugZap,
@@ -46,6 +49,7 @@ import {
   ShoppingBag,
   Sparkles,
   Star,
+  Wand2,
   Sun,
   Target,
   Trophy,
@@ -55,6 +59,7 @@ import {
   Zap,
   Folders,
   type LucideIcon,
+  X,
 } from "lucide-react";
 
 import { forwardRef, type ComponentPropsWithoutRef } from "react";
@@ -67,6 +72,7 @@ const ICON_MAP = {
   zap: Zap,
   arrowRight: ArrowRight,
   folders: Folders,
+  calendar: Calendar,
   robot: Bot,
   analytics: LineChart,
   clapperboard: Clapperboard,
@@ -95,6 +101,7 @@ const ICON_MAP = {
   briefcase: BriefcaseBusiness,
   laptop: Laptop,
   message: MessageCircle,
+  megaphone: Megaphone,
   sun: Sun,
   moon: Moon,
   contrast: Contrast,
@@ -113,6 +120,9 @@ const ICON_MAP = {
   recycle: Recycle,
   cog: Cog,
   chevronDown: ChevronDown,
+  grid: Grid3X3,
+  wand: Wand2,
+  close: X,
 } satisfies Record<string, LucideIcon>;
 
 export type IconName = keyof typeof ICON_MAP;

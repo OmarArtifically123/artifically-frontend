@@ -18,6 +18,7 @@ declare module "lucide-react" {
   export function createLucideIcon(name: string, iconNode: IconNode): LucideIcon;
 
   export const ArrowRight: LucideIcon;
+  export const Calendar: LucideIcon;
   export const BarChart3: LucideIcon;
   export const BookOpen: LucideIcon;
   export const Bot: LucideIcon;
@@ -35,6 +36,7 @@ declare module "lucide-react" {
   export const Contrast: LucideIcon;
   export const DoorClosed: LucideIcon;
   export const ChevronDown: LucideIcon;
+  export const Grid3X3: LucideIcon;
   export const FlaskConical: LucideIcon;
   export const Flame: LucideIcon;
   export const Gift: LucideIcon;
@@ -70,4 +72,6 @@ declare module "lucide-react" {
   export const Vote: LucideIcon;
   export const Zap: LucideIcon;
   export const Folders: LucideIcon;
+  export const Wand2: LucideIcon;
+  export const X: LucideIcon;
 }
