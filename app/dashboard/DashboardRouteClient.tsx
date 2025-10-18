@@ -13,7 +13,7 @@ export default function DashboardRouteClient() {
   }
 
   if (!user) {
-    return <HomePage openAuth={openAuth} />;
+    return <HomePage />;
   }
 
   return <Dashboard user={user} openAuth={openAuth} />;
