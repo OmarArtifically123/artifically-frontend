@@ -186,32 +186,142 @@ export default function Header({ user, onSignIn, onSignUp, onSignOut }) {
   const navItems = useMemo(
     () => [
       {
-        type: "menu",
+        type: "mega",
+        label: "Automations",
+        sections: [
+          {
+            heading: "AI Workflows",
+            links: [
+              {
+                path: "/marketplace",
+                label: "Automation Marketplace",
+                description: "Launch prebuilt agents in minutes",
+              },
+              {
+                path: "/products/marketplace",
+                label: "Workflow Studio",
+                description: "Design custom automations with guardrails",
+              },
+              {
+                path: "/support",
+                label: "Automation Support",
+                description: "Get onboarding help from specialists",
+              },
+            ],
+          },
+          {
+            heading: "Integrations",
+            links: [
+              {
+                path: "/docs",
+                label: "Developer Docs",
+                description: "Connect Artifically to your stack",
+              },
+              {
+                path: "/docs/api",
+                label: "API Reference",
+                description: "Ship automations programmatically",
+              },
+            ],
+          },
+        ],
+      },
+      {
+        type: "mega",
         label: "Solutions",
-        items: [
+        sections: [
           {
-            path: "/marketplace",
-            label: "Automation Marketplace",
-            description: "Browse prebuilt automations",
+            heading: "By Team",
+            links: [
+              {
+                path: "/customers",
+                label: "Customer Success",
+                description: "Automate customer onboarding journeys",
+              },
+              {
+                path: "/case-studies",
+                label: "Operations",
+                description: "See how ops teams scale with AI",
+              },
+              {
+                path: "/updates",
+                label: "Product",
+                description: "Prioritize features with real-time insights",
+              },
+            ],
           },
           {
-            path: "/case-studies",
-            label: "Case Studies",
-            description: "See how teams ship AI in production",
-          },
-          {
-            path: "/security",
-            label: "Enterprise Security",
-            description: "Deep-dive into compliance posture",
+            heading: "By Industry",
+            links: [
+              {
+                path: "/security",
+                label: "Financial Services",
+                description: "Meet compliance with human-in-loop controls",
+              },
+              {
+                path: "/case-studies",
+                label: "Healthcare",
+                description: "Safeguard PHI while automating care ops",
+              },
+            ],
           },
         ],
       },
       { type: "link", path: "/pricing", label: "Pricing" },
-      { type: "link", path: "/docs", label: "Docs" },
-      { type: "link", path: "/design-system", label: "Design System" },
+      {
+        type: "mega",
+        label: "Resources",
+        sections: [
+          {
+            heading: "Learn",
+            links: [
+              {
+                path: "/blog",
+                label: "Blog",
+                description: "Ideas from the automation frontier",
+              },
+              {
+                path: "/docs",
+                label: "Documentation",
+                description: "Guides, SDKs, and integration tips",
+              },
+              {
+                path: "/updates",
+                label: "Release Notes",
+                description: "See what's shipping every week",
+              },
+            ],
+          },
+          {
+            heading: "Company",
+            links: [
+              {
+                path: "/changelog",
+                label: "Changelog",
+                description: "Track platform improvements",
+              },
+              {
+                path: "/status",
+                label: "Status",
+                description: "View live service availability",
+              },
+              {
+                path: "/contact",
+                label: "Contact",
+                description: "Talk with our solutions engineers",
+              },
+            ],
+          },
+        ],
+      },
     ],
     [],
   );
+
+  const handleCommandPaletteOpen = useCallback(() => {
+    if (typeof window === "undefined") return;
+    window.dispatchEvent(new CustomEvent("command-palette:open"));
+  }, []);
 
   const handleLinkNavigation = useCallback(
     (event, path, options) => {
@@ -231,31 +341,9 @@ export default function Header({ user, onSignIn, onSignUp, onSignOut }) {
     [navigate],
   );
 
-  const headerBackground = useMemo(
-    () => ({
-      background: darkMode ? "var(--glass-gradient-primary)" : "var(--glass-gradient-primary-light)",
-      borderBottom: `1px solid ${darkMode ? "var(--glass-border-primary)" : "var(--glass-border-primary-light)"}`,
-      boxShadow: scrolled
-        ? darkMode
-          ? "var(--shadow-ambient), var(--shadow-glow)"
-          : "var(--shadow-md)"
-        : "inset 0 1px 0 0 var(--glass-highlight)",
-    }),
-    [darkMode, scrolled]
-  );
-
   return (
     <motion.header
       className={`site-header ${scrolled ? "scrolled" : ""}`}
-      style={{
-        position: "fixed",
-        top: 0,
-        left: 0,
-        right: 0,
-        zIndex: 1000,
-        padding: `${space("sm")} 0`,
-        ...headerBackground,
-      }}
       data-ready={headerReady ? "true" : "false"}
       initial="hidden"
       animate={headerReady ? "visible" : "hidden"}
@@ -267,56 +355,35 @@ export default function Header({ user, onSignIn, onSignUp, onSignOut }) {
           display: "flex",
           alignItems: "center",
           justifyContent: "space-between",
+          width: "100%",
           maxWidth: "1200px",
           margin: "0 auto",
-          padding: `0 ${space("md", 1.1667)}`,
-          position: "relative",
+          gap: space("md"),
         }}
       >
-        <div
-          aria-hidden="true"
-          style={{
-            position: "absolute",
-            inset: 0,
-            borderRadius: "1.5rem",
-            background: darkMode
-              ? "radial-gradient(circle at 20% 20%, color-mix(in oklch, var(--brand-energy) 30%, transparent), transparent 55%), radial-gradient(circle at 80% 30%, color-mix(in oklch, var(--brand-glow) 35%, transparent), transparent 55%)"
-              : "radial-gradient(circle at 20% 20%, color-mix(in oklch, var(--brand-energy) 24%, transparent), transparent 55%), radial-gradient(circle at 80% 30%, color-mix(in oklch, var(--brand-glow) 28%, transparent), transparent 55%)",
-            opacity: scrolled ? 1 : 0.65,
-            transition: "opacity var(--transition-normal)",
-            pointerEvents: "none",
-          }}
-        />
-
-        <div
+        <Link
+          href="/"
           className="brand brand--interactive"
-          onClick={(event) => {
-            handleLinkNavigation(event, "/");
-          }}
-          role="button"
-          tabIndex={0}
-          onKeyDown={(event) => {
-            if (event.key === "Enter" || event.key === " ") {
-              event.preventDefault();
-              navigate("/");
-            }
-          }}
+          data-prefetch-route="/"
+          onClick={(event) => handleLinkNavigation(event, "/")}
           style={{
             display: "flex",
             alignItems: "center",
-            gap: space("xs", 1.5),
-            cursor: "pointer",
+            gap: space("2xs", 1.5),
+            width: "180px",
+            maxWidth: "180px",
             position: "relative",
             zIndex: 1,
-            padding: `${space("2xs", 1.4)} ${space("xs")}`,
-            borderRadius: "0.9rem",
-            transition: "transform var(--transition-fast)",
+            padding: `${space("2xs", 1.2)} ${space("xs")}`,
+            borderRadius: "0.75rem",
+            transformOrigin: "center",
+            transition: "transform 250ms ease-out",
           }}
         >
           <LogoWordmark
             variant={darkMode ? "dark" : "light"}
             style={{
-              height: "56px",
+              height: "48px",
               width: "auto",
               display: "block",
               filter: darkMode
@@ -325,13 +392,15 @@ export default function Header({ user, onSignIn, onSignUp, onSignOut }) {
               transition: "filter var(--transition-normal)",
             }}
           />
-        </div>
+        </Link>
 
         <nav
           className="nav"
           style={{
             display: "flex",
             alignItems: "center",
+            justifyContent: "center",
+            flex: "1 1 auto",
             position: "relative",
             zIndex: 1,
           }}
@@ -341,42 +410,54 @@ export default function Header({ user, onSignIn, onSignUp, onSignOut }) {
             style={{
               display: "flex",
               alignItems: "center",
-              gap: space("md"),
+              justifyContent: "center",
+              gap: space("xs", 1.8),
             }}
           >
             {navItems.map((item, index) => {
-              if (item.type === "menu") {
-                const isActive = item.items.some((entry) => entry.path === pathname);
+              if (item.type === "mega") {
+                const isActive = item.sections.some((section) =>
+                  section.links.some((link) => link.path === pathname),
+                );
                 return (
                   <StaggeredItem key={item.label} index={index} style={{ display: "flex" }}>
-                    <div
-                      className={`nav-item nav-item--menu${isActive ? " nav-item--active" : ""}`.trim()}
-                      data-nav-menu
-                    >
-                      <details className="nav-menu" data-enhanced>
-                        <summary aria-haspopup="menu">
+                    <div className={`nav-item nav-item--mega${isActive ? " nav-item--active" : ""}`}>
+                      <details className="nav-mega" data-enhanced>
+                        <summary
+                          className={["nav-trigger", isActive ? "nav-trigger--active" : ""]
+                            .filter(Boolean)
+                            .join(" ")}
+                          aria-haspopup="menu"
+                        >
                           <span>{item.label}</span>
                           <Icon name="chevronDown" size={16} aria-hidden="true" />
                         </summary>
-                        <div className="nav-menu__panel" role="menu">
-                          {item.items.map((entry) => (
-                            <Link
-                              key={entry.path}
-                              href={entry.path}
-                              role="menuitem"
-                              className="nav-menu__link"
-                              data-prefetch-route={entry.path}
-                              onClick={(event) => {
-                                handleLinkNavigation(event, entry.path);
-                                const rootDetails = event.currentTarget.closest("details");
-                                if (rootDetails) {
-                                  rootDetails.removeAttribute("open");
-                                }
-                              }}
-                            >
-                              <span className="nav-menu__link-label">{entry.label}</span>
-                              <span className="nav-menu__link-description">{entry.description}</span>
-                            </Link>
+                        <div className="nav-mega__panel" role="menu">
+                          {item.sections.map((section) => (
+                            <div className="nav-mega__section" key={`${item.label}-${section.heading}`}>
+                              <p className="nav-mega__heading">{section.heading}</p>
+                              <div className="nav-mega__links">
+                                {section.links.map((entry) => (
+                                  <Link
+                                    key={entry.path}
+                                    href={entry.path}
+                                    role="menuitem"
+                                    className="nav-mega__link"
+                                    data-prefetch-route={entry.path}
+                                    onClick={(event) => {
+                                      handleLinkNavigation(event, entry.path);
+                                      const rootDetails = event.currentTarget.closest("details");
+                                      if (rootDetails) {
+                                        rootDetails.removeAttribute("open");
+                                      }
+                                    }}
+                                  >
+                                    <span className="nav-mega__link-label">{entry.label}</span>
+                                    <span className="nav-mega__link-description">{entry.description}</span>
+                                  </Link>
+                                ))}
+                              </div>
+                            </div>
                           ))}
                         </div>
                       </details>
@@ -389,59 +470,20 @@ export default function Header({ user, onSignIn, onSignUp, onSignOut }) {
               const isActive = pathname === path;
               const isPredicted = !isActive && predictedNav === path;
               return (
-                <StaggeredItem
-                  key={path}
-                  index={index}
-                  style={{ display: "flex" }}
-                >
+                <StaggeredItem key={path} index={index} style={{ display: "flex" }}>
                   <Link
                     href={path}
                     data-prefetch-route={path}
-                    className="nav-item"
-                    transition={{ type: "spring", stiffness: 320, damping: 24 }}
+                    className={[
+                      "nav-trigger",
+                      isActive ? "nav-trigger--active" : "",
+                      isPredicted ? "nav-trigger--predicted" : "",
+                    ]
+                      .filter(Boolean)
+                      .join(" ")}
                     onClick={(event) => handleLinkNavigation(event, path)}
-                    style={{
-                      position: "relative",
-                      padding: `${space("xs", 1.1)} ${space("sm", 1.15)}`,
-                      borderRadius: "0.85rem",
-                      textDecoration: "none",
-                      fontWeight: 600,
-                      letterSpacing: "0.01em",
-                      color: isActive
-                        ? "var(--text-primary)"
-                        : isPredicted
-                        ? "color-mix(in oklch, var(--brand-glow) 60%, var(--text-primary))"
-                        : "color-mix(in oklch, var(--text-secondary) 85%, transparent)",
-                      background: isActive
-                        ? "color-mix(in oklch, var(--brand-primary) 22%, transparent)"
-                        : isPredicted
-                        ? "color-mix(in oklch, var(--brand-glow) 18%, transparent)"
-                        : "color-mix(in oklch, var(--glass-2) 40%, transparent)",
-                      boxShadow: isPredicted
-                        ? "0 12px 28px color-mix(in srgb, var(--brand-primary) 55%, transparent)"
-                        : "none",
-                      "--nav-translate": isPredicted ? "-2px" : "0px",
-                      transition:
-                        "transform 180ms cubic-bezier(0.33, 1, 0.68, 1), box-shadow 220ms ease, background 220ms ease, color 180ms ease",
-                      willChange: "transform",
-                    }}
                   >
                     {label}
-                    <span
-                      aria-hidden="true"
-                      style={{
-                        position: "absolute",
-                        inset: "auto 15% -6px 15%",
-                        height: "2px",
-                        borderRadius: "999px",
-                        background: isActive
-                          ? "linear-gradient(90deg, var(--brand-primary) 0%, var(--brand-glow) 50%, var(--brand-energy) 100%)"
-                          : isPredicted
-                          ? "linear-gradient(90deg, color-mix(in oklch, var(--brand-primary) 70%, transparent) 0%, color-mix(in oklch, var(--brand-glow) 75%, transparent) 100%)"
-                          : "transparent",
-                        transition: "opacity var(--transition-fast)",
-                      }}
-                    />
                   </Link>
                 </StaggeredItem>
               );
@@ -454,11 +496,31 @@ export default function Header({ user, onSignIn, onSignUp, onSignOut }) {
           style={{
             display: "flex",
             alignItems: "center",
-            gap: space("sm"),
+            justifyContent: "flex-end",
+            gap: space("xs", 1.6),
             position: "relative",
             zIndex: 1,
+            minWidth: "220px",
           }}
         >
+          <Link
+            href="/design-system"
+            data-prefetch-route="/design-system"
+            className="header-actions__link"
+            onClick={(event) => handleLinkNavigation(event, "/design-system")}
+          >
+            Design System
+          </Link>
+          <button
+            type="button"
+            className="header-actions__search"
+            onClick={handleCommandPaletteOpen}
+            aria-label="Open command palette"
+            title="⌘K"
+          >
+            <Icon name="search" size={18} aria-hidden="true" />
+            <span className="sr-only">Open command palette</span>
+          </button>
           <div
             style={{
               display: "inline-flex",
@@ -475,7 +537,7 @@ export default function Header({ user, onSignIn, onSignUp, onSignOut }) {
               style={{
                 display: "flex",
                 alignItems: "center",
-                gap: space("xs", 1.5),
+                gap: space("2xs", 1.6),
               }}
             >
               <MagneticButton
@@ -509,7 +571,7 @@ export default function Header({ user, onSignIn, onSignUp, onSignOut }) {
               style={{
                 display: "flex",
                 alignItems: "center",
-                gap: space("xs", 1.5),
+                gap: space("2xs", 1.6),
               }}
             >
               <MagneticButton
@@ -523,7 +585,7 @@ export default function Header({ user, onSignIn, onSignUp, onSignOut }) {
                   onSignIn?.(event);
                 }}
               >
-                Sign in
+                <span>Sign in</span>
               </MagneticButton>
               <MagneticButton
                 type="button"
@@ -535,7 +597,7 @@ export default function Header({ user, onSignIn, onSignUp, onSignOut }) {
                   onSignUp?.(event);
                 }}
               >
-                <span>Get started</span>
+                <span>Sign up</span>
               </MagneticButton>
             </div>
           )}
