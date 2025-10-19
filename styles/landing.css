@@ -831,6 +831,7 @@
   aspect-ratio: 4 / 3;
   display: grid;
   place-items: center;
+  perspective: 1600px;
 }
 
 .product-preview__glow {
@@ -853,6 +854,7 @@
   box-shadow: 0 30px 65px color-mix(in oklch, var(--brand-glow) 28%, transparent);
   transform-style: preserve-3d;
   transition: box-shadow 0.3s ease;
+  will-change: transform;
 }
 
 .product-preview__frame::after {
@@ -1132,11 +1134,11 @@
 
 .comparison-section {
   padding: 100px 40px;
-  background: linear-gradient(
-    to bottom,
-    rgba(0, 0, 0, 0) 0%,
-    rgba(139, 92, 246, 0.05) 50%,
-    rgba(0, 0, 0, 0) 100%
+  background: radial-gradient(
+    ellipse at center,
+    rgba(139, 92, 246, 0.1) 0%,
+    rgba(139, 92, 246, 0.06) 40%,
+    rgba(0, 0, 0, 0) 75%
   );
 }
 
@@ -1167,13 +1169,15 @@
 }
 
 .comparison-grid {
+  position: relative;
   display: grid;
-  grid-template-columns: 1fr 60px 1fr;
-  gap: 0;
   border-radius: 24px;
   overflow: hidden;
   box-shadow: 0 24px 80px rgba(0, 0, 0, 0.4);
-  align-items: stretch;
+}
+
+.comparison-grid > * {
+  grid-area: 1 / 1 / 2 / 2;
 }
 
 .comparison-panel {
@@ -1182,7 +1186,7 @@
   flex-direction: column;
   gap: 20px;
   position: relative;
-  transition: clip-path 120ms ease-out;
+  transition: clip-path 160ms ease-out;
 }
 
 .comparison-panel--old {
@@ -1193,6 +1197,14 @@
 .comparison-panel--new {
   background: rgba(34, 197, 94, 0.08);
   border: 1px solid rgba(34, 197, 94, 0.2);
+}
+
+.comparison-panel[data-side="old"] {
+  z-index: 1;
+}
+
+.comparison-panel[data-side="new"] {
+  z-index: 2;
 }
 
 .comparison-panel__header {
@@ -1282,6 +1294,9 @@
 }
 
 .comparison-divider {
+  position: absolute;
+  top: 50%;
+  transform: translate(-50%, -50%);
   width: 60px;
   background: transparent;
   display: flex;
@@ -1289,6 +1304,7 @@
   align-items: center;
   justify-content: center;
   gap: 16px;
+  pointer-events: none;
 }
 
 .comparison-divider__arrow {
@@ -1308,6 +1324,7 @@
   cursor: grab;
   color: #a78bfa;
   transition: transform 200ms ease, background 200ms ease;
+  pointer-events: auto;
 }
 
 .comparison-handle__icon {
@@ -1331,21 +1348,22 @@
   }
 
   .comparison-grid {
-    grid-template-columns: 1fr;
+    display: flex;
+    flex-direction: column;
+    gap: 24px;
+    overflow: visible;
+    box-shadow: none;
+  }
+
+  .comparison-grid > * {
+    grid-area: auto;
+  }
+
+  .comparison-panel {
+    clip-path: none !important;
   }
 
   .comparison-divider {
-    width: 100%;
-    height: 60px;
-    flex-direction: row;
-    gap: 12px;
-  }
-
-  .comparison-divider__arrow {
-    transform: rotate(90deg);
-  }
-
-  .comparison-handle {
     display: none;
   }
 }

@@ -1,4 +1,5 @@
 import React from "react";
+import { BarChart3, Bell, Code2, Cog, Database, Lock, Mail, Users, Workflow } from "lucide-react";
 
 const HEADLINE_WORDS = [
   { text: "Deploy" },
@@ -34,49 +35,49 @@ const HERO_LOGOS = [
 
 const PREVIEW_TILES = [
   {
-    icon: "📊",
-    label: "Executive Dashboards",
-    description: "Broadcast KPI shifts instantly across every region.",
-  },
-  {
-    icon: "🧠",
-    label: "Agent Assist",
-    description: "Surface next-best actions for frontline teams automatically.",
-  },
-  {
-    icon: "🔒",
-    label: "Governance Guardrails",
-    description: "Enforce role-based access with audit-ready trails.",
-  },
-  {
-    icon: "⚙️",
-    label: "Ops Orchestration",
-    description: "Coordinate cross-team workflows without manual routing.",
-  },
-  {
-    icon: "📨",
-    label: "Smart Outreach",
-    description: "Trigger tailored nurture campaigns the moment intent spikes.",
-  },
-  {
-    icon: "🌐",
-    label: "Global Resilience",
-    description: "Keep experiences fast across every region with auto scaling.",
-  },
-  {
-    icon: "🗄️",
+    icon: Database,
     label: "Unified Data Lake",
-    description: "Stream customer and ops data with automated schema mapping.",
+    description: "Stream customer and ops data into one warehouse with automated schema mapping.",
   },
   {
-    icon: "🧩",
+    icon: BarChart3,
+    label: "Executive Dashboards",
+    description: "Broadcast KPI shifts to every region with adaptive alerting workflows.",
+  },
+  {
+    icon: Mail,
+    label: "Smart Outreach",
+    description: "Trigger tailored nurture campaigns the second intent signals spike.",
+  },
+  {
+    icon: Cog,
+    label: "Ops Orchestration",
+    description: "Automate hand-offs between systems and teams with zero manual routing.",
+  },
+  {
+    icon: Users,
+    label: "Agent Assist",
+    description: "Serve frontline teams AI copilots that surface next-best actions instantly.",
+  },
+  {
+    icon: Workflow,
     label: "Workflow Builder",
-    description: "Drag-and-drop approvals, escalations, and QA into playbooks.",
+    description: "Drag-and-drop approvals, escalations, and QA into reusable playbooks.",
   },
   {
-    icon: "🪄",
-    label: "Auto-tuned Responses",
-    description: "Continuously improve quality with adaptive learning loops.",
+    icon: Code2,
+    label: "API Automations",
+    description: "Deploy serverless functions that connect every bespoke tool in minutes.",
+  },
+  {
+    icon: Bell,
+    label: "Incident Alerts",
+    description: "Route critical incidents to the right owner with AI-prioritized severity.",
+  },
+  {
+    icon: Lock,
+    label: "Governance Guardrails",
+    description: "Enforce SOC2-ready policies with full audit trails and role-based control.",
   },
 ];
 
@@ -181,12 +182,27 @@ export default function MarketingHomeServer() {
             <span className="preview-card__chip">LIVE PRODUCT PREVIEW</span>
             <div className="preview-card__stage">
               <div className="preview-grid" data-static="true">
-                {PREVIEW_TILES.map((tile, index) => (
-                  <div className="preview-grid__cell" key={tile.label} data-index={index} aria-hidden="true">
-                    <span className="preview-grid__icon">{tile.icon}</span>
-                    <span className="sr-only">{tile.label}</span>
-                  </div>
-                ))}
+                {PREVIEW_TILES.map((tile, index) => {
+                  const IconComponent = tile.icon;
+                  return (
+                    <button
+                      key={tile.label}
+                      type="button"
+                      className="preview-grid__cell"
+                      data-index={index}
+                      aria-pressed={index === 0 ? "true" : "false"}
+                      disabled
+                    >
+                      <IconComponent
+                        size={32}
+                        strokeWidth={1.6}
+                        className="preview-grid__icon"
+                        aria-hidden="true"
+                      />
+                      <span className="sr-only">{tile.label}</span>
+                    </button>
+                  );
+                })}
               </div>
               <div className="preview-card__tooltip" data-static="true">
                 <span className="preview-card__tooltip-title">{PREVIEW_TILES[0].label}</span>

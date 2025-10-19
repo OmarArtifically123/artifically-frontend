@@ -3,8 +3,8 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 
 const SCROLL_DURATION = 800;
-const MIN_SCROLL_HIDE_THRESHOLD = 160;
-const VIEWPORT_SCROLL_HIDE_RATIO = 0.25;
+const MIN_SCROLL_HIDE_THRESHOLD = 320;
+const VIEWPORT_SCROLL_HIDE_RATIO = 0.6;
 
 export default function ScrollIndicator({ targetId, hostId, label = "Scroll to explore" }) {
   const indicatorRef = useRef(null);

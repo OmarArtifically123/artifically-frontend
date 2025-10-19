@@ -118,11 +118,9 @@ export default function ProblemSolutionSection() {
     }
   };
 
-  const gridStyle = !isMobile
-    ? { gridTemplateColumns: `${position}fr 60px ${1 - position}fr` }
-    : undefined;
   const leftClip = !isMobile ? { clipPath: `inset(0 ${Math.max(0, 100 - position * 100)}% 0 0)` } : undefined;
   const rightClip = !isMobile ? { clipPath: `inset(0 0 0 ${position * 100}%)` } : undefined;
+  const dividerStyle = !isMobile ? { left: `${position * 100}%` } : undefined;
 
   return (
     <section id="problem-solution" className="comparison-section" aria-labelledby="problem-solution-title">
@@ -136,8 +134,12 @@ export default function ProblemSolutionSection() {
             impact now, not next quarter.
           </p>
         </header>
-        <div className="comparison-grid" ref={sliderRef} style={gridStyle}>
-          <article className="comparison-panel comparison-panel--old" style={leftClip}>
+        <div className="comparison-grid" ref={sliderRef}>
+          <article
+            className="comparison-panel comparison-panel--old"
+            style={leftClip}
+            data-side="old"
+          >
             <header className="comparison-panel__header">
               <span aria-hidden="true" className="comparison-panel__symbol">
                 ⚠️
@@ -156,21 +158,11 @@ export default function ProblemSolutionSection() {
               ))}
             </div>
           </article>
-          <div className={`comparison-divider${isDragging ? " is-dragging" : ""}`}>
-            <span aria-hidden="true" className="comparison-divider__arrow">
-              →
-            </span>
-            <button
-              type="button"
-              className="comparison-handle"
-              onPointerDown={handlePointerDown}
-              onKeyDown={handleKeyDown}
-              aria-label="Drag to reveal the old way versus the Artifically way"
-            >
-              <Icon name="arrowRight" size={20} className="comparison-handle__icon" />
-            </button>
-          </div>
-          <article className="comparison-panel comparison-panel--new" style={rightClip}>
+          <article
+            className="comparison-panel comparison-panel--new"
+            style={rightClip}
+            data-side="new"
+          >
             <header className="comparison-panel__header">
               <span aria-hidden="true" className="comparison-panel__symbol comparison-panel__symbol--positive">
                 ✓
@@ -189,6 +181,22 @@ export default function ProblemSolutionSection() {
               ))}
             </div>
           </article>
+          {!isMobile ? (
+            <div className={`comparison-divider${isDragging ? " is-dragging" : ""}`} style={dividerStyle}>
+              <span aria-hidden="true" className="comparison-divider__arrow">
+                →
+              </span>
+              <button
+                type="button"
+                className="comparison-handle"
+                onPointerDown={handlePointerDown}
+                onKeyDown={handleKeyDown}
+                aria-label="Drag to reveal the old way versus the Artifically way"
+              >
+                <Icon name="arrowRight" size={20} className="comparison-handle__icon" />
+              </button>
+            </div>
+          ) : null}
         </div>
       </div>
     </section>

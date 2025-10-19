@@ -9,6 +9,11 @@ import {
   HERO_PREVIEW_SOURCES,
 } from "./heroPreviewAssets";
 
+const BASE_ANGLE = { x: -10, y: 22 };
+const MAX_DEVIATION = { x: 7, y: 12 };
+const IDLE_SWAY = { x: 2.5, y: 4.5 };
+const IDLE_SWAY_SPEED = 0.02;
+
 const requestIdle = (callback) => {
   if (typeof window !== "undefined" && typeof window.requestIdleCallback === "function") {
     return window.requestIdleCallback(callback, { timeout: 1400 });
@@ -24,12 +29,15 @@ const cancelIdle = (handle) => {
   clearTimeout(handle);
 };
 
+const clamp = (value, min, max) => Math.min(Math.max(value, min), max);
+
 export default function ProductPreview3D({ label = "Automation preview", theme = "dark" }) {
   const containerRef = useRef(null);
   const frameRef = useRef(null);
   const rafRef = useRef();
-  const animationAngle = useRef({ x: -18, y: 32 });
-  const targetAngle = useRef({ x: -12, y: 38 });
+  const animationAngle = useRef({ ...BASE_ANGLE });
+  const targetAngle = useRef({ ...BASE_ANGLE });
+  const idlePhase = useRef(Math.random() * Math.PI * 2);
   const [isInteracting, setIsInteracting] = useState(false);
   const [isInViewport, setIsInViewport] = useState(false);
   const [prefersReducedMotion, setPrefersReducedMotion] = useState(() => {
@@ -146,34 +154,43 @@ export default function ProductPreview3D({ label = "Automation preview", theme =
 
     if (!allowInteractivity) {
       setIsInteracting(false);
-      targetAngle.current = { x: -12, y: 38 };
+      targetAngle.current = { ...BASE_ANGLE };
+      animationAngle.current = { ...BASE_ANGLE };
+      idlePhase.current = Math.random() * Math.PI * 2;
+      frame.style.transform = `perspective(1600px) rotateX(${BASE_ANGLE.x}deg) rotateY(${BASE_ANGLE.y}deg)`;
       if (rafRef.current) {
         cancelAnimationFrame(rafRef.current);
       }
-      animationAngle.current = { ...targetAngle.current };
-      frame.style.transform = `rotateX(${targetAngle.current.x}deg) rotateY(${targetAngle.current.y}deg)`;
       return undefined;
     }
 
-    const update = () => {
-      animationAngle.current.x += (targetAngle.current.x - animationAngle.current.x) * 0.05;
-      animationAngle.current.y += (targetAngle.current.y - animationAngle.current.y) * 0.05;
-
-      const { x, y } = animationAngle.current;
-      frame.style.transform = `rotateX(${x}deg) rotateY(${y}deg)`;
-
+    const step = () => {
       if (!isInteracting) {
-        targetAngle.current.y += 0.04;
+        if (shouldAnimate) {
+          idlePhase.current += IDLE_SWAY_SPEED;
+          const idleX = Math.sin(idlePhase.current) * IDLE_SWAY.x;
+          const idleY = Math.cos(idlePhase.current * 0.85) * IDLE_SWAY.y;
+          targetAngle.current = {
+            x: BASE_ANGLE.x + idleX,
+            y: BASE_ANGLE.y + idleY,
+          };
+        } else {
+          targetAngle.current = { ...BASE_ANGLE };
+        }
       }
 
+      animationAngle.current.x += (targetAngle.current.x - animationAngle.current.x) * 0.08;
+      animationAngle.current.y += (targetAngle.current.y - animationAngle.current.y) * 0.08;
+
+      const { x, y } = animationAngle.current;
+      frame.style.transform = `perspective(1600px) rotateX(${x}deg) rotateY(${y}deg)`;
+
       if (shouldAnimate || isInteracting) {
-        rafRef.current = requestAnimationFrame(update);
+        rafRef.current = requestAnimationFrame(step);
       }
     };
 
-    if (shouldAnimate || isInteracting) {
-      rafRef.current = requestAnimationFrame(update);
-    }
+    step();
 
     return () => {
       if (rafRef.current) {
@@ -194,12 +211,12 @@ export default function ProductPreview3D({ label = "Automation preview", theme =
       const rect = frame.getBoundingClientRect();
       const offsetX = event.clientX - rect.left;
       const offsetY = event.clientY - rect.top;
-      const percentX = (offsetX / rect.width) * 2 - 1;
-      const percentY = (offsetY / rect.height) * 2 - 1;
+      const percentX = clamp((offsetX / rect.width) * 2 - 1, -1, 1);
+      const percentY = clamp((offsetY / rect.height) * 2 - 1, -1, 1);
 
       targetAngle.current = {
-        x: -18 * percentY,
-        y: 32 * percentX,
+        x: BASE_ANGLE.x - percentY * MAX_DEVIATION.x,
+        y: BASE_ANGLE.y + percentX * MAX_DEVIATION.y,
       };
     };
 
@@ -209,7 +226,8 @@ export default function ProductPreview3D({ label = "Automation preview", theme =
 
     const handlePointerLeave = () => {
       setIsInteracting(false);
-      targetAngle.current = { x: -12, y: 38 };
+      targetAngle.current = { ...BASE_ANGLE };
+      idlePhase.current = Math.random() * Math.PI * 2;
     };
 
     frame.addEventListener("pointermove", handlePointerMove);
@@ -258,7 +276,7 @@ export default function ProductPreview3D({ label = "Automation preview", theme =
               />
             </picture>
           </div>
-        <div className="product-preview__interactive" aria-hidden={!isEnhanced}>
+          <div className="product-preview__interactive" aria-hidden={!isEnhanced}>
             <header className="product-preview__toolbar">
               <span />
               <span />
