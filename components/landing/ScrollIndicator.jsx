@@ -3,6 +3,8 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 
 const SCROLL_DURATION = 800;
+const MIN_SCROLL_HIDE_THRESHOLD = 160;
+const VIEWPORT_SCROLL_HIDE_RATIO = 0.25;
 
 export default function ScrollIndicator({ targetId, hostId, label = "Scroll to explore" }) {
   const indicatorRef = useRef(null);
@@ -66,7 +68,11 @@ export default function ScrollIndicator({ targetId, hostId, label = "Scroll to e
 
     const updateScrollState = () => {
       frame = null;
-      setHasUserScrolled(window.scrollY > 16);
+      const currentOffset = window.scrollY || window.pageYOffset || 0;
+      const viewportHeight = window.innerHeight || 0;
+      const dynamicThreshold = viewportHeight * VIEWPORT_SCROLL_HIDE_RATIO;
+      const scrollThreshold = Math.max(MIN_SCROLL_HIDE_THRESHOLD, dynamicThreshold);
+      setHasUserScrolled(currentOffset > scrollThreshold);
     };
 
     const handleScroll = () => {

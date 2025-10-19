@@ -856,17 +856,7 @@ export default function Header({ user, onSignIn, onSignUp, onSignOut }) {
           />
         </Link>
 
-        <nav
-          className="nav"
-          style={{
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "center",
-            flex: "1 1 auto",
-            position: "relative",
-            zIndex: 1,
-          }}
-        >
+        <nav className="nav">
           <StaggeredContainer
             className="nav-items"
             style={{
