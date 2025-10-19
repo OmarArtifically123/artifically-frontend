@@ -17,6 +17,7 @@ import useViewTransitionNavigate from "../hooks/useViewTransitionNavigate";
 import { Icon } from "./icons";
 import AutomationsMegaMenu from "./header/AutomationsMegaMenu";
 import SolutionsMegaMenu from "./header/SolutionsMegaMenu";
+import ResourcesMegaMenu from "./header/ResourcesMegaMenu";
 
 export default function Header({ user, onSignIn, onSignUp, onSignOut }) {
   const navigate = useViewTransitionNavigate();
@@ -257,7 +258,7 @@ export default function Header({ user, onSignIn, onSignUp, onSignOut }) {
     document.addEventListener("pointerdown", handlePointerDown);
     return () => document.removeEventListener("pointerdown", handlePointerDown);
   }, [solutionsMenuState, closeSolutionsMenu]);
-  
+
   const commitPrediction = useCallback(
     (path, ttl = 1600) => {
       if (!path || path === pathname) {
@@ -460,26 +461,82 @@ export default function Header({ user, onSignIn, onSignUp, onSignOut }) {
       },
       { type: "link", path: "/pricing", label: "Pricing" },
       {
-        type: "mega",
+        type: "resources",
         label: "Resources",
-        sections: [
+        columns: [
           {
             heading: "Learn",
             links: [
               {
-                path: "/blog",
-                label: "Blog",
-                description: "Ideas from the automation frontier",
+                path: "/documentation",
+                label: "Documentation",
+                description: "Complete guides to master the platform",
+                icon: "book",
               },
               {
-                path: "/docs",
-                label: "Documentation",
-                description: "Guides, SDKs, and integration tips",
+                path: "/docs/api",
+                label: "API Reference",
+                description: "Developer docs for every endpoint",
+                icon: "plug",
+              },
+              {
+                path: "/support",
+                label: "Video Tutorials",
+                description: "Step-by-step walkthrough videos",
+                icon: "clapperboard",
               },
               {
                 path: "/updates",
-                label: "Release Notes",
-                description: "See what's shipping every week",
+                label: "Webinars",
+                description: "Live and on-demand sessions with experts",
+                icon: "calendar",
+              },
+              {
+                path: "/blog",
+                label: "Blog",
+                description: "Latest insights from the team",
+                icon: "message",
+              },
+              {
+                path: "/changelog",
+                label: "Changelog",
+                description: "Product updates and improvements",
+                icon: "refresh",
+              },
+            ],
+          },
+          {
+            heading: "Support",
+            links: [
+              {
+                path: "/help",
+                label: "Help Center",
+                description: "24/7 support resources",
+                icon: "headphones",
+              },
+              {
+                path: "/support",
+                label: "Community Forum",
+                description: "Peer discussions and shared solutions",
+                icon: "users",
+              },
+              {
+                path: "/status",
+                label: "Status Page",
+                description: "System uptime and incident history",
+                icon: "analytics",
+              },
+              {
+                path: "/contact",
+                label: "Contact Support",
+                description: "Get in touch with our team",
+                icon: "concierge",
+              },
+              {
+                path: "/support#feedback",
+                label: "Submit Feedback",
+                description: "Request features and share ideas",
+                icon: "sparkles",
               },
             ],
           },
@@ -487,19 +544,40 @@ export default function Header({ user, onSignIn, onSignUp, onSignOut }) {
             heading: "Company",
             links: [
               {
-                path: "/changelog",
-                label: "Changelog",
-                description: "Track platform improvements",
+                path: "/",
+                label: "About Us",
+                description: "Learn about our mission and values",
+                icon: "globe",
               },
               {
-                path: "/status",
-                label: "Status",
-                description: "View live service availability",
+                path: "/contact?topic=careers",
+                label: "Careers",
+                description: "Join the team building the future",
+                icon: "briefcase",
               },
               {
-                path: "/contact",
-                label: "Contact",
-                description: "Talk with our solutions engineers",
+                path: "/security",
+                label: "Security",
+                description: "SOC 2 and GDPR compliant practices",
+                icon: "shield",
+              },
+              {
+                path: "/privacy",
+                label: "Privacy Policy",
+                description: "How we protect customer data",
+                icon: "lock",
+              },
+              {
+                path: "/terms",
+                label: "Terms of Service",
+                description: "Read the legal terms",
+                icon: "clipboard",
+              },
+              {
+                path: "/customers",
+                label: "Partners",
+                description: "Explore our integration partners",
+                icon: "handshake",
               },
             ],
           },
@@ -628,6 +706,23 @@ export default function Header({ user, onSignIn, onSignUp, onSignOut }) {
             }}
           >
             {navItems.map((item, index) => {
+              if (item.type === "resources") {
+                const isActive = item.columns.some((column) =>
+                  column.links.some((link) => link.path === pathname),
+                );
+                return (
+                  <StaggeredItem key={item.label} index={index} style={{ display: "flex" }}>
+                    <div className={`nav-item nav-item--mega${isActive ? " nav-item--active" : ""}`}>
+                      <ResourcesMegaMenu
+                        label={item.label}
+                        columns={item.columns}
+                        isActive={isActive}
+                        onNavigate={handleLinkNavigation}
+                      />
+                    </div>
+                  </StaggeredItem>
+                );
+              }
               if (item.type === "mega") {
                 if (item.label === "Automations") {
                   const isMenuOpen = automationsMenuState === "open" || automationsMenuState === "opening";

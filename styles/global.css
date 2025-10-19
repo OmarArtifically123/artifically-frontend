@@ -1951,6 +1951,120 @@ main :where(section, div)[id] {
   color: rgba(255, 255, 255, 0.65);
 }
 
+.resources-mega {
+  position: relative;
+  display: flex;
+  align-items: stretch;
+}
+
+.resources-mega summary::-webkit-details-marker {
+  display: none;
+}
+
+.resources-mega__panel {
+  position: absolute;
+  top: calc(100% + 16px);
+  left: 50%;
+  transform: translate(-50%, -8px);
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 24px;
+  width: min(960px, calc(100vw - 32px));
+  padding: 28px;
+  border-radius: 20px;
+  background: rgba(8, 14, 30, 0.96);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  box-shadow: 0 32px 80px rgba(5, 8, 20, 0.6);
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 200ms ease, transform 200ms ease;
+  z-index: 30;
+}
+
+.resources-mega[open] .resources-mega__panel {
+  opacity: 1;
+  transform: translate(-50%, 0);
+  pointer-events: auto;
+}
+
+.resources-mega__column {
+  display: grid;
+  gap: 16px;
+}
+
+.resources-mega__heading {
+  font-size: 0.85rem;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: rgba(255, 255, 255, 0.6);
+}
+
+.resources-mega__links {
+  display: grid;
+  gap: 10px;
+}
+
+.resources-mega__link {
+  display: flex;
+  align-items: flex-start;
+  gap: 14px;
+  padding: 14px 16px;
+  border-radius: 14px;
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid rgba(255, 255, 255, 0.04);
+  text-decoration: none;
+  color: rgba(255, 255, 255, 0.88);
+  transition: background 180ms ease, transform 180ms ease, border-color 180ms ease;
+}
+
+.resources-mega__link:hover,
+.resources-mega__link:focus-visible {
+  background: rgba(255, 255, 255, 0.12);
+  border-color: rgba(255, 255, 255, 0.2);
+  transform: translateY(-2px);
+}
+
+.resources-mega__link:focus-visible {
+  outline: 2px solid rgba(255, 255, 255, 0.35);
+  outline-offset: 2px;
+}
+
+.resources-mega__icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 40px;
+  height: 40px;
+  border-radius: 12px;
+  background: rgba(255, 255, 255, 0.08);
+  color: rgba(255, 255, 255, 0.9);
+  flex-shrink: 0;
+  transition: background 180ms ease, color 180ms ease;
+}
+
+.resources-mega__link:hover .resources-mega__icon,
+.resources-mega__link:focus-visible .resources-mega__icon {
+  background: rgba(93, 135, 255, 0.16);
+  color: rgb(202, 218, 255);
+}
+
+.resources-mega__copy {
+  display: grid;
+  gap: 4px;
+}
+
+.resources-mega__title {
+  font-weight: 600;
+  font-size: 0.95rem;
+}
+
+.resources-mega__description {
+  font-size: 0.85rem;
+  line-height: 1.4;
+  color: rgba(255, 255, 255, 0.68);
+}
+
 body.automations-mega-open {
   overflow: hidden;
 }
