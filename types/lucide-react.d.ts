@@ -37,6 +37,7 @@ declare module "lucide-react" {
   export const ConciergeBell: LucideIcon;
   export const Contrast: LucideIcon;
   export const Database: LucideIcon;
+  export const Discord: LucideIcon;
   export const DoorClosed: LucideIcon;
   export const ChevronDown: LucideIcon;
   export const Grid3X3: LucideIcon;
@@ -51,8 +52,10 @@ declare module "lucide-react" {
   export const Megaphone: LucideIcon;
   export const Info: LucideIcon;
   export const Laptop: LucideIcon;
+  export const Linkedin: LucideIcon;
   export const LineChart: LucideIcon;
   export const Lock: LucideIcon;
+  export const LucideGithub: LucideIcon;
   export const Mail: LucideIcon;
   export const MessageCircle: LucideIcon;
   export const Moon: LucideIcon;
@@ -73,6 +76,7 @@ declare module "lucide-react" {
   export const Target: LucideIcon;
   export const Trophy: LucideIcon;
   export const Twitter: LucideIcon;
+  export const Youtube: LucideIcon;
   export const Users: LucideIcon;
   export const Vote: LucideIcon;
   export const Zap: LucideIcon;

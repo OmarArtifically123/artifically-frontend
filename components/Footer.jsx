@@ -1,541 +1,661 @@
 "use client";
 
 import Link from "next/link";
-import { useEffect, useMemo, useState, useId, useRef } from "react";
-import ThemeToggle from "./ThemeToggle";
-import { useTheme } from "../context/ThemeContext";
-import { space } from "../styles/spacing";
-import Button from "./ui/Button";
-import Input from "./ui/Input";
-import LogoWordmark from "./ui/LogoWordmark";
+import { useEffect, useId, useRef, useState } from "react";
+
 import { Icon } from "./icons";
+import LogoWordmark from "./ui/LogoWordmark";
 
-const FALLBACK_YEAR = new Date().getUTCFullYear();
+const productLinks = [
+  { label: "Marketplace", description: "Browse automations", href: "/marketplace" },
+  {
+    label: "AI Receptionist",
+    description: "Smart call handling",
+    href: "/marketplace?category=receptionist",
+  },
+  {
+    label: "Lead Scoring",
+    description: "Qualify prospects",
+    href: "/marketplace?category=sales",
+  },
+  {
+    label: "Analytics Engine",
+    description: "Business insights",
+    href: "/marketplace?category=analytics",
+  },
+  {
+    label: "Custom Solutions",
+    description: "Enterprise integrations",
+    href: "/contact",
+  },
+  {
+    label: "Workflow Library",
+    description: "Pre-built templates",
+    href: "/marketplace?category=workflows",
+  },
+  {
+    label: "Integrations",
+    description: "Connect your stack",
+    href: "/integrations",
+  },
+  {
+    label: "View All Products →",
+    description: "",
+    href: "/products",
+  },
+];
 
-const getInitialYear = () => {
-  if (typeof window === "undefined") {
-    return FALLBACK_YEAR;
-  }
-  return new Date().getUTCFullYear();
-};
+const resourceLinks = [
+  { label: "Documentation", description: "Complete guides", href: "/docs" },
+  { label: "API Reference", description: "Developer docs", href: "/api" },
+  { label: "Help Center", description: "24/7 support", href: "/help" },
+  { label: "Community Forum", description: "Peer discussions", href: "/community" },
+  { label: "Blog", description: "Latest insights", href: "/blog" },
+  { label: "Case Studies", description: "Success stories", href: "/case-studies" },
+  { label: "Webinars", description: "Live sessions", href: "/webinars" },
+  { label: "Changelog", description: "Product updates", href: "/changelog" },
+  { label: "Status Page", description: "System uptime", href: "/status" },
+];
+
+const companyLinks = [
+  { label: "About Us", description: "Our mission", href: "/about" },
+  { label: "Careers", description: "Join the team", href: "/careers" },
+  { label: "Partners", description: "Integration partners", href: "/partners" },
+  { label: "Press", description: "Media resources", href: "/press" },
+  { label: "Contact", description: "Get in touch", href: "/contact" },
+  { label: "Brand Assets", description: "Logos and guidelines", href: "/brand" },
+];
+
+const supportLinks = [
+  { label: "Help Center", description: "24/7 support", href: "/help" },
+  { label: "Contact Support", description: "Get in touch", href: "/support" },
+  { label: "Security", description: "SOC 2, GDPR", href: "/security" },
+  { label: "Privacy Policy", description: "Data protection", href: "/privacy" },
+  { label: "Terms of Service", description: "Legal terms", href: "/terms" },
+  { label: "Cookie Policy", description: "Cookie usage", href: "/cookies" },
+  { label: "Compliance", description: "Certifications", href: "/compliance" },
+];
+
+const socialLinks = [
+  { label: "Twitter/X", href: "https://twitter.com/artifically", icon: "twitter" },
+  { label: "LinkedIn", href: "https://linkedin.com/company/artifically", icon: "linkedin" },
+  { label: "GitHub", href: "https://github.com/artifically", icon: "github" },
+  { label: "Discord", href: "https://discord.gg/artifically", icon: "discord" },
+  { label: "YouTube", href: "https://youtube.com/@artifically", icon: "youtube" },
+];
+
+const footerStats = [
+  "12.4K Automations Deployed",
+  "3.2K Companies Served",
+  "99.9% Uptime",
+];
 
 export default function Footer() {
-  const { darkMode } = useTheme();
-  const [currentYear, setCurrentYear] = useState(getInitialYear);
-  const [stats, setStats] = useState({
-    automationsDeployed: 0,
-    companiesServed: 0,
-    timesSaved: 0,
-  });
-  const [newsletterEmail, setNewsletterEmail] = useState("");
-  const [newsletterStatus, setNewsletterStatus] = useState("");
-  const [newsletterMessage, setNewsletterMessage] = useState("");
+  const [email, setEmail] = useState("");
+  const [formStatus, setFormStatus] = useState("");
+  const [formMessage, setFormMessage] = useState("");
   const messageTimeoutRef = useRef(null);
-  const newsletterId = useId();
-
-  useEffect(() => {
-    if (typeof window === "undefined") {
-      return;
-    }
-
-    const year = new Date().getUTCFullYear();
-    if (year !== currentYear) {
-      setCurrentYear(year);
-    }
-  }, [currentYear]);
-
-  useEffect(() => {
-    const finalStats = {
-      automationsDeployed: 0,
-      companiesServed: 0,
-      timesSaved: 0,
-    };
-
-    let frame = 0;
-    const totalFrames = 60;
-    const animate = () => {
-      frame += 1;
-      const progress = Math.min(frame / totalFrames, 1);
-      const eased = 1 - Math.pow(1 - progress, 3);
-      setStats({
-        automationsDeployed: Math.floor(finalStats.automationsDeployed * eased),
-        companiesServed: Math.floor(finalStats.companiesServed * eased),
-        timesSaved: Math.floor(finalStats.timesSaved * eased),
-      });
-      if (progress < 1) {
-        requestAnimationFrame(animate);
-      }
-    };
-
-    const observer = new IntersectionObserver(
-      (entries) => {
-        entries.forEach((entry) => {
-          if (entry.isIntersecting) {
-            animate();
-            observer.disconnect();
-          }
-        });
-      },
-      { threshold: 0.2 }
-    );
-
-    const el = document.querySelector(".site-footer");
-    if (el) observer.observe(el);
-    return () => observer.disconnect();
-  }, []);
-
-  useEffect(() => () => {
-    if (messageTimeoutRef.current) {
-      clearTimeout(messageTimeoutRef.current);
-    }
-  }, []);
-
-  const footerSections = useMemo(
-    () => [
-      {
-        title: "Products",
-        links: [
-          { name: "Marketplace", path: "/marketplace", desc: "Browse automations" },
-          { name: "AI Receptionist", path: "/marketplace?category=receptionist", desc: "Smart call handling" },
-          { name: "Lead Scoring", path: "/marketplace?category=sales", desc: "Intelligent lead analysis" },
-          { name: "Analytics Engine", path: "/marketplace?category=analytics", desc: "Business insights" },
-          { name: "Custom Solutions", path: "/contact", desc: "Enterprise integrations" },
-        ],
-      },
-      {
-        title: "Resources",
-        links: [
-          { name: "Documentation", path: "/docs", desc: "Complete guides" },
-          { name: "API Reference", path: "/api", desc: "Developer resources" },
-          { name: "Pricing", path: "/pricing", desc: "Transparent costs" },
-          { name: "Blog", path: "/blog", desc: "Latest insights" },
-          { name: "Case Studies", path: "/case-studies", desc: "Success stories" },
-          { name: "Changelog", path: "/changelog", desc: "Product updates" },
-        ],
-      },
-      {
-        title: "Support & Legal",
-        links: [
-          { name: "Help Center", path: "/help", desc: "24/7 support" },
-          { name: "Status Page", path: "/status", desc: "System status" },
-          { name: "Security", path: "/security", desc: "SOC 2 compliant" },
-          { name: "Privacy Policy", path: "/privacy", desc: "Data protection" },
-          { name: "Terms of Service", path: "/terms", desc: "Usage terms" },
-          { name: "Contact", path: "/contact", desc: "Get in touch" },
-        ],
-      },
-    ],
-    []
-  );
+  const emailId = useId();
 
   const handleNewsletterSubmit = async (event) => {
     event.preventDefault();
-    const trimmedEmail = newsletterEmail.trim();
+    const trimmedEmail = email.trim();
     const emailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/i;
 
     if (!emailPattern.test(trimmedEmail)) {
-      setNewsletterStatus("error");
-      setNewsletterMessage("Please use a valid work email so we can confirm updates.");
+      setFormStatus("error");
+      setFormMessage("Enter a valid work email to join the digest.");
       if (messageTimeoutRef.current) clearTimeout(messageTimeoutRef.current);
       messageTimeoutRef.current = setTimeout(() => {
-        setNewsletterStatus("");
-        setNewsletterMessage("");
-      }, 3200);
+        setFormStatus("");
+        setFormMessage("");
+      }, 3600);
       return;
     }
 
-    setNewsletterStatus("loading");
-    setNewsletterMessage("Subscribing you to the release digest…");
+    setFormStatus("loading");
+    setFormMessage("Subscribing you to curated updates…");
     try {
-      await new Promise((resolve) => setTimeout(resolve, 1200));
-      setNewsletterStatus("success");
-      setNewsletterMessage("Thanks! Check your inbox for a confirmation email.");
-      setNewsletterEmail("");
+      await new Promise((resolve) => setTimeout(resolve, 1100));
+      setFormStatus("success");
+      setFormMessage("Thanks for subscribing! Check your inbox to confirm.");
+      setEmail("");
     } catch (error) {
       console.error(error);
-      setNewsletterStatus("error");
-      setNewsletterMessage("We couldn't save your email. Please try again in a moment.");
+      setFormStatus("error");
+      setFormMessage("We couldn't save that email. Please try again.");
     } finally {
       if (messageTimeoutRef.current) clearTimeout(messageTimeoutRef.current);
       messageTimeoutRef.current = setTimeout(() => {
-        setNewsletterStatus("");
-        setNewsletterMessage("");
-      }, 4000);
+        setFormStatus("");
+        setFormMessage("");
+      }, 4200);
     }
   };
 
-  const socialLinks = useMemo(
-    () => [
-      {
-        name: "Twitter",
-        url: "https://twitter.com/artifically",
-        icon: "twitter",
-        color: "color-mix(in oklch, var(--brand-glow) 60%, transparent)",
-      },
-      {
-        name: "LinkedIn",
-        url: "https://linkedin.com/company/artifically",
-        icon: "briefcase",
-        color: "color-mix(in oklch, var(--brand-primary) 55%, transparent)",
-      },
-      {
-        name: "GitHub",
-        url: "https://github.com/artifically",
-        icon: "laptop",
-        color: "color-mix(in oklch, var(--text-primary) 85%, transparent)",
-      },
-      {
-        name: "Discord",
-        url: "https://discord.gg/artifically",
-        icon: "message",
-        color: "color-mix(in oklch, var(--brand-energy) 55%, transparent)",
-      },
-    ],
-    []
-  );
+  useEffect(() => {
+    return () => {
+      if (messageTimeoutRef.current) {
+        clearTimeout(messageTimeoutRef.current);
+      }
+    };
+  }, []);
 
-  const statusBadges = [
-    { label: "All systems operational", status: "success" },
-    { label: "SOC 2 Type II", status: "info" },
-    { label: "99.99% uptime", status: "accent" },
-  ];
-
-  const badgePalette = {
-    success: {
-      background: "color-mix(in oklch, var(--success-vibrant) 18%, transparent)",
-      text: "color-mix(in oklch, var(--success-vibrant) 65%, transparent)",
-      border: "color-mix(in oklch, var(--success-vibrant) 35%, transparent)",
-    },
-    info: {
-      background: "color-mix(in oklch, var(--brand-primary) 18%, transparent)",
-      text: "color-mix(in oklch, var(--brand-primary) 70%, transparent)",
-      border: "color-mix(in oklch, var(--brand-primary) 35%, transparent)",
-    },
-    accent: {
-      background: "color-mix(in oklch, var(--brand-glow) 18%, transparent)",
-      text: "color-mix(in oklch, var(--brand-glow) 65%, transparent)",
-      border: "color-mix(in oklch, var(--brand-glow) 35%, transparent)",
-    },
-  };
-
-  const footerSurface = darkMode
-    ? "linear-gradient(180deg, color-mix(in oklch, var(--brand-depth) 92%, black) 0%, color-mix(in oklch, var(--brand-depth) 70%, transparent) 100%)"
-    : "linear-gradient(180deg, color-mix(in oklch, white 94%, var(--brand-primary) 6%) 0%, color-mix(in oklch, white 88%, var(--brand-primary) 12%) 100%)";
-
-  const footerBorder = darkMode
-    ? "color-mix(in oklch, var(--glass-border-primary) 70%, transparent)"
-    : "color-mix(in oklch, var(--glass-border-primary-light) 65%, transparent)";
-
-  const panelSurface = darkMode
-    ? "color-mix(in oklch, var(--glass-1) 92%, transparent)"
-    : "color-mix(in oklch, var(--glass-3) 94%, transparent)";
+  const inputClassName = `newsletter-input${
+    formStatus === "error" ? " has-error" : ""
+  }${formStatus === "success" ? " has-success" : ""}`;
 
   return (
-    <footer
-      className="site-footer"
-      style={{
-        marginTop: space("2xl"),
-        padding: `${space("2xl")} 0 ${space("lg", 1.25)}`,
-        color: "var(--text-primary)",
-        background: `${footerSurface}, radial-gradient(circle at 15% -10%, color-mix(in oklch, var(--brand-primary) 18%, transparent) 0%, transparent 55%), radial-gradient(circle at 85% -20%, color-mix(in oklch, var(--brand-energy) 18%, transparent) 0%, transparent 55%)`,
-        borderTop: `1px solid ${footerBorder}`,
-        position: "relative",
-        overflow: "hidden",
-      }}
-      data-animate="true"
-    >
-      <div
-        className="container"
-        style={{
-          position: "relative",
-          zIndex: 1,
-          display: "grid",
-          gap: space("xl"),
-        }}
-      >
-        <div
-          style={{
-            display: "flex",
-            flexDirection: "column",
-            gap: space("md"),
-            background: panelSurface,
-            border: `1px solid ${footerBorder}`,
-            borderRadius: "1.5rem",
-            padding: space("lg"),
-            boxShadow: darkMode
-              ? "0 30px 65px color-mix(in srgb, var(--brand-depth) 65%, transparent)"
-              : "0 30px 65px color-mix(in srgb, var(--brand-primary) 22%, transparent)",
-            backdropFilter: "blur(22px)",
-            WebkitBackdropFilter: "blur(22px)",
-          }}
-        >
-          <div
-            style={{
-              display: "flex",
-              flexWrap: "wrap",
-              alignItems: "center",
-              justifyContent: "space-between",
-              gap: space("sm"),
-            }}
-          >
-            <div style={{ display: "flex", alignItems: "center", gap: space("sm") }}>
-              <LogoWordmark
-                variant={darkMode ? "dark" : "light"}
-                style={{ height: "60px", width: "auto" }}
-              />
-              <div>
-                <p
-                  style={{
-                    fontSize: "1.15rem",
-                    fontWeight: 600,
-                    marginBottom: space("2xs", 1.4),
-                  }}
-                >
-                  Building trustworthy automations for enterprises worldwide.
-                </p>
-                <div
-                  style={{
-                    display: "flex",
-                    gap: space("xs", 1.5),
-                    flexWrap: "wrap",
-                  }}
-                >
-                  {statusBadges.map(({ label, status }) => (
-                    <span
-                      key={label}
-                      style={{
-                        display: "inline-flex",
-                        alignItems: "center",
-                        gap: space("2xs", 1.4),
-                        padding: `${space("2xs", 1.4)} ${space("xs", 1.5)}`,
-                        borderRadius: "999px",
-                        fontSize: "0.8rem",
-                        fontWeight: 600,
-                        letterSpacing: "0.02em",
-                        background: badgePalette[status]?.background,
-                        color: badgePalette[status]?.text,
-                        border: `1px solid ${badgePalette[status]?.border ?? "transparent"}`,
-                      }}
-                    >
-                      <span aria-hidden="true">●</span>
-                      {label}
+    <footer className="enterprise-footer" data-animate="true">
+      <div className="footer-inner">
+        <div className="footer-grid">
+          <nav className="footer-column" aria-label="Products">
+            <h4 className="footer-heading">Products</h4>
+            <ul className="footer-links">
+              {productLinks.map(({ label, description, href }) => (
+                <li key={label}>
+                  <Link href={href} className="footer-link">
+                    <span className="footer-link-text">
+                      <span className="footer-link-title">{label}</span>
+                      {description ? (
+                        <>
+                          <span className="footer-link-divider">-</span>
+                          <span className="footer-link-description">{description}</span>
+                        </>
+                      ) : null}
                     </span>
-                  ))}
-                </div>
-              </div>
-            </div>
+                  </Link>
+                </li>
+              ))}
+            </ul>
+          </nav>
 
-            <ThemeToggle />
-          </div>
+          <nav className="footer-column" aria-label="Resources">
+            <h4 className="footer-heading">Resources</h4>
+            <ul className="footer-links">
+              {resourceLinks.map(({ label, description, href }) => (
+                <li key={label}>
+                  <Link href={href} className="footer-link">
+                    <span className="footer-link-text">
+                      <span className="footer-link-title">{label}</span>
+                      <span className="footer-link-divider">-</span>
+                      <span className="footer-link-description">{description}</span>
+                    </span>
+                  </Link>
+                </li>
+              ))}
+            </ul>
+          </nav>
 
-          <div
-            style={{
-              display: "grid",
-              gridTemplateColumns: "repeat(auto-fit, minmax(220px, 1fr))",
-              gap: space("md", 1.1667),
-              marginTop: space("md"),
-            }}
-          >
-            {footerSections.map(({ title, links }) => (
-              <div key={title}>
-                <h4
-                  style={{
-                    fontSize: "1rem",
-                    marginBottom: space("xs", 1.5),
-                    color: "var(--text-primary)",
-                  }}
-                >
-                  {title}
-                </h4>
-                <ul style={{ listStyle: "none", display: "grid", gap: space("xs", 1.5) }}>
-                  {links.map((link) => (
-                    <li key={link.name}>
-                      <Link
-                        href={link.path}
-                        style={{
-                          display: "flex",
-                          flexDirection: "column",
-                          gap: space("3xs", 1.6),
-                          padding: `${space("xs", 1.2)} ${space("xs", 1.5)}`,
-                          borderRadius: "0.75rem",
-                          textDecoration: "none",
-                          color: "var(--text-secondary)",
-                          background: "color-mix(in oklch, var(--glass-2) 65%, transparent)",
-                          transition: "all var(--transition-fast)",
-                        }}
-                      >
-                        <span style={{ fontWeight: 600 }}>{link.name}</span>
-                        <span style={{ fontSize: "0.85rem", color: "var(--text-muted)" }}>
-                          {link.desc}
-                        </span>
-                      </Link>
-                    </li>
-                  ))}
-                </ul>
-              </div>
-            ))}
-          </div>
+          <nav className="footer-column" aria-label="Company">
+            <h4 className="footer-heading">Company</h4>
+            <ul className="footer-links">
+              {companyLinks.map(({ label, description, href }) => (
+                <li key={label}>
+                  <Link href={href} className="footer-link">
+                    <span className="footer-link-text">
+                      <span className="footer-link-title">{label}</span>
+                      <span className="footer-link-divider">-</span>
+                      <span className="footer-link-description">{description}</span>
+                    </span>
+                  </Link>
+                </li>
+              ))}
+            </ul>
+          </nav>
 
-          <div
-            style={{
-              display: "grid",
-              gap: space("md"),
-              background: "color-mix(in oklch, var(--glass-2) 75%, transparent)",
-              borderRadius: "1.25rem",
-              padding: space("md", 1.1667),
-              border: `1px solid ${footerBorder}`,
-            }}
-          >
-            <div
-              style={{
-                display: "flex",
-                flexWrap: "wrap",
-                gap: space("sm"),
-                justifyContent: "space-between",
-                alignItems: "center",
-              }}
-            >
-              <div>
-                <h5 style={{ fontSize: "1.05rem", fontWeight: 600 }}>Stay ahead of automation trends</h5>
-                <p style={{ color: "var(--text-muted)" }}>
-                  Join {stats.automationsDeployed.toLocaleString()} operators getting curated updates.
-                </p>
-              </div>
+          <nav className="footer-column" aria-label="Support and legal">
+            <h4 className="footer-heading">Support &amp; Legal</h4>
+            <ul className="footer-links">
+              {supportLinks.map(({ label, description, href }) => (
+                <li key={label}>
+                  <Link href={href} className="footer-link">
+                    <span className="footer-link-text">
+                      <span className="footer-link-title">{label}</span>
+                      <span className="footer-link-divider">-</span>
+                      <span className="footer-link-description">{description}</span>
+                    </span>
+                  </Link>
+                </li>
+              ))}
+            </ul>
+          </nav>
 
-              <form
-                onSubmit={handleNewsletterSubmit}
-                noValidate
-                style={{
-                  display: "flex",
-                  flexWrap: "wrap",
-                  gap: space("xs", 1.5),
-                  alignItems: "center",
-                }}
+          <div className="footer-column newsletter-column">
+            <h4 className="footer-heading">Stay ahead of automation trends</h4>
+            <p className="newsletter-description">
+              Join 10,000+ operators getting curated updates.
+            </p>
+            <form className="newsletter-form" onSubmit={handleNewsletterSubmit} noValidate>
+              <label className="sr-only" htmlFor={emailId}>
+                Work email
+              </label>
+              <input
+                id={emailId}
+                type="email"
+                value={email}
+                onChange={(event) => setEmail(event.target.value)}
+                placeholder="Enter work email"
+                className={inputClassName}
+                aria-describedby={`${emailId}-message`}
+                disabled={formStatus === "loading"}
+                required
+              />
+              <button
+                type="submit"
+                className="newsletter-button"
+                disabled={formStatus === "loading"}
               >
-                <Input
-                  id={newsletterId}
-                  type="email"
-                  label="Email address"
-                  placeholder="you@company.com"
-                  value={newsletterEmail}
-                  onChange={(event) => setNewsletterEmail(event.target.value)}
-                  required
-                  aria-describedby={`${newsletterId}-status`}
-                  error={newsletterStatus === "error" ? newsletterMessage || "Something went wrong" : undefined}
-                  success={newsletterStatus === "success" ? newsletterMessage || "You're subscribed" : undefined}
-                />
-                <Button
-                  type="submit"
-                  size="sm"
-                  variant="primary"
-                  magnetic
-                  disabled={newsletterStatus === "loading"}
-                >
-                  <span>{newsletterStatus === "loading" ? "Joining…" : "Join newsletter"}</span>
-                </Button>
-              </form>
-            </div>
-
+                {formStatus === "loading" ? "Joining…" : "Join newsletter"}
+              </button>
+            </form>
             <div
+              id={`${emailId}-message`}
+              className={`newsletter-message${formStatus ? ` ${formStatus}` : ""}`}
               role="status"
               aria-live="polite"
-              id={`${newsletterId}-status`}
-              style={{
-                minHeight: "1.25rem",
-                fontSize: "0.9rem",
-                color:
-                  newsletterStatus === "success"
-                    ? badgePalette.success.text
-                    : newsletterStatus === "error"
-                    ? "color-mix(in oklch, var(--error-sharp) 70%, transparent)"
-                    : "var(--text-muted)",
-              }}
             >
-              {newsletterMessage ||
-                (newsletterStatus === "success"
-                  ? "You're officially in the loop."
-                  : newsletterStatus === "error"
-                  ? "We couldn't add you just yet."
-                  : "We send a curated digest twice a month.")}
+              {formMessage || "We send product intelligence twice a month."}
             </div>
 
-            <div
-              style={{
-                display: "grid",
-                gridTemplateColumns: "repeat(auto-fit, minmax(160px, 1fr))",
-                gap: space("sm"),
-                textAlign: "center",
-              }}
-            >
-              {["Automations deployed", "Companies served", "Hours saved"].map((label, index) => {
-                const value =
-                  index === 0
-                    ? stats.automationsDeployed.toLocaleString()
-                    : index === 1
-                    ? stats.companiesServed.toLocaleString()
-                    : `${(stats.timesSaved / 1000).toFixed(1)}K+`;
-                return (
-                  <div
-                    key={label}
-                    style={{
-                      padding: space("sm"),
-                      borderRadius: "1rem",
-                      background: "color-mix(in oklch, var(--glass-2) 80%, transparent)",
-                      border: `1px solid ${footerBorder}`,
-                    }}
-                  >
-                    <div style={{ fontSize: "1.65rem", fontWeight: 700 }}>{value}</div>
-                    <div style={{ color: "var(--text-muted)", fontSize: "0.85rem" }}>{label}</div>
-                  </div>
-                );
-              })}
+            <div className="footer-social">
+              {socialLinks.map(({ label, href, icon }) => (
+                <a
+                  key={label}
+                  href={href}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="footer-social-link"
+                  aria-label={label}
+                >
+                  <Icon name={icon} size={18} strokeWidth={1.6} />
+                </a>
+              ))}
+            </div>
+          </div>
+        </div>
+
+        <div className="footer-divider" aria-hidden="true" />
+
+        <div className="footer-bottom">
+          <div className="footer-bottom-left">
+            <LogoWordmark variant="dark" style={{ width: "120px", height: "auto" }} />
+            <p className="footer-copyright">
+              © 2025 Artifically. All rights reserved.
+            </p>
+          </div>
+
+          <div className="footer-bottom-right">
+            <div className="footer-certifications">
+              <div className="footer-badge">
+                <div className="footer-badge-icon">SOC 2</div>
+                <span>SOC 2 Certified</span>
+              </div>
+              <div className="footer-badge">
+                <div className="footer-badge-icon">GDPR</div>
+                <span>GDPR Compliant</span>
+              </div>
             </div>
 
-            <div
-              style={{
-                display: "flex",
-                flexWrap: "wrap",
-                justifyContent: "space-between",
-                gap: space("sm"),
-                alignItems: "center",
-              }}
-            >
-              <div style={{ display: "flex", gap: space("xs", 1.7), flexWrap: "wrap" }}>
-                {socialLinks.map((link) => (
-                  <a
-                    key={link.name}
-                    href={link.url}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    style={{
-                      display: "inline-flex",
-                      alignItems: "center",
-                      gap: space("2xs", 1.6),
-                      padding: `${space("xs", 1.2)} ${space("xs", 1.7)}`,
-                      borderRadius: "0.75rem",
-                      border: `1px solid ${footerBorder}`,
-                      color: link.color,
-                      background: "color-mix(in oklch, var(--glass-2) 78%, transparent)",
-                      textDecoration: "none",
-                      fontWeight: 600,
-                    }}
-                  >
-                    <span aria-hidden="true" style={{ display: "inline-flex", alignItems: "center" }}>
-                      <Icon name={link.icon} size={18} />
-                    </span>
-                    {link.name}
-                  </a>
-                ))}
-              </div>
-
-              <div style={{ color: "var(--text-muted)", fontSize: "0.85rem" }}>
-                &copy; <span suppressHydrationWarning>{currentYear}</span> Artifically. Crafted with resilience and
-                intent.
-              </div>
+            <div className="footer-stats" aria-label="Platform performance stats">
+              {footerStats.map((stat, index) => (
+                <span key={stat} className="footer-stat">
+                  {stat}
+                  {index < footerStats.length - 1 ? (
+                    <span aria-hidden="true" className="footer-stat-divider" />
+                  ) : null}
+                </span>
+              ))}
             </div>
           </div>
         </div>
       </div>
+
+      <style jsx>{`
+        .enterprise-footer {
+          background: #070a1a;
+          border-top: 1px solid rgba(255, 255, 255, 0.1);
+          padding: 80px 40px 32px;
+          color: rgba(255, 255, 255, 0.9);
+        }
+
+        .footer-inner {
+          margin: 0 auto;
+          max-width: 1400px;
+          display: flex;
+          flex-direction: column;
+        }
+
+        .footer-grid {
+          display: grid;
+          grid-template-columns: 1fr 1fr 1fr 1fr 1.2fr;
+          gap: 60px;
+        }
+
+        .footer-column {
+          min-width: 0;
+        }
+
+        .newsletter-column {
+          display: flex;
+          flex-direction: column;
+        }
+
+        .footer-heading {
+          font-size: 16px;
+          font-weight: 700;
+          color: #ffffff;
+          margin-bottom: 20px;
+        }
+
+        .footer-links {
+          list-style: none;
+          margin: 0;
+          padding: 0;
+        }
+
+        .footer-link {
+          display: block;
+          padding: 10px 0;
+          font-size: 14px;
+          color: rgba(255, 255, 255, 0.7);
+          text-decoration: none;
+          transition: color 200ms ease, transform 200ms ease, text-decoration-color 200ms ease;
+        }
+
+        .footer-link-text {
+          display: inline-flex;
+          align-items: center;
+          gap: 6px;
+        }
+
+        .footer-link-title {
+          font-weight: 600;
+        }
+
+        .footer-link-divider {
+          color: rgba(255, 255, 255, 0.35);
+          font-weight: 500;
+          margin: 0 4px;
+        }
+
+        .footer-link-description {
+          font-weight: 400;
+          color: rgba(255, 255, 255, 0.7);
+        }
+
+        .footer-link:hover {
+          color: #ffffff;
+          transform: translateX(4px);
+          text-decoration: underline;
+          text-decoration-color: rgba(139, 92, 246, 0.6);
+        }
+
+        .newsletter-description {
+          font-size: 14px;
+          color: rgba(255, 255, 255, 0.7);
+          line-height: 1.5;
+          margin: 0 0 20px;
+        }
+
+        .newsletter-form {
+          display: flex;
+          gap: 8px;
+        }
+
+        .sr-only {
+          position: absolute;
+          width: 1px;
+          height: 1px;
+          padding: 0;
+          margin: -1px;
+          overflow: hidden;
+          clip: rect(0, 0, 0, 0);
+          white-space: nowrap;
+          border: 0;
+        }
+
+        .newsletter-input {
+          flex: 1;
+          padding: 14px 16px;
+          background: rgba(255, 255, 255, 0.08);
+          border: 1px solid rgba(255, 255, 255, 0.2);
+          border-radius: 10px;
+          font-size: 14px;
+          color: #ffffff;
+        }
+
+        .newsletter-input.has-error {
+          border-color: rgba(248, 113, 113, 0.85);
+        }
+
+        .newsletter-input.has-success {
+          border-color: rgba(139, 92, 246, 0.85);
+        }
+
+        .newsletter-input::placeholder {
+          color: rgba(255, 255, 255, 0.4);
+        }
+
+        .newsletter-input:focus {
+          border-color: #a78bfa;
+          outline: none;
+          box-shadow: 0 0 0 3px rgba(139, 92, 246, 0.15);
+        }
+
+        .newsletter-button {
+          padding: 14px 24px;
+          background: #a78bfa;
+          border: none;
+          border-radius: 10px;
+          font-size: 14px;
+          font-weight: 600;
+          color: #ffffff;
+          cursor: pointer;
+          white-space: nowrap;
+          transition: transform 200ms ease, background 200ms ease;
+        }
+
+        .newsletter-button:hover:enabled {
+          background: #8b5cf6;
+          transform: translateY(-1px);
+        }
+
+        .newsletter-button:disabled {
+          opacity: 0.7;
+          cursor: not-allowed;
+        }
+
+        .newsletter-message {
+          margin-top: 14px;
+          font-size: 13px;
+          color: rgba(255, 255, 255, 0.6);
+          min-height: 18px;
+        }
+
+        .newsletter-message.success {
+          color: rgba(139, 92, 246, 0.85);
+        }
+
+        .newsletter-message.error {
+          color: rgba(244, 114, 182, 0.85);
+        }
+
+        .footer-social {
+          margin-top: 32px;
+          display: flex;
+          gap: 12px;
+        }
+
+        .footer-social-link {
+          width: 40px;
+          height: 40px;
+          border-radius: 50%;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          background: rgba(255, 255, 255, 0.08);
+          border: 1px solid rgba(255, 255, 255, 0.15);
+          color: rgba(255, 255, 255, 0.7);
+          transition: transform 200ms ease, background 200ms ease, border-color 200ms ease, color 200ms ease;
+        }
+
+        .footer-social-link:hover {
+          background: rgba(139, 92, 246, 0.2);
+          border-color: #a78bfa;
+          transform: translateY(-2px);
+          color: #ffffff;
+        }
+
+        .footer-divider {
+          margin: 60px 0 32px;
+          border-top: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .footer-bottom {
+          display: flex;
+          justify-content: space-between;
+          align-items: center;
+          gap: 32px;
+          flex-wrap: wrap;
+        }
+
+        .footer-bottom-left {
+          display: flex;
+          align-items: center;
+          gap: 16px;
+        }
+
+        .footer-bottom-right {
+          display: flex;
+          align-items: center;
+          gap: 32px;
+          flex-wrap: wrap;
+        }
+
+        .footer-certifications {
+          display: flex;
+          align-items: center;
+          gap: 24px;
+          flex-wrap: wrap;
+        }
+
+        .footer-badge {
+          display: flex;
+          align-items: center;
+          gap: 12px;
+          font-size: 12px;
+          color: rgba(255, 255, 255, 0.6);
+        }
+
+        .footer-badge-icon {
+          width: 32px;
+          height: 32px;
+          border-radius: 50%;
+          display: grid;
+          place-items: center;
+          background: rgba(255, 255, 255, 0.08);
+          border: 1px solid rgba(255, 255, 255, 0.18);
+          font-size: 11px;
+          letter-spacing: 0.04em;
+          font-weight: 600;
+          color: rgba(255, 255, 255, 0.7);
+        }
+
+        .footer-stats {
+          display: flex;
+          gap: 24px;
+          align-items: center;
+          font-size: 12px;
+          color: rgba(255, 255, 255, 0.6);
+          flex-wrap: wrap;
+        }
+
+        .footer-stat {
+          position: relative;
+          padding-right: 24px;
+          display: inline-flex;
+          align-items: center;
+        }
+
+        .footer-stat:last-of-type {
+          padding-right: 0;
+        }
+
+        .footer-stat-divider {
+          position: absolute;
+          right: 0;
+          top: 50%;
+          width: 1px;
+          height: 18px;
+          background: rgba(255, 255, 255, 0.12);
+          transform: translateY(-50%);
+        }
+
+        .footer-stat:last-of-type .footer-stat-divider {
+          display: none;
+        }
+
+        @media (max-width: 960px) {
+          .footer-grid {
+            grid-template-columns: 1fr 1fr;
+            gap: 40px;
+          }
+
+          .footer-bottom {
+            flex-direction: column;
+            align-items: flex-start;
+          }
+
+          .footer-bottom-right {
+            width: 100%;
+            justify-content: space-between;
+          }
+        }
+
+        @media (max-width: 640px) {
+          .enterprise-footer {
+            padding: 64px 24px 32px;
+          }
+
+          .footer-grid {
+            grid-template-columns: 1fr;
+            gap: 40px;
+          }
+
+          .newsletter-form {
+            flex-direction: column;
+          }
+
+          .newsletter-button {
+            width: 100%;
+          }
+
+          .footer-bottom {
+            align-items: stretch;
+            gap: 20px;
+          }
+
+          .footer-bottom-right {
+            flex-direction: column;
+            align-items: flex-start;
+            gap: 20px;
+          }
+
+          .footer-certifications,
+          .footer-stats {
+            width: 100%;
+          }
+
+          .footer-stat {
+            padding-right: 0;
+          }
+
+          .footer-stat-divider {
+            display: none;
+          }
+        }
+      `}</style>
     </footer>
   );
 }
