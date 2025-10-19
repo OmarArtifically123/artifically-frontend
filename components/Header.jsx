@@ -26,6 +26,8 @@ export default function Header({ user, onSignIn, onSignUp, onSignOut }) {
   const [scrolled, setScrolled] = useState(false);
   const [predictedNav, setPredictedNav] = useState(null);
   const predictionTimerRef = useRef(null);
+  const resourcesTriggerRef = useRef(null);
+  const resourcesRestoreFocusRef = useRef(false);
   const automationsTriggerRef = useRef(null);
   const automationsRestoreFocusRef = useRef(false);
   const solutionsTriggerRef = useRef(null);
@@ -38,6 +40,7 @@ export default function Header({ user, onSignIn, onSignUp, onSignOut }) {
   const { dispatchInteraction } = useMicroInteractions();
   const [headerReady, setHeaderReady] = useState(false);
   const prefersReducedMotion = useReducedMotion();
+  const [resourcesMenuState, setResourcesMenuState] = useState("closed");
   const [automationsMenuState, setAutomationsMenuState] = useState("closed");
   const [solutionsMenuState, setSolutionsMenuState] = useState("closed");
 
@@ -79,6 +82,30 @@ export default function Header({ user, onSignIn, onSignUp, onSignOut }) {
     const timer = window.setTimeout(() => setHeaderReady(true), 0);
     return () => window.clearTimeout(timer);
   }, []);
+
+  useEffect(() => {
+    if (resourcesMenuState === "opening") {
+      if (prefersReducedMotion) {
+        setResourcesMenuState("open");
+        return undefined;
+      }
+      const timer = window.setTimeout(() => {
+        setResourcesMenuState("open");
+      }, 360);
+      return () => window.clearTimeout(timer);
+    }
+    if (resourcesMenuState === "closing") {
+      if (prefersReducedMotion) {
+        setResourcesMenuState("closed");
+        return undefined;
+      }
+      const timer = window.setTimeout(() => {
+        setResourcesMenuState("closed");
+      }, 220);
+      return () => window.clearTimeout(timer);
+    }
+    return undefined;
+  }, [resourcesMenuState, prefersReducedMotion]);
 
   useEffect(() => {
     if (automationsMenuState === "opening") {
@@ -132,6 +159,20 @@ export default function Header({ user, onSignIn, onSignUp, onSignOut }) {
     if (typeof document === "undefined") {
       return undefined;
     }
+    if (resourcesMenuState === "closed") {
+      document.body.classList.remove("resources-mega-open");
+      return undefined;
+    }
+    document.body.classList.add("resources-mega-open");
+    return () => {
+      document.body.classList.remove("resources-mega-open");
+    };
+  }, [resourcesMenuState]);
+
+  useEffect(() => {
+    if (typeof document === "undefined") {
+      return undefined;
+    }
     if (automationsMenuState === "closed") {
       document.body.classList.remove("automations-mega-open");
       return undefined;
@@ -155,6 +196,24 @@ export default function Header({ user, onSignIn, onSignUp, onSignOut }) {
       document.body.classList.remove("solutions-mega-open");
     };
   }, [solutionsMenuState]);
+
+  const closeResourcesMenu = useCallback(
+    (options = {}) => {
+      if (options.focusTrigger) {
+        resourcesRestoreFocusRef.current = true;
+      }
+      setResourcesMenuState((current) => {
+        if (prefersReducedMotion) {
+          return "closed";
+        }
+        if (current === "closed") {
+          return current;
+        }
+        return "closing";
+      });
+    },
+    [prefersReducedMotion],
+  );
 
   const closeAutomationsMenu = useCallback(
     (options = {}) => {
@@ -191,6 +250,51 @@ export default function Header({ user, onSignIn, onSignUp, onSignOut }) {
     },
     [prefersReducedMotion],
   );
+
+  useEffect(() => {
+    if (resourcesMenuState === "closed") {
+      return undefined;
+    }
+    const handleKeyDown = (event) => {
+      if (event.key === "Escape") {
+        event.preventDefault();
+        closeResourcesMenu({ focusTrigger: true });
+      }
+    };
+
+    window.addEventListener("keydown", handleKeyDown);
+    return () => window.removeEventListener("keydown", handleKeyDown);
+  }, [resourcesMenuState, closeResourcesMenu]);
+
+  useEffect(() => {
+    if (resourcesMenuState === "closed" && resourcesRestoreFocusRef.current) {
+      resourcesRestoreFocusRef.current = false;
+      resourcesTriggerRef.current?.focus({ preventScroll: true });
+    }
+  }, [resourcesMenuState]);
+
+  useEffect(() => {
+    if (resourcesMenuState === "closed") {
+      return undefined;
+    }
+
+    const handlePointerDown = (event) => {
+      const panel = document.querySelector(".resources-mega__panel");
+      if (!panel) {
+        return;
+      }
+      if (
+        panel.contains(event.target) ||
+        resourcesTriggerRef.current?.contains(event.target)
+      ) {
+        return;
+      }
+      closeResourcesMenu({ focusTrigger: false });
+    };
+
+    document.addEventListener("pointerdown", handlePointerDown);
+    return () => document.removeEventListener("pointerdown", handlePointerDown);
+  }, [resourcesMenuState, closeResourcesMenu]);
 
   useEffect(() => {
     if (automationsMenuState === "closed") {
@@ -361,7 +465,9 @@ export default function Header({ user, onSignIn, onSignUp, onSignOut }) {
   }, [pathname]);
 
   useEffect(() => {
+    setResourcesMenuState("closed");
     setAutomationsMenuState("closed");
+    setSolutionsMenuState("closed");
   }, [pathname]);
 
   useEffect(() => {
@@ -594,6 +700,7 @@ export default function Header({ user, onSignIn, onSignUp, onSignOut }) {
 
   const toggleAutomationsMenu = useCallback(() => {
     closeSolutionsMenu();
+    closeResourcesMenu();
     setAutomationsMenuState((current) => {
       const isOpen = current === "open" || current === "opening";
       if (prefersReducedMotion) {
@@ -601,10 +708,11 @@ export default function Header({ user, onSignIn, onSignUp, onSignOut }) {
       }
       return isOpen ? "closing" : "opening";
     });
-  }, [closeSolutionsMenu, prefersReducedMotion]);
+  }, [closeSolutionsMenu, closeResourcesMenu, prefersReducedMotion]);
 
   const toggleSolutionsMenu = useCallback(() => {
     closeAutomationsMenu();
+    closeResourcesMenu();
     setSolutionsMenuState((current) => {
       const isOpen = current === "open" || current === "opening";
       if (prefersReducedMotion) {
@@ -612,7 +720,19 @@ export default function Header({ user, onSignIn, onSignUp, onSignOut }) {
       }
       return isOpen ? "closing" : "opening";
     });
-  }, [closeAutomationsMenu, prefersReducedMotion]);
+  }, [closeAutomationsMenu, closeResourcesMenu, prefersReducedMotion]);
+
+  const toggleResourcesMenu = useCallback(() => {
+    closeAutomationsMenu();
+    closeSolutionsMenu();
+    setResourcesMenuState((current) => {
+      const isOpen = current === "open" || current === "opening";
+      if (prefersReducedMotion) {
+        return isOpen ? "closed" : "open";
+      }
+      return isOpen ? "closing" : "opening";
+    });
+  }, [closeAutomationsMenu, closeSolutionsMenu, prefersReducedMotion]);
 
   const handleLinkNavigation = useCallback(
     (event, path, options) => {
@@ -710,14 +830,39 @@ export default function Header({ user, onSignIn, onSignUp, onSignOut }) {
                 const isActive = item.columns.some((column) =>
                   column.links.some((link) => link.path === pathname),
                 );
+                const isMenuOpen =
+                  resourcesMenuState === "open" || resourcesMenuState === "opening";
                 return (
                   <StaggeredItem key={item.label} index={index} style={{ display: "flex" }}>
                     <div className={`nav-item nav-item--mega${isActive ? " nav-item--active" : ""}`}>
+                      <button
+                        type="button"
+                        ref={resourcesTriggerRef}
+                        className={["nav-trigger", isActive ? "nav-trigger--active" : ""]
+                          .filter(Boolean)
+                          .join(" ")}
+                        aria-haspopup="dialog"
+                        aria-expanded={isMenuOpen ? "true" : "false"}
+                        onClick={() => {
+                          if (isMenuOpen) {
+                            closeResourcesMenu({ focusTrigger: false });
+                          } else {
+                            toggleResourcesMenu();
+                          }
+                        }}
+                      >
+                        <span>{item.label}</span>
+                        <Icon name="chevronDown" size={16} aria-hidden="true" />
+                      </button>
                       <ResourcesMegaMenu
                         label={item.label}
+                        state={resourcesMenuState}
                         columns={item.columns}
-                        isActive={isActive}
-                        onNavigate={handleLinkNavigation}
+                        onRequestClose={() => closeResourcesMenu({ focusTrigger: true })}
+                        onNavigate={(event, path) => {
+                          closeResourcesMenu();
+                          handleLinkNavigation(event, path);
+                        }}
                       />
                     </div>
                   </StaggeredItem>
