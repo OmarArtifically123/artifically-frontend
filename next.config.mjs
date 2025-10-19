@@ -1,14 +1,29 @@
 import { dirname, resolve } from "path";
 import { fileURLToPath } from "url";
+import bundleAnalyzer from "@next/bundle-analyzer";
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
+
+const withBundleAnalyzer = bundleAnalyzer({
+  enabled: process.env.ANALYZE === "true",
+});
 
 /** @type {import('next').NextConfig} */
 const nextConfig = {
   reactStrictMode: true,
   images: {
-    domains: ["artifically.com"],
+    domains: ["artifically.com", "cdn.artifically.com"],
+    formats: ["image/avif", "image/webp"],
+    deviceSizes: [640, 750, 828, 1080, 1200, 1920, 2048, 3840],
+    imageSizes: [16, 32, 48, 64, 96, 128, 256, 384],
+  },
+  compress: true,
+  productionBrowserSourceMaps: false,
+  swcMinify: true,
+  experimental: {
+    optimizeCss: true,
+    serverComponents: true,
   },
   webpack(config) {
     // ✅ Ensure peer dependencies resolve to the project copy without clobbering Next.js internals
@@ -30,4 +45,4 @@ const nextConfig = {
   },
 };
 
-export default nextConfig;
+export default withBundleAnalyzer(nextConfig);

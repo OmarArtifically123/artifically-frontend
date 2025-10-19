@@ -9,14 +9,19 @@ import {
   useMotionValueEvent,
   useReducedMotion,
 } from "framer-motion";
+import dynamic from "next/dynamic";
 import useDocumentVisibility from "../../hooks/useDocumentVisibility";
 import useInViewState from "../../hooks/useInViewState";
 import motionCatalog from "../../design/motion/catalog";
-import HeroBackground from "./HeroBackground";
 import ScrollIndicator from "./ScrollIndicator";
 import HeroRoiCalculator from "./HeroRoiCalculator";
 import { Icon } from "../icons";
 import TrustedBy from "./TrustedBy";
+
+const HeroBackground = dynamic(() => import("./HeroBackground"), {
+  ssr: false,
+  loading: () => <div>Loading...</div>,
+});
 
 const heroStats = [
   { label: "Automations", value: 12500, suffix: "+" },

@@ -12,10 +12,10 @@ import {
   type ReactNode,
 } from "react";
 import { usePathname, useRouter } from "next/navigation";
+import dynamic from "next/dynamic";
 
 import apiClient, { pick } from "@/api";
 import BackToTopButton from "@/components/BackToTopButton";
-import CommandPalette from "@/components/CommandPalette";
 import ExperienceLayer from "@/components/ExperienceLayer";
 import GlobalProgressBar from "@/components/GlobalProgressBar";
 import ReactQueryProvider from "@/components/providers/ReactQueryProvider";
@@ -26,6 +26,9 @@ import { AppShellProvider, type AuthMode, type AuthUser } from "@/context/AppShe
 import { applyDesignTokens } from "@/styles/applyDesignTokens";
 
 const AuthModal = lazy(() => import("@/components/AuthModal"));
+const CommandPalette = dynamic(() => import("@/components/CommandPalette"), {
+  ssr: false,
+});
 
 const experienceRoutes = new Set<string>([
   "/",
