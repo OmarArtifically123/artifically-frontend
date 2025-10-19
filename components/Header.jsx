@@ -570,9 +570,15 @@ export default function Header({ user, onSignIn, onSignUp, onSignOut }) {
         type: "resources",
         label: "Resources",
         columns: [
-          {
+          { 
             heading: "Learn",
             links: [
+              {
+                path: "/design-system",
+                label: "Design System",
+                description: "Explore Artifically's UI components and guidelines",
+                icon: "grid",
+              },
               {
                 path: "/documentation",
                 label: "Documentation",
@@ -1040,14 +1046,6 @@ export default function Header({ user, onSignIn, onSignUp, onSignOut }) {
             minWidth: "220px",
           }}
         >
-          <Link
-            href="/design-system"
-            data-prefetch-route="/design-system"
-            className="header-actions__link"
-            onClick={(event) => handleLinkNavigation(event, "/design-system")}
-          >
-            Design System
-          </Link>
           <button
             type="button"
             className="header-actions__search"
