@@ -78,11 +78,13 @@ const previewTiles = [
   },
 ];
 
+const defaultPreviewTile = previewTiles[0];
+
 export default function HeroSection({ onPrimary, onSecondary, demoDialogId, demoOpen, onReady }) {
   const [primaryLabel, setPrimaryLabel] = useState("Start Free Trial");
   const [secondaryLabel, setSecondaryLabel] = useState("Watch Demo");
   const [ctaContext, setCtaContext] = useState("");
-  const [activeTile, setActiveTile] = useState(null);
+  const [activeTile, setActiveTile] = useState(defaultPreviewTile);
   const tooltipTimeoutRef = useRef(null);
   const [initialHeroInView] = useState(() => {
     if (typeof window === "undefined") {
@@ -245,7 +247,7 @@ export default function HeroSection({ onPrimary, onSecondary, demoDialogId, demo
     }
     setActiveTile(tile);
     tooltipTimeoutRef.current = setTimeout(() => {
-      setActiveTile(null);
+      setActiveTile(defaultPreviewTile);
     }, 4000);
   }, []);
 
@@ -254,9 +256,11 @@ export default function HeroSection({ onPrimary, onSecondary, demoDialogId, demo
       clearTimeout(tooltipTimeoutRef.current);
     }
     tooltipTimeoutRef.current = setTimeout(() => {
-      setActiveTile(null);
+      setActiveTile(defaultPreviewTile);
     }, 150);
   }, []);
+
+  const visibleTile = activeTile ?? defaultPreviewTile;
 
   return (
     <section className="page-hero" aria-labelledby="hero-headline">
@@ -376,28 +380,26 @@ export default function HeroSection({ onPrimary, onSecondary, demoDialogId, demo
                     onFocus={() => handleTileSelect(tile)}
                     onBlur={handleTileBlur}
                     onMouseLeave={handleTileBlur}
-                    aria-pressed={activeTile?.label === tile.label ? "true" : "false"}
+                    aria-pressed={visibleTile.label === tile.label ? "true" : "false"}
                     data-index={index}
-                    data-active={activeTile?.label === tile.label ? "true" : "false"}
+                    data-active={visibleTile.label === tile.label ? "true" : "false"}
                   >
                     <Icon name={tile.icon} size={32} strokeWidth={1.6} className="preview-grid__icon" />
                     <span className="sr-only">{tile.label}</span>
                   </motion.button>
                 ))}
               </div>
-              <AnimatePresence>
-                {activeTile ? (
-                  <motion.div
-                    key={activeTile.label}
-                    className="preview-card__tooltip"
-                    initial={{ opacity: 0, y: 12 }}
-                    animate={{ opacity: 1, y: 0, transition: { duration: 0.3, ease: "easeOut" } }}
-                    exit={{ opacity: 0, y: 12, transition: { duration: 0.2, ease: "easeInOut" } }}
-                  >
-                    <span className="preview-card__tooltip-title">{activeTile.label}</span>
-                    <p>{activeTile.description}</p>
-                  </motion.div>
-                ) : null}
+              <AnimatePresence mode="wait" initial={false}>
+                <motion.div
+                  key={visibleTile.label}
+                  className="preview-card__tooltip"
+                  initial={{ opacity: 0, y: 12 }}
+                  animate={{ opacity: 1, y: 0, transition: { duration: 0.3, ease: "easeOut" } }}
+                  exit={{ opacity: 0, y: 12, transition: { duration: 0.2, ease: "easeInOut" } }}
+                >
+                  <span className="preview-card__tooltip-title">{visibleTile.label}</span>
+                  <p>{visibleTile.description}</p>
+                </motion.div>
               </AnimatePresence>
             </div>
             <p className="preview-card__annotation hero-quote">

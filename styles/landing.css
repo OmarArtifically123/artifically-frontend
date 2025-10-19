@@ -293,6 +293,7 @@
 }
 
 .preview-card {
+  --preview-card-tooltip-height: 128px;
   width: 480px;
   height: 580px;
   border-radius: 32px;
@@ -324,6 +325,7 @@
 .preview-card__stage {
   position: relative;
   padding: 20px;
+  padding-bottom: calc(20px + var(--preview-card-tooltip-height, 120px));
   background: #1a1f35;
   border-radius: 20px;
   border: 1px solid rgba(255, 255, 255, 0.1);
@@ -423,6 +425,10 @@
   right: 20px;
   bottom: 20px;
   padding: 16px 18px;
+  min-height: var(--preview-card-tooltip-height, 120px);
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
   border-radius: 16px;
   background: rgba(15, 23, 42, 0.92);
   border: 1px solid rgba(148, 163, 184, 0.3);
@@ -757,11 +763,13 @@
 
   .preview-card__stage {
     padding: clamp(1rem, 4vw, 1.5rem);
+    padding-bottom: clamp(1rem, 4vw, 1.5rem);
   }
 
   .preview-card__tooltip {
     position: static;
     margin-top: 16px;
+    min-height: auto;
   }
 }
 
@@ -826,9 +834,12 @@
 
 
 .product-preview {
+  --product-preview-max-width: 520px;
+  --product-preview-aspect: 4 / 3;
   position: relative;
-  width: 100%;
-  aspect-ratio: 4 / 3;
+  width: min(100%, var(--product-preview-max-width));
+  max-width: var(--product-preview-max-width);
+  aspect-ratio: var(--product-preview-aspect);
   display: grid;
   place-items: center;
   perspective: 1600px;

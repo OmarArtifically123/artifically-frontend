@@ -9,6 +9,9 @@ import {
   HERO_PREVIEW_SOURCES,
 } from "./heroPreviewAssets";
 
+const PREVIEW_MAX_WIDTH = 540;
+const PREVIEW_ASPECT_RATIO = HERO_PREVIEW_DIMENSIONS.width / HERO_PREVIEW_DIMENSIONS.height;
+
 const BASE_ANGLE = { x: -10, y: 22 };
 const MAX_DEVIATION = { x: 7, y: 12 };
 const IDLE_SWAY = { x: 2.5, y: 4.5 };
@@ -50,6 +53,14 @@ export default function ProductPreview3D({ label = "Automation preview", theme =
   const isDocumentVisible = useDocumentVisibility();
   const descriptionId = useId();
   const [isEnhanced, setIsEnhanced] = useState(false);
+
+  const previewStyle = useMemo(
+    () => ({
+      "--product-preview-max-width": `${PREVIEW_MAX_WIDTH}px`,
+      "--product-preview-aspect": `${PREVIEW_ASPECT_RATIO}`,
+    }),
+    [],
+  );
 
   const allowInteractivity = useMemo(
     () => isEnhanced && !prefersReducedMotion && !prefersLowPowerMode,
@@ -242,7 +253,11 @@ export default function ProductPreview3D({ label = "Automation preview", theme =
   }, [allowInteractivity, isEnhanced]);
 
   return (
-    <div ref={containerRef} className={`product-preview product-preview--${theme}`}>
+    <div
+      ref={containerRef}
+      className={`product-preview product-preview--${theme}`}
+      style={previewStyle}
+    >
       <p id={descriptionId} className="sr-only">
         {previewDescription}
       </p>
