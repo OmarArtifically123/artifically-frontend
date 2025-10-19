@@ -1,16 +1,24 @@
 import React from "react";
-import {
-  HERO_PREVIEW_DIMENSIONS,
-  HERO_PREVIEW_IMAGE,
-  HERO_PREVIEW_SIZES,
-  HERO_PREVIEW_SOURCES,
-} from "../components/landing/heroPreviewAssets";
-import TrustedBy from "../components/landing/TrustedBy";
+
+const HEADLINE_WORDS = [
+  { text: "Deploy" },
+  { text: "Enterprise" },
+  { text: "AI" },
+  { text: "Automations", highlight: true },
+  { text: "in" },
+  { text: "Minutes" },
+];
 
 const HERO_STATS = [
   { label: "Automations", value: "12,500+" },
   { label: "Uptime", value: "98.6%" },
   { label: "ROI", value: "4.8x" },
+];
+
+const TRUST_SIGNALS = [
+  "No credit card required",
+  "Free 14-day trial",
+  "Cancel anytime",
 ];
 
 const HERO_LOGOS = [
@@ -24,6 +32,72 @@ const HERO_LOGOS = [
   "Lumen",
 ];
 
+const PREVIEW_TILES = [
+  {
+    icon: "📊",
+    label: "Executive Dashboards",
+    description: "Broadcast KPI shifts instantly across every region.",
+  },
+  {
+    icon: "🧠",
+    label: "Agent Assist",
+    description: "Surface next-best actions for frontline teams automatically.",
+  },
+  {
+    icon: "🔒",
+    label: "Governance Guardrails",
+    description: "Enforce role-based access with audit-ready trails.",
+  },
+  {
+    icon: "⚙️",
+    label: "Ops Orchestration",
+    description: "Coordinate cross-team workflows without manual routing.",
+  },
+  {
+    icon: "📨",
+    label: "Smart Outreach",
+    description: "Trigger tailored nurture campaigns the moment intent spikes.",
+  },
+  {
+    icon: "🌐",
+    label: "Global Resilience",
+    description: "Keep experiences fast across every region with auto scaling.",
+  },
+  {
+    icon: "🗄️",
+    label: "Unified Data Lake",
+    description: "Stream customer and ops data with automated schema mapping.",
+  },
+  {
+    icon: "🧩",
+    label: "Workflow Builder",
+    description: "Drag-and-drop approvals, escalations, and QA into playbooks.",
+  },
+  {
+    icon: "🪄",
+    label: "Auto-tuned Responses",
+    description: "Continuously improve quality with adaptive learning loops.",
+  },
+];
+
+const FLOATING_BADGES = [
+  { id: "deploy", icon: "⚡", label: "Deploy in 5 min" },
+  { id: "uptime", icon: "✓", label: "99.9% Uptime" },
+  { id: "active", icon: "🚀", label: "10K+ Active" },
+];
+
+const ROI_TEAM_OPTIONS = [
+  { label: "20", value: 20 },
+  { label: "45", value: 45, defaultChecked: true },
+  { label: "85", value: 85 },
+];
+
+const ROI_RATE_OPTIONS = [
+  { label: "$45", value: 45 },
+  { label: "$85", value: 85, defaultChecked: true },
+  { label: "$140", value: 140 },
+];
+
 export default function MarketingHomeServer() {
   return (
     <section
@@ -34,33 +108,50 @@ export default function MarketingHomeServer() {
     >
       <div className="page-hero__inner">
         <div className="page-hero__content" data-static="true">
-          <span className="page-hero__eyebrow">
-            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" aria-hidden="true">
-              <path
-                d="M12 2L13.89 8.11L20 10L13.89 11.89L12 18L10.11 11.89L4 10L10.11 8.11L12 2Z"
-                fill="currentColor"
-              />
-            </svg>
+          <span className="page-hero__eyebrow" data-static="true">
+            <span className="page-hero__eyebrow-icon" aria-hidden="true">
+              ⚡
+            </span>
             <span>The Future of AI Automation</span>
           </span>
           <h1 id="hero-headline-static" className="page-hero__headline">
-            Deploy Enterprise AI <span className="gradient-text">Automations</span> in Minutes
+            {HEADLINE_WORDS.map((word) => (
+              <span
+                key={word.text}
+                className={word.highlight ? "headline-word headline-word--gradient" : "headline-word"}
+              >
+                {word.text}
+              </span>
+            ))}
           </h1>
           <p className="page-hero__subheadline">
             Transform operations with battle-tested automations. No setup hell. No vendor lock-in. Just results.
           </p>
           <div className="cta-group" data-static="true">
             <a className="cta-primary" href="/signup" data-rsc-action="primary-cta">
-              Start Free Trial
+              <span className="cta-primary__label">Start Free Trial</span>
             </a>
             <a className="cta-secondary" href="#product-preview" data-rsc-action="secondary-cta">
-              Watch Demo → <span className="video-badge">2 min preview</span>
+              <span className="cta-secondary__icon" aria-hidden="true">
+                ▶
+              </span>
+              <span>Watch Demo</span>
             </a>
+          </div>
+          <div className="hero-trust-row" data-static="true">
+            {TRUST_SIGNALS.map((signal) => (
+              <span key={signal} className="trust-signal">
+                <span className="trust-signal__icon" aria-hidden="true">
+                  <span className="trust-signal__check">✓</span>
+                </span>
+                <span>{signal}</span>
+              </span>
+            ))}
           </div>
           <p className="hero-cta-context">
             European teams get dedicated onboarding slots and GDPR-ready templates out of the box.
           </p>
-          <div className="hero-stats" role="list">
+          <div className="hero-stats" role="list" data-static="true">
             {HERO_STATS.map((stat) => (
               <div key={stat.label} className="hero-stat" role="listitem">
                 <span className="hero-stat__value">{stat.value}</span>
@@ -68,32 +159,38 @@ export default function MarketingHomeServer() {
               </div>
             ))}
           </div>
-          <TrustedBy logos={HERO_LOGOS} />
+          <div className="trusted-by trusted-by--visible" aria-label="Trusted by leading teams" data-static="true">
+            <p className="trusted-by__eyebrow">TRUSTED BY TEAMS SHIPPING AI IN PRODUCTION</p>
+            <div className="trusted-by__logos" role="list">
+              {HERO_LOGOS.map((logo, index) => (
+                <span
+                  key={logo}
+                  role="listitem"
+                  className="trusted-by__logo"
+                  data-trusted-logo=""
+                  style={{ "--trusted-index": index }}
+                >
+                  {logo}
+                </span>
+              ))}
+            </div>
+          </div>
         </div>
-        <div className="page-hero__preview" id="product-preview" aria-hidden="true">
-          <article className="preview-card">
-            <span className="preview-card__chip">Live product preview</span>
-            <div className="preview-card__stage" role="presentation">
-              <picture className="hero-preview__fallback">
-                {HERO_PREVIEW_SOURCES.map((source) => (
-                  <source key={source.type} {...source} />
+        <div className="page-hero__preview" id="product-preview" aria-hidden="true" data-static="true">
+          <article className="preview-card" data-static="true">
+            <span className="preview-card__chip">LIVE PRODUCT PREVIEW</span>
+            <div className="preview-card__stage">
+              <div className="preview-grid" data-static="true">
+                {PREVIEW_TILES.map((tile, index) => (
+                  <div className="preview-grid__cell" key={tile.label} data-index={index} aria-hidden="true">
+                    <span className="preview-grid__icon">{tile.icon}</span>
+                    <span className="sr-only">{tile.label}</span>
+                  </div>
                 ))}
-                <img
-                  src={HERO_PREVIEW_IMAGE}
-                  width={HERO_PREVIEW_DIMENSIONS.width}
-                  height={HERO_PREVIEW_DIMENSIONS.height}
-                  alt="Artifically automation workspace preview"
-                  loading="eager"
-                  decoding="sync"
-                  fetchPriority="high"
-                  sizes={HERO_PREVIEW_SIZES}
-                />
-              </picture>
-              <div className="product-preview" aria-hidden="true">
-                <div className="product-preview__frame">
-                  <div className="product-preview__surface" />
-                </div>
-                <div className="product-preview__glow" />
+              </div>
+              <div className="preview-card__tooltip" data-static="true">
+                <span className="preview-card__tooltip-title">{PREVIEW_TILES[0].label}</span>
+                <p>{PREVIEW_TILES[0].description}</p>
               </div>
             </div>
             <p className="preview-card__annotation hero-quote">
@@ -101,29 +198,78 @@ export default function MarketingHomeServer() {
               <span className="hero-quote__author">— Elena Ruiz, VP Operations</span>
             </p>
           </article>
+          {FLOATING_BADGES.map((badge) => (
+            <div
+              key={badge.id}
+              className={`preview-floating preview-floating--${badge.id}`}
+              aria-hidden="true"
+            >
+              <span className="preview-floating__icon">{badge.icon}</span>
+              {badge.label}
+            </div>
+          ))}
         </div>
       </div>
       <div className="page-hero__roi" aria-hidden="true">
-        <div className="hero-roi hero-roi--static">
+        <section className="hero-roi" aria-label="Quick ROI estimator" data-static="true">
           <header>
-            <span className="hero-roi__eyebrow">ROI snapshot</span>
-            <h2>Teams realise value on day one</h2>
+            <p className="hero-roi__eyebrow">Estimate your first win</p>
+            <h2>See how quickly Artifically pays for itself</h2>
           </header>
           <div className="hero-roi__grid">
-            <div>
-              <p>Median deployment time</p>
-              <strong>47 minutes</strong>
-            </div>
-            <div>
-              <p>Average annual savings</p>
-              <strong>$1.8M</strong>
-            </div>
-            <div>
-              <p>Compliance ready playbooks</p>
-              <strong>38 regions</strong>
+            <fieldset className="hero-roi__options" aria-hidden="true">
+              <legend>Team size</legend>
+              <div role="radiogroup" aria-label="Team size">
+                {ROI_TEAM_OPTIONS.map((option) => (
+                  <label key={option.value} className="hero-roi__choice">
+                    <input
+                      type="radio"
+                      name="hero-roi-team-static"
+                      value={option.value}
+                      defaultChecked={Boolean(option.defaultChecked)}
+                      disabled
+                    />
+                    <span>{option.label} people</span>
+                  </label>
+                ))}
+              </div>
+            </fieldset>
+            <fieldset className="hero-roi__options" aria-hidden="true">
+              <legend>Average hourly rate</legend>
+              <div role="radiogroup" aria-label="Average hourly rate">
+                {ROI_RATE_OPTIONS.map((option) => (
+                  <label key={option.value} className="hero-roi__choice">
+                    <input
+                      type="radio"
+                      name="hero-roi-rate-static"
+                      value={option.value}
+                      defaultChecked={Boolean(option.defaultChecked)}
+                      disabled
+                    />
+                    <span>{option.label}</span>
+                  </label>
+                ))}
+              </div>
+            </fieldset>
+            <div className="hero-roi__result" role="status" aria-live="polite">
+              <p className="hero-roi__label">Projected monthly savings</p>
+              <p className="hero-roi__value">$326,000</p>
+              <dl className="hero-roi__meta">
+                <div>
+                  <dt>Weekly hours reclaimed</dt>
+                  <dd>640 hrs</dd>
+                </div>
+                <div>
+                  <dt>Projected ROI</dt>
+                  <dd>4.8x</dd>
+                </div>
+              </dl>
             </div>
           </div>
-        </div>
+          <p className="hero-roi__footnote">
+            Calculations update instantly—export the assumptions when you open the marketplace or share with finance.
+          </p>
+        </section>
       </div>
     </section>
   );
