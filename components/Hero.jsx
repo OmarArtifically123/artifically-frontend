@@ -12,9 +12,10 @@ import {
 } from "react";
 import { createPortal } from "react-dom";
 import { AnimatePresence, motion, useReducedMotion } from "framer-motion";
+import Image from "next/image";
 import MagneticButton from "./animation/MagneticButton.jsx";
 import useMicroInteractions from "../hooks/useMicroInteractions.js";
-import { BlurImage } from "./media/OptimizedImage.js";
+import { BlurImage } from "./media/OptimizedImage";
 import ScrollIndicator from "./landing/ScrollIndicator.jsx";
 import { useTheme } from "../context/ThemeContext.jsx";
 import Button from "./ui/Button.js";
@@ -25,10 +26,6 @@ import { Icon } from "./icons/index.js";
 const HERO_PREVIEW_IMAGE = "/images/hero-preview.jpg";
 const HERO_PREVIEW_DIMENSIONS = { width: 1920, height: 1080 };
 const HERO_PREVIEW_SIZES = "(max-width: 768px) 92vw, (max-width: 1280px) 60vw, 540px";
-const HERO_PREVIEW_SOURCES = [
-  { type: "image/avif", srcSet: "/images/hero-preview.avif", sizes: HERO_PREVIEW_SIZES },
-  { type: "image/webp", srcSet: "/images/hero-preview.webp", sizes: HERO_PREVIEW_SIZES },
-];
 const HERO_PREVIEW_BLUR = "/images/hero-preview-blur.jpg";
 
 const HERO_CUSTOMER_LOGOS = [
@@ -1048,7 +1045,18 @@ function Avatar({ src, company }) {
 
   return (
     <div className="activity-avatar" aria-hidden="true">
-      {src ? <img src={src} alt="" /> : initials}
+      {src ? (
+        <Image
+          src={src}
+          alt=""
+          width={40}
+          height={40}
+          className="activity-avatar__image"
+          quality={85}
+        />
+      ) : (
+        initials
+      )}
     </div>
   );
 }
@@ -1107,7 +1115,15 @@ function LogoWall({ logos, children }) {
             {marqueeLogos.map((logo, index) => (
               <div key={`${logo.name}-${index}`} className="logo-item">
                 {logo.src ? (
-                  <img src={logo.src} alt={logo.name} loading="lazy" />
+                  <Image
+                    src={logo.src}
+                    alt={logo.name}
+                    width={160}
+                    height={48}
+                    className="logo-item__image"
+                    quality={85}
+                    sizes="160px"
+                  />
                 ) : (
                   <span>{logo.initials || logo.name}</span>
                 )}
@@ -1442,15 +1458,14 @@ function HeroFallbackIllustration({ darkMode }) {
       <BlurImage
         src={HERO_PREVIEW_IMAGE}
         blurDataURL={HERO_PREVIEW_BLUR}
-        sources={HERO_PREVIEW_SOURCES}
         alt="Artifically automation workspace preview"
         className="hero-fallback__image"
-        loading="eager"
-        decoding="sync"
+        priority
         fetchPriority="high"
         width={HERO_PREVIEW_DIMENSIONS.width}
         height={HERO_PREVIEW_DIMENSIONS.height}
         sizes={HERO_PREVIEW_SIZES}
+        isUIScreenshot
         wrapperProps={{
           "data-enhanced": "true",
           className: "hero-fallback__media hero-preview__fallback",

@@ -3,11 +3,8 @@
 import { useEffect, useMemo, useRef, useState, useId } from "react";
 import useDocumentVisibility from "../../hooks/useDocumentVisibility";
 import { getNetworkInformation, prefersLowPower } from "../../utils/networkPreferences";
-import {
-  HERO_PREVIEW_DIMENSIONS,
-  HERO_PREVIEW_IMAGE,
-  HERO_PREVIEW_SOURCES,
-} from "./heroPreviewAssets";
+import { HERO_PREVIEW_DIMENSIONS, HERO_PREVIEW_IMAGE, HERO_PREVIEW_BLUR, HERO_PREVIEW_SIZES } from "./heroPreviewAssets";
+import { BlurImage } from "../media/OptimizedImage";
 
 const PREVIEW_MAX_WIDTH = 540;
 const PREVIEW_ASPECT_RATIO = HERO_PREVIEW_DIMENSIONS.width / HERO_PREVIEW_DIMENSIONS.height;
@@ -276,20 +273,16 @@ export default function ProductPreview3D({ label = "Automation preview", theme =
             data-visible={!isEnhanced ? "true" : undefined}
             aria-hidden={isEnhanced}
           >
-            <picture className="product-preview__image-shell">
-              {HERO_PREVIEW_SOURCES.map((source) => (
-                <source key={source.type} {...source} />
-              ))}
-              <img
-                src={HERO_PREVIEW_IMAGE}
-                alt="Artifically automation workspace preview"
-                width={HERO_PREVIEW_DIMENSIONS.width}
-                height={HERO_PREVIEW_DIMENSIONS.height}
-                loading="eager"
-                decoding="async"
-                sizes="(max-width: 768px) 92vw, (max-width: 1280px) 60vw, 540px"
-              />
-            </picture>
+            <BlurImage
+              src={HERO_PREVIEW_IMAGE}
+              blurDataURL={HERO_PREVIEW_BLUR}
+              alt="Artifically automation workspace preview"
+              width={HERO_PREVIEW_DIMENSIONS.width}
+              height={HERO_PREVIEW_DIMENSIONS.height}
+              sizes={HERO_PREVIEW_SIZES}
+              wrapperClassName="product-preview__image-shell"
+              isUIScreenshot
+            />
           </div>
           <div className="product-preview__interactive" aria-hidden={!isEnhanced}>
             <header className="product-preview__toolbar">

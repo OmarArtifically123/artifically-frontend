@@ -7,22 +7,6 @@
 @tailwind utilities;
 
 @font-face {
-  font-family: "Inter";
-  font-style: normal;
-  font-weight: 400;
-  font-display: swap;
-  src: url("/fonts/Inter-400-latin.woff2") format("woff2");
-}
-
-@font-face {
-  font-family: "Inter";
-  font-style: normal;
-  font-weight: 600;
-  font-display: swap;
-  src: url("/fonts/Inter-600-latin.woff2") format("woff2");
-}
-
-@font-face {
   font-family: "JetBrains Mono";
   font-style: normal;
   font-weight: 400;
@@ -110,7 +94,7 @@
 
   /* Typography */
   --font-display: 'Inter', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
-  --font-body: 'Inter', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  --font-body: var(--font-inter, 'Inter', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif);
   --font-mono: 'JetBrains Mono', 'Fira Code', 'SFMono-Regular', Menlo, Consolas, monospace;
   --font-accent: 'Inter', 'Iowan Old Style', 'Palatino Linotype', serif;
   --font-sans: var(--font-body);
@@ -5079,7 +5063,7 @@ body.solutions-mega-open {
   overflow: hidden;
 }
 
-.activity-avatar img {
+.activity-avatar__image {
   width: 100%;
   height: 100%;
   object-fit: cover;
@@ -5158,8 +5142,9 @@ body.solutions-mega-open {
   opacity: 0.82;
 }
 
-.logo-item img {
+.logo-item__image {
   max-height: 36px;
+  width: auto;
   opacity: 0.85;
   filter: grayscale(1);
 }
@@ -5398,6 +5383,12 @@ body.solutions-mega-open {
   width: 100%;
   height: 100%;
   object-fit: cover;
+}
+
+.hero-scene__fallback-image {
+  display: block;
+  width: 100%;
+  height: auto;
 }
 
 .hero[data-hero-version="reimagined"] .hero-fallback {

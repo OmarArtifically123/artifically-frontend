@@ -1,8 +1,9 @@
 import type { Metadata, Viewport } from "next";
 import AppShell from "@/components/AppShell";
 import { ThemeProvider } from "@/context/ThemeContext";
+import inter from "@/lib/fonts/inter";
+import { getCriticalStyles } from "@/lib/styles/critical";
 import { getThemeBootstrapScript } from "@/lib/themeScript";
-import "./globals.css";
 
 export const metadata: Metadata = {
   title: "Artifically - Enterprise AI Automation Platform",
@@ -51,6 +52,7 @@ export const viewport: Viewport = {
 };
 
 const themeBootstrapScript = getThemeBootstrapScript();
+const criticalStyles = getCriticalStyles();
 
 export default function RootLayout({
   children,
@@ -58,7 +60,7 @@ export default function RootLayout({
   children: React.ReactNode;
 }) {
   return (
-    <html lang="en">
+    <html lang="en" className={inter.variable}>
       <head>
         <meta name="viewport" content="width=device-width, initial-scale=1" />
         <meta name="msapplication-TileColor" content="#6366f1" />
@@ -66,15 +68,23 @@ export default function RootLayout({
           id="theme-bootstrap"
           dangerouslySetInnerHTML={{ __html: themeBootstrapScript }}
         />
-        <link rel="dns-prefetch" href="https://fonts.googleapis.com" />
-        <link rel="dns-prefetch" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
-        <link rel="dns-prefetch" href="https://cdn.jsdelivr.net" />
-        <link rel="preconnect" href="https://fonts.googleapis.com" />
-        <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
         <link rel="preconnect" href="https://api.artifically.com" crossOrigin="anonymous" />
-        <link rel="preload" href="/fonts/inter-var.woff2" as="font" type="font/woff2" crossOrigin="anonymous" />
-        <link rel="preload" href="/fonts/Inter-400-latin.woff2" as="font" type="font/woff2" crossOrigin="anonymous" />
-        <link rel="preload" href="/fonts/Inter-600-latin.woff2" as="font" type="font/woff2" crossOrigin="anonymous" />
+        <style data-critical="true" dangerouslySetInnerHTML={{ __html: criticalStyles }} />
+        {/* eslint-disable-next-line @next/next/no-css-tags */}
+        <link
+          rel="preload"
+          href="/styles.css"
+          as="style"
+          onLoad={(event) => {
+            const link = event.currentTarget;
+            link.rel = "stylesheet";
+            link.onload = null;
+          }}
+        />
+        <noscript>
+          {/* eslint-disable-next-line @next/next/no-css-tags */}
+          <link rel="stylesheet" href="/styles.css" />
+        </noscript>
         <link
           rel="preload"
           href="/images/hero-preview.avif"
@@ -93,8 +103,9 @@ export default function RootLayout({
           imageSrcSet="/images/hero-preview.webp 1920w"
           imageSizes="(max-width: 768px) 92vw, (max-width: 1280px) 60vw, 540px"
         />
+        <link rel="preload" href="/images/hero-background.avif" as="image" type="image/avif" />
       </head>
-      <body>
+      <body className={inter.className}>
         <ThemeProvider>
           <AppShell>{children}</AppShell>
         </ThemeProvider>

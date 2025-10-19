@@ -10,6 +10,7 @@ import {
   useRef,
   useState,
 } from "react";
+import Image from "next/image";
 import { Canvas, extend, useFrame, useThree } from "@react-three/fiber";
 import {
   ACESFilmicToneMapping,
@@ -3503,10 +3504,15 @@ export default function HeroScene({ width = 1280, height = 720 }) {
     return (
       <HeroThemeContext.Provider value={heroTheme}>
         <div style={HERO_SCENE_WRAPPER_STYLE}>
-          <img
+          <Image
             src={heroFallbackMedia}
             alt=""
             role="presentation"
+            width={1280}
+            height={720}
+            quality={90}
+            className="hero-scene__fallback-image"
+            sizes="(max-width: 768px) 92vw, (max-width: 1280px) 60vw, 540px"
             style={{
               width: "100%",
               height: "100%",
@@ -3638,10 +3644,14 @@ export default function HeroScene({ width = 1280, height = 720 }) {
               boxShadow: `inset 0 0 0 1px ${fallbackBorderColor}`,
             }}
           >
-            <img
+            <Image
               src={heroFallbackMedia}
               alt=""
               role="presentation"
+              width={640}
+              height={360}
+              quality={90}
+              className="hero-scene__fallback-image"
               style={{
                 maxWidth: "420px",
                 width: "100%",

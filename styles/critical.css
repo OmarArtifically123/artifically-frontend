@@ -1,0 +1,147 @@
+:root {
+  color-scheme: dark light;
+  --font-body: var(--font-inter, 'Inter', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif);
+  --bg-primary: #0f172a;
+  --text-primary: #e2e8f0;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html,
+body {
+  padding: 0;
+  margin: 0;
+  font-family: var(--font-body);
+  background-color: var(--bg-primary);
+  color: var(--text-primary);
+}
+
+body {
+  min-height: 100%;
+}
+
+.skip-link {
+  position: absolute;
+  left: -999px;
+  top: auto;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  z-index: 100;
+}
+
+.skip-link:focus {
+  left: 1rem;
+  top: 1rem;
+  width: auto;
+  height: auto;
+  padding: 0.75rem 1.25rem;
+  background: rgba(15, 23, 42, 0.85);
+  color: #fff;
+  border-radius: 9999px;
+}
+
+.site-header {
+  position: sticky;
+  top: 0;
+  width: 100%;
+  z-index: 50;
+  backdrop-filter: blur(18px);
+  background: rgba(15, 23, 42, 0.72);
+  border-bottom: 1px solid rgba(148, 163, 184, 0.18);
+}
+
+.hero {
+  position: relative;
+  overflow: hidden;
+  padding: 6rem 1.5rem 4rem;
+  display: grid;
+  place-items: center;
+}
+
+.hero-shell {
+  width: 100%;
+  max-width: 1200px;
+  margin: 0 auto;
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+  gap: 3rem;
+  align-items: center;
+  z-index: 1;
+}
+
+.hero-content {
+  display: grid;
+  gap: 1.5rem;
+}
+
+.hero-preview {
+  width: 100%;
+  max-width: 600px;
+  margin: 0 auto;
+  border-radius: 24px;
+  overflow: hidden;
+  box-shadow: 0 32px 80px rgba(15, 23, 42, 0.45);
+}
+
+.hero-preview img {
+  display: block;
+  width: 100%;
+  height: auto;
+}
+
+.hero-scene__fallback-image {
+  display: block;
+  width: 100%;
+  height: auto;
+}
+
+.logo-wall {
+  display: flex;
+  justify-content: center;
+  gap: 2rem;
+  padding: 2rem 0 0;
+}
+
+.logo-track {
+  display: flex;
+  gap: 2.5rem;
+  align-items: center;
+}
+
+.logo-item {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 48px;
+  min-width: 128px;
+  padding: 0.75rem 1.5rem;
+  border-radius: 9999px;
+  background: rgba(15, 23, 42, 0.6);
+  border: 1px solid rgba(148, 163, 184, 0.24);
+}
+
+.logo-item__image {
+  width: 100%;
+  height: auto;
+  object-fit: contain;
+}
+
+.activity-avatar {
+  width: 40px;
+  height: 40px;
+  border-radius: 9999px;
+  background: rgba(15, 23, 42, 0.6);
+  display: grid;
+  place-items: center;
+  font-weight: 600;
+}
+
+.activity-avatar__image {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  border-radius: inherit;
+}

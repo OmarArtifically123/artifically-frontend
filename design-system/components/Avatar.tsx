@@ -1,5 +1,6 @@
 "use client";
 
+import Image from "next/image";
 import { cn } from "../utils/cn";
 import type { HTMLAttributes } from "react";
 
@@ -45,7 +46,18 @@ export function Avatar({ name, src, size = 40, status, className, style, ...rest
       aria-label={name}
       {...rest}
     >
-      {src ? <img src={src} alt="" style={{ width: "100%", height: "100%", objectFit: "cover" }} /> : initials}
+      {src ? (
+        <Image
+          src={src}
+          alt=""
+          width={size}
+          height={size}
+          style={{ width: "100%", height: "100%", objectFit: "cover" }}
+          quality={85}
+        />
+      ) : (
+        initials
+      )}
       {status ? (
         <span
           aria-hidden

@@ -85,7 +85,13 @@ const previewTiles = [
 
 const defaultPreviewTile = previewTiles[0];
 
-export default function HeroSection({ onPrimary, onSecondary, demoDialogId, demoOpen, onReady }) {
+export default function HeroSection({
+  onPrimary,
+  onSecondary,
+  demoDialogId,
+  demoOpen,
+  onReady = () => {},
+}) {
   const [primaryLabel, setPrimaryLabel] = useState("Start Free Trial");
   const [secondaryLabel, setSecondaryLabel] = useState("Watch Demo");
   const [ctaContext, setCtaContext] = useState("");

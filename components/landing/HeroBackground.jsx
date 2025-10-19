@@ -27,8 +27,8 @@ import {
 import useDocumentVisibility from "../../hooks/useDocumentVisibility";
 import { getNetworkInformation, prefersLowPower } from "../../utils/networkPreferences";
 
-const STATIC_GRADIENT_DATA_URL =
-  "data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAxMDAgMTAwIiBwcmVzZXJ2ZUFzcGVjdFJhdGlvPSJub25lIj4KICA8ZGVmcz4KICAgIDxsaW5lYXJHcmFkaWVudCBpZD0iZzEiIHgxPSIwJSIgeTE9IjAlIiB4Mj0iMTAwJSIgeTI9IjAlIj4KICAgICAgPHN0b3Agb2Zmc2V0PSIwJSIgc3RvcC1jb2xvcj0iIzFlMWI0YiIgLz4KICAgICAgPHN0b3Agb2Zmc2V0PSIxMDAlIiBzdG9wLWNvbG9yPSIjMTM0ZTRhIiAvPgogICAgPC9saW5lYXJHcmFkaWVudD4KICAgIDxsaW5lYXJHcmFkaWVudCBpZD0iZzIiIHgxPSIwJSIgeTE9IjEwMCUiIHgyPSIxMDAlIiB5Mj0iMTAwJSI+CiAgICAgIDxzdG9wIG9mZnNldD0iMCUiIHN0b3AtY29sb3I9IiM1ODFjODciIC8+CiAgICAgIDxzdG9wIG9mZnNldD0iMTAwJSIgc3RvcC1jb2xvcj0iIzA2NWY0NiIgLz4KICAgIDwvbGluZWFyR3JhZGllbnQ+CiAgPC9kZWZzPgogIDxyZWN0IHdpZHRoPSIxMDAiIGhlaWdodD0iNTAiIGZpbGw9InVybCgjZzEpIiAvPgogIDxyZWN0IHk9IjUwIiB3aWR0aD0iMTAwIiBoZWlnaHQ9IjUwIiBmaWxsPSJ1cmwoI2cyKSIgLz4KPC9zdmc+";
+const STATIC_GRADIENT_IMAGE_SET =
+  "image-set(\n    url('/images/hero-background.avif') type('image/avif') 1x,\n    url('/images/hero-background.webp') type('image/webp') 1x,\n    url('/images/hero-background.jpg') type('image/jpeg') 1x\n  )";
 
 const PARTICLE_COLORS = ["#7c3aed", "#3b82f6", "#06b6d4", "#ec4899"];
 const BASE_CONNECTION_DISTANCE = 150;
@@ -727,7 +727,7 @@ export default function HeroBackground({ variant = "particles" }) {
           inset: 0,
           height: "100vh",
           zIndex: 0,
-          backgroundImage: `url(${STATIC_GRADIENT_DATA_URL})`,
+          backgroundImage: STATIC_GRADIENT_IMAGE_SET,
           backgroundSize: "cover",
           backgroundPosition: "center",
           pointerEvents: "none",

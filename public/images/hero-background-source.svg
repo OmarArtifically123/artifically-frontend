@@ -1,0 +1,43 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="3840" height="2160" viewBox="0 0 3840 2160" preserveAspectRatio="xMidYMid slice">
+  <desc>
+    Hero background source for the landing experience. Regenerate the raster
+    variants (AVIF/WebP/JPEG) from the repo root with the Sharp CLI available
+    via devDependencies.
+
+    macOS or Linux:
+      npx sharp --input public/images/hero-background-source.svg resize 2560 1440 --format avif --quality 85 --effort 4 --output public/images/hero-background.avif
+      npx sharp --input public/images/hero-background-source.svg resize 2560 1440 --format webp --quality 85 --output public/images/hero-background.webp
+      npx sharp --input public/images/hero-background-source.svg resize 2560 1440 --format jpeg --quality 85 --output public/images/hero-background.jpg
+
+    Windows PowerShell:
+      npx sharp --input public/images/hero-background-source.svg resize 2560 1440 --format avif --quality 85 --effort 4 --output public/images/hero-background.avif
+      npx sharp --input public/images/hero-background-source.svg resize 2560 1440 --format webp --quality 85 --output public/images/hero-background.webp
+      npx sharp --input public/images/hero-background-source.svg resize 2560 1440 --format jpeg --quality 85 --output public/images/hero-background.jpg
+
+    Adjust the resize dimensions if you need a different render size. Edit the
+    gradient stops below before re-exporting if you need a visual tweak.
+  </desc>
+  <defs>
+    <radialGradient id="glow" cx="25%" cy="30%" r="65%" gradientUnits="userSpaceOnUse">
+      <stop offset="0%" stop-color="#5eead4" stop-opacity="0.85" />
+      <stop offset="60%" stop-color="#60a5fa" stop-opacity="0.25" />
+      <stop offset="100%" stop-color="#1e1b4b" stop-opacity="0" />
+    </radialGradient>
+    <linearGradient id="base" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#0f172a" />
+      <stop offset="45%" stop-color="#1e1b4b" />
+      <stop offset="100%" stop-color="#164e63" />
+    </linearGradient>
+    <linearGradient id="accent" x1="0%" y1="100%" x2="100%" y2="0%">
+      <stop offset="0%" stop-color="#581c87" stop-opacity="0.8" />
+      <stop offset="45%" stop-color="#1d4ed8" stop-opacity="0.6" />
+      <stop offset="100%" stop-color="#0d9488" stop-opacity="0.75" />
+    </linearGradient>
+  </defs>
+
+  <rect width="3840" height="2160" fill="url(#base)" />
+  <rect width="3840" height="2160" fill="url(#accent)" opacity="0.45" />
+  <circle cx="1100" cy="750" r="1100" fill="url(#glow)" />
+  <circle cx="3000" cy="1600" r="900" fill="#312e81" opacity="0.35" />
+  <circle cx="1800" cy="2200" r="1200" fill="#0f172a" opacity="0.55" />
+</svg>
