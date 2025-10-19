@@ -23,7 +23,6 @@ const nextConfig = {
   swcMinify: true,
   experimental: {
     optimizeCss: true,
-    serverComponents: true,
   },
   webpack(config) {
     // ✅ Ensure peer dependencies resolve to the project copy without clobbering Next.js internals

@@ -21,6 +21,7 @@
     "storybook:build": "storybook build",
     "storybook:chromatic": "chromatic --project-token=$CHROMATIC_PROJECT_TOKEN --build-script-name=storybook:build",
     "storybook:test": "test-storybook",
+    "critters": "^0.0.23",
     "type-check": "tsc --noEmit",
     "test": "vitest run",
     "test:watch": "vitest",
