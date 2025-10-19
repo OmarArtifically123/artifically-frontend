@@ -73,7 +73,6 @@ export default function ProblemSolutionSection() {
 
     const handlePointerUp = () => {
       setIsDragging(false);
-      setPosition(0.5);
     };
 
     window.addEventListener("pointermove", handlePointerMove);

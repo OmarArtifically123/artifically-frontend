@@ -832,6 +832,7 @@
   display: grid;
   place-items: center;
   perspective: 1600px;
+  contain: layout paint;
 }
 
 .product-preview__glow {
@@ -855,6 +856,7 @@
   transform-style: preserve-3d;
   transition: box-shadow 0.3s ease;
   will-change: transform;
+  transform: translateZ(0);
 }
 
 .product-preview__frame::after {
