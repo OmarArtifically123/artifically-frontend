@@ -1,102 +1,52 @@
 "use client";
 
+import Link from "next/link";
+import { AnimatePresence, motion } from "framer-motion";
 import { useMemo, useState } from "react";
-import { Icon } from "../icons";
 
 const featureTabs = [
   {
     id: "demos",
-    icon: "clapperboard",
     label: "Interactive Demos",
-    description:
-      "Launch immersive WebGL or video walkthroughs that mirror your production data in a safe sandbox before deploying.",
-    preview: {
-      eyebrow: "WebGL sandbox",
-      icon: "flask",
-      title: "Launch a safe sandbox",
-      description:
-        "Preview how the automation responds with your data, then promote it to production in one click.",
-        stats: [
-        { label: "Interactive flows", value: "28" },
-        { label: "Adoption", value: "92%" },
-      ],
-    },
-    highlights: [
-      { icon: "sparkles", title: "One-Click Previews", description: "Spin up guided previews with telemetry overlays instantly." },
-      { icon: "headphones", title: "Guided Walkthroughs", description: "Narrated tours showcase key KPIs and decision points." },
-      { icon: "flask", title: "Sandboxed Data", description: "Inject scrubbed datasets to experience the workflow end-to-end." },
-    ],
   },
   {
     id: "library",
-    icon: "folders",
     label: "Workflow Library",
-    description:
-      "Browse modular blueprints curated by industry experts with playbooks that cover every department and KPI.",
-    preview: {
-      eyebrow: "Library spotlight",
-      icon: "book",
-      title: "Curated blueprints",
-      description:
-        "Remix modular components vetted by industry experts and publish with guardrails already in place.",
-      stats: [
-        { label: "Playbooks", value: "350+" },
-        { label: "Industries", value: "18" },
-      ],
-    },
-    highlights: [
-      { icon: "book", title: "Version Control", description: "Track iterations with rollbacks and change approvals built-in." },
-      { icon: "puzzle", title: "Composable Blocks", description: "Drag, remix, and publish reusable automation components." },
-      { icon: "users", title: "Role-Based Access", description: "Assign granular permissions for builders, reviewers, and approvers." },
-    ],
   },
   {
     id: "compliance",
-    icon: "shield",
     label: "Compliance Guardrails",
-    description:
-      "Meet regulatory requirements automatically with guardrails that enforce policies, retention, and audit trails.",
-    preview: {
-      eyebrow: "Compliance heatmap",
-      icon: "search",
-      title: "Automated audits",
-      description:
-        "Continuously capture evidence, redline risky steps, and keep every policy aligned with the latest frameworks.",
-      stats: [
-        { label: "Controls automated", value: "120" },
-        { label: "Audit prep", value: "< 2 hrs" },
-      ],
-    },
-    highlights: [
-      { icon: "clipboard", title: "Policy Templates", description: "Pre-built controls for SOC 2, HIPAA, GDPR, and ISO frameworks." },
-      { icon: "search", title: "Automated Audits", description: "Continuous evidence collection keeps every workflow inspection-ready." },
-      { icon: "shieldOutline", title: "Redaction Pipelines", description: "Inline scrubbing removes sensitive data before it leaves your network." },
-    ],
   },
   {
     id: "integrations",
-    icon: "plug",
     label: "Enterprise Integrations",
-    description:
-      "Connect mission-critical systems through secure connectors, streaming events, and bi-directional syncs.",
-    preview: {
-      eyebrow: "Integration map",
-      icon: "refresh",
-      title: "Bi-directional sync",
-      description:
-        "Stream data between 250+ connectors with conflict resolution that keeps every system in lockstep.",
-      stats: [
-        { label: "Connectors", value: "250+" },
-        { label: "Sync latency", value: "< 60s" },
-      ],
-    },
-    highlights: [
-      { icon: "lock", title: "Secure Connectors", description: "Bring 250+ SaaS, data, and on-prem systems with scoped OAuth and SSO." },
-      { icon: "globe", title: "Event Streams", description: "Real-time webhooks and queues ensure every automation stays in sync." },
-      { icon: "recycle", title: "Bi-Directional Sync", description: "Keep records updated everywhere with conflict resolution built-in." },
-    ],
   },
 ];
+
+const motionTransition = {
+  ease: [0.16, 1, 0.3, 1],
+};
+
+const panelVariants = {
+  initial: { opacity: 0, y: 20 },
+  animate: {
+    opacity: 1,
+    y: 0,
+    transition: {
+      ...motionTransition,
+      duration: 0.4,
+      delay: 0.2,
+    },
+  },
+  exit: {
+    opacity: 0,
+    y: -20,
+    transition: {
+      ...motionTransition,
+      duration: 0.2,
+    },
+  },
+};
 
 export default function FeaturesShowcaseSection() {
   const [active, setActive] = useState(featureTabs[0].id);
@@ -106,111 +56,249 @@ export default function FeaturesShowcaseSection() {
   );
 
   return (
-    <section id="features-showcase" className="section-shell" aria-labelledby="features-title">
-      <header className="section-header">
-        <span className="section-eyebrow">Everything You Need</span>
-        <h2 id="features-title" className="section-title">
-          Built for Modern Enterprises
-        </h2>
-        <p className="section-subtitle">
-          Artifically combines AI copilots, human-in-the-loop controls, and pre-built playbooks so every team moves faster without compromising trust.
-        </p>
-      </header>
-      <div className="feature-tabs" role="tablist" aria-label="Key platform capabilities">
-        {featureTabs.map((tab) => (
-          <button
-            key={tab.id}
-            type="button"
-            role="tab"
-            id={`feature-tab-${tab.id}`}
-            aria-controls={`feature-panel-${tab.id}`}
-            aria-selected={active === tab.id}
-            className="feature-tab"
-            data-active={active === tab.id}
-            onClick={() => setActive(tab.id)}
-          >
-            <span aria-hidden="true" className="feature-tab__icon">
-              <Icon name={tab.icon} size={20} />
-            </span>
-            {tab.label}
-          </button>
-        ))}
-      </div>
-      <div className="feature-content">
-        <article
-          key={activeTab.id}
-          id={`feature-panel-${activeTab.id}`}
-          className="demo-preview"
-          role="tabpanel"
-          aria-labelledby={`feature-tab-${activeTab.id}`}
-          aria-live="polite"
+    <section
+      id="features-showcase"
+      className="features-capabilities"
+      aria-labelledby="features-title"
+    >
+      <div className="features-capabilities__inner">
+        <header className="features-capabilities__header">
+          <p className="features-capabilities__eyebrow">EVERYTHING YOU NEED</p>
+          <h2 id="features-title" className="features-capabilities__title">
+            Artifically combines AI copilots, human-in-the-loop controls, and pre-built
+            playbooks so every team moves faster without compromising trust.
+          </h2>
+        </header>
+
+        <nav
+          className="features-capabilities__tabs"
+          role="tablist"
+          aria-label="Key platform capabilities"
         >
-          <header style={{ display: "grid", gap: "0.4rem" }}>
-            <span style={{ letterSpacing: "0.16em", textTransform: "uppercase", fontSize: "0.8rem", color: "color-mix(in oklch, white 72%, var(--gray-400))" }}>
-              {activeTab.preview.eyebrow}
-            </span>
-            <h3 style={{ fontSize: "1.6rem", color: "white" }}>{activeTab.label}</h3>
-          </header>
-          <p style={{ marginTop: "0.5rem", color: "color-mix(in oklch, white 78%, var(--gray-200))" }}>{activeTab.description}</p>
-          <div
-            style={{
-              marginTop: "1.5rem",
-              borderRadius: "24px",
-              padding: "2rem",
-              border: "1px solid color-mix(in oklch, white 12%, transparent)",
-              background:
-                "linear-gradient(140deg, color-mix(in oklch, var(--brand-primary) 28%, transparent) 0%, color-mix(in oklch, var(--brand-depth) 85%, black) 100%)",
-              minHeight: "220px",
-              display: "grid",
-              gap: "1.25rem",
-            }}
-          >
-            <div style={{ display: "flex", gap: "1rem", alignItems: "center" }}>
-              <span className="feature-preview__icon" aria-hidden="true">
-                <Icon name={activeTab.preview.icon} size={32} />
-              </span>
-              <div>
-                <strong style={{ color: "white", fontSize: "1.1rem" }}>{activeTab.preview.title}</strong>
-                <p style={{ marginTop: "0.35rem", color: "color-mix(in oklch, white 80%, var(--gray-200))" }}>
-                  {activeTab.preview.description}
-                </p>
+          {featureTabs.map((tab) => (
+            <button
+              key={tab.id}
+              type="button"
+              id={`feature-tab-${tab.id}`}
+              className="features-capabilities__tab"
+              role="tab"
+              aria-controls={`feature-panel-${tab.id}`}
+              aria-selected={active === tab.id}
+              data-active={active === tab.id ? "true" : undefined}
+              onClick={() => setActive(tab.id)}
+            >
+              {tab.label}
+            </button>
+          ))}
+        </nav>
+
+        <div className="features-capabilities__panels">
+          <AnimatePresence initial={false} mode="wait">
+            <motion.div
+              key={activeTab.id}
+              className="features-capabilities__panel"
+              id={`feature-panel-${activeTab.id}`}
+              role="tabpanel"
+              aria-labelledby={`feature-tab-${activeTab.id}`}
+              aria-live="polite"
+              variants={panelVariants}
+              initial="initial"
+              animate="animate"
+              exit="exit"
+            >
+              <div className="features-capabilities__panel-shell">
+                {activeTab.id === "demos" && <InteractiveDemosContent />}
+                {activeTab.id === "library" && <WorkflowLibraryContent />}
+                {activeTab.id === "compliance" && <ComplianceGuardrailsContent />}
+                {activeTab.id === "integrations" && <EnterpriseIntegrationsContent />}
               </div>
-            </div>
-            <div style={{ display: "flex", gap: "1.25rem", flexWrap: "wrap" }}>
-              {activeTab.preview.stats.map((stat) => (
-                <div
-                  key={stat.label}
-                  style={{
-                    display: "grid",
-                    gap: "0.25rem",
-                    padding: "0.75rem 1rem",
-                    borderRadius: "0.9rem",
-                    background: "color-mix(in oklch, var(--glass-2) 70%, transparent)",
-                    border: "1px solid color-mix(in oklch, white 12%, transparent)",
-                    minWidth: "120px",
-                  }}
-                >
-                  <span style={{ fontSize: "0.75rem", letterSpacing: "0.14em", textTransform: "uppercase", color: "color-mix(in oklch, white 70%, var(--gray-300))" }}>
-                    {stat.label}
-                  </span>
-                  <strong style={{ fontSize: "1.35rem", color: "white" }}>{stat.value}</strong>
-                </div>
-              ))}
+            </motion.div>
+          </AnimatePresence>
+        </div>
+      </div>
+    </section>
+  );
+}
+
+function InteractiveDemosContent() {
+  return (
+    <div className="features-capabilities__panel-grid">
+      <div className="features-capabilities__panel-copy">
+        <h3>Launch immersive WebGL or video walkthroughs</h3>
+        <p>
+          Spin up interactive scenes that mirror your production environment in a safe sandbox. Review how automations
+          behave with scrubbed datasets, instrumentation overlays, and guided voice narration before a single change
+          touches production.
+        </p>
+        <p>
+          Product, operations, and compliance teams can co-review every branch of an automation, annotate key decision
+          points, and capture approvals in context—no more disconnected slide decks.
+        </p>
+        <ul className="features-capabilities__list">
+          <li>Branch-by-branch walkthroughs rendered directly from workflow logic.</li>
+          <li>Guided commentary and hotspots that surface KPIs, ownership, and risk signals.</li>
+          <li>Session replays archived for auditors with timestamped approval history.</li>
+        </ul>
+        <Link className="features-capabilities__cta" href="/demos">
+          Launch a demo →
+        </Link>
+      </div>
+      <div className="features-capabilities__panel-visual">
+        <div className="features-capabilities__mockup features-capabilities__mockup--demos">
+          <div className="features-capabilities__mockup-header">
+            <span>WebGL Sandbox</span>
+            <span>Live preview</span>
+          </div>
+          <div className="features-capabilities__mockup-body">
+            <div className="features-capabilities__mockup-preview" />
+            <div className="features-capabilities__mockup-sidebar">
+              <strong>Steps</strong>
+              <ol>
+                <li>Initialize synthetic dataset</li>
+                <li>Simulate branching dialog</li>
+                <li>Validate policy guardrails</li>
+                <li>Capture approvals</li>
+              </ol>
             </div>
           </div>
-        </article>
-        <div className="feature-list">
-          {activeTab.highlights.map((feature) => (
-            <article key={feature.title} className="feature-card">
-              <span className="feature-card__icon" aria-hidden="true">
-                <Icon name={feature.icon} size={26} />
-              </span>
-              <strong>{feature.title}</strong>
-              <p>{feature.description}</p>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+const workflowHighlights = [
+  {
+    title: "Launch-ready playbooks",
+    description: "Pre-orchestrated flows for revenue, support, trust & safety, and operations.",
+  },
+  {
+    title: "Composable modules",
+    description: "Mix human approvals, AI copilots, and RPA steps with drag-and-drop ease.",
+  },
+  {
+    title: "Versioned governance",
+    description: "Ship confidently with diff views, policy gates, and change tracking baked in.",
+  },
+];
+
+function WorkflowLibraryContent() {
+  return (
+    <div className="features-capabilities__panel-grid">
+      <div className="features-capabilities__panel-copy">
+        <h3>Publish from a curated workflow catalog</h3>
+        <p>
+          Explore a continuously growing library of cross-functional playbooks crafted with industry experts. Filter by
+          KPI, complexity, or integration stack, then tailor the blueprint to your team in minutes.
+        </p>
+        <p>
+          Each workflow ships with documentation, testing harnesses, and rollout plans so program leads can adopt at
+          enterprise scale without slowing down IT.
+        </p>
+      </div>
+      <div className="features-capabilities__panel-visual">
+        <div className="features-capabilities__catalog">
+          {workflowHighlights.map((highlight) => (
+            <article key={highlight.title} className="features-capabilities__catalog-card">
+              <h4>{highlight.title}</h4>
+              <p>{highlight.description}</p>
+              <button type="button">Preview playbook</button>
             </article>
           ))}
         </div>
       </div>
-    </section>
+    </div>
+  );
+}
+
+const complianceBadges = [
+  "SOC 2 Type II",
+  "GDPR",
+  "ISO 27001",
+  "HIPAA",
+  "FedRAMP Ready",
+  "CCPA",
+  "PCI DSS",
+];
+
+function ComplianceGuardrailsContent() {
+  return (
+    <div className="features-capabilities__panel-grid">
+      <div className="features-capabilities__panel-copy">
+        <h3>Embed compliance from the first draft</h3>
+        <p>
+          Automated guardrails monitor every run for policy violations, data residency conflicts, and access anomalies.
+          Real-time alerts, hold-to-run controls, and tamper-evident logs give security teams instant visibility.
+        </p>
+        <p>
+          Map controls to frameworks once and propagate updates across every workflow without refactoring core logic.
+        </p>
+        <ul className="features-capabilities__list">
+          <li>Evidence snapshots generated automatically for auditors and stakeholders.</li>
+          <li>Fine-grained retention and redaction pipelines keep sensitive records protected.</li>
+          <li>Approval matrices aligned to regional policy variations and duty-of-care standards.</li>
+        </ul>
+      </div>
+      <div className="features-capabilities__panel-visual">
+        <div className="features-capabilities__badge-board">
+          {complianceBadges.map((badge) => (
+            <span key={badge} className="features-capabilities__badge">
+              {badge}
+            </span>
+          ))}
+          <div className="features-capabilities__badge-note">
+            Continuous monitoring maps every control back to its certification requirement, so audit prep drops from
+            months to hours.
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+const integrationLogos = [
+  { name: "Salesforce", color: "#00A1E0" },
+  { name: "SAP", color: "#0FA9FF" },
+  { name: "ServiceNow", color: "#4DAA57" },
+  { name: "Workday", color: "#3A7BD5" },
+  { name: "Snowflake", color: "#56CCF2" },
+  { name: "Oracle", color: "#E74C3C" },
+  { name: "Slack", color: "#4A154B" },
+  { name: "Databricks", color: "#FF5F45" },
+];
+
+function EnterpriseIntegrationsContent() {
+  return (
+    <div className="features-capabilities__panel-grid">
+      <div className="features-capabilities__panel-copy">
+        <h3>Connect the enterprise stack without friction</h3>
+        <p>
+          Synchronize mission-critical systems with bi-directional connectors, streaming APIs, and managed queues that
+          keep data fresh everywhere. Configure routing, retries, and fallback logic through a visual policy builder.
+        </p>
+        <p>
+          From CRM and ERP to bespoke on-prem services, the integration fabric respects governance, throttling, and
+          observability requirements out of the box.
+        </p>
+        <ul className="features-capabilities__list">
+          <li>Granular scopes with OAuth, SSO, and service accounts managed centrally.</li>
+          <li>Streaming webhooks translate events into actionable workflow triggers.</li>
+          <li>Health dashboards highlight latency, error budgets, and recent releases.</li>
+        </ul>
+      </div>
+      <div className="features-capabilities__panel-visual">
+        <div className="features-capabilities__logo-grid">
+          {integrationLogos.map((logo) => (
+            <span
+              key={logo.name}
+              className="features-capabilities__logo"
+              style={{ "--logo-color": logo.color }}
+            >
+              {logo.name}
+            </span>
+          ))}
+        </div>
+      </div>
+    </div>
   );
 }
