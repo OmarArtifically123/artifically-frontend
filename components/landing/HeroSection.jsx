@@ -16,6 +16,7 @@ import HeroBackground from "./HeroBackground";
 import ScrollIndicator from "./ScrollIndicator";
 import HeroRoiCalculator from "./HeroRoiCalculator";
 import { Icon } from "../icons";
+import TrustedBy from "./TrustedBy";
 
 const heroStats = [
   { label: "Automations", value: 12500, suffix: "+" },
@@ -78,7 +79,6 @@ const previewTiles = [
 ];
 
 export default function HeroSection({ onPrimary, onSecondary, demoDialogId, demoOpen, onReady }) {
-  const gradientId = useMemo(() => `heroGradient-${Math.random().toString(36).slice(2)}`, []);
   const [primaryLabel, setPrimaryLabel] = useState("Start Free Trial");
   const [secondaryLabel, setSecondaryLabel] = useState("Watch Demo");
   const [ctaContext, setCtaContext] = useState("");
@@ -347,12 +347,7 @@ export default function HeroSection({ onPrimary, onSecondary, demoDialogId, demo
             prefersReducedMotion={prefersReducedMotion}
             initialInView={initialHeroInView}
           />
-          <LogoTicker
-            logos={defaultLogos}
-            gradientId={gradientId}
-            prefersReducedMotion={prefersReducedMotion}
-            initialInView={initialHeroInView}
-          />
+          <TrustedBy logos={defaultLogos} />
         </motion.div>
         <div className="page-hero__preview" id="product-preview">
           <motion.article
@@ -544,55 +539,6 @@ function StatCounter({ value, suffix = "", label, index, prefersReducedMotion, i
     <motion.div className="hero-stat" variants={itemVariants}>
       <span className="hero-stat__value">{formatted}</span>
       <span className="hero-stat__label">{label}</span>
-    </motion.div>
-  );
-}
-
-function LogoTicker({ logos, gradientId, prefersReducedMotion, initialInView }) {
-  const [tickerRef, tickerInView] = useInViewState({ threshold: 0.2, once: true, initialInView });
-
-  const tickerVariants = useMemo(() => {
-    const hidden = { opacity: 0 };
-    if (!prefersReducedMotion) {
-      hidden.y = 16;
-    }
-    const visible = {
-      opacity: 1,
-      y: 0,
-      transition: {
-        duration: motionCatalog.durations.medium,
-        ease: motionCatalog.easings.out,
-      },
-    };
-    if (prefersReducedMotion) {
-      delete visible.y;
-    }
-    return { hidden, visible };
-  }, [prefersReducedMotion]);
-
-  return (
-    <motion.div
-      ref={tickerRef}
-      aria-label="Trusted by leading teams"
-      className="trusted-by"
-      initial="hidden"
-      animate={tickerInView ? "visible" : "hidden"}
-      variants={tickerVariants}
-    >
-      <span className="trusted-by__eyebrow">Trusted by teams shipping AI in production</span>
-      <div className="trusted-by__logos">
-        {logos.map((logo) => (
-          <span key={logo} className="trusted-by__logo">
-            {logo}
-          </span>
-        ))}
-      </div>
-      <svg width="0" height="0" className="trusted-by__gradient-defs" aria-hidden="true">
-        <linearGradient id={gradientId} x1="0%" y1="0%" x2="100%" y2="0%">
-          <stop offset="0%" stopColor="var(--brand-glow)" />
-          <stop offset="100%" stopColor="var(--brand-energy)" />
-        </linearGradient>
-      </svg>
     </motion.div>
   );
 }

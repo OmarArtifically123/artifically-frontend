@@ -5,6 +5,7 @@ import {
   HERO_PREVIEW_SIZES,
   HERO_PREVIEW_SOURCES,
 } from "../components/landing/heroPreviewAssets";
+import TrustedBy from "../components/landing/TrustedBy";
 
 const HERO_STATS = [
   { label: "Automations", value: "12,500+" },
@@ -67,16 +68,7 @@ export default function MarketingHomeServer() {
               </div>
             ))}
           </div>
-          <div className="trusted-by" aria-label="Trusted by leading teams">
-            <span className="trusted-by__eyebrow">Trusted by teams shipping AI in production</span>
-            <div className="trusted-by__logos">
-              {HERO_LOGOS.map((logo) => (
-                <span key={logo} className="trusted-by__logo">
-                  {logo}
-                </span>
-              ))}
-            </div>
-          </div>
+          <TrustedBy logos={HERO_LOGOS} />
         </div>
         <div className="page-hero__preview" id="product-preview" aria-hidden="true">
           <article className="preview-card">
