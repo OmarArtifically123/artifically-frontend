@@ -13,6 +13,7 @@ import {
 } from "react";
 import { usePathname, useRouter } from "next/navigation";
 import dynamic from "next/dynamic";
+import { useQueryClient } from "@tanstack/react-query";
 
 import apiClient, { pick } from "@/api";
 import BackToTopButton from "@/components/BackToTopButton";
@@ -22,6 +23,8 @@ import ReactQueryProvider from "@/components/providers/ReactQueryProvider";
 import RouteShell from "@/components/skeletons/RouteShell";
 import { ToastHost, toast } from "@/components/Toast";
 import usePredictivePrefetch from "@/hooks/usePredictivePrefetch";
+import { fetchAutomations } from "@/data/automations";
+import { MARKETPLACE_AUTOMATIONS_QUERY_KEY, MARKETPLACE_PAGE_SIZE } from "@/hooks/useMarketplaceData";
 import { AppShellProvider, type AuthMode, type AuthUser } from "@/context/AppShellContext";
 import { applyDesignTokens } from "@/styles/applyDesignTokens";
 
@@ -62,6 +65,45 @@ const routeLoaders = {
   "/dashboard": () => import("@/components/Dashboard"),
   "/verify": () => import("@/components/Verify"),
 };
+
+function CriticalDataPrefetcher({ pathname }: { pathname: string | null }) {
+  const queryClient = useQueryClient();
+
+  useEffect(() => {
+    if (!pathname) {
+      return;
+    }
+
+    const normalisedPath = pathname.split("?")[0];
+    const shouldPrefetchMarketplace =
+      normalisedPath === "/marketplace" || normalisedPath === "/products/marketplace";
+
+    if (!shouldPrefetchMarketplace) {
+      return;
+    }
+
+    const controller = typeof AbortController !== "undefined" ? new AbortController() : null;
+
+    queryClient
+      .prefetchInfiniteQuery({
+        queryKey: MARKETPLACE_AUTOMATIONS_QUERY_KEY,
+        initialPageParam: 1,
+        queryFn: ({ pageParam = 1 }) =>
+          fetchAutomations({
+            page: Number(pageParam) || 1,
+            limit: MARKETPLACE_PAGE_SIZE,
+            signal: controller?.signal,
+          }),
+      })
+      .catch(() => {});
+
+    return () => {
+      controller?.abort();
+    };
+  }, [pathname, queryClient]);
+
+  return null;
+}
 
 const requestIdle: (cb: IdleRequestCallback) => number | ReturnType<typeof setTimeout> =
   typeof window !== "undefined" && typeof window.requestIdleCallback === "function"
@@ -309,6 +351,7 @@ export default function AppShellClient({ children }: AppShellClientProps) {
 
   return (
     <ReactQueryProvider>
+      <CriticalDataPrefetcher pathname={pathname ?? null} />
       <AppShellProvider value={contextValue}>
         <ExperienceLayer enableExperience={enableExperience}>
           <GlobalProgressBar active={isNavigating || authChecking} />

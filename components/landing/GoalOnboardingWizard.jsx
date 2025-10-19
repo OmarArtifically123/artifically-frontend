@@ -1,6 +1,7 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useMemo, useState, useCallback } from "react";
+import { useRouter } from "next/navigation";
 
 const steps = [
   {
@@ -36,6 +37,7 @@ const steps = [
 ];
 
 export default function GoalOnboardingWizard() {
+  const router = useRouter();
   const [stepIndex, setStepIndex] = useState(0);
   const [responses, setResponses] = useState({});
   const activeStep = steps[stepIndex];
@@ -69,6 +71,19 @@ export default function GoalOnboardingWizard() {
   const goBack = () => {
     setStepIndex((prev) => Math.max(prev - 1, 0));
   };
+
+  const handleNextHover = useCallback(() => {
+    const targetPath = isFinalStep
+      ? `/marketplace?wizard=${encodeURIComponent(
+          steps
+            .filter((step) => responses[step.id])
+            .map((step) => step.id)
+            .join("-"),
+        )}`
+      : undefined;
+
+    router.prefetch(targetPath || "/marketplace");
+  }, [isFinalStep, responses, router]);
 
   return (
     <section className="goal-wizard" aria-labelledby="goal-wizard-heading">
@@ -115,6 +130,8 @@ export default function GoalOnboardingWizard() {
             className="cta-primary"
             onClick={goNext}
             disabled={!responses[activeStep.id]}
+            onMouseEnter={handleNextHover}
+            onFocus={handleNextHover}
           >
             {isFinalStep ? "Review plan" : "Next"}
           </button>

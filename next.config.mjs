@@ -1,6 +1,7 @@
 import { dirname, resolve } from "path";
 import { fileURLToPath } from "url";
 import bundleAnalyzer from "@next/bundle-analyzer";
+import TerserPlugin from "terser-webpack-plugin";
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
@@ -24,7 +25,7 @@ const nextConfig = {
   experimental: {
     optimizeCss: true,
   },
-  webpack(config) {
+  webpack(config, { dev, isServer }) {
     // ✅ Ensure peer dependencies resolve to the project copy without clobbering Next.js internals
     const alias = { ...(config.resolve.alias ?? {}) };
 
@@ -39,6 +40,52 @@ const nextConfig = {
     ensureAlias("zustand", "node_modules/zustand");
 
     config.resolve.alias = alias;
+
+    if (!dev && !isServer) {
+      config.optimization = config.optimization ?? {};
+      config.optimization.runtimeChunk = "single";
+      const existingSplitChunks = config.optimization.splitChunks ?? {};
+      config.optimization.splitChunks = {
+        ...existingSplitChunks,
+        chunks: "all",
+        maxInitialRequests: 25,
+        maxAsyncRequests: 25,
+        minSize: 20000,
+        cacheGroups: {
+          ...(existingSplitChunks.cacheGroups ?? {}),
+          vendor: {
+            test: /[\\/]node_modules[\\/]/,
+            name(module) {
+              const context = module?.context ?? "";
+              const match = context.match(/[\\/]node_modules[\\/](.*?)([\\/]|$)/);
+              const packageName = match ? match[1].replace("@", "") : "vendor";
+              return `vendor.${packageName}`;
+            },
+            chunks: "all",
+            enforce: true,
+            maxSize: 120 * 1024,
+            reuseExistingChunk: true,
+          },
+        },
+      };
+
+      config.optimization.minimize = true;
+      config.optimization.minimizer = [
+        ...(config.optimization.minimizer ?? []),
+        new TerserPlugin({
+          extractComments: false,
+          terserOptions: {
+            compress: {
+              drop_console: true,
+              passes: 2,
+            },
+            format: {
+              comments: false,
+            },
+          },
+        }),
+      ];
+    }
 
     return config;
   },

@@ -499,7 +499,8 @@ export default function Marketplace({ user, openAuth }) {
       try {
         setLoading(true);
         setError(null);
-        const list = await fetchAutomations();
+        const page = await fetchAutomations({ page: 1, limit: 20 });
+        const list = Array.isArray(page?.items) ? page.items : [];
         if (!Array.isArray(list)) {
           throw new Error("Invalid data format received");
         }

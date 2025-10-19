@@ -1,6 +1,6 @@
 "use client";
 
-import { type ReactNode, useEffect, useMemo, useRef, useState } from "react";
+import { type ReactNode, useCallback, useEffect, useMemo, useRef, useState } from "react";
 
 import { Icon } from "@/components/icons";
 import { useMarketplaceAutomations } from "@/hooks/useMarketplaceData";
@@ -298,7 +298,15 @@ function formatPriceTag(value: number | null, currency: string) {
 }
 
 export default function MarketplacePage() {
-  const { automations, isLoading } = useMarketplaceAutomations();
+  const {
+    automations,
+    isPending,
+    isFetchingNextPage,
+    hasNextPage,
+    fetchNextPage,
+    prefetchNextPage,
+  } = useMarketplaceAutomations();
+  const isLoading = isPending;
   const [searchQuery, setSearchQuery] = useState("");
   const [activeCategories, setActiveCategories] = useState<string[]>([]);
   const [pricingFilter, setPricingFilter] = useState<PricingFilter>("all");
@@ -306,12 +314,53 @@ export default function MarketplacePage() {
   const [activeAttributes, setActiveAttributes] = useState<AttributeKey[]>([]);
   const [sortOption, setSortOption] = useState<SortOption>("popular");
   const searchRef = useRef<HTMLInputElement | null>(null);
+  const loadMoreRef = useRef<HTMLDivElement | null>(null);
 
   useEffect(() => {
     if (searchRef.current) {
       searchRef.current.focus();
     }
   }, []);
+
+  useEffect(() => {
+    if (!hasNextPage) {
+      return undefined;
+    }
+
+    const target = loadMoreRef.current;
+    if (!target || typeof IntersectionObserver === "undefined") {
+      return undefined;
+    }
+
+    const observer = new IntersectionObserver(
+      (entries) => {
+        entries.forEach((entry) => {
+          if (entry.isIntersecting && hasNextPage && !isFetchingNextPage) {
+            fetchNextPage({ cancelRefetch: false }).catch(() => {});
+          }
+        });
+      },
+      { rootMargin: "200px" },
+    );
+
+    observer.observe(target);
+
+    return () => {
+      observer.disconnect();
+    };
+  }, [fetchNextPage, hasNextPage, isFetchingNextPage]);
+
+  const handleLoadMoreHover = useCallback(() => {
+    if (hasNextPage) {
+      prefetchNextPage().catch(() => {});
+    }
+  }, [hasNextPage, prefetchNextPage]);
+
+  const handleLoadMore = useCallback(() => {
+    if (hasNextPage && !isFetchingNextPage) {
+      fetchNextPage({ cancelRefetch: false }).catch(() => {});
+    }
+  }, [fetchNextPage, hasNextPage, isFetchingNextPage]);
 
   const prepared = useMemo(() => prepareAutomation(automations), [automations]);
 
@@ -732,6 +781,29 @@ export default function MarketplacePage() {
                   })}
             </div>
 
+            <div className="mt-10 flex flex-col items-center gap-4">
+              <div ref={loadMoreRef} aria-hidden="true" className="h-px w-full" />
+              {hasNextPage ? (
+                <button
+                  type="button"
+                  onClick={handleLoadMore}
+                  onMouseEnter={handleLoadMoreHover}
+                  onFocus={handleLoadMoreHover}
+                  disabled={isFetchingNextPage}
+                  className={cn(
+                    "rounded-full border border-white/20 px-6 py-3 text-sm font-medium text-white transition",
+                    isFetchingNextPage ? "bg-white/10 text-white/60" : "bg-white/5 hover:bg-white/10",
+                  )}
+                >
+                  {isFetchingNextPage ? "Loading more automations..." : "Load more automations"}
+                </button>
+              ) : (
+                !isLoading && (
+                  <p className="text-sm text-white/60">You&apos;ve reached the end of the catalogue.</p>
+                )
+              )}
+            </div>
+            
             {!isLoading && filteredAutomations.length === 0 && (
               <div className="mt-10 rounded-2xl border border-white/10 bg-white/[0.03] p-10 text-center text-white/70">
                 <h3 className="text-lg font-semibold text-white">No automations found</h3>

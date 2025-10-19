@@ -3,7 +3,7 @@
 // components/AuthModal.jsx
 import { useState, useRef, useCallback, useEffect, useMemo } from "react";
 import { useTheme } from "../context/ThemeContext";
-import debounce from "lodash/debounce";
+import { debounce } from "lodash-es";
 import api from "../api";
 import ThemeToggle from "./ThemeToggle";
 import Button from "./ui/Button";

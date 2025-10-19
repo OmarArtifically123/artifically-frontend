@@ -1,3 +1,4 @@
+import Script from "next/script";
 import type { Metadata, Viewport } from "next";
 import AppShell from "@/components/AppShell";
 import { ThemeProvider } from "@/context/ThemeContext";
@@ -90,6 +91,14 @@ export default function RootLayout({
           imageSizes="(max-width: 768px) 92vw, (max-width: 1280px) 60vw, 540px"
         />
         <link rel="preload" href="/images/hero-background.avif" as="image" type="image/avif" />
+        <link rel="prefetch" href="/marketplace" as="document" />
+        <link rel="prefetch" href="/pricing" as="document" />
+        <Script
+          id="artifically-analytics"
+          src="https://analytics.example.com/script.js"
+          async
+          strategy="lazyOnload"
+        />
       </head>
       <body className={inter.className}>
         <ThemeProvider>

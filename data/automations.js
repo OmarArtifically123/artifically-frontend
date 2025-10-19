@@ -1,6 +1,32 @@
 import api from "../api.js";
 import { MARKETPLACE_ENTRIES } from "./marketplaceCatalog.js";
 
+const DEFAULT_PAGE_SIZE = 20;
+
+export const AUTOMATION_FIELD_WHITELIST = [
+  "id",
+  "name",
+  "title",
+  "description",
+  "summary",
+  "icon",
+  "priceMonthly",
+  "price",
+  "currency",
+  "priceTier",
+  "category",
+  "tags",
+  "labels",
+  "integrations",
+  "performance.avgInteractionMs",
+  "performance.fps",
+  "teamVotes",
+  "deploymentsPerWeek",
+  "attributes",
+];
+
+const buildFieldParam = () => AUTOMATION_FIELD_WHITELIST.join(",");
+
 const enhanceAutomation = (automation = {}, index = 0) => {
   const voteFallback = 120 + (index % 6) * 18;
   const teamVotes = typeof automation.teamVotes === "number" ? automation.teamVotes : voteFallback;
@@ -24,109 +50,159 @@ export const SAMPLE_AUTOMATIONS = MARKETPLACE_ENTRIES.map((automation, index) =>
   enhanceAutomation({ ...automation }, index),
 );
 
-export async function fetchAutomations() {
-  try {
-    const res = await api.get("/marketplace");
-    
-    // Validate the response structure
-    if (!res || !res.data) {
-      console.error("Invalid response structure from /marketplace API");
-      return [];
-    }
-    
-    // Handle different response formats the API might return
-    let automations;
-    
-    if (res.data.automations) {
-      // Expected format: { automations: [...] }
-      automations = res.data.automations;
-    } else if (Array.isArray(res.data)) {
-      // Fallback format: [...]
-      automations = res.data;
-    } else if (res.data.data && Array.isArray(res.data.data)) {
-      // Another possible format: { data: [...] }
-      automations = res.data.data;
-    } else {
-      console.warn("Unexpected response format from /marketplace API:", res.data);
-      return [];
-    }
-    
-    // Ensure we return an array
-    if (!Array.isArray(automations)) {
+const paginate = (list = [], page = 1, limit = DEFAULT_PAGE_SIZE) => {
+  const safePage = Math.max(1, Number(page) || 1);
+  const safeLimit = Math.max(1, Number(limit) || DEFAULT_PAGE_SIZE);
+  const start = (safePage - 1) * safeLimit;
+  const end = start + safeLimit;
+  const slice = enhanceAutomationList(list.slice(start, end));
+  const total = list.length;
+  const hasMore = end < total;
+  return {
+    items: slice,
+    page: safePage,
+    limit: safeLimit,
+    total,
+    hasMore,
+    nextPage: hasMore ? safePage + 1 : null,
+  };
+};
+
+const validateAutomationList = (automations) => {
+  if (!Array.isArray(automations)) {
+    if (import.meta.env.DEV) {
       console.error("Automations data is not an array:", automations);
-      return [];
     }
-    
-    // Validate each automation object has required fields
-    const validAutomations = automations.filter(automation => {
-      if (!automation || typeof automation !== 'object') {
+    return [];
+  }
+
+  const validAutomations = automations.filter((automation) => {
+    if (!automation || typeof automation !== "object") {
+      if (import.meta.env.DEV) {
         console.warn("Invalid automation object:", automation);
-        return false;
       }
-      
-      // Check for required fields
-      if (!automation.id) {
-        console.warn("Automation missing required 'id' field:", automation);
-        return false;
-      }
-      
-      if (!automation.name) {
-        console.warn("Automation missing required 'name' field:", automation);
-        return false;
-      }
-      
-      return true;
-    });
-    
-    // Log warning if some automations were filtered out
-    if (validAutomations.length !== automations.length) {
-      console.warn(`Filtered out ${automations.length - validAutomations.length} invalid automation(s)`);
+      return false;
     }
 
+    if (!automation.id) {
+      if (import.meta.env.DEV) {
+        console.warn("Automation missing required 'id' field:", automation);
+      }
+      return false;
+    }
+
+    if (!automation.name && !automation.title) {
+      if (import.meta.env.DEV) {
+        console.warn("Automation missing required 'name' field:", automation);
+      }
+      return false;
+    }
+
+    return true;
+  });
+
+  if (import.meta.env.DEV && validAutomations.length !== automations.length) {
+    console.warn(`Filtered out ${automations.length - validAutomations.length} invalid automation(s)`);
+  }
+
+  return validAutomations;
+};
+
+const buildResult = (list, page, limit, totalHint) => {
+  const total = Number.isFinite(Number(totalHint)) ? Number(totalHint) : list.length;
+  const pagination = paginate(list, page, limit);
+  if (total > pagination.total) {
+    return {
+      ...pagination,
+      total,
+      hasMore: pagination.page * pagination.limit < total,
+      nextPage: pagination.page * pagination.limit < total ? pagination.page + 1 : null,
+    };
+  }
+  return pagination;
+};
+
+export async function fetchAutomations({ page = 1, limit = DEFAULT_PAGE_SIZE, signal } = {}) {
+  try {
+    const res = await api.get("/marketplace", {
+      params: {
+        page,
+        limit,
+        fields: buildFieldParam(),
+      },
+      signal,
+    });
+
+    if (!res || !res.data) {
+      if (import.meta.env.DEV) {
+        console.error("Invalid response structure from /marketplace API");
+      }
+      return paginate(SAMPLE_AUTOMATIONS, page, limit);
+    }
+
+    const payload = res.data;
+    let automations;
+    let total;
+
+    if (Array.isArray(payload.items)) {
+      automations = payload.items;
+      total = payload.total ?? payload.count ?? payload.items.length;
+    } else if (Array.isArray(payload.automations)) {
+      automations = payload.automations;
+      total = payload.total ?? payload.automations.length;
+    } else if (Array.isArray(payload.data)) {
+      automations = payload.data;
+      total = payload.total ?? payload.meta?.total ?? payload.data.length;
+    } else if (Array.isArray(payload)) {
+      automations = payload;
+      total = payload.length;
+    } else {
+      if (import.meta.env.DEV) {
+        console.warn("Unexpected response format from /marketplace API:", payload);
+      }
+      return paginate(SAMPLE_AUTOMATIONS, page, limit);
+    }
+
+    const validAutomations = validateAutomationList(automations);
+
     if (validAutomations.length > 0) {
-      return enhanceAutomationList(validAutomations);
+      return buildResult(validAutomations, page, limit, total);
     }
 
     if (import.meta.env.DEV) {
-      console.warn("Marketplace API returned no automations, using sample dataset");
+      console.warn("Marketplace API returned no valid automations, using sample dataset");
     }
-    return SAMPLE_AUTOMATIONS.map((automation) => ({ ...automation }));
-    
+    return paginate(SAMPLE_AUTOMATIONS, page, limit);
   } catch (error) {
     if (import.meta.env.DEV) {
       console.error("Failed to fetch automations:", error);
     }
-    
-    // If it's a network error or API is down, return empty array
-    // This prevents the UI from breaking
-    if (error.status === 0 || error.code === 'NETWORK_ERROR') {
+
+    if (error?.status === 0 || error?.code === "NETWORK_ERROR") {
       if (import.meta.env.DEV) {
-        console.warn("Network error - returning empty automations array");
+        console.warn("Network error - returning fallback automations");
       }
-      return SAMPLE_AUTOMATIONS.map((automation) => ({ ...automation }));
+      return paginate(SAMPLE_AUTOMATIONS, page, limit);
     }
-    
-    // If it's a server error (5xx), return empty array
-    if (error.status >= 500) {
+
+    if (error?.status >= 500) {
       if (import.meta.env.DEV) {
-        console.warn("Server error - returning empty automations array");
+        console.warn("Server error - returning fallback automations");
       }
-      return SAMPLE_AUTOMATIONS.map((automation) => ({ ...automation }));
+      return paginate(SAMPLE_AUTOMATIONS, page, limit);
     }
-    
-    // If it's a client error (4xx), we might want to handle it differently
-    if (error.status >= 400 && error.status < 500) {
+
+    if (error?.status >= 400 && error?.status < 500) {
       if (import.meta.env.DEV) {
-        console.error("Client error when fetching automations:", error.message);
+        console.error("Client error when fetching automations:", error?.message);
       }
-      // Still return empty array to prevent UI breakage
-      return SAMPLE_AUTOMATIONS.map((automation) => ({ ...automation }));
+      return paginate(SAMPLE_AUTOMATIONS, page, limit);
     }
-    
-    // For any other error, rethrow so the calling component can handle it
-    // This allows components to show specific error messages if needed
-    console.error("Failed to load automations:", error);
-    return SAMPLE_AUTOMATIONS.map((automation) => ({ ...automation }));
+
+    if (import.meta.env.DEV) {
+      console.error("Failed to load automations, using fallback dataset", error);
+    }
+    return paginate(SAMPLE_AUTOMATIONS, page, limit);
   }
 }
 
