@@ -48,8 +48,20 @@ const ATTRIBUTE_OPTIONS = [
   { label: "⚡ One-click deploy", value: "oneClick" },
 ] as const;
 
+const CARD_GRADIENTS = [
+  "linear-gradient(135deg, #667eea, #764ba2)",
+  "linear-gradient(135deg, #34d399, #10b981)",
+  "linear-gradient(135deg, #f472b6, #ec4899)",
+  "linear-gradient(135deg, #f59e0b, #f97316)",
+  "linear-gradient(135deg, #38bdf8, #6366f1)",
+  "linear-gradient(135deg, #a855f7, #6366f1)",
+  "linear-gradient(135deg, #fb7185, #f43f5e)",
+  "linear-gradient(135deg, #2dd4bf, #14b8a6)",
+];
+
 type PricingFilter = (typeof PRICING_OPTIONS)[number]["value"];
 type AttributeKey = (typeof ATTRIBUTE_OPTIONS)[number]["value"];
+type SortOption = "popular" | "rating" | "recent" | "name";
 
 function hashString(value: string) {
   let hash = 0;
@@ -58,6 +70,14 @@ function hashString(value: string) {
     hash |= 0;
   }
   return Math.abs(hash);
+}
+
+function getCardGradient(id: string) {
+  if (!id) {
+    return CARD_GRADIENTS[0];
+  }
+  const index = hashString(id) % CARD_GRADIENTS.length;
+  return CARD_GRADIENTS[index];
 }
 
 function titleCase(value: string) {
@@ -269,11 +289,12 @@ function formatPriceTag(value: number | null, currency: string) {
   if (value <= 0) {
     return "Free";
   }
-  return new Intl.NumberFormat("en-US", {
+  const formatted = new Intl.NumberFormat("en-US", {
     style: "currency",
     currency: currency || "USD",
     maximumFractionDigits: value < 100 ? 0 : 0,
   }).format(value);
+  return `${formatted}/mo`;
 }
 
 export default function MarketplacePage() {
@@ -283,6 +304,7 @@ export default function MarketplacePage() {
   const [pricingFilter, setPricingFilter] = useState<PricingFilter>("all");
   const [activeIntegrations, setActiveIntegrations] = useState<string[]>([]);
   const [activeAttributes, setActiveAttributes] = useState<AttributeKey[]>([]);
+  const [sortOption, setSortOption] = useState<SortOption>("popular");
   const searchRef = useRef<HTMLInputElement | null>(null);
 
   useEffect(() => {
@@ -352,12 +374,48 @@ export default function MarketplacePage() {
     });
   }, [prepared, activeCategories, pricingFilter, activeIntegrations, activeAttributes, searchQuery]);
 
-  const hasActiveFilters =
-    activeCategories.length > 0 ||
-    pricingFilter !== "all" ||
-    activeIntegrations.length > 0 ||
-    activeAttributes.length > 0 ||
-    searchQuery.trim().length > 0;
+  const sortedAutomations = useMemo(() => {
+    const automationsToSort = [...filteredAutomations];
+
+    const getTimestamp = (automation: (typeof automationsToSort)[number]) => {
+      const raw = automation.raw as Record<string, unknown> | undefined;
+      const candidate =
+        (typeof raw?.createdAt === "string" && Date.parse(raw.createdAt)) ||
+        (typeof raw?.updatedAt === "string" && Date.parse(raw.updatedAt)) ||
+        (typeof raw?.publishedAt === "string" && Date.parse(raw.publishedAt)) ||
+        (typeof raw?.date === "string" && Date.parse(raw.date)) ||
+        0;
+      return Number.isNaN(candidate) ? 0 : candidate;
+    };
+
+    switch (sortOption) {
+      case "rating":
+        automationsToSort.sort((a, b) => {
+          if (b.meta.rating !== a.meta.rating) {
+            return b.meta.rating - a.meta.rating;
+          }
+          return (b.meta.teamVotes || 0) - (a.meta.teamVotes || 0);
+        });
+        break;
+      case "recent":
+        automationsToSort.sort((a, b) => getTimestamp(b) - getTimestamp(a));
+        break;
+      case "name":
+        automationsToSort.sort((a, b) => a.name.localeCompare(b.name));
+        break;
+      case "popular":
+      default:
+        automationsToSort.sort((a, b) => {
+          if ((b.meta.teamVotes || 0) !== (a.meta.teamVotes || 0)) {
+            return (b.meta.teamVotes || 0) - (a.meta.teamVotes || 0);
+          }
+          return b.meta.rating - a.meta.rating;
+        });
+        break;
+    }
+
+    return automationsToSort;
+  }, [filteredAutomations, sortOption]);
 
   const handleCategoryToggle = (label: string) => {
     setActiveCategories((prev) =>
@@ -541,87 +599,137 @@ export default function MarketplacePage() {
           </aside>
 
           <div className="flex-1">
-            <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-              <div>
-                <h2 className="text-lg font-semibold text-white/90">
-                  {isLoading ? "Loading automations" : `${filteredAutomations.length} automations`}
-                </h2>
-                <p className="text-sm text-white/60">
-                  {hasActiveFilters
-                    ? "Results updated instantly as you adjust filters."
-                    : "Explore curated automations across every team."}
-                </p>
+            <div className="mb-8 flex items-center justify-between">
+              <p className="text-[15px] text-white/70">
+                {isLoading
+                  ? "Showing automations..."
+                  : `Showing ${sortedAutomations.length.toLocaleString()} automations`}
+              </p>
+              <div className="flex items-center gap-3">
+                <label className="sr-only" htmlFor="marketplace-sort">
+                  Sort automations
+                </label>
+                <select
+                  id="marketplace-sort"
+                  value={sortOption}
+                  onChange={(event) => setSortOption(event.target.value as SortOption)}
+                  className="rounded-[10px] text-sm font-medium text-white outline-none"
+                  style={{
+                    padding: "10px 16px",
+                    background: "rgba(255, 255, 255, 0.06)",
+                  }}
+                >
+                  <option value="popular">Most Popular</option>
+                  <option value="rating">Highest Rated</option>
+                  <option value="recent">Recently Added</option>
+                  <option value="name">Name A-Z</option>
+                </select>
               </div>
             </div>
 
-            <div className="mt-8 grid grid-cols-1 gap-6 md:grid-cols-2 xl:grid-cols-3">
+            <div className="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3 min-[1400px]:grid-cols-4">
               {isLoading
                 ? Array.from({ length: 6 }).map((_, index) => (
                     <div
                       key={`skeleton-${index}`}
-                      className="animate-pulse rounded-2xl border border-white/5 bg-white/[0.03] p-6"
+                      className="flex min-h-[420px] flex-col overflow-hidden rounded-[20px] border border-white/5 bg-white/[0.03] animate-pulse"
                     >
-                      <div className="h-10 w-10 rounded-xl bg-white/10" />
-                      <div className="mt-5 h-4 w-3/4 rounded bg-white/10" />
-                      <div className="mt-3 h-3 w-full rounded bg-white/10" />
-                      <div className="mt-3 h-3 w-4/5 rounded bg-white/10" />
-                      <div className="mt-5 h-8 w-1/2 rounded bg-white/10" />
+                      <div className="basis-[40%] shrink-0 bg-white/[0.08]" />
+                      <div className="flex basis-[60%] flex-col gap-4 p-5">
+                        <div className="h-5 w-3/4 rounded bg-white/10" />
+                        <div className="h-4 w-full rounded bg-white/10" />
+                        <div className="h-4 w-4/5 rounded bg-white/10" />
+                        <div className="mt-auto h-4 w-2/3 rounded bg-white/10" />
+                      </div>
                     </div>
                   ))
-                : filteredAutomations.map((automation) => (
-                    <article
-                      key={automation.id}
-                      className="group relative flex h-full flex-col overflow-hidden rounded-2xl border border-white/10 bg-white/[0.03] p-6 transition hover:border-[#a78bfa]/60 hover:bg-white/[0.08]"
-                    >
-                      <div className="flex items-start justify-between gap-4">
-                        <span className="flex h-12 w-12 items-center justify-center rounded-2xl bg-white/10 text-2xl">
-                          {automation.icon}
-                        </span>
-                        <span className="rounded-full border border-white/15 bg-white/[0.06] px-3 py-1 text-xs font-semibold uppercase tracking-wide text-white/70">
-                          {automation.displayCategory}
-                        </span>
-                      </div>
-                      <h3 className="mt-6 text-xl font-semibold text-white">{automation.name}</h3>
-                      <p className="mt-3 text-sm leading-6 text-white/70 line-clamp-3">
-                        {automation.description}
-                      </p>
-                      <div className="mt-5 flex flex-wrap items-center gap-3 text-sm text-white/60">
-                        <span className="flex items-center gap-1 rounded-full bg-white/10 px-3 py-1 text-white/70">
-                          <Icon name="star" className="h-4 w-4 text-[#facc15]" strokeWidth={1.6} />
-                          {automation.meta.rating.toFixed(1)}
-                        </span>
-                        <span className="rounded-full bg-white/5 px-3 py-1 text-white/70">
-                          {automation.meta.teamVotes > 0
-                            ? `${automation.meta.teamVotes.toLocaleString()} team votes`
-                            : "New"}
-                        </span>
-                        <span className="rounded-full bg-[#a78bfa]/15 px-3 py-1 text-[#e9d5ff]">
-                          {formatPriceTag(automation.priceMonthly, automation.currency)}
-                        </span>
-                      </div>
-                      {automation.integrations.length > 0 && (
-                        <div className="mt-6 flex flex-wrap gap-2">
-                          {automation.integrations.slice(0, 4).map((integration) => (
+                : sortedAutomations.map((automation) => {
+                    const priceLabel = formatPriceTag(automation.priceMonthly, automation.currency);
+                    const priceIsFree = priceLabel.toLowerCase() === "free";
+                    const teamVotes = Math.max(Number(automation.meta.teamVotes) || 0, 0);
+                    const badgeSet = new Set<string>();
+                    if (automation.meta.attributes.recentlyAdded || teamVotes < 50) {
+                      badgeSet.add("NEW");
+                    }
+                    if (automation.meta.attributes.mostPopular || teamVotes > 500) {
+                      badgeSet.add("POPULAR");
+                    }
+                    if (priceIsFree) {
+                      badgeSet.add("FREE");
+                    }
+                    const badges = Array.from(badgeSet);
+
+                    return (
+                      <article
+                        key={automation.id}
+                        className="group relative flex aspect-[3/4] min-h-[420px] flex-col cursor-pointer overflow-hidden rounded-[20px] border border-[rgba(255,255,255,0.1)] bg-[rgba(255,255,255,0.04)] transition duration-300 ease-out hover:border-white/30"
+                      >
+                        <div
+                          className="relative flex basis-[40%] items-center justify-center overflow-hidden p-6"
+                          style={{ background: getCardGradient(automation.id) }}
+                        >
+                          <span className="text-[64px] text-white opacity-90">{automation.icon}</span>
+                          {badges.length > 0 && (
+                            <div className="absolute left-0 top-0 flex items-center gap-[6px] p-3">
+                              {badges.map((badge) => (
+                                <span
+                                  key={`${automation.id}-${badge}`}
+                                  className="rounded-[6px] bg-[rgba(0,0,0,0.6)] px-[10px] py-[5px] text-[11px] font-bold uppercase tracking-[0.08em] text-white"
+                                  style={{ backdropFilter: "blur(8px)" }}
+                                >
+                                  {badge}
+                                </span>
+                              ))}
+                            </div>
+                          )}
+                        </div>
+                        <div className="flex basis-[60%] flex-col p-5">
+                          <h3 className="text-[18px] font-semibold leading-[1.3] text-white line-clamp-2">
+                            {automation.name}
+                          </h3>
+                          <p className="mt-2 text-[14px] leading-[1.5] text-white/70 line-clamp-3">
+                            {automation.description}
+                          </p>
+                          <div className="mt-auto flex items-center justify-between border-t border-[rgba(255,255,255,0.1)] pt-4">
+                            <div className="flex items-center gap-[6px]">
+                              <span className="text-[14px]">⭐</span>
+                              <span className="text-[14px] font-semibold text-white">
+                                {automation.meta.rating.toFixed(1)}
+                              </span>
+                              <span className="text-[13px] text-white/50">
+                                ({teamVotes.toLocaleString()})
+                              </span>
+                            </div>
                             <span
-                              key={integration}
-                              className="rounded-full bg-white/5 px-3 py-1 text-xs font-medium text-white/70"
+                              className={cn(
+                                "rounded-[6px] px-[12px] py-[5px] text-[13px] font-semibold",
+                                priceIsFree
+                                  ? "bg-[rgba(34,197,94,0.15)] text-[#4ade80]"
+                                  : "bg-white/10 text-white",
+                              )}
                             >
-                              {integration}
+                              {priceLabel}
                             </span>
-                          ))}
+                          </div>
                         </div>
-                      )}
-                      {automation.tags.length > 0 && (
-                        <div className="mt-4 flex flex-wrap gap-2 text-xs text-white/40">
-                          {automation.tags.slice(0, 3).map((tag) => (
-                            <span key={tag} className="rounded-full border border-white/10 px-2 py-1">
-                              #{tag}
-                            </span>
-                          ))}
+                      <div className="pointer-events-none absolute bottom-5 left-1/2 flex -translate-x-1/2 gap-[10px] opacity-0 transition duration-300 group-hover:pointer-events-auto group-hover:opacity-100">
+                          <button
+                            type="button"
+                            className="rounded-[10px] border border-[rgba(255,255,255,0.2)] bg-[rgba(255,255,255,0.12)] px-5 py-[10px] text-[13px] font-semibold text-white"
+                            style={{ backdropFilter: "blur(8px)" }}
+                          >
+                            Preview
+                          </button>
+                          <button
+                            type="button"
+                            className="rounded-[10px] bg-[linear-gradient(135deg,#a78bfa,#ec4899)] px-5 py-[10px] text-[13px] font-semibold text-white"
+                          >
+                            Deploy
+                          </button>
                         </div>
-                      )}
-                    </article>
-                  ))}
+                      </article>
+                    );
+                  })}
             </div>
 
             {!isLoading && filteredAutomations.length === 0 && (
