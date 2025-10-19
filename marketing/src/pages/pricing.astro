@@ -1,6 +1,7 @@
 ---
 import BaseLayout from "../layouts/BaseLayout.astro";
-import PricingMatrix from "../components/PricingMatrix.jsx";
+import PricingExperience from "../components/PricingExperience.jsx";
+import "../styles/pricing.css";
 
 const breadcrumbSchema = {
   "@context": "https://schema.org",
@@ -10,24 +11,6 @@ const breadcrumbSchema = {
     { "@type": "ListItem", position: 2, name: "Pricing", item: "https://artifically.com/pricing" },
   ],
 };
-
-const faqs = [
-  {
-    question: "How does billing work?",
-    answer:
-      "Workspaces are billed monthly based on active seats and automation executions. Annual contracts unlock dedicated capacity planning support and a discount on seats.",
-  },
-  {
-    question: "Can I deploy in my own region?",
-    answer:
-      "Yes. Enterprise plans can run in isolated regions, including on-premise or VPC deployments with private networking and hardware security modules.",
-  },
-  {
-    question: "What support is included?",
-    answer:
-      "Growth plans receive 24-hour response times and a named customer success manager. Enterprise plans include 24/7 on-call coverage and quarterly architecture reviews.",
-  },
-];
 ---
 <BaseLayout
   title="Pricing — Artifically"
@@ -35,56 +18,5 @@ const faqs = [
   canonical="https://artifically.com/pricing"
   structuredData={[breadcrumbSchema]}
 >
-  <section class="marketing-section">
-    <div>
-      <h1 style="font-size: clamp(2.5rem, 5vw, 3.5rem); margin: 0;">Pricing to match your automation maturity</h1>
-      <p class="marketing-section__lede">
-        Every plan includes our hybrid-rendered marketing experience, observability dashboard, and secure deployment pipeline. Upgrade as adoption grows.
-      </p>
-    </div>
-  </section>
-
-  <section class="marketing-section">
-    <PricingMatrix client:idle />
-  </section>
-
-  <section class="marketing-section" aria-label="Plan comparison">
-    <div class="marketing-bento">
-      <article class="marketing-bento__card">
-        <h3>What’s included</h3>
-        <ul style="margin:0; padding-left:1.25rem; display:grid; gap:0.65rem;">
-          <li>Secure credential vault with per-environment secrets</li>
-          <li>Versioned playbooks and replay sandbox</li>
-          <li>SCIM, SSO, and fine-grained access control</li>
-          <li>Observability API and exports to your data warehouse</li>
-        </ul>
-      </article>
-      <article class="marketing-bento__card">
-        <h3>Enterprise add-ons</h3>
-        <ul style="margin:0; padding-left:1.25rem; display:grid; gap:0.65rem;">
-          <li>Dedicated tenant with geo-fenced data plane</li>
-          <li>Private network connectivity (AWS PrivateLink, Azure ExpressRoute)</li>
-          <li>Custom model hosting with BYO foundation models</li>
-          <li>24/7 on-call with 30 minute SLA</li>
-        </ul>
-      </article>
-    </div>
-  </section>
-
-  <section class="marketing-section" aria-label="Pricing FAQ">
-    <div>
-      <h2>Frequently asked questions</h2>
-      <p class="marketing-section__lede">
-        Still evaluating? Share these notes with finance, security, and operations stakeholders to accelerate approvals.
-      </p>
-    </div>
-    <div style="display:grid; gap:1.25rem;">
-      {faqs.map((faq) => (
-        <article key={faq.question} style="border-radius: var(--marketing-radius); border: 1px solid var(--marketing-border); background: color-mix(in oklch, transparent 55%, var(--glass-gradient-primary)); padding: clamp(1.5rem, 2vw, 2rem);">
-          <h3 style="margin:0 0 0.5rem;">{faq.question}</h3>
-          <p style="margin:0; color: var(--marketing-muted);">{faq.answer}</p>
-        </article>
-      ))}
-    </div>
-  </section>
+  <PricingExperience client:idle />
 </BaseLayout>
