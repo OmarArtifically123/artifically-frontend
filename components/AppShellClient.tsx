@@ -15,6 +15,7 @@ import { usePathname, useRouter } from "next/navigation";
 
 import apiClient, { pick } from "@/api";
 import BackToTopButton from "@/components/BackToTopButton";
+import CommandPalette from "@/components/CommandPalette";
 import ExperienceLayer from "@/components/ExperienceLayer";
 import GlobalProgressBar from "@/components/GlobalProgressBar";
 import ReactQueryProvider from "@/components/providers/ReactQueryProvider";
@@ -314,6 +315,7 @@ export default function AppShellClient({ children }: AppShellClientProps) {
               <AuthModal onClose={closeAuth} onAuthenticated={onAuthenticated} initialMode={authMode} />
             </Suspense>
           ) : null}
+          <CommandPalette />
           <ToastHost />
           <BackToTopButton />
           <SpeedInsights />
