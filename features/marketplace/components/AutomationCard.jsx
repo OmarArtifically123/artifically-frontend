@@ -1,6 +1,14 @@
 "use client";
 
-import { memo, useCallback, useEffect, useMemo, useRef, useState } from "react";
+import {
+  memo,
+  useCallback,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+} from "react";
+import { createPortal } from "react-dom";
 import { useTheme } from "../../../context/ThemeContext";
 import useMicroInteractions from "../../../hooks/useMicroInteractions";
 import { space } from "../../../styles/spacing";
@@ -506,12 +514,15 @@ function AutomationCardComponent({
   const { dispatchInteraction } = useMicroInteractions();
   const palette = useIconPalette(item.icon);
   const [hovered, setHovered] = useState(false);
+  const [detailOpen, setDetailOpen] = useState(false);
+  const [tilt, setTilt] = useState({ x: 0, y: 0 });
   const [simulationStep, setSimulationStep] = useState(0);
   const [progress, setProgress] = useState(0);
   const [streamIndex, setStreamIndex] = useState(0);
   const dwellStartRef = useRef(null);
   const dwellTickRef = useRef(null);
   const lastDispatchRef = useRef(null);
+  const tiltFrameRef = useRef(null);
 
   const formatPrice = useMemo(
     () =>
@@ -933,8 +944,26 @@ function AutomationCardComponent({
   const activeLinksLabel = telemetry.activeConnections === 1 ? "link" : "links";
   const formattedPerMinute = formatNumber(telemetry.perMinute);
   const formattedSavings = formatCompactCurrency(roiCounter, cardCurrency);
+  const baseBorderColor = hovered
+    ? "rgba(139, 92, 246, 0.5)"
+    : darkMode
+    ? "rgba(148,163,184,0.22)"
+    : "rgba(148,163,184,0.32)";
+  const translateYValue = hovered ? -8 : computedMotion.translateY;
+  const scaleValue = hovered ? 1.02 : computedMotion.scale;
+  const transformValue = [
+    "perspective(1200px)",
+    `rotateX(${tilt.x.toFixed(2)}deg)`,
+    `rotateY(${tilt.y.toFixed(2)}deg)`,
+    `translateY(${translateYValue.toFixed(2)}px)`,
+    `scale(${scaleValue.toFixed(3)})`,
+    "scale(var(--live-pulse, 1))",
+  ].join(" ");
 
   const computedShadow = useMemo(() => {
+    if (hovered) {
+      return "0 24px 60px rgba(139, 92, 246, 0.3)";
+    }
     const base = spotlighted
       ? "0 38px 80px rgba(99, 102, 241, 0.45)"
       : `0 25px 45px ${palette.shadow}`;
@@ -944,18 +973,18 @@ function AutomationCardComponent({
     const radius = Math.round(35 + attentionIntensity * 55);
     const opacity = Math.min(0.55, 0.2 + attentionIntensity * 0.45).toFixed(3);
     return `${base}, 0 0 ${radius}px rgba(99, 102, 241, ${opacity})`;
-  }, [palette.shadow, attentionIntensity, spotlighted]);
+  }, [hovered, palette.shadow, attentionIntensity, spotlighted]);
 
-  const computedTransform = useMemo(() => {
+  const computedMotion = useMemo(() => {
     if (spotlighted && !hovered) {
-      return "translateY(-4px) scale(1.015)";
+      return { translateY: -4, scale: 1.015 };
     }
     if (!hovered && attentionIntensity > 0.08) {
-      const lift = -(attentionIntensity * 6).toFixed(2);
-      const scale = (1 + attentionIntensity * 0.012).toFixed(3);
-      return `translateY(${lift}px) scale(${scale})`;
+      const lift = -(attentionIntensity * 6);
+      const scale = 1 + attentionIntensity * 0.012;
+      return { translateY: lift, scale };
     }
-    return undefined;
+    return { translateY: 0, scale: 1 };
   }, [spotlighted, attentionIntensity, hovered]);
 
   useEffect(() => {
@@ -964,6 +993,15 @@ function AutomationCardComponent({
         window.cancelAnimationFrame(dwellTickRef.current);
       }
       dwellTickRef.current = null;
+    };
+  }, []);
+
+  useEffect(() => {
+    return () => {
+      if (tiltFrameRef.current && typeof window !== "undefined" && window.cancelAnimationFrame) {
+        window.cancelAnimationFrame(tiltFrameRef.current);
+      }
+      tiltFrameRef.current = null;
     };
   }, []);
 
@@ -1001,7 +1039,16 @@ function AutomationCardComponent({
     }
   };
 
+  const resetTilt = useCallback(() => {
+    if (tiltFrameRef.current && typeof window !== "undefined" && window.cancelAnimationFrame) {
+      window.cancelAnimationFrame(tiltFrameRef.current);
+      tiltFrameRef.current = null;
+    }
+    setTilt({ x: 0, y: 0 });
+  }, []);
+
   const handlePointerEnter = () => {
+    resetTilt();
     setHovered(true);
     if (typeof window === "undefined" || !window.requestAnimationFrame) {
       return;
@@ -1019,10 +1066,56 @@ function AutomationCardComponent({
   const handlePointerLeave = () => {
     setHovered(false);
     stopDwellTracking(true);
+    resetTilt();
   };
+
+  const handlePointerMove = useCallback(
+    (event) => {
+      if (!hovered || !cardRef.current) {
+        return;
+      }
+      const rect = cardRef.current.getBoundingClientRect();
+      if (!rect.width || !rect.height) return;
+      const cardCenterX = rect.left + rect.width / 2;
+      const cardCenterY = rect.top + rect.height / 2;
+      const rawRotateX = ((event.clientY - cardCenterY) / rect.height) * 10;
+      const rawRotateY = ((event.clientX - cardCenterX) / rect.width) * 10;
+      const clampedX = Math.max(-10, Math.min(10, rawRotateX));
+      const clampedY = Math.max(-10, Math.min(10, rawRotateY));
+
+      if (typeof window !== "undefined" && window.requestAnimationFrame) {
+        if (tiltFrameRef.current && window.cancelAnimationFrame) {
+          window.cancelAnimationFrame(tiltFrameRef.current);
+        }
+        tiltFrameRef.current = window.requestAnimationFrame(() => {
+          setTilt({ x: clampedX, y: clampedY });
+        });
+      } else {
+        setTilt({ x: clampedX, y: clampedY });
+      }
+    },
+    [hovered],
+  );
+
+  const handleCardClick = useCallback((event) => {
+    if (event?.defaultPrevented) return;
+    setDetailOpen(true);
+  }, []);
+
+  const handleCardKeyDown = useCallback((event) => {
+    if (event.key === "Enter" || event.key === " ") {
+      event.preventDefault();
+      setDetailOpen(true);
+    }
+  }, []);
+
+  const handleCloseModal = useCallback(() => {
+    setDetailOpen(false);
+  }, []);
 
   const handleDemo = useCallback(
     (event) => {
+      event?.stopPropagation?.();
       dispatchInteraction("cta-secondary", { event });
       onDemo?.(item);
     },
@@ -1031,22 +1124,41 @@ function AutomationCardComponent({
 
   const handleBuy = useCallback(
     (event) => {
+      event?.stopPropagation?.();
       dispatchInteraction("cta-primary", { event, particles: true });
       onBuy?.(item);
     },
     [dispatchInteraction, item, onBuy],
   );
 
-  const handleVote = useCallback(
+const handleVote = useCallback(
     (event) => {
+      event?.stopPropagation?.();
       dispatchInteraction("cta-ghost", { event, haptic: "pulse" });
       onVote?.(item);
     },
     [dispatchInteraction, item, onVote],
   );
 
+  const handleModalDemo = useCallback(
+    (event) => {
+      dispatchInteraction("cta-secondary", { event });
+      onDemo?.(item);
+    },
+    [dispatchInteraction, item, onDemo],
+  );
+
+  const handleModalDeploy = useCallback(
+    (event) => {
+      dispatchInteraction("cta-primary", { event, particles: true });
+      onBuy?.(item);
+    },
+    [dispatchInteraction, item, onBuy],
+  );
+
   return (
-    <div
+    <>
+      <div
       className={`automation-card glass-panel${hovered ? " is-hovered" : ""}${
         intensity > 0.45 ? " is-priority" : ""
       }${predicted ? " is-psychic" : ""}`}
@@ -1062,21 +1174,28 @@ function AutomationCardComponent({
         gap: space("sm"),
         padding: space("md", 1.2667),
         borderRadius: "1.35rem",
-        border: `1px solid ${darkMode ? "rgba(148,163,184,0.22)" : "rgba(148,163,184,0.32)"}`,
+        border: "1px solid transparent",
+        borderColor: baseBorderColor,
         background: `linear-gradient(145deg, ${palette.secondary}, rgba(15,23,42,0.85))`,
         boxShadow: computedShadow,
         color: darkMode ? "#e2e8f0" : "#1f2937",
-        transform: computedTransform
-          ? `${computedTransform} scale(var(--live-pulse, 1))`
-          : `scale(var(--live-pulse, 1))`,
+        transform: transformValue,
+        transition:
+          "transform 200ms ease, box-shadow 300ms ease-out, border-color 300ms ease-out, filter 300ms ease-out",
         contain: "layout style paint",
         "--attention-level": attentionIntensity,
       }}
       ref={cardRef}
       onMouseEnter={handlePointerEnter}
       onMouseLeave={handlePointerLeave}
+      onPointerMove={handlePointerMove}
       onFocus={handlePointerEnter}
       onBlur={handlePointerLeave}
+      onClick={handleCardClick}
+      onKeyDown={handleCardKeyDown}
+      role="button"
+      aria-haspopup="dialog"
+      aria-expanded={detailOpen}
       tabIndex={0}
     >
       <div className="automation-card__pulse-ring" aria-hidden="true" />
@@ -1259,10 +1378,10 @@ function AutomationCardComponent({
 
       <div className="automation-card__actions">
         <Button size="sm" variant="secondary" magnetic glowOnHover={false} onClick={handleDemo}>
-          Try Demo
+          Preview Automation
         </Button>
         <Button size="sm" variant="primary" magnetic onClick={handleBuy}>
-          <span>Buy & Deploy</span>
+          <span>Deploy Automation</span>
         </Button>
       </div>
 
@@ -1285,6 +1404,375 @@ function AutomationCardComponent({
         </div>
       )}
     </div>
+      {detailOpen && (
+        <AutomationDetailModal
+          item={item}
+          onClose={handleCloseModal}
+          featureHighlights={featureHighlights}
+          simulationSteps={simulationSteps}
+          sampleDataset={sampleDataset}
+          metrics={metrics}
+          previewSummary={previewSummary}
+          priceLabel={formatPrice(item.priceMonthly, item.currency)}
+          onDeploy={handleModalDeploy}
+          onDemo={handleModalDemo}
+        />
+      )}
+    </>
+  );
+}
+
+function AutomationDetailModal({
+  item,
+  onClose,
+  featureHighlights,
+  simulationSteps,
+  sampleDataset,
+  metrics,
+  previewSummary,
+  priceLabel,
+  onDeploy,
+  onDemo,
+}) {
+  const [closing, setClosing] = useState(false);
+  const closeTimerRef = useRef(null);
+
+  const handleRequestClose = useCallback(() => {
+    if (closing) return;
+    setClosing(true);
+    if (typeof window !== "undefined") {
+      closeTimerRef.current = window.setTimeout(() => {
+        onClose();
+      }, 250);
+    } else {
+      onClose();
+    }
+  }, [closing, onClose]);
+
+  useEffect(() => {
+    return () => {
+      if (closeTimerRef.current && typeof window !== "undefined") {
+        window.clearTimeout(closeTimerRef.current);
+      }
+    };
+  }, []);
+
+  useEffect(() => {
+    if (typeof document === "undefined") return undefined;
+    const handleKeyDown = (event) => {
+      if (event.key === "Escape") {
+        handleRequestClose();
+      }
+    };
+    document.addEventListener("keydown", handleKeyDown);
+    return () => {
+      document.removeEventListener("keydown", handleKeyDown);
+    };
+  }, [handleRequestClose]);
+
+  useEffect(() => {
+    if (typeof document === "undefined") return undefined;
+    const { body } = document;
+    if (!body) return undefined;
+    const previousOverflow = body.style.overflow;
+    body.style.overflow = "hidden";
+    return () => {
+      body.style.overflow = previousOverflow;
+    };
+  }, []);
+
+  const overviewParagraphs = useMemo(() => {
+    const primary = item?.longDescription || item?.description || item?.summary;
+    const fallbackIntro = `${item.name} uses adaptive orchestration to keep your systems aligned without manual triage.`;
+    const datasetEntry = sampleDataset?.[0];
+    const detailSet = [
+      primary || fallbackIntro,
+      `Teams like ${metrics.company} reclaim roughly ${metrics.hoursSaved} hours every week while maintaining a ${metrics.satisfaction}% satisfaction score.`,
+      datasetEntry
+        ? `${datasetEntry.context} workflows move ${datasetEntry.payload} with ${datasetEntry.confidence} focused on ${datasetEntry.focus}.`
+        : metrics.statement,
+    ];
+    return detailSet.filter(Boolean);
+  }, [item, metrics, sampleDataset]);
+
+  const featureList = useMemo(() => {
+    if (Array.isArray(featureHighlights) && featureHighlights.length > 0) {
+      return featureHighlights;
+    }
+    return [
+      "Autonomous routing across every tool",
+      "Built-in human review checkpoints",
+      "Predictive insights for upcoming demand",
+      "Enterprise-grade compliance logging",
+    ];
+  }, [featureHighlights]);
+
+  const steps = useMemo(() => {
+    if (Array.isArray(simulationSteps) && simulationSteps.length > 0) {
+      return simulationSteps;
+    }
+    return [
+      {
+        id: "capture",
+        label: "Capture",
+        summary: "Ingest live data streams",
+        detail: "Connect your core systems in seconds",
+      },
+      {
+        id: "understand",
+        label: "Understand",
+        summary: "Classify and enrich every event",
+        detail: "AI models surface the context your team needs",
+      },
+      {
+        id: "automate",
+        label: "Automate",
+        summary: "Sync decisions across destinations",
+        detail: "Trigger updates, alerts, and playbooks automatically",
+      },
+    ];
+  }, [simulationSteps]);
+
+  const integrationLogos = useMemo(() => {
+    const entries = new Set();
+    if (Array.isArray(item?.integrations?.sources)) {
+      item.integrations.sources.forEach((value) => {
+        if (value) entries.add(titleCase(value));
+      });
+    }
+    if (Array.isArray(item?.integrations?.destinations)) {
+      item.integrations.destinations.forEach((value) => {
+        if (value) entries.add(titleCase(value));
+      });
+    }
+    previewSummary?.sources?.forEach((value) => {
+      if (value) entries.add(titleCase(value));
+    });
+    previewSummary?.destinations?.forEach((value) => {
+      if (value) entries.add(titleCase(value));
+    });
+    return Array.from(entries).slice(0, 9);
+  }, [item, previewSummary]);
+
+  const detailReviews = useMemo(
+    () => [
+      {
+        id: "sarah",
+        quote: "This automation saved us 15 hours per week. Setup was incredibly smooth.",
+        author: "— Sarah K., Operations Manager",
+      },
+      {
+        id: "diego",
+        quote: "Rollout took less than a day and our team visibility skyrocketed immediately.",
+        author: "— Diego M., RevOps Lead",
+      },
+      {
+        id: "lena",
+        quote: "The predictive alerts keep our stakeholders ahead of incidents every time.",
+        author: "— Lena P., Support Director",
+      },
+    ],
+    [],
+  );
+
+  const stats = useMemo(
+    () => [
+      {
+        label: "Deployments",
+        value: item?.stats?.deployments || "12.4K",
+      },
+      {
+        label: "Avg. Rating",
+        value: item?.rating ? `${item.rating} ⭐` : "4.8 ⭐",
+      },
+      {
+        label: "Setup Time",
+        value: item?.setupTime || "5 minutes",
+      },
+    ],
+    [item],
+  );
+
+  const billingNote = useMemo(() => {
+    if (item?.billingNote) return item.billingNote;
+    if (!item?.priceMonthly) return "No credit card required";
+    return "Billed annually";
+  }, [item]);
+
+  const heroSources = previewSummary?.sources || [];
+  const heroDestinations = previewSummary?.destinations || [];
+  const heroFocus = previewSummary?.focus || `${item.name} Intelligence`;
+
+  const priceDisplay = priceLabel ? `${priceLabel}/month` : "Free";
+
+  const handlePrimaryClick = useCallback(
+    (event) => {
+      onDeploy?.(event);
+    },
+    [onDeploy],
+  );
+
+  const handleSecondaryClick = useCallback(
+    (event) => {
+      onDemo?.(event);
+    },
+    [onDemo],
+  );
+
+  if (typeof document === "undefined") {
+    return null;
+  }
+
+  return createPortal(
+    <div className="automation-modal" data-state={closing ? "closing" : "open"}>
+      <div className="automation-modal__backdrop" onClick={handleRequestClose} />
+      <div
+        className="automation-modal__container"
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby={item?.id ? `automation-modal-title-${item.id}` : undefined}
+      >
+        <header className="automation-modal__header">
+          <h2
+            className="automation-modal__title"
+            id={item?.id ? `automation-modal-title-${item.id}` : undefined}
+          >
+            {item.name}
+          </h2>
+          <button
+            type="button"
+            className="automation-modal__close"
+            onClick={handleRequestClose}
+            aria-label="Close automation details"
+          >
+            <span aria-hidden="true">×</span>
+          </button>
+        </header>
+        <div className="automation-modal__body">
+          <div className="automation-modal__content">
+            <div className="automation-modal__main">
+              <div className="automation-modal__hero" aria-hidden="true">
+                <div className="automation-modal__hero-overlay" />
+                <div className="automation-modal__hero-inner">
+                  <div className="automation-modal__hero-cluster">
+                    {heroSources.map((source) => (
+                      <span key={`source-${source}`} className="automation-modal__hero-chip">
+                        {source}
+                      </span>
+                    ))}
+                  </div>
+                  <div className="automation-modal__hero-focus">{heroFocus}</div>
+                  <div className="automation-modal__hero-cluster">
+                    {heroDestinations.map((destination) => (
+                      <span key={`destination-${destination}`} className="automation-modal__hero-chip">
+                        {destination}
+                      </span>
+                    ))}
+                  </div>
+                </div>
+              </div>
+
+              <section className="automation-modal__section">
+                <h3 className="automation-modal__section-title">Overview</h3>
+                {overviewParagraphs.map((paragraph, index) => (
+                  <p key={`overview-${index}`}>{paragraph}</p>
+                ))}
+              </section>
+
+              <section className="automation-modal__section">
+                <h3 className="automation-modal__section-title">Key Features</h3>
+                <ul className="automation-modal__feature-list">
+                  {featureList.map((feature) => (
+                    <li key={feature} className="automation-modal__feature-item">
+                      <span className="automation-modal__feature-icon">
+                        <Icon name="check" size={22} strokeWidth={2.4} />
+                      </span>
+                      <span className="automation-modal__feature-text">{feature}</span>
+                    </li>
+                  ))}
+                </ul>
+              </section>
+
+              <section className="automation-modal__section">
+                <h3 className="automation-modal__section-title">How It Works</h3>
+                <ol className="automation-modal__steps">
+                  {steps.map((step, index) => (
+                    <li key={step.id || step.label} className="automation-modal__step">
+                      <span className="automation-modal__step-index">{index + 1}</span>
+                      <div className="automation-modal__step-copy">
+                        <span className="automation-modal__step-title">{step.label}</span>
+                        <span className="automation-modal__step-summary">{step.summary}</span>
+                        {step.detail && (
+                          <span className="automation-modal__step-detail">{step.detail}</span>
+                        )}
+                      </div>
+                    </li>
+                  ))}
+                </ol>
+              </section>
+            </div>
+
+            <aside className="automation-modal__sidebar">
+              <div className="automation-modal__price">{priceDisplay}</div>
+              <div className="automation-modal__billing-note">{billingNote}</div>
+              <button
+                type="button"
+                className="automation-modal__cta automation-modal__cta--primary"
+                onClick={handlePrimaryClick}
+              >
+                Deploy Automation
+              </button>
+              <button
+                type="button"
+                className="automation-modal__cta automation-modal__cta--secondary"
+                onClick={handleSecondaryClick}
+              >
+                Try Demo First
+              </button>
+
+              <div className="automation-modal__divider" />
+
+              <div className="automation-modal__stats">
+                <span className="automation-modal__sidebar-title">At a Glance</span>
+                <ul className="automation-modal__stats-list">
+                  {stats.map((stat) => (
+                    <li key={stat.label} className="automation-modal__stat-row">
+                      <span>{stat.label}</span>
+                      <span>{stat.value}</span>
+                    </li>
+                  ))}
+                </ul>
+              </div>
+
+              <div className="automation-modal__integrations">
+                <span className="automation-modal__sidebar-title">Integrations</span>
+                <div className="automation-modal__integration-grid">
+                  {integrationLogos.map((entry) => (
+                    <span key={entry} className="automation-modal__integration-chip">
+                      {entry}
+                    </span>
+                  ))}
+                </div>
+              </div>
+
+              <div className="automation-modal__reviews">
+                <span className="automation-modal__sidebar-title">Recent Reviews</span>
+                <ul className="automation-modal__review-list">
+                  {detailReviews.map((review) => (
+                    <li key={review.id} className="automation-modal__review">
+                      <div className="automation-modal__review-stars">⭐⭐⭐⭐⭐</div>
+                      <p>{review.quote}</p>
+                      <span className="automation-modal__review-author">{review.author}</span>
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            </aside>
+          </div>
+        </div>
+      </div>
+    </div>,
+    document.body,
   );
 }
 

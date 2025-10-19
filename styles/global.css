@@ -6326,6 +6326,7 @@ body.solutions-mega-open {
   background: linear-gradient(135deg, rgba(15, 23, 42, 0.75), rgba(30, 41, 59, 0.6));
   min-height: 160px;
   isolation: isolate;
+  transition: filter 300ms ease-out, transform 300ms ease-out;
 }
 
 .automation-card__live-preview canvas {
@@ -6744,10 +6745,32 @@ body.solutions-mega-open {
 
 .automation-card__actions .btn {
   border-radius: 0.85rem;
+  opacity: 0;
+  transform: translateY(10px);
+  transition: opacity 300ms ease-out, transform 300ms ease-out;
+}
+
+.automation-card__actions .btn:nth-child(1) {
+  transition-delay: 0ms;
+}
+
+.automation-card__actions .btn:nth-child(2) {
+  transition-delay: 50ms;
+}
+
+.automation-card.is-hovered .automation-card__actions .btn,
+.automation-card:hover .automation-card__actions .btn {
+  opacity: 1;
+  transform: translateY(0);
 }
 
 .automation-card.is-hovered .automation-card__simulation {
   pointer-events: auto;
+}
+
+.automation-card.is-hovered .automation-card__live-preview,
+.automation-card:hover .automation-card__live-preview {
+  filter: brightness(1.1);
 }
 
 .automation-card:hover .automation-card__pulse-ring {
