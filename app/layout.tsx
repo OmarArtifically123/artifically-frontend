@@ -71,20 +71,9 @@ export default function RootLayout({
         <link rel="preconnect" href="https://api.artifically.com" crossOrigin="anonymous" />
         <style data-critical="true" dangerouslySetInnerHTML={{ __html: criticalStyles }} />
         {/* eslint-disable-next-line @next/next/no-css-tags */}
-        <link
-          rel="preload"
-          href="/styles.css"
-          as="style"
-          onLoad={(event) => {
-            const link = event.currentTarget;
-            link.rel = "stylesheet";
-            link.onload = null;
-          }}
-        />
-        <noscript>
-          {/* eslint-disable-next-line @next/next/no-css-tags */}
-          <link rel="stylesheet" href="/styles.css" />
-        </noscript>
+        <link rel="preload" href="/styles.css" as="style" />
+        {/* eslint-disable-next-line @next/next/no-css-tags */}
+        <link rel="stylesheet" href="/styles.css" />
         <link
           rel="preload"
           href="/images/hero-preview.avif"
