@@ -122,6 +122,17 @@ const buildResult = (list, page, limit, totalHint) => {
   return pagination;
 };
 
+/**
+ * @typedef {Object} FetchAutomationsOptions
+ * @property {number} [page]
+ * @property {number} [limit]
+ * @property {AbortSignal} [signal]
+ */
+
+/**
+ * @param {FetchAutomationsOptions} [options]
+ */
+
 export async function fetchAutomations({ page = 1, limit = DEFAULT_PAGE_SIZE, signal } = {}) {
   try {
     const res = await api.get("/marketplace", {
