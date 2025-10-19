@@ -4,6 +4,7 @@ import { ThemeProvider } from "@/context/ThemeContext";
 import inter from "@/lib/fonts/inter";
 import { getCriticalStyles } from "@/lib/styles/critical";
 import { getThemeBootstrapScript } from "@/lib/themeScript";
+import "./globals.css";
 
 export const metadata: Metadata = {
   title: "Artifically - Enterprise AI Automation Platform",
@@ -70,10 +71,6 @@ export default function RootLayout({
         />
         <link rel="preconnect" href="https://api.artifically.com" crossOrigin="anonymous" />
         <style data-critical="true" dangerouslySetInnerHTML={{ __html: criticalStyles }} />
-        {/* eslint-disable-next-line @next/next/no-css-tags */}
-        <link rel="preload" href="/styles.css" as="style" />
-        {/* eslint-disable-next-line @next/next/no-css-tags */}
-        <link rel="stylesheet" href="/styles.css" />
         <link
           rel="preload"
           href="/images/hero-preview.avif"
