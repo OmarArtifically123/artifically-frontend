@@ -92,7 +92,7 @@ export default function ProblemSolutionSection() {
 
     const bounds = sliderRef.current.getBoundingClientRect();
     const offset = clamp(clientX - bounds.left, 0, bounds.width);
-    const ratio = clamp(offset / bounds.width, 0.2, 0.8);
+    const ratio = clamp(offset / bounds.width, 0.02, 0.98);
     setPosition(Number(ratio.toFixed(3)));
   };
 
@@ -114,7 +114,7 @@ export default function ProblemSolutionSection() {
     if (event.key === "ArrowLeft" || event.key === "ArrowRight") {
       event.preventDefault();
       const delta = event.key === "ArrowLeft" ? -0.05 : 0.05;
-      setPosition((previous) => clamp(Number((previous + delta).toFixed(3)), 0.2, 0.8));
+      setPosition((previous) => clamp(Number((previous + delta).toFixed(3)), 0.02, 0.98));
     }
   };
 

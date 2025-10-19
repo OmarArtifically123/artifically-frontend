@@ -876,23 +876,56 @@
   border-radius: 18px;
   background: color-mix(in oklch, var(--glass-1) 80%, transparent);
   border: 1px solid color-mix(in oklch, white 12%, transparent);
+  overflow: hidden;
+}
+
+.product-preview__static-layer {
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  overflow: hidden;
+  opacity: 0;
+  visibility: hidden;
+  transition: opacity 0.4s ease, visibility 0.4s ease;
+  pointer-events: none;
+}
+
+.product-preview__static-layer[data-visible="true"] {
+  opacity: 1;
+  visibility: visible;
+}
+
+.product-preview__interactive {
+  position: relative;
   display: grid;
   grid-template-rows: auto 1fr;
   padding: 1.1rem;
   gap: 1rem;
+  height: 100%;
+  width: 100%;
+  border-radius: inherit;
+  opacity: 0;
+  transform: translateY(8px);
+  transition: opacity 0.4s ease, transform 0.4s ease;
+  pointer-events: none;
 }
 
-.product-preview__surface--image {
-  display: block;
-  padding: 0;
-  overflow: hidden;
+.product-preview__surface[data-enhanced="true"] .product-preview__interactive {
+  opacity: 1;
+  transform: translateY(0);
+  pointer-events: auto;
+}
+
+.product-preview__surface[data-enhanced="true"] .product-preview__static-layer {
+  opacity: 0;
+  visibility: hidden;
 }
 
 .product-preview__image-shell {
   display: block;
   width: 100%;
   height: 100%;
-  border-radius: 16px;
+  border-radius: inherit;
   overflow: hidden;
 }
 
@@ -1250,14 +1283,12 @@
 
 .comparison-divider {
   width: 60px;
-  background: rgba(0, 0, 0, 0.4);
+  background: transparent;
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
   gap: 16px;
-  box-shadow: 0 0 20px rgba(139, 92, 246, 0.4);
-  animation: comparison-divider-pulse 2s infinite;
 }
 
 .comparison-divider__arrow {
@@ -1270,7 +1301,7 @@
   height: 120px;
   border-radius: 999px;
   border: 1px solid rgba(255, 255, 255, 0.2);
-  background: rgba(255, 255, 255, 0.08);
+  background: rgba(15, 23, 42, 0.75);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -1285,27 +1316,13 @@
 }
 
 .comparison-handle:hover {
-  background: rgba(255, 255, 255, 0.14);
+  background: rgba(15, 23, 42, 0.9);
   transform: translateY(-4px);
 }
 
 .comparison-divider.is-dragging,
 .comparison-divider.is-dragging .comparison-handle {
   cursor: grabbing;
-}
-
-@keyframes comparison-divider-pulse {
-  0% {
-    box-shadow: 0 0 20px rgba(139, 92, 246, 0.25);
-  }
-
-  50% {
-    box-shadow: 0 0 32px rgba(139, 92, 246, 0.45);
-  }
-
-  100% {
-    box-shadow: 0 0 20px rgba(139, 92, 246, 0.25);
-  }
 }
 
 @media (max-width: 900px) {

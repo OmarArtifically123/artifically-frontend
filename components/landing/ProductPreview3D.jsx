@@ -41,7 +41,7 @@ export default function ProductPreview3D({ label = "Automation preview", theme =
   const [prefersLowPowerMode, setPrefersLowPowerMode] = useState(() => prefersLowPower());
   const isDocumentVisible = useDocumentVisibility();
   const descriptionId = useId();
-  const [isEnhanced, setIsEnhanced] = useState(() => typeof window === "undefined");
+  const [isEnhanced, setIsEnhanced] = useState(false);
 
   const allowInteractivity = useMemo(
     () => isEnhanced && !prefersReducedMotion && !prefersLowPowerMode,
@@ -52,7 +52,7 @@ export default function ProductPreview3D({ label = "Automation preview", theme =
     ? "Interactive 3D preview of the automation workspace that responds to pointer movement."
     : "Static preview of the automation workspace highlighting its layout.";
 
-    useEffect(() => {
+  useEffect(() => {
     if (typeof window === "undefined") {
       return undefined;
     }
@@ -134,7 +134,7 @@ export default function ProductPreview3D({ label = "Automation preview", theme =
       observer.unobserve(element);
       observer.disconnect();
     };
-  }, []);
+  }, [isEnhanced]);
 
   useEffect(() => {
     if (!isEnhanced) {
@@ -180,7 +180,7 @@ export default function ProductPreview3D({ label = "Automation preview", theme =
         cancelAnimationFrame(rafRef.current);
       }
     };
-  }, [allowInteractivity, isInteracting, shouldAnimate]);
+  }, [allowInteractivity, isEnhanced, isInteracting, shouldAnimate]);
 
   useEffect(() => {
     if (!isEnhanced) {
@@ -223,21 +223,26 @@ export default function ProductPreview3D({ label = "Automation preview", theme =
     };
   }, [allowInteractivity, isEnhanced]);
 
-  if (!isEnhanced) {
-    const describedBy = `${descriptionId}-fallback`;
-    return (
-      <div ref={containerRef} className={`product-preview product-preview--${theme}`}>
-        <div className="product-preview__glow" aria-hidden="true" />
-        <div
-          className="product-preview__frame"
-          role="img"
-          aria-label={label}
-          aria-describedby={describedBy}
-        >
-          <p id={describedBy} className="sr-only">
-            Static preview of the automation workspace while enhanced interactions finish loading.
-          </p>
-          <div className="product-preview__surface product-preview__surface--image">
+  return (
+    <div ref={containerRef} className={`product-preview product-preview--${theme}`}>
+      <p id={descriptionId} className="sr-only">
+        {previewDescription}
+      </p>
+      <div className="product-preview__glow" aria-hidden="true" />
+      <div
+        className="product-preview__frame"
+        ref={frameRef}
+        role="img"
+        aria-label={label}
+        aria-describedby={descriptionId}
+        data-interactive={allowInteractivity ? "true" : undefined}
+      >
+        <div className="product-preview__surface" data-enhanced={isEnhanced ? "true" : undefined}>
+          <div
+            className="product-preview__static-layer"
+            data-visible={!isEnhanced ? "true" : undefined}
+            aria-hidden={isEnhanced}
+          >
             <picture className="product-preview__image-shell">
               {HERO_PREVIEW_SOURCES.map((source) => (
                 <source key={source.type} {...source} />
@@ -253,37 +258,20 @@ export default function ProductPreview3D({ label = "Automation preview", theme =
               />
             </picture>
           </div>
-        </div>
-      </div>
-    );
-  }
-
-  return (
-    <div ref={containerRef} className={`product-preview product-preview--${theme}`}>
-      <p id={descriptionId} className="sr-only">
-        {previewDescription}
-      </p>
-      <div className="product-preview__glow" aria-hidden="true" />
-      <div
-        className="product-preview__frame"
-        ref={frameRef}
-        role="img"
-        aria-label={label}
-        aria-describedby={descriptionId}
-      >
-        <div className="product-preview__surface">
-          <header className="product-preview__toolbar">
-            <span />
-            <span />
-            <span />
-          </header>
-          <div className="product-preview__grid">
-            {Array.from({ length: 6 }).map((_, index) => (
-              <div key={index} className="product-preview__node" data-index={index}>
-                <div />
-                <span />
-              </div>
-            ))}
+        <div className="product-preview__interactive" aria-hidden={!isEnhanced}>
+            <header className="product-preview__toolbar">
+              <span />
+              <span />
+              <span />
+            </header>
+            <div className="product-preview__grid">
+              {Array.from({ length: 6 }).map((_, index) => (
+                <div key={index} className="product-preview__node" data-index={index}>
+                  <div />
+                  <span />
+                </div>
+              ))}
+            </div>
           </div>
         </div>
       </div>
