@@ -95,14 +95,32 @@ export default function ProblemSolutionSection() {
     setPosition(Number(ratio.toFixed(3)));
   };
 
-  const handlePointerDown = (event) => {
+  const beginDrag = (clientX) => {
     if (isMobile) {
       return;
     }
 
-    event.preventDefault();
     setIsDragging(true);
-    updatePosition(event.clientX);
+    updatePosition(clientX);
+  };
+
+  const handlePointerDown = (event) => {
+    event.preventDefault();
+    event.stopPropagation();
+    beginDrag(event.clientX);
+  };
+
+  const handleTrackPointerDown = (event) => {
+    if (isMobile) {
+      return;
+    }
+
+    if (event.pointerType !== "touch" && event.button !== 0) {
+      return;
+    }
+
+    event.preventDefault();
+    beginDrag(event.clientX);
   };
 
   const handleKeyDown = (event) => {
@@ -133,7 +151,7 @@ export default function ProblemSolutionSection() {
             impact now, not next quarter.
           </p>
         </header>
-        <div className="comparison-grid" ref={sliderRef}>
+        <div className="comparison-grid" ref={sliderRef} onPointerDown={handleTrackPointerDown}>
           <article
             className="comparison-panel comparison-panel--old"
             style={leftClip}
