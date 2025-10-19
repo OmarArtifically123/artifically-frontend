@@ -43,6 +43,8 @@ export default function Header({ user, onSignIn, onSignUp, onSignOut }) {
   const [resourcesMenuState, setResourcesMenuState] = useState("closed");
   const [automationsMenuState, setAutomationsMenuState] = useState("closed");
   const [solutionsMenuState, setSolutionsMenuState] = useState("closed");
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  const [mobileAccordionState, setMobileAccordionState] = useState({});
 
   const headerVariants = useMemo(() => {
     const hidden = { opacity: 0 };
@@ -468,7 +470,26 @@ export default function Header({ user, onSignIn, onSignUp, onSignOut }) {
     setResourcesMenuState("closed");
     setAutomationsMenuState("closed");
     setSolutionsMenuState("closed");
+    setIsMobileMenuOpen(false);
+    setMobileAccordionState({});
   }, [pathname]);
+
+  useEffect(() => {
+    if (typeof document === "undefined") {
+      return undefined;
+    }
+
+    if (isMobileMenuOpen) {
+      const previousOverflow = document.body.style.overflow;
+      document.body.style.overflow = "hidden";
+      return () => {
+        document.body.style.overflow = previousOverflow;
+      };
+    }
+
+    document.body.style.removeProperty("overflow");
+    return undefined;
+  }, [isMobileMenuOpen]);
 
   useEffect(() => {
     syncHeaderOffset();
@@ -758,14 +779,38 @@ export default function Header({ user, onSignIn, onSignUp, onSignOut }) {
     [navigate],
   );
 
+  const handleMobileMenuToggle = useCallback(() => {
+    setIsMobileMenuOpen((current) => !current);
+  }, []);
+
+  const closeMobileMenu = useCallback(() => {
+    setIsMobileMenuOpen(false);
+  }, []);
+
+  const handleMobileLinkNavigation = useCallback(
+    (event, path, options) => {
+      closeMobileMenu();
+      handleLinkNavigation(event, path, options);
+    },
+    [closeMobileMenu, handleLinkNavigation],
+  );
+
+  const toggleMobileAccordion = useCallback((label) => {
+    setMobileAccordionState((state) => ({
+      ...state,
+      [label]: !state[label],
+    }));
+  }, []);
+
   return (
-    <motion.header
-      className={`site-header ${scrolled ? "scrolled" : ""}`}
-      data-ready={headerReady ? "true" : "false"}
-      initial="hidden"
-      animate={headerReady ? "visible" : "hidden"}
-      variants={headerVariants}
-    >
+    <>
+      <motion.header
+        className={`site-header ${scrolled ? "scrolled" : ""}`}
+        data-ready={headerReady ? "true" : "false"}
+        initial="hidden"
+        animate={headerReady ? "visible" : "hidden"}
+        variants={headerVariants}
+      >
       <div
         className="header-inner"
         style={{
@@ -1034,6 +1079,46 @@ export default function Header({ user, onSignIn, onSignUp, onSignOut }) {
           </StaggeredContainer>
         </nav>
 
+        <div className="header-mobile-actions">
+          <button
+            type="button"
+            className={`mobile-menu-toggle${isMobileMenuOpen ? " mobile-menu-toggle--open" : ""}`}
+            aria-expanded={isMobileMenuOpen ? "true" : "false"}
+            aria-controls="site-mobile-menu"
+            aria-label={isMobileMenuOpen ? "Close navigation menu" : "Open navigation menu"}
+            onClick={handleMobileMenuToggle}
+          >
+            <span className="mobile-menu-toggle__line" />
+            <span className="mobile-menu-toggle__line" />
+            <span className="mobile-menu-toggle__line" />
+          </button>
+          {user ? (
+            <button
+              type="button"
+              className="header-mobile-actions__button"
+              onClick={(event) => {
+                dispatchInteraction("cta-secondary", { event });
+                closeMobileMenu();
+                navigate("/dashboard");
+              }}
+            >
+              Dashboard
+            </button>
+          ) : (
+            <button
+              type="button"
+              className="header-mobile-actions__button"
+              onClick={(event) => {
+                dispatchInteraction("cta-secondary", { event });
+                closeMobileMenu();
+                onSignIn?.(event);
+              }}
+            >
+              Sign in
+            </button>
+          )}
+        </div>
+
         <div
           className="header-actions"
           style={{
@@ -1139,5 +1224,126 @@ export default function Header({ user, onSignIn, onSignUp, onSignOut }) {
         </div>
       </div>
     </motion.header>
+      <div
+        id="site-mobile-menu"
+        className={`mobile-menu${isMobileMenuOpen ? " mobile-menu--open" : ""}`}
+        role={isMobileMenuOpen ? "dialog" : undefined}
+        aria-modal={isMobileMenuOpen ? "true" : undefined}
+        aria-hidden={isMobileMenuOpen ? "false" : "true"}
+        aria-labelledby="site-mobile-menu-heading"
+      >
+        <div className="mobile-menu__content">
+          <h2 id="site-mobile-menu-heading" className="mobile-menu__heading">
+            Navigation
+          </h2>
+          <div className="mobile-menu__items">
+            {navItems.map((item) => {
+              if (item.type === "link") {
+                const isActive = pathname === item.path;
+                return (
+                  <Link
+                    key={item.path}
+                    href={item.path}
+                    className={`mobile-menu__link${isActive ? " mobile-menu__link--active" : ""}`}
+                    data-prefetch-route={item.path}
+                    onClick={(event) => handleMobileLinkNavigation(event, item.path)}
+                  >
+                    {item.label}
+                  </Link>
+                );
+              }
+
+              if (item.type === "mega" || item.type === "resources") {
+                const label = item.label;
+                const isOpen = Boolean(mobileAccordionState[label]);
+                const sections =
+                  item.type === "resources"
+                    ? item.columns.map((column) => ({
+                        heading: column.heading,
+                        links: column.links,
+                      }))
+                    : item.sections;
+
+                return (
+                  <div
+                    key={label}
+                    className={`mobile-menu__accordion${isOpen ? " mobile-menu__accordion--open" : ""}`}
+                  >
+                    <button
+                      type="button"
+                      className="mobile-menu__accordion-trigger"
+                      onClick={() => toggleMobileAccordion(label)}
+                      aria-expanded={isOpen ? "true" : "false"}
+                    >
+                      <span>{label}</span>
+                      <Icon
+                        name="chevronDown"
+                        size={18}
+                        aria-hidden="true"
+                        className="mobile-menu__accordion-chevron"
+                      />
+                    </button>
+                    <div className="mobile-menu__panel" aria-hidden={isOpen ? "false" : "true"}>
+                      <div className="mobile-menu__panel-inner">
+                        {sections.map((section) => (
+                          <div className="mobile-menu__section" key={`${label}-${section.heading}`}>
+                            {section.heading ? (
+                              <p className="mobile-menu__section-heading">{section.heading}</p>
+                            ) : null}
+                            <div className="mobile-menu__section-links">
+                              {section.links.map((link) => (
+                                <Link
+                                  key={link.path}
+                                  href={link.path}
+                                  className="mobile-menu__nested-link"
+                                  data-prefetch-route={link.path}
+                                  onClick={(event) => handleMobileLinkNavigation(event, link.path)}
+                                >
+                                  <span className="mobile-menu__nested-link-label">{link.label}</span>
+                                  {link.description ? (
+                                    <span className="mobile-menu__nested-link-description">
+                                      {link.description}
+                                    </span>
+                                  ) : null}
+                                </Link>
+                              ))}
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  </div>
+                );
+              }
+
+              return null;
+            })}
+          </div>
+          <div className="mobile-menu__footer">
+            <button
+              type="button"
+              className="mobile-menu__cta-button"
+              onClick={(event) => {
+                dispatchInteraction("cta-primary", { event });
+                closeMobileMenu();
+                onSignUp?.(event);
+              }}
+            >
+              Start Free Trial
+            </button>
+            <button
+              type="button"
+              className="mobile-menu__secondary-link"
+              onClick={(event) => {
+                closeMobileMenu();
+                handleLinkNavigation(event, "/contact");
+              }}
+            >
+              Contact Sales
+            </button>
+          </div>
+        </div>
+      </div>
+    </>
   );
 }
