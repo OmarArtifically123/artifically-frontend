@@ -869,80 +869,104 @@
 
 .hero-scroll-indicator {
   position: absolute;
-  bottom: clamp(1.5rem, 3vw, 3rem);
+  bottom: 40px;
   left: 50%;
   transform: translateX(-50%);
-  display: inline-grid;
-  gap: 0.55rem;
+  display: flex;
+  flex-direction: column;
   align-items: center;
-  justify-items: center;
-  padding: 0.75rem;
-  background: color-mix(in oklch, var(--glass-2) 80%, transparent);
-  border-radius: 999px;
-  border: 1px solid color-mix(in oklch, white 12%, transparent);
+  min-width: 32px;
+  background: none;
+  border: none;
+  padding: 0;
   cursor: pointer;
-  color: color-mix(in oklch, white 82%, var(--gray-200));
-  transition: transform 0.2s ease, border-color 0.2s ease;
-  box-shadow: 0 16px 40px color-mix(in oklch, var(--brand-depth) 50%, transparent);
+  z-index: 100;
+  opacity: 1;
+  transition: opacity 0.4s ease;
+  color: inherit;
+  touch-action: manipulation;
 }
 
-.hero-scroll-indicator:hover,
+.hero-scroll-indicator--hidden {
+  opacity: 0;
+  pointer-events: none;
+}
+
 .hero-scroll-indicator:focus-visible {
-  transform: translate(-50%, -4px);
-  border-color: color-mix(in oklch, var(--brand-glow) 35%, transparent);
+  outline: 2px solid rgba(255, 255, 255, 0.6);
+  outline-offset: 8px;
 }
 
-.hero-scroll-indicator:focus-visible {
-  outline: 3px solid color-mix(in oklch, white 85%, var(--brand-glow) 15%);
-  outline-offset: 3px;
+.hero-scroll-indicator__mouse {
+  width: 32px;
+  height: 48px;
+  border: 2px solid rgba(255, 255, 255, 0.4);
+  border-radius: 16px;
+  position: relative;
+  display: block;
 }
 
-.hero-scroll-indicator__track {
-  width: 18px;
-  height: 32px;
-  border-radius: 999px;
-  border: 1px solid color-mix(in oklch, white 20%, transparent);
-  display: inline-flex;
-  align-items: flex-start;
-  justify-content: center;
-  padding: 4px;
-  overflow: hidden;
+.hero-scroll-indicator__wheel {
+  position: absolute;
+  top: 10px;
+  left: 50%;
+  width: 8px;
+  height: 12px;
+  border-radius: 4px;
+  background: rgba(255, 255, 255, 0.6);
+  transform: translateX(-50%);
+  animation: hero-scroll-wheel 1.5s ease-in infinite;
 }
 
-.hero-scroll-indicator__dot {
-  width: 6px;
-  height: 6px;
-  border-radius: 999px;
-  background: white;
-  animation: hero-scroll 1.6s ease infinite;
-}
-
-.hero-scroll-indicator[data-reduced-motion="true"] .hero-scroll-indicator__dot {
+.hero-scroll-indicator[data-reduced-motion="true"] .hero-scroll-indicator__wheel {
   animation: none;
 }
 
-.hero-scroll-indicator[data-reduced-motion="true"] {
-  transition: none;
-}
-
 .hero-scroll-indicator__label {
-  font-size: 0.75rem;
-  letter-spacing: 0.18em;
-  text-transform: uppercase;
+  margin-top: 12px;
+  font-size: 12px;
+  line-height: 1.4;
+  color: rgba(255, 255, 255, 0.5);
+  animation: hero-scroll-label 1.5s ease-in infinite;
+  white-space: nowrap;
 }
 
-@keyframes hero-scroll {
+.hero-scroll-indicator[data-reduced-motion="true"] .hero-scroll-indicator__label {
+  animation: none;
+}
+
+@keyframes hero-scroll-wheel {
   0% {
-    transform: translateY(0);
+    transform: translate(-50%, 0);
     opacity: 1;
   }
-  60% {
-    transform: translateY(12px);
+
+  50% {
+    transform: translate(-50%, 16px);
+    opacity: 0.3;
+  }
+
+  100% {
+    transform: translate(-50%, 16px);
     opacity: 0;
   }
+}
+
+@keyframes hero-scroll-label {
+  0% {
+    opacity: 0.45;
+  }
+
+  40% {
+    opacity: 0.85;
+  }
+
+  80% {
+    opacity: 0.35;
+  }
+
   100% {
-    transform: translateY(0);
-    opacity: 0;
+    opacity: 0.3;
   }
 }
 
@@ -951,7 +975,8 @@
     transition: none;
   }
 
-  .hero-scroll-indicator__dot {
+  .hero-scroll-indicator__wheel,
+  .hero-scroll-indicator__label {
     animation: none;
   }
 }

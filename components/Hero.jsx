@@ -15,6 +15,7 @@ import { AnimatePresence, motion, useReducedMotion } from "framer-motion";
 import MagneticButton from "./animation/MagneticButton.jsx";
 import useMicroInteractions from "../hooks/useMicroInteractions.js";
 import { BlurImage } from "./media/OptimizedImage.js";
+import ScrollIndicator from "./landing/ScrollIndicator.jsx";
 import { useTheme } from "../context/ThemeContext.jsx";
 import Button from "./ui/Button.js";
 import Input from "./ui/Input.jsx";
@@ -1477,23 +1478,6 @@ function HeroFallbackIllustration({ darkMode }) {
           </span>
         </div>
       </div>
-    </div>
-  );
-}
-
-function ScrollIndicator() {
-  const prefersReducedMotion = useReducedMotion();
-
-  return (
-    <div
-      className="hero-scroll-indicator hero__scroll"
-      aria-hidden="true"
-      data-reduced-motion={prefersReducedMotion ? "true" : undefined}
-    >
-      <span className="hero-scroll-indicator__track">
-        <span className="hero-scroll-indicator__dot" />
-      </span>
-      <span className="hero-scroll-indicator__label">Scroll</span>
     </div>
   );
 }
