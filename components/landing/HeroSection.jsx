@@ -1,7 +1,8 @@
 "use client";
 
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import {
+  AnimatePresence,
   animate,
   motion,
   useMotionValue,
@@ -12,15 +13,8 @@ import useDocumentVisibility from "../../hooks/useDocumentVisibility";
 import useInViewState from "../../hooks/useInViewState";
 import motionCatalog from "../../design/motion/catalog";
 import HeroBackground from "./HeroBackground";
-import ProductPreview3D from "./ProductPreview3D";
 import ScrollIndicator from "./ScrollIndicator";
 import HeroRoiCalculator from "./HeroRoiCalculator";
-import {
-  HERO_PREVIEW_DIMENSIONS,
-  HERO_PREVIEW_IMAGE,
-  HERO_PREVIEW_SIZES,
-  HERO_PREVIEW_SOURCES,
-} from "./heroPreviewAssets";
 import { Icon } from "../icons";
 
 const heroStats = [
@@ -33,11 +27,63 @@ const defaultLogos = [
   "Northwind", "Aurora", "Nimbus", "Atlas", "Velocity", "Zenith", "Skyline", "Lumen",
 ];
 
+const headlineWords = ["Deploy", "Enterprise", "AI", "Automations", "in", "Minutes"];
+
+const previewTiles = [
+  {
+    icon: "database",
+    label: "Unified Data Lake",
+    description: "Stream customer and ops data into one warehouse with automated schema mapping.",
+  },
+  {
+    icon: "barChart",
+    label: "Executive Dashboards",
+    description: "Broadcast KPI shifts to every region with adaptive alerting workflows.",
+  },
+  {
+    icon: "mail",
+    label: "Smart Outreach",
+    description: "Trigger tailored nurture campaigns the second intent signals spike.",
+  },
+  {
+    icon: "cog",
+    label: "Ops Orchestration",
+    description: "Automate hand-offs between systems and teams with zero manual routing.",
+  },
+  {
+    icon: "users",
+    label: "Agent Assist",
+    description: "Serve frontline teams AI copilots that surface next-best actions instantly.",
+  },
+  {
+    icon: "workflow",
+    label: "Workflow Builder",
+    description: "Drag-and-drop approvals, escalations, and QA into reusable playbooks.",
+  },
+  {
+    icon: "code",
+    label: "API Automations",
+    description: "Deploy serverless functions that connect every bespoke tool in minutes.",
+  },
+  {
+    icon: "bell",
+    label: "Incident Alerts",
+    description: "Route critical incidents to the right owner with AI-prioritized severity.",
+  },
+  {
+    icon: "lock",
+    label: "Governance Guardrails",
+    description: "Enforce SOC2-ready policies with full audit trails and role-based control.",
+  },
+];
+
 export default function HeroSection({ onPrimary, onSecondary, demoDialogId, demoOpen, onReady }) {
   const gradientId = useMemo(() => `heroGradient-${Math.random().toString(36).slice(2)}`, []);
   const [primaryLabel, setPrimaryLabel] = useState("Start Free Trial");
   const [secondaryLabel, setSecondaryLabel] = useState("Watch Demo");
   const [ctaContext, setCtaContext] = useState("");
+  const [activeTile, setActiveTile] = useState(null);
+  const tooltipTimeoutRef = useRef(null);
   const [initialHeroInView] = useState(() => {
     if (typeof window === "undefined") {
       return true;
@@ -98,43 +144,76 @@ export default function HeroSection({ onPrimary, onSecondary, demoDialogId, demo
       onReady();
     }
   }, [onReady]);
-  
-  const heroContentVariants = useMemo(() => {
+
+  useEffect(() => {
+    return () => {
+      if (tooltipTimeoutRef.current) {
+        clearTimeout(tooltipTimeoutRef.current);
+      }
+    };
+  }, []);
+
+  const createFadeVariants = useCallback(
+    (delay, duration, distance = 24) => {
+      const hidden = { opacity: 0 };
+      if (!prefersReducedMotion) {
+        hidden.y = distance;
+      }
+      const visible = {
+        opacity: 1,
+        transition: {
+          delay,
+          duration,
+          ease: motionCatalog.easings.out,
+        },
+      };
+      if (!prefersReducedMotion) {
+        visible.y = 0;
+      }
+      return { hidden, visible };
+    },
+    [prefersReducedMotion],
+  );
+
+  const eyebrowVariants = useMemo(() => createFadeVariants(0.2, 0.6, 20), [createFadeVariants]);
+  const subheadlineVariants = useMemo(() => createFadeVariants(0.8, 0.6, 18), [createFadeVariants]);
+  const ctaVariants = useMemo(() => createFadeVariants(1, 0.6, 18), [createFadeVariants]);
+  const trustVariants = useMemo(() => createFadeVariants(1.2, 0.6, 14), [createFadeVariants]);
+
+  const headlineVariants = useMemo(() => {
     const hidden = { opacity: 0 };
     if (!prefersReducedMotion) {
-      hidden.y = 24;
+      hidden.y = 32;
     }
     const visible = {
       opacity: 1,
-      y: 0,
       transition: {
-        duration: motionCatalog.durations.medium,
+        delay: 0.4,
+        duration: 0.8,
         ease: motionCatalog.easings.out,
-        delayChildren: motionCatalog.durations.micro,
-        staggerChildren: motionCatalog.durations.stagger,
+        staggerChildren: 0.05,
       },
     };
-    if (prefersReducedMotion) {
-      delete visible.y;
+    if (!prefersReducedMotion) {
+      visible.y = 0;
     }
     return { hidden, visible };
   }, [prefersReducedMotion]);
 
-  const heroItemVariants = useMemo(() => {
+  const headlineWordVariants = useMemo(() => {
     const hidden = { opacity: 0 };
     if (!prefersReducedMotion) {
-      hidden.y = 16;
+      hidden.y = 18;
     }
     const visible = {
       opacity: 1,
-      y: 0,
       transition: {
-        duration: motionCatalog.durations.short,
+        duration: 0.6,
         ease: motionCatalog.easings.out,
       },
     };
-    if (prefersReducedMotion) {
-      delete visible.y;
+    if (!prefersReducedMotion) {
+      visible.y = 0;
     }
     return { hidden, visible };
   }, [prefersReducedMotion]);
@@ -142,46 +221,92 @@ export default function HeroSection({ onPrimary, onSecondary, demoDialogId, demo
   const previewVariants = useMemo(() => {
     const hidden = { opacity: 0 };
     if (!prefersReducedMotion) {
-      hidden.y = 20;
+      hidden.x = 80;
+      hidden.rotateY = -22;
     }
     const visible = {
       opacity: 1,
-      y: 0,
       transition: {
-        duration: motionCatalog.durations.long,
-        ease: motionCatalog.easings.out,
+        delay: 0.6,
+        duration: 1,
+        ease: [0.34, 1.56, 0.64, 1],
       },
     };
-    if (prefersReducedMotion) {
-      delete visible.y;
+    if (!prefersReducedMotion) {
+      visible.x = 0;
+      visible.rotateY = -8;
     }
     return { hidden, visible };
   }, [prefersReducedMotion]);
+
+  const handleTileSelect = useCallback((tile) => {
+    if (tooltipTimeoutRef.current) {
+      clearTimeout(tooltipTimeoutRef.current);
+    }
+    setActiveTile(tile);
+    tooltipTimeoutRef.current = setTimeout(() => {
+      setActiveTile(null);
+    }, 4000);
+  }, []);
+
+  const handleTileBlur = useCallback(() => {
+    if (tooltipTimeoutRef.current) {
+      clearTimeout(tooltipTimeoutRef.current);
+    }
+    tooltipTimeoutRef.current = setTimeout(() => {
+      setActiveTile(null);
+    }, 150);
+  }, []);
 
   return (
     <section className="page-hero" aria-labelledby="hero-headline">
       <HeroBackground variant="particles" />
       <div className="page-hero__inner">
-        <motion.div
-          ref={contentRef}
-          className="page-hero__content"
-          initial="hidden"
-          animate={contentInView ? "visible" : "hidden"}
-          variants={heroContentVariants}
-        >
-          <motion.span className="page-hero__eyebrow" variants={heroItemVariants}>
-            <Icon name="zap" size={18} aria-hidden="true" />
-            <span>The Future of AI Automation</span>
+        <motion.div ref={contentRef} className="page-hero__content">
+          <motion.span
+            className="page-hero__eyebrow"
+            initial="hidden"
+            animate={contentInView ? "visible" : "hidden"}
+            variants={eyebrowVariants}
+          >
+            <span className="page-hero__eyebrow-icon" aria-hidden="true">
+              ⚡
+            </span>
+            <span>THE FUTURE OF AI AUTOMATION</span>
           </motion.span>
-          <motion.h1 id="hero-headline" className="page-hero__headline" variants={heroItemVariants}>
-            Deploy Enterprise AI <GradientText>Automations</GradientText> in Minutes
+          <motion.h1
+            id="hero-headline"
+            className="page-hero__headline"
+            initial="hidden"
+            animate={contentInView ? "visible" : "hidden"}
+            variants={headlineVariants}
+          >
+            {headlineWords.map((word) => (
+              <motion.span
+                key={word}
+                className={word === "Automations" ? "headline-word headline-word--gradient" : "headline-word"}
+                variants={headlineWordVariants}
+              >
+                {word}
+              </motion.span>
+            ))}
           </motion.h1>
-          <motion.p className="page-hero__subheadline" variants={heroItemVariants}>
+          <motion.p
+            className="page-hero__subheadline"
+            initial="hidden"
+            animate={contentInView ? "visible" : "hidden"}
+            variants={subheadlineVariants}
+          >
             Transform operations with battle-tested automations. No setup hell. No vendor lock-in. Just results.
           </motion.p>
-          <motion.div className="cta-group" variants={heroItemVariants}>
+          <motion.div
+            className="cta-group"
+            initial="hidden"
+            animate={contentInView ? "visible" : "hidden"}
+            variants={ctaVariants}
+          >
             <button type="button" className="cta-primary" onClick={onPrimary}>
-              {primaryLabel}
+              <span className="cta-primary__label">{primaryLabel}</span>
             </button>
             <button
               type="button"
@@ -191,11 +316,29 @@ export default function HeroSection({ onPrimary, onSecondary, demoDialogId, demo
               aria-controls={demoDialogId || undefined}
               aria-expanded={typeof demoOpen === "boolean" ? (demoOpen ? "true" : "false") : undefined}
             >
-              {secondaryLabel} → <VideoBadge duration="2 min" />
+              <span className="cta-secondary__icon" aria-hidden="true">
+                ▶
+              </span>
+              <span>{secondaryLabel}</span>
             </button>
           </motion.div>
+          <motion.div
+            className="hero-trust-row"
+            initial="hidden"
+            animate={contentInView ? "visible" : "hidden"}
+            variants={trustVariants}
+          >
+            <TrustSignal>No credit card required</TrustSignal>
+            <TrustSignal>Free 14-day trial</TrustSignal>
+            <TrustSignal>Cancel anytime</TrustSignal>
+          </motion.div>
           {ctaContext ? (
-            <motion.p className="hero-cta-context" variants={heroItemVariants}>
+            <motion.p
+              className="hero-cta-context"
+              initial="hidden"
+              animate={contentInView ? "visible" : "hidden"}
+              variants={createFadeVariants(1.35, 0.6, 12)}
+            >
               {ctaContext}
             </motion.p>
           ) : null}
@@ -218,31 +361,67 @@ export default function HeroSection({ onPrimary, onSecondary, demoDialogId, demo
             initial="hidden"
             animate={previewInView ? "visible" : "hidden"}
             variants={previewVariants}
+            whileHover={
+              prefersReducedMotion
+                ? { y: -4 }
+                : { rotateY: 0, y: -8, transition: { duration: 0.4, ease: "easeOut" } }
+            }
           >
-            <span className="preview-card__chip">Live product preview</span>
+            <span className="preview-card__chip">LIVE PRODUCT PREVIEW</span>
             <div className="preview-card__stage">
-              <picture className="hero-preview__fallback" data-enhanced="true" aria-hidden="true">
-                {HERO_PREVIEW_SOURCES.map((source) => (
-                  <source key={source.type} {...source} />
+              <div className="preview-grid">
+                {previewTiles.map((tile, index) => (
+                  <motion.button
+                    key={tile.label}
+                    type="button"
+                    className="preview-grid__cell"
+                    whileTap={{ scale: 0.95 }}
+                    onClick={() => handleTileSelect(tile)}
+                    onMouseEnter={() => handleTileSelect(tile)}
+                    onFocus={() => handleTileSelect(tile)}
+                    onBlur={handleTileBlur}
+                    onMouseLeave={handleTileBlur}
+                    aria-pressed={activeTile?.label === tile.label ? "true" : "false"}
+                    data-index={index}
+                    data-active={activeTile?.label === tile.label ? "true" : "false"}
+                  >
+                    <Icon name={tile.icon} size={32} strokeWidth={1.6} className="preview-grid__icon" />
+                    <span className="sr-only">{tile.label}</span>
+                  </motion.button>
                 ))}
-                <img
-                  src={HERO_PREVIEW_IMAGE}
-                  width={HERO_PREVIEW_DIMENSIONS.width}
-                  height={HERO_PREVIEW_DIMENSIONS.height}
-                  alt=""
-                  loading="eager"
-                  decoding="sync"
-                  fetchPriority="high"
-                  sizes={HERO_PREVIEW_SIZES}
-                />
-              </picture>
-              <ProductPreview3D label="3D preview of automation workflow" />
+              </div>
+              <AnimatePresence>
+                {activeTile ? (
+                  <motion.div
+                    key={activeTile.label}
+                    className="preview-card__tooltip"
+                    initial={{ opacity: 0, y: 12 }}
+                    animate={{ opacity: 1, y: 0, transition: { duration: 0.3, ease: "easeOut" } }}
+                    exit={{ opacity: 0, y: 12, transition: { duration: 0.2, ease: "easeInOut" } }}
+                  >
+                    <span className="preview-card__tooltip-title">{activeTile.label}</span>
+                    <p>{activeTile.description}</p>
+                  </motion.div>
+                ) : null}
+              </AnimatePresence>
             </div>
             <p className="preview-card__annotation hero-quote">
               "We launched our global support automation in under 2 hours. Artifically handled auth, routing, and reporting out of the box."
               <span className="hero-quote__author">— Elena Ruiz, VP Operations</span>
             </p>
           </motion.article>
+          <div className="preview-floating preview-floating--deploy" aria-hidden="true">
+            <span className="preview-floating__icon">⚡</span>
+            Deploy in 5 min
+          </div>
+          <div className="preview-floating preview-floating--uptime" aria-hidden="true">
+            <span className="preview-floating__icon">✓</span>
+            99.9% Uptime
+          </div>
+          <div className="preview-floating preview-floating--active" aria-hidden="true">
+            <span className="preview-floating__icon">🚀</span>
+            10K+ Active
+          </div>
         </div>
       </div>
       <div className="page-hero__roi">
@@ -418,17 +597,13 @@ function LogoTicker({ logos, gradientId, prefersReducedMotion, initialInView }) 
   );
 }
 
-function VideoBadge({ duration }) {
+function TrustSignal({ children }) {
   return (
-    <span className="video-badge">
-      <span aria-hidden="true" className="video-badge__icon">
-        ▶
+    <span className="trust-signal">
+      <span className="trust-signal__icon" aria-hidden="true">
+        <span className="trust-signal__check">✓</span>
       </span>
-      {duration}
+      <span>{children}</span>
     </span>
   );
-}
-
-function GradientText({ children }) {
-  return <span className="gradient-text">{children}</span>;
 }

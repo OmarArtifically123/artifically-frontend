@@ -122,10 +122,10 @@ function createPerlinNoise(seed = Math.random()) {
 
 function getParticleCount(width) {
   if (width <= 640) {
-    return 60;
+    return 30;
   }
   if (width <= 1024) {
-    return 100;
+    return 80;
   }
   return 150;
 }

@@ -20,6 +20,7 @@ declare module "lucide-react" {
   export const ArrowRight: LucideIcon;
   export const Calendar: LucideIcon;
   export const BarChart3: LucideIcon;
+  export const Bell: LucideIcon;
   export const BookOpen: LucideIcon;
   export const Bot: LucideIcon;
   export const Boxes: LucideIcon;
@@ -31,9 +32,11 @@ declare module "lucide-react" {
   export const CircleDollarSign: LucideIcon;
   export const ClipboardCheck: LucideIcon;
   export const Clapperboard: LucideIcon;
+  export const Code2: LucideIcon;
   export const Compass: LucideIcon;
   export const ConciergeBell: LucideIcon;
   export const Contrast: LucideIcon;
+  export const Database: LucideIcon;
   export const DoorClosed: LucideIcon;
   export const ChevronDown: LucideIcon;
   export const Grid3X3: LucideIcon;
@@ -50,6 +53,7 @@ declare module "lucide-react" {
   export const Laptop: LucideIcon;
   export const LineChart: LucideIcon;
   export const Lock: LucideIcon;
+  export const Mail: LucideIcon;
   export const MessageCircle: LucideIcon;
   export const Moon: LucideIcon;
   export const PartyPopper: LucideIcon;
@@ -74,5 +78,6 @@ declare module "lucide-react" {
   export const Zap: LucideIcon;
   export const Folders: LucideIcon;
   export const Wand2: LucideIcon;
+  export const Workflow: LucideIcon;
   export const X: LucideIcon;
 }
