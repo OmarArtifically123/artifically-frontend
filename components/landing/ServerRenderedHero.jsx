@@ -2,6 +2,7 @@
 
 import { memo } from "react";
 import MarketingHomeServer from "../../rsc/MarketingHome.server.jsx";
+import ScrollIndicator from "./ScrollIndicator";
 
 function ServerRenderedHero({ hidden = false }) {
   return (
@@ -13,6 +14,7 @@ function ServerRenderedHero({ hidden = false }) {
       aria-hidden={hidden}
     >
       <MarketingHomeServer />
+      <ScrollIndicator targetId="problem-solution" hostId="marketing-hero-static" />
     </div>
   );
 }

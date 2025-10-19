@@ -25,7 +25,12 @@ const HERO_LOGOS = [
 
 export default function MarketingHomeServer() {
   return (
-    <section className="page-hero page-hero--rsc" aria-labelledby="hero-headline-static" data-static="true">
+    <section
+      id="marketing-hero-static"
+      className="page-hero page-hero--rsc"
+      aria-labelledby="hero-headline-static"
+      data-static="true"
+    >
       <div className="page-hero__inner">
         <div className="page-hero__content" data-static="true">
           <span className="page-hero__eyebrow">

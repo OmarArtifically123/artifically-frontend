@@ -4,11 +4,32 @@ import { useCallback, useEffect, useRef, useState } from "react";
 
 const SCROLL_DURATION = 800;
 
-export default function ScrollIndicator({ targetId, label = "Scroll to explore" }) {
+export default function ScrollIndicator({ targetId, hostId, label = "Scroll to explore" }) {
   const indicatorRef = useRef(null);
   const [heroVisible, setHeroVisible] = useState(true);
   const [hasUserScrolled, setHasUserScrolled] = useState(false);
   const [prefersReducedMotion, setPrefersReducedMotion] = useState(false);
+
+  const getHostElement = useCallback(() => {
+    if (typeof document === "undefined") {
+      return null;
+    }
+
+    if (hostId) {
+      const explicitHost = document.getElementById(hostId);
+      if (explicitHost instanceof HTMLElement) {
+        return explicitHost;
+      }
+    }
+
+    const indicator = indicatorRef.current;
+    if (!indicator) {
+      return null;
+    }
+
+    const sectionAncestor = indicator.closest("section");
+    return sectionAncestor instanceof HTMLElement ? sectionAncestor : null;
+  }, [hostId]);
 
   useEffect(() => {
     if (typeof window === "undefined" || typeof window.matchMedia !== "function") {
@@ -71,12 +92,7 @@ export default function ScrollIndicator({ targetId, label = "Scroll to explore" 
       return undefined;
     }
 
-    const indicator = indicatorRef.current;
-    if (!indicator) {
-      return undefined;
-    }
-
-    const hostSection = indicator.closest("section");
+    const hostSection = getHostElement();
     if (!hostSection) {
       return undefined;
     }
@@ -97,7 +113,7 @@ export default function ScrollIndicator({ targetId, label = "Scroll to explore" 
     return () => {
       observer.disconnect();
     };
-  }, []);
+  }, [getHostElement]);
 
   const findScrollTarget = useCallback(() => {
     if (typeof document === "undefined") {
@@ -111,12 +127,7 @@ export default function ScrollIndicator({ targetId, label = "Scroll to explore" 
       }
     }
 
-    const indicator = indicatorRef.current;
-    if (!indicator) {
-      return null;
-    }
-
-    const hostSection = indicator.closest("section");
+    const hostSection = getHostElement();
     if (!hostSection) {
       return null;
     }
@@ -132,7 +143,7 @@ export default function ScrollIndicator({ targetId, label = "Scroll to explore" 
     }
 
     return null;
-  }, [targetId]);
+  }, [getHostElement, targetId]);
 
   const handleScroll = useCallback(() => {
     if (typeof window === "undefined") {
