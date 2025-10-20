@@ -37,7 +37,7 @@ const nextConfig = {
         headers: [staticAssetHeaders],
       },
       {
-        source: "/(.*)\\.(?:js|css|json|ico|svg|png|jpg|jpeg|gif|webp|avif|ttf|otf|woff|woff2)$",
+        source: "/(.*)\\.(js|css|json|ico|svg|png|jpg|jpeg|gif|webp|avif|ttf|otf|woff|woff2)$",
         headers: [staticAssetHeaders],
       },
       {
