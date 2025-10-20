@@ -38,6 +38,8 @@ export default function IndustrySolutionPage({ params }: IndustrySolutionPagePro
     return null;
   }
 
+  const normalizedTitle = typeof entry.title === "string" ? entry.title.toLowerCase() : "";
+
   return (
     <div className="detail-page">
       <section className="detail-page__hero">
@@ -57,8 +59,7 @@ export default function IndustrySolutionPage({ params }: IndustrySolutionPagePro
       <section className="detail-page__section">
         <h2 className="detail-page__section-title">{entry.headline}</h2>
         <p className="detail-page__body">
-          Artifically orchestrates humans, AI copilots, and integrations so your {entry.title.toLowerCase()} team can focus on
-          high-impact work.
+          {`Artifically orchestrates humans, AI copilots, and integrations so your ${normalizedTitle} team can focus on high-impact work.`}
         </p>
         <ul className="detail-page__list">
           {entry.highlights.map((item) => (

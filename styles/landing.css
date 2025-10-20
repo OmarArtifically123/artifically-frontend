@@ -27,7 +27,7 @@
   display: block;
   min-height: clamp(540px, 85vh, 900px);
   position: relative;
-  view-transition-name: hero-shell;
+  view-transition-name: hero-shell-placeholder;
 }
 
 .marketing-rsc-shell[hidden] {

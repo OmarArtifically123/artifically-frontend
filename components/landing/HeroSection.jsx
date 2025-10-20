@@ -158,7 +158,7 @@ export default function HeroSection({
 
   const { scrollY } = useScroll();
   const heroParallaxY = useTransform(scrollY, [0, 500], [0, 150]);
-  const heroFade = useTransform(scrollY, [0, 300], [1, 0]);
+  const heroFade = useTransform(scrollY, [0, 200, 900], [1, 1, 0]);
 
   useEffect(() => {
     if (typeof onReady === "function") {

@@ -166,7 +166,7 @@ export default function HeroDemoModal({ open, onClose, dialogId = "hero-demo-mod
               kind="captions"
               srcLang="en"
               label="English captions"
-              src="https://gist.githubusercontent.com/anonymous/7c8f8fce6ce0b0f8d1c737e2c7a72c22/raw/hero-demo.vtt"
+              src="/media/hero-demo.vtt"
             />
             Your browser does not support the video tag. You can download the demo as an MP4 file using the link below.
           </video>

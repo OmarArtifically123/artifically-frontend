@@ -1,106 +1,110 @@
-let workboxLoaded = false;
+const CACHE_VERSION = "v1";
+const STATIC_CACHE = `artifically-static-${CACHE_VERSION}`;
+const ASSET_CACHE = `artifically-assets-${CACHE_VERSION}`;
 
-try {
-  importScripts('https://storage.googleapis.com/workbox-cdn/releases/6.5.4/workbox-sw.js');
-  workboxLoaded = typeof self.workbox !== 'undefined';
-} catch (error) {
-  console.warn('Workbox failed to load for Artifically service worker.', error);
-}
+const PRECACHE_URLS = [
+  "/",
+  "/offline.html",
+  "/site.webmanifest",
+  "/favicon-32x32.png",
+  "/favicon-16x16.png",
+  "/android-chrome-192x192.png",
+  "/android-chrome-512x512.png",
+];
 
-if (workboxLoaded && self.workbox) {
-  const { core, precaching, routing, strategies, expiration, cacheableResponse } = self.workbox;
-
-  core.setConfig({ debug: false });
-  core.skipWaiting();
-  core.clientsClaim();
-  core.setCacheNameDetails({ prefix: 'artifically', suffix: 'v1' });
-
-  const PRECACHE_ASSETS = [
-    { url: '/', revision: null },
-    { url: '/offline.html', revision: '1' },
-    { url: '/site.webmanifest', revision: '1' },
-    { url: '/favicon-32x32.png', revision: '1' },
-    { url: '/favicon-16x16.png', revision: '1' },
-    { url: '/android-chrome-192x192.png', revision: '1' },
-    { url: '/android-chrome-512x512.png', revision: '1' },
-  ];
-
-  const manifest = self.__WB_MANIFEST || [];
-  precaching.precacheAndRoute([...manifest, ...PRECACHE_ASSETS]);
-  precaching.cleanupOutdatedCaches();
-
-  routing.registerRoute(
-    ({ request }) => ['script', 'style', 'font'].includes(request.destination),
-    new strategies.CacheFirst({
-      cacheName: 'artifically-static-assets',
-      plugins: [
-        new cacheableResponse.Plugin({ statuses: [200] }),
-        new expiration.Plugin({ maxEntries: 60, maxAgeSeconds: 60 * 60 * 24 * 365 }),
-      ],
-    }),
+self.addEventListener("install", (event) => {
+  event.waitUntil(
+    caches
+      .open(STATIC_CACHE)
+      .then((cache) => cache.addAll(PRECACHE_URLS))
+      .catch((error) => {
+        console.warn("Failed to precache static assets", error);
+      })
+      .finally(() => self.skipWaiting()),
   );
+});
 
-  routing.registerRoute(
-    ({ request }) => request.destination === 'image',
-    new strategies.CacheFirst({
-      cacheName: 'artifically-images',
-      plugins: [
-        new cacheableResponse.Plugin({ statuses: [200] }),
-        new expiration.Plugin({ maxEntries: 80, maxAgeSeconds: 60 * 60 * 24 * 365 }),
-      ],
-    }),
+self.addEventListener("activate", (event) => {
+  event.waitUntil(
+    caches
+      .keys()
+      .then((keys) =>
+        Promise.all(
+          keys
+            .filter((key) => key.startsWith("artifically-") && key !== STATIC_CACHE && key !== ASSET_CACHE)
+            .map((key) => caches.delete(key)),
+        ),
+      )
+      .catch((error) => {
+        console.warn("Failed to clean up old caches", error);
+      })
+      .finally(() => self.clients.claim()),
   );
+});
 
-  routing.registerRoute(
-    ({ url, request }) =>
-      url.origin === self.location.origin &&
-      request.method === 'GET' &&
-      url.pathname.startsWith('/api'),
-    new strategies.NetworkFirst({
-      cacheName: 'artifically-api',
-      networkTimeoutSeconds: 3,
-      plugins: [
-        new cacheableResponse.Plugin({ statuses: [200] }),
-        new expiration.Plugin({ maxEntries: 100, maxAgeSeconds: 60 * 5 }),
-      ],
-    }),
-  );
-
-  routing.registerRoute(
-    ({ request }) => request.mode === 'navigate',
-    new strategies.NetworkFirst({
-      cacheName: 'artifically-pages',
-      plugins: [
-        new cacheableResponse.Plugin({ statuses: [200] }),
-        new expiration.Plugin({ maxEntries: 25, maxAgeSeconds: 60 * 60 * 24 }),
-      ],
-    }),
-  );
-
-  routing.setCatchHandler(async ({ event }) => {
-    if (event.request.destination === 'document') {
-      const cache = await caches.open('artifically-pages');
-      const cached = await cache.match('/offline.html');
-      if (cached) {
-        return cached;
-      }
-      return caches.match('/offline.html');
-    }
-    return Response.error();
-  });
-} else {
-  if (!workboxLoaded) {
-    console.warn('Workbox unavailable, running fallback service worker.');
+const cacheFirst = async (request) => {
+  const cache = await caches.open(ASSET_CACHE);
+  const cached = await cache.match(request);
+  if (cached) {
+    return cached;
   }
-  self.addEventListener('install', (event) => {
-    event.waitUntil(self.skipWaiting());
-  });
 
-  self.addEventListener('activate', (event) => {
-    event.waitUntil(self.clients.claim());
-  });
+  try {
+    const response = await fetch(request);
+    if (response && response.status === 200) {
+      cache.put(request, response.clone());
+    }
+    return response;
+  } catch (error) {
+    return cached ?? Promise.reject(error);
+  }
+};
 
-  self.addEventListener('fetch', () => {
-    // No-op fallback to ensure the service worker remains passive when Workbox is unavailable.
-  });
-}
+const networkFirst = async (request) => {
+  try {
+    const response = await fetch(request);
+    const cache = await caches.open(STATIC_CACHE);
+    if (response && response.status === 200) {
+      cache.put(request, response.clone());
+    }
+    return response;
+  } catch (error) {
+    const cached = await caches.match(request);
+    if (cached) {
+      return cached;
+    }
+    if (request.mode === "navigate") {
+      return caches.match("/offline.html");
+    }
+    throw error;
+  }
+};
+
+self.addEventListener("fetch", (event) => {
+  const { request } = event;
+
+  if (request.method !== "GET") {
+    return;
+  }
+
+  const url = new URL(request.url);
+
+  if (url.origin !== self.location.origin) {
+    event.respondWith(fetch(request).catch(() => caches.match("/offline.html")));
+    return;
+  }
+
+  if (request.mode === "navigate") {
+    event.respondWith(networkFirst(request));
+    return;
+  }
+
+  if (PRECACHE_URLS.includes(url.pathname)) {
+    event.respondWith(caches.match(request).then((cached) => cached ?? fetch(request)));
+    return;
+  }
+
+  if (["style", "script", "font", "image"].includes(request.destination)) {
+    event.respondWith(cacheFirst(request));
+  }
+});

@@ -41,8 +41,11 @@ export function Autocomplete<T = string>({
   const results = useMemo(() => {
     const predicate = filter
       ? filter
-      : (option: AutocompleteOption<T>, term: string) =>
-          option.label.toLowerCase().includes(term.toLowerCase());
+      : (option: AutocompleteOption<T>, term: string) => {
+          const label = typeof option.label === "string" ? option.label.toLowerCase() : "";
+          const normalizedTerm = typeof term === "string" ? term.toLowerCase() : "";
+          return label.includes(normalizedTerm);
+        };
     const trimmed = query.trim();
     if (!trimmed) {
       return options.slice(0, 8);
