@@ -59,6 +59,7 @@ export default function SocialProofSection() {
 
   const total = testimonials.length;
   const activeTestimonial = useMemo(() => testimonials[activeIndex % total], [activeIndex, total]);
+  const touchStateRef = useRef({ startX: 0, startY: 0, active: false, handled: false });
 
   useEffect(() => {
     if (isPausedRef.current) {
@@ -92,6 +93,57 @@ export default function SocialProofSection() {
     autoplayRef.current = setTimeout(() => {
       setActiveIndex((index) => (index + 1) % total);
     }, 7000);
+  };
+
+  const handleTouchStart = (event) => {
+    const touch = event.touches[0];
+    if (!touch) {
+      return;
+    }
+    pauseAutoplay();
+    touchStateRef.current = {
+      startX: touch.clientX,
+      startY: touch.clientY,
+      active: true,
+      handled: false,
+    };
+  };
+
+  const handleTouchMove = (event) => {
+    const state = touchStateRef.current;
+    if (!state.active || state.handled) {
+      return;
+    }
+
+    const touch = event.touches[0];
+    if (!touch) {
+      return;
+    }
+
+    const deltaX = touch.clientX - state.startX;
+    const deltaY = touch.clientY - state.startY;
+
+    if (Math.abs(deltaX) <= Math.abs(deltaY) || Math.abs(deltaX) < 24) {
+      return;
+    }
+
+    event.preventDefault();
+    state.handled = true;
+    handleNavigate(deltaX > 0 ? -1 : 1);
+  };
+
+  const resetTouchState = () => {
+    touchStateRef.current = { startX: 0, startY: 0, active: false, handled: false };
+  };
+
+  const handleTouchEnd = () => {
+    resetTouchState();
+    resumeAutoplay();
+  };
+
+  const handleTouchCancel = () => {
+    resetTouchState();
+    resumeAutoplay();
   };
 
   useEffect(() => () => clearTimeout(autoplayRef.current), []);
@@ -152,7 +204,13 @@ export default function SocialProofSection() {
         onFocus={pauseAutoplay}
         onBlur={resumeAutoplay}
       >
-        <div className="testimonial-carousel__slides">
+        <div
+          className="testimonial-carousel__slides"
+          onTouchStart={handleTouchStart}
+          onTouchMove={handleTouchMove}
+          onTouchEnd={handleTouchEnd}
+          onTouchCancel={handleTouchCancel}
+        >
           <article key={activeTestimonial.id} className="testimonial-card" aria-live="polite">
             <blockquote>“{activeTestimonial.quote}”</blockquote>
             <footer style={{ display: "flex", flexWrap: "wrap", gap: "0.85rem", alignItems: "center" }}>

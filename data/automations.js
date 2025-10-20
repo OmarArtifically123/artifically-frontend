@@ -18,6 +18,7 @@ export const AUTOMATION_FIELD_WHITELIST = [
   "tags",
   "labels",
   "integrations",
+  "previewImage",
   "performance.avgInteractionMs",
   "performance.fps",
   "teamVotes",

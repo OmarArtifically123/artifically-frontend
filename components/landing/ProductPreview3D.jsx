@@ -3,8 +3,9 @@
 import { useEffect, useMemo, useRef, useState, useId } from "react";
 import useDocumentVisibility from "../../hooks/useDocumentVisibility";
 import { getNetworkInformation, prefersLowPower } from "../../utils/networkPreferences";
-import { HERO_PREVIEW_DIMENSIONS, HERO_PREVIEW_IMAGE, HERO_PREVIEW_BLUR, HERO_PREVIEW_SIZES } from "./heroPreviewAssets";
+import { HERO_PREVIEW_DIMENSIONS, HERO_PREVIEW_BLUR, HERO_PREVIEW_SIZES } from "./heroPreviewAssets";
 import { BlurImage } from "../media/OptimizedImage";
+import useHeroPreviewSources from "../../hooks/useHeroPreviewSources";
 
 const PREVIEW_MAX_WIDTH = 540;
 const PREVIEW_ASPECT_RATIO = HERO_PREVIEW_DIMENSIONS.width / HERO_PREVIEW_DIMENSIONS.height;
@@ -50,6 +51,7 @@ export default function ProductPreview3D({ label = "Automation preview", theme =
   const isDocumentVisible = useDocumentVisibility();
   const descriptionId = useId();
   const [isEnhanced, setIsEnhanced] = useState(false);
+  const heroSources = useHeroPreviewSources();
 
   const previewStyle = useMemo(
     () => ({
@@ -274,7 +276,8 @@ export default function ProductPreview3D({ label = "Automation preview", theme =
             aria-hidden={isEnhanced}
           >
             <BlurImage
-              src={HERO_PREVIEW_IMAGE}
+              src={heroSources.src}
+              srcSet={heroSources.srcSet}
               blurDataURL={HERO_PREVIEW_BLUR}
               alt="Artifically automation workspace preview"
               width={HERO_PREVIEW_DIMENSIONS.width}

@@ -47,6 +47,22 @@
   mix-blend-mode: screen;
 }
 
+.hero-background--placeholder {
+  position: absolute;
+  inset: 0;
+  height: 100vh;
+  z-index: -3;
+  pointer-events: none;
+  background-image: image-set(
+      url("/images/hero-background.avif") type("image/avif") 1x,
+      url("/images/hero-background.webp") type("image/webp") 1x,
+      url("/images/hero-background.jpg") type("image/jpeg") 1x
+    );
+  background-size: cover;
+  background-position: center;
+  filter: saturate(1.1);
+}
+
 .page-hero::before {
   content: "";
   position: absolute;
@@ -1862,8 +1878,10 @@
 }
 
 .testimonial-carousel__controls button {
-  width: 42px;
-  height: 42px;
+  width: 44px;
+  height: 44px;
+  min-width: 44px;
+  min-height: 44px;
   border-radius: 50%;
   border: 1px solid color-mix(in oklch, white 10%, transparent);
   background: color-mix(in oklch, var(--glass-3) 70%, transparent);
@@ -1872,11 +1890,16 @@
   cursor: pointer;
   transition: transform 0.2s ease, border-color 0.2s ease;
 }
-
-.testimonial-carousel__controls button:hover,
 .testimonial-carousel__controls button:focus-visible {
   transform: translateY(-2px);
   border-color: color-mix(in oklch, var(--brand-glow) 35%, transparent);
+}
+
+@media (hover: hover) {
+  .testimonial-carousel__controls button:hover {
+    transform: translateY(-2px);
+    border-color: color-mix(in oklch, var(--brand-glow) 35%, transparent);
+  }
 }
 
 .testimonial-carousel__index {

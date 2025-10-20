@@ -1,3 +1,27 @@
+const createBlurDataURL = (start, end) =>
+  `data:image/svg+xml,${encodeURIComponent(
+    `<svg xmlns='http://www.w3.org/2000/svg' width='24' height='16'><defs><linearGradient id='g' x1='0%' y1='0%' x2='100%' y2='100%'><stop stop-color='${start}' offset='0%'/><stop stop-color='${end}' offset='100%'/></linearGradient></defs><rect width='24' height='16' fill='url(#g)' rx='4' ry='4'/></svg>`,
+  )}`;
+
+const MARKETPLACE_PREVIEW_MEDIA = {
+  "ops-guardian": {
+    src: "/images/automation-previews/ops-guardian.svg",
+    blurDataURL: createBlurDataURL("#312e81", "#0ea5e9"),
+  },
+  "revenue-loop": {
+    src: "/images/automation-previews/revenue-loop.svg",
+    blurDataURL: createBlurDataURL("#7c3aed", "#fb7185"),
+  },
+  "support-coach": {
+    src: "/images/automation-previews/support-coach.svg",
+    blurDataURL: createBlurDataURL("#0f172a", "#22d3ee"),
+  },
+  "finance-sentinel": {
+    src: "/images/automation-previews/finance-sentinel.svg",
+    blurDataURL: createBlurDataURL("#1d4ed8", "#10b981"),
+  },
+};
+
 export const MARKETPLACE_ENTRIES = [
   {
     id: "ops-guardian",
@@ -12,6 +36,7 @@ export const MARKETPLACE_ENTRIES = [
     hoursSavedWeekly: 280,
     category: "Operations",
     tags: ["incident response", "it ops", "ticket triage"],
+    previewImage: MARKETPLACE_PREVIEW_MEDIA["ops-guardian"],
     highlights: [
       "Real-time incident clustering",
       "Predictive SLA breach alerts",
@@ -35,6 +60,7 @@ export const MARKETPLACE_ENTRIES = [
     hoursSavedWeekly: 310,
     category: "Revenue",
     tags: ["sales automation", "pipeline", "revops"],
+    previewImage: MARKETPLACE_PREVIEW_MEDIA["revenue-loop"],
     highlights: [
       "Predictive deal scoring",
       "Rep nudges based on buyer activity",
@@ -58,6 +84,7 @@ export const MARKETPLACE_ENTRIES = [
     hoursSavedWeekly: 265,
     category: "Customer Experience",
     tags: ["support", "customer success", "cx"],
+    previewImage: MARKETPLACE_PREVIEW_MEDIA["support-coach"],
     highlights: [
       "Context-aware response drafting",
       "Live retention risk alerts",
@@ -80,6 +107,7 @@ export const MARKETPLACE_ENTRIES = [
     hoursSavedWeekly: 340,
     category: "Finance",
     tags: ["finops", "compliance", "audit"],
+    previewImage: MARKETPLACE_PREVIEW_MEDIA["finance-sentinel"],
     highlights: [
       "Adaptive variance thresholds",
       "Continuous GL reconciliation",

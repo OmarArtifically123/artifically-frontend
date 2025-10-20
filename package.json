@@ -27,6 +27,7 @@
     "test:a11y": "vitest run tests/accessibility/design-system.a11y.test.tsx",
     "test:e2e": "playwright test",
     "postinstall": "node scripts/assets/materialize-static-assets.mjs && partytown copylib public/~partytown",
+    "assets:hero": "node scripts/assets/export-hero-images.mjs",
     "security:scan": "npm audit --audit-level=moderate",
     "report:bundle": "node scripts/perf/bundle-report.mjs",
     "report:lighthouse": "node scripts/perf/frontend-lighthouse.mjs",

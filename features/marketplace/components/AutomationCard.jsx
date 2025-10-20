@@ -1237,6 +1237,8 @@ const handleVote = useCallback(
         </div>
       </div>
 
+      <AutomationCardPreviewMedia previewImage={item.previewImage} name={item.name} palette={palette} />
+
       <div
         className="automation-card__live-preview"
         ref={assignPreviewContainer}
@@ -1449,6 +1451,50 @@ const handleVote = useCallback(
         />
       )}
     </>
+  );
+}
+
+function AutomationCardPreviewMedia({ previewImage, name, palette }) {
+  const [loaded, setLoaded] = useState(false);
+  const { ref, inView } = useInView({ threshold: 0.2, triggerOnce: true });
+
+  if (!previewImage?.src) {
+    return null;
+  }
+
+  const backgroundLayers = [];
+  if (previewImage.blurDataURL) {
+    backgroundLayers.push(`url(${previewImage.blurDataURL})`);
+  }
+  backgroundLayers.push(`linear-gradient(135deg, rgba(15,23,42,0.68), rgba(15,23,42,0.42))`);
+  const style = {
+    backgroundImage: backgroundLayers.join(", "),
+    boxShadow: `0 18px 45px ${palette.shadow}`,
+  };
+
+  const altLabel = name ? `${name} automation preview` : "Automation preview";
+
+  return (
+    <div
+      ref={ref}
+      className="automation-card__media"
+      style={style}
+      data-visible={inView ? "true" : undefined}
+    >
+      {inView ? (
+        <img
+          src={previewImage.src}
+          alt={altLabel}
+          className={`automation-card__media-image${loaded ? " is-loaded" : ""}`}
+          loading="lazy"
+          decoding="async"
+          onLoad={() => setLoaded(true)}
+          onError={() => setLoaded(true)}
+        />
+      ) : (
+        <div className="automation-card__media-skeleton" aria-hidden="true" />
+      )}
+    </div>
   );
 }
 

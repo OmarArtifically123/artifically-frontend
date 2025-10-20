@@ -6309,6 +6309,61 @@ body.solutions-mega-open {
   --live-pulse: 1;
 }
 
+.automation-card__media {
+  position: relative;
+  border-radius: 1.15rem;
+  overflow: hidden;
+  background: linear-gradient(135deg, rgba(15, 23, 42, 0.68), rgba(30, 41, 59, 0.48));
+  min-height: 180px;
+  display: flex;
+  align-items: stretch;
+  justify-content: stretch;
+  isolation: isolate;
+  transition: opacity 220ms ease, transform 300ms ease, box-shadow 320ms ease;
+  background-size: cover;
+  background-position: center;
+  opacity: 0;
+  transform: translateY(14px);
+}
+
+.automation-card__media::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(180deg, rgba(15, 23, 42, 0.28), rgba(15, 23, 42, 0.12));
+  mix-blend-mode: screen;
+  pointer-events: none;
+}
+
+.automation-card__media[data-visible="true"] {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+.automation-card__media-image {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  border-radius: inherit;
+  opacity: 0;
+  transform: scale(1.05);
+  filter: blur(18px);
+  transition: opacity 420ms ease, transform 520ms ease, filter 520ms ease;
+}
+
+.automation-card__media-image.is-loaded {
+  opacity: 1;
+  transform: scale(1);
+  filter: blur(0px);
+}
+
+.automation-card__media-skeleton {
+  flex: 1 1 auto;
+  border-radius: inherit;
+  background: linear-gradient(135deg, rgba(148, 163, 184, 0.2), rgba(30, 41, 59, 0.35));
+  animation: pulse 1.8s ease-in-out infinite;
+}
+
 .automation-card__live-preview {
   position: relative;
   border-radius: 1.15rem;
@@ -6402,6 +6457,10 @@ body.solutions-mega-open {
 [data-theme="light"] .automation-card__live-preview {
   background: linear-gradient(135deg, rgba(248, 250, 252, 0.92), rgba(226, 232, 240, 0.65));
   border-color: rgba(148, 163, 184, 0.28);
+}
+
+[data-theme="light"] .automation-card__media {
+  background: linear-gradient(135deg, rgba(248, 250, 252, 0.9), rgba(226, 232, 240, 0.65));
 }
 
 [data-theme="light"] .automation-card__live-preview canvas {

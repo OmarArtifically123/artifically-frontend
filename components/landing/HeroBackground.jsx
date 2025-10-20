@@ -38,6 +38,25 @@ const LOW_FPS_THRESHOLD = 45;
 const FPS_SAMPLE_SIZE = 120;
 const MAX_PARTICLES = 200;
 
+function resolveDeviceProfile(width, connection) {
+  let formFactor = "desktop";
+  if (width <= 768) {
+    formFactor = "mobile";
+  } else if (width <= 1200) {
+    formFactor = "tablet";
+  }
+
+  const effectiveType = connection?.effectiveType?.toLowerCase?.() ?? "";
+  const isSlowConnection = Boolean(connection) && effectiveType !== "" && effectiveType !== "4g";
+  const lowPowerPreferred = prefersLowPower(connection);
+
+  return {
+    width,
+    formFactor,
+    isLowEndMobile: formFactor === "mobile" && (isSlowConnection || lowPowerPreferred),
+  };
+}
+
 function mulberry32(seed) {
   return () => {
     let t = seed += 0x6d2b79f5;
@@ -121,10 +140,10 @@ function createPerlinNoise(seed = Math.random()) {
 }
 
 function getParticleCount(width) {
-  if (width <= 640) {
-    return 30;
+  if (width <= 768) {
+    return 40;
   }
-  if (width <= 1024) {
+  if (width <= 1200) {
     return 80;
   }
   return 150;
@@ -244,6 +263,12 @@ export default function HeroBackground({ variant = "particles" }) {
     return window.matchMedia("(prefers-reduced-motion: reduce)").matches;
   });
   const [prefersLowPowerMode, setPrefersLowPowerMode] = useState(() => prefersLowPower());
+  const [deviceProfile, setDeviceProfile] = useState(() =>
+    resolveDeviceProfile(
+      typeof window === "undefined" ? 1440 : window.innerWidth,
+      undefined,
+    ),
+  );
   const [isInViewport, setIsInViewport] = useState(false);
   const isDocumentVisible = useDocumentVisibility();
 
@@ -252,7 +277,8 @@ export default function HeroBackground({ variant = "particles" }) {
     isInViewport &&
     isDocumentVisible &&
     !prefersReducedMotion &&
-    !prefersLowPowerMode;
+    !prefersLowPowerMode &&
+    !deviceProfile.isLowEndMobile;
 
   useEffect(() => {
     if (typeof window === "undefined" || typeof window.matchMedia !== "function") {
@@ -290,6 +316,85 @@ export default function HeroBackground({ variant = "particles" }) {
   }, []);
 
   useEffect(() => {
+    if (typeof window === "undefined") {
+      return undefined;
+    }
+
+    const connection = getNetworkInformation();
+
+    const updateProfile = () => {
+      const width = window.innerWidth || 0;
+      const profile = resolveDeviceProfile(width, connection ?? getNetworkInformation());
+
+      if (profile.formFactor === "desktop") {
+        connectionDistanceRef.current = BASE_CONNECTION_DISTANCE;
+      } else if (profile.formFactor === "tablet") {
+        connectionDistanceRef.current = BASE_CONNECTION_DISTANCE * 0.85;
+      } else {
+        connectionDistanceRef.current = BASE_CONNECTION_DISTANCE * 0.7;
+      }
+
+      setDeviceProfile((previous) => {
+        if (
+          previous.width === profile.width &&
+          previous.formFactor === profile.formFactor &&
+          previous.isLowEndMobile === profile.isLowEndMobile
+        ) {
+          return previous;
+        }
+        return profile;
+      });
+    };
+
+    updateProfile();
+
+    const handleResize = () => updateProfile();
+    window.addEventListener("resize", handleResize);
+
+    if (!connection) {
+      return () => {
+        window.removeEventListener("resize", handleResize);
+      };
+    }
+
+    const handleConnectionChange = () => updateProfile();
+
+    if (typeof connection.addEventListener === "function") {
+      connection.addEventListener("change", handleConnectionChange);
+      return () => {
+        window.removeEventListener("resize", handleResize);
+        connection.removeEventListener("change", handleConnectionChange);
+      };
+    }
+
+    connection.onchange = handleConnectionChange;
+    return () => {
+      window.removeEventListener("resize", handleResize);
+      connection.onchange = null;
+    };
+  }, []);
+
+  useEffect(() => {
+    if (typeof window === "undefined") {
+      return;
+    }
+
+    const connection = getNetworkInformation();
+    const width = window.innerWidth || 0;
+    const profile = resolveDeviceProfile(width, connection);
+
+    if (profile.formFactor === "desktop") {
+      connectionDistanceRef.current = BASE_CONNECTION_DISTANCE;
+    } else if (profile.formFactor === "tablet") {
+      connectionDistanceRef.current = BASE_CONNECTION_DISTANCE * 0.85;
+    } else {
+      connectionDistanceRef.current = BASE_CONNECTION_DISTANCE * 0.7;
+    }
+
+    setDeviceProfile(profile);
+  }, [prefersLowPowerMode]);
+
+  useEffect(() => {
     const node = containerRef.current;
     if (!node || typeof IntersectionObserver === "undefined") {
       setIsInViewport(true);
@@ -304,7 +409,7 @@ export default function HeroBackground({ variant = "particles" }) {
           }
         });
       },
-      { threshold: 0.1 },
+      { threshold: 0.2, rootMargin: "0px 0px -20% 0px" },
     );
 
     observer.observe(node);
@@ -316,7 +421,7 @@ export default function HeroBackground({ variant = "particles" }) {
   }, [variant]);
 
   useEffect(() => {
-    if (prefersReducedMotion || variant !== "particles") {
+    if (prefersReducedMotion || variant !== "particles" || deviceProfile.isLowEndMobile || !isInViewport) {
       return undefined;
     }
 
@@ -705,7 +810,7 @@ export default function HeroBackground({ variant = "particles" }) {
       stopAnimationRef.current = null;
       shouldAnimateRef.current = false;
     };
-  }, [prefersReducedMotion, variant]);
+  }, [prefersReducedMotion, variant, deviceProfile.isLowEndMobile, isInViewport]);
 
   useEffect(() => {
     shouldAnimateRef.current = shouldAnimate;
@@ -716,7 +821,7 @@ export default function HeroBackground({ variant = "particles" }) {
     }
   }, [shouldAnimate]);
 
-  if (prefersReducedMotion) {
+  if (prefersReducedMotion || deviceProfile.isLowEndMobile) {
     return (
       <div
         ref={containerRef}

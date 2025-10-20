@@ -18,9 +18,13 @@ import HeroRoiCalculator from "./HeroRoiCalculator";
 import { Icon } from "../icons";
 import TrustedBy from "./TrustedBy";
 
+function HeroBackgroundPlaceholder() {
+  return <div className="hero-background hero-background--placeholder" aria-hidden="true" />;
+}
+
 const HeroBackground = dynamic(() => import("./HeroBackground"), {
   ssr: false,
-  loading: () => <div>Loading...</div>,
+  loading: () => <HeroBackgroundPlaceholder />,
 });
 
 const heroStats = [
@@ -139,6 +143,12 @@ export default function HeroSection({
   }, []);
 
   const prefersReducedMotion = useReducedMotion();
+  const [heroRef, heroInView] = useInViewState({
+    threshold: 0.2,
+    rootMargin: "0px 0px -20% 0px",
+    once: true,
+    initialInView: initialHeroInView,
+  });
   const [contentRef, contentInView] = useInViewState({
     threshold: 0.4,
     rootMargin: "-80px",
@@ -274,8 +284,8 @@ export default function HeroSection({
   const visibleTile = activeTile ?? defaultPreviewTile;
 
   return (
-    <section className="page-hero" aria-labelledby="hero-headline">
-      <HeroBackground variant="particles" />
+    <section ref={heroRef} className="page-hero" aria-labelledby="hero-headline">
+      {heroInView ? <HeroBackground variant="particles" /> : <HeroBackgroundPlaceholder />}
       <div className="page-hero__inner">
         <motion.div ref={contentRef} className="page-hero__content">
           <motion.span
