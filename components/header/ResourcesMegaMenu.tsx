@@ -22,6 +22,7 @@ type MenuState = "opening" | "open" | "closing" | "closed";
 type ResourcesMegaMenuProps = {
   label: string;
   state: MenuState;
+  menuId: string;
   columns: ResourcesColumn[];
   onRequestClose: () => void;
   onNavigate: (event: MouseEvent<HTMLAnchorElement>, path: string) => void;
@@ -30,6 +31,7 @@ type ResourcesMegaMenuProps = {
 export default function ResourcesMegaMenu({
   label,
   state,
+  menuId,
   columns,
   onRequestClose,
   onNavigate,
@@ -50,6 +52,7 @@ export default function ResourcesMegaMenu({
       <div
         className="resources-mega__panel"
         role="dialog"
+        id={menuId}
         aria-modal="true"
         aria-labelledby="resources-mega-heading"
       >

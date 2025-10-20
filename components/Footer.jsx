@@ -149,7 +149,13 @@ export default function Footer() {
   const { ref, inView } = useInView({ threshold: 0.5, triggerOnce: true });
 
   return (
-    <footer ref={ref} className="enterprise-footer" data-animate="true" aria-busy={!inView}>
+    <footer
+      ref={ref}
+      className="enterprise-footer"
+      role="contentinfo"
+      data-animate="true"
+      aria-busy={!inView}
+    >
       {inView ? (
         <div className="footer-inner">
           <div className="footer-grid">

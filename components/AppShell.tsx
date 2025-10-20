@@ -65,7 +65,7 @@ type AppShellProps = {
 export default function AppShell({ children }: AppShellProps) {
   return (
     <AppShellClient>
-      <a href="#main-content" className="skip-link">
+      <a href="#main" className="skip-link">
         Skip to main content
       </a>
       <AppShellHeader />

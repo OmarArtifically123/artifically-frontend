@@ -11,12 +11,13 @@ import { Icon } from "../icons";
 type MenuState = "opening" | "open" | "closing" | "closed";
 
 type SolutionsMegaMenuProps = {
+  menuId: string;
   state: MenuState;
   onRequestClose: () => void;
   onNavigate: (event: MouseEvent<HTMLAnchorElement>, path: string) => void;
 };
 
-export default function SolutionsMegaMenu({ state, onRequestClose, onNavigate }: SolutionsMegaMenuProps) {
+export default function SolutionsMegaMenu({ menuId, state, onRequestClose, onNavigate }: SolutionsMegaMenuProps) {
   const [mounted, setMounted] = useState(false);
 
   useEffect(() => {
@@ -33,6 +34,7 @@ export default function SolutionsMegaMenu({ state, onRequestClose, onNavigate }:
       <div
         className="solutions-mega__panel"
         role="dialog"
+        id={menuId}
         aria-modal="true"
         aria-labelledby="solutions-mega-heading"
       >

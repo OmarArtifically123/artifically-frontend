@@ -14,7 +14,13 @@ export default function AppShellMain({ children }: AppShellMainProps) {
   }, []);
 
   return (
-    <main id="main-content" className="app-shell" data-route-ready={hydrated ? "true" : "false"} tabIndex={-1}>
+    <main
+      id="main"
+      role="main"
+      className="app-shell"
+      data-route-ready={hydrated ? "true" : "false"}
+      tabIndex={-1}
+    >
       {children}
     </main>
   );

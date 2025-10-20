@@ -22,25 +22,31 @@ body {
   min-height: 100%;
 }
 
-.skip-link {
-  position: absolute;
-  left: -999px;
-  top: auto;
-  width: 1px;
-  height: 1px;
-  overflow: hidden;
-  z-index: 100;
+*:focus-visible {
+  outline: 2px solid #a78bfa;
+  outline-offset: 2px;
+  border-radius: 4px;
 }
 
-.skip-link:focus {
-  left: 1rem;
-  top: 1rem;
-  width: auto;
-  height: auto;
-  padding: 0.75rem 1.25rem;
-  background: rgba(15, 23, 42, 0.85);
-  color: #fff;
-  border-radius: 9999px;
+*:focus:not(:focus-visible) {
+  outline: none;
+}
+
+.skip-link {
+  position: absolute;
+  top: -40px;
+  left: 0;
+  background: #a78bfa;
+  color: white;
+  padding: 8px 16px;
+  text-decoration: none;
+  border-radius: 0 0 8px 0;
+  z-index: 100000;
+}
+
+.skip-link:focus,
+.skip-link:focus-visible {
+  top: 0;
 }
 
 .site-header {

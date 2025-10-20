@@ -99,12 +99,13 @@ const QUICK_ACTIONS: QuickAction[] = [
 ];
 
 type AutomationsMegaMenuProps = {
+  menuId: string;
   state: "opening" | "open" | "closing" | "closed";
   onRequestClose: () => void;
   onNavigate: (event: MouseEvent<HTMLAnchorElement>, path: string) => void;
 };
 
-export default function AutomationsMegaMenu({ state, onRequestClose, onNavigate }: AutomationsMegaMenuProps) {
+export default function AutomationsMegaMenu({ menuId, state, onRequestClose, onNavigate }: AutomationsMegaMenuProps) {
   const [mounted, setMounted] = useState(false);
 
   useEffect(() => {
@@ -121,6 +122,7 @@ export default function AutomationsMegaMenu({ state, onRequestClose, onNavigate 
       <div
         className="automations-mega__panel"
         role="dialog"
+        id={menuId}
         aria-modal="true"
         aria-labelledby="automations-mega-heading"
       >

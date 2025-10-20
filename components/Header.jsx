@@ -19,6 +19,10 @@ import AutomationsMegaMenu from "./header/AutomationsMegaMenu";
 import SolutionsMegaMenu from "./header/SolutionsMegaMenu";
 import ResourcesMegaMenu from "./header/ResourcesMegaMenu";
 
+const resourcesMenuId = "mega-menu-resources";
+const automationsMenuId = "mega-menu-automations";
+const solutionsMenuId = "mega-menu-solutions";
+
 export default function Header({ user, onSignIn, onSignUp, onSignOut }) {
   const navigate = useViewTransitionNavigate();
   const pathname = usePathname() ?? "/";
@@ -810,19 +814,20 @@ export default function Header({ user, onSignIn, onSignUp, onSignOut }) {
         initial="hidden"
         animate={headerReady ? "visible" : "hidden"}
         variants={headerVariants}
+        role="banner"
       >
-      <div
-        className="header-inner"
-        style={{
-          display: "flex",
-          alignItems: "center",
-          justifyContent: "space-between",
-          width: "100%",
-          maxWidth: "1200px",
-          margin: "0 auto",
-          gap: space("md"),
-        }}
-      >
+        <div
+          className="header-inner"
+          style={{
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "space-between",
+            width: "100%",
+            maxWidth: "1200px",
+            margin: "0 auto",
+            gap: space("md"),
+          }}
+        >
         <Link
           href="/"
           className="brand brand--interactive"
@@ -856,7 +861,7 @@ export default function Header({ user, onSignIn, onSignUp, onSignOut }) {
           />
         </Link>
 
-        <nav className="nav">
+        <nav className="nav" aria-label="Main navigation">
           <StaggeredContainer
             className="nav-items"
             style={{
@@ -884,6 +889,7 @@ export default function Header({ user, onSignIn, onSignUp, onSignOut }) {
                           .join(" ")}
                         aria-haspopup="dialog"
                         aria-expanded={isMenuOpen ? "true" : "false"}
+                        aria-controls={resourcesMenuId}
                         onClick={() => {
                           if (isMenuOpen) {
                             closeResourcesMenu({ focusTrigger: false });
@@ -898,6 +904,7 @@ export default function Header({ user, onSignIn, onSignUp, onSignOut }) {
                       <ResourcesMegaMenu
                         label={item.label}
                         state={resourcesMenuState}
+                        menuId={resourcesMenuId}
                         columns={item.columns}
                         onRequestClose={() => closeResourcesMenu({ focusTrigger: true })}
                         onNavigate={(event, path) => {
@@ -928,6 +935,7 @@ export default function Header({ user, onSignIn, onSignUp, onSignOut }) {
                             .join(" ")}
                           aria-haspopup="dialog"
                           aria-expanded={isMenuOpen ? "true" : "false"}
+                          aria-controls={automationsMenuId}
                           onClick={() => {
                             closeSolutionsMenu();
                             if (automationsMenuState === "open" || automationsMenuState === "opening") {
@@ -941,6 +949,7 @@ export default function Header({ user, onSignIn, onSignUp, onSignOut }) {
                           <Icon name="chevronDown" size={16} aria-hidden="true" />
                         </button>
                         <AutomationsMegaMenu
+                          menuId={automationsMenuId}
                           state={automationsMenuState}
                           onRequestClose={() => closeAutomationsMenu({ focusTrigger: true })}
                           onNavigate={(event, path) => {
@@ -969,6 +978,7 @@ export default function Header({ user, onSignIn, onSignUp, onSignOut }) {
                             .join(" ")}
                           aria-haspopup="dialog"
                           aria-expanded={isMenuOpen ? "true" : "false"}
+                          aria-controls={solutionsMenuId}
                           onClick={() => {
                             closeAutomationsMenu();
                             if (solutionsMenuState === "open" || solutionsMenuState === "opening") {
@@ -982,6 +992,7 @@ export default function Header({ user, onSignIn, onSignUp, onSignOut }) {
                           <Icon name="chevronDown" size={16} aria-hidden="true" />
                         </button>
                         <SolutionsMegaMenu
+                          menuId={solutionsMenuId}
                           state={solutionsMenuState}
                           onRequestClose={() => closeSolutionsMenu({ focusTrigger: true })}
                           onNavigate={(event, path) => {
