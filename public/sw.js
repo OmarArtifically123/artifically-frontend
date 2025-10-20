@@ -1,6 +1,13 @@
-importScripts('https://storage.googleapis.com/workbox-cdn/releases/6.5.4/workbox-sw.js');
+let workboxLoaded = false;
 
-if (self.workbox) {
+try {
+  importScripts('https://storage.googleapis.com/workbox-cdn/releases/6.5.4/workbox-sw.js');
+  workboxLoaded = typeof self.workbox !== 'undefined';
+} catch (error) {
+  console.warn('Workbox failed to load for Artifically service worker.', error);
+}
+
+if (workboxLoaded && self.workbox) {
   const { core, precaching, routing, strategies, expiration, cacheableResponse } = self.workbox;
 
   core.setConfig({ debug: false });
@@ -82,5 +89,18 @@ if (self.workbox) {
     return Response.error();
   });
 } else {
-  console.warn('Workbox failed to load for Artifically service worker.');
+  if (!workboxLoaded) {
+    console.warn('Workbox unavailable, running fallback service worker.');
+  }
+  self.addEventListener('install', (event) => {
+    event.waitUntil(self.skipWaiting());
+  });
+
+  self.addEventListener('activate', (event) => {
+    event.waitUntil(self.clients.claim());
+  });
+
+  self.addEventListener('fetch', () => {
+    // No-op fallback to ensure the service worker remains passive when Workbox is unavailable.
+  });
 }
