@@ -4,6 +4,9 @@ import Link from "next/link";
 import { AnimatePresence, motion } from "framer-motion";
 import { useMemo, useState } from "react";
 
+import AnimatedSection from "../AnimatedSection.jsx";
+import { ANIMATION_TIMINGS, SPRING_CONFIGS } from "../../constants/animations.js";
+
 const featureTabs = [
   {
     id: "demos",
@@ -23,27 +26,23 @@ const featureTabs = [
   },
 ];
 
-const motionTransition = {
-  ease: [0.16, 1, 0.3, 1],
-};
-
 const panelVariants = {
   initial: { opacity: 0, y: 20 },
   animate: {
     opacity: 1,
     y: 0,
     transition: {
-      ...motionTransition,
-      duration: 0.4,
-      delay: 0.2,
+      duration: ANIMATION_TIMINGS.slow / 1000,
+      delay: ANIMATION_TIMINGS.micro / 1000,
+      ease: [0.16, 1, 0.3, 1],
     },
   },
   exit: {
     opacity: 0,
     y: -20,
     transition: {
-      ...motionTransition,
-      duration: 0.2,
+      duration: ANIMATION_TIMINGS.fast / 1000,
+      ease: [0.16, 1, 0.3, 1],
     },
   },
 };
@@ -62,13 +61,15 @@ export default function FeaturesShowcaseSection() {
       aria-labelledby="features-title"
     >
       <div className="features-capabilities__inner">
-        <header className="features-capabilities__header">
-          <p className="features-capabilities__eyebrow">EVERYTHING YOU NEED</p>
-          <h2 id="features-title" className="features-capabilities__title">
-            Artifically combines AI copilots, human-in-the-loop controls, and pre-built
-            playbooks so every team moves faster without compromising trust.
-          </h2>
-        </header>
+        <AnimatedSection>
+          <header className="features-capabilities__header">
+            <p className="features-capabilities__eyebrow">EVERYTHING YOU NEED</p>
+            <h2 id="features-title" className="features-capabilities__title">
+              Artifically combines AI copilots, human-in-the-loop controls, and pre-built
+              playbooks so every team moves faster without compromising trust.
+            </h2>
+          </header>
+        </AnimatedSection>
 
         <nav
           className="features-capabilities__tabs"
@@ -76,7 +77,7 @@ export default function FeaturesShowcaseSection() {
           aria-label="Key platform capabilities"
         >
           {featureTabs.map((tab) => (
-            <button
+            <motion.button
               key={tab.id}
               type="button"
               id={`feature-tab-${tab.id}`}
@@ -86,9 +87,14 @@ export default function FeaturesShowcaseSection() {
               aria-selected={active === tab.id}
               data-active={active === tab.id ? "true" : undefined}
               onClick={() => setActive(tab.id)}
+              whileHover={{
+                scale: 1.03,
+                transition: { type: "spring", ...SPRING_CONFIGS.medium },
+              }}
+              whileTap={{ scale: 0.96 }}
             >
               {tab.label}
-            </button>
+            </motion.button>
           ))}
         </nav>
 

@@ -1,22 +1,16 @@
 "use client";
 
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import {
-  AnimatePresence,
-  animate,
-  motion,
-  useMotionValue,
-  useMotionValueEvent,
-  useReducedMotion,
-} from "framer-motion";
+import { AnimatePresence, motion, useReducedMotion, useScroll, useTransform } from "framer-motion";
 import dynamic from "next/dynamic";
-import useDocumentVisibility from "../../hooks/useDocumentVisibility";
 import useInViewState from "../../hooks/useInViewState";
 import motionCatalog from "../../design/motion/catalog";
 import ScrollIndicator from "./ScrollIndicator";
 import HeroRoiCalculator from "./HeroRoiCalculator";
 import { Icon } from "../icons";
 import TrustedBy from "./TrustedBy";
+import AnimatedNumber from "../AnimatedNumber.jsx";
+import { SPRING_CONFIGS } from "../../constants/animations.js";
 
 function HeroBackgroundPlaceholder() {
   return <div className="hero-background hero-background--placeholder" aria-hidden="true" />;
@@ -162,6 +156,10 @@ export default function HeroSection({
     initialInView: initialHeroInView,
   });
 
+  const { scrollY } = useScroll();
+  const heroParallaxY = useTransform(scrollY, [0, 500], [0, 150]);
+  const heroFade = useTransform(scrollY, [0, 300], [1, 0]);
+
   useEffect(() => {
     if (typeof onReady === "function") {
       onReady();
@@ -284,7 +282,12 @@ export default function HeroSection({
   const visibleTile = activeTile ?? defaultPreviewTile;
 
   return (
-    <section ref={heroRef} className="page-hero" aria-labelledby="hero-headline">
+    <motion.section
+      ref={heroRef}
+      className="page-hero"
+      aria-labelledby="hero-headline"
+      style={prefersReducedMotion ? undefined : { y: heroParallaxY, opacity: heroFade }}
+    >
       {heroInView ? <HeroBackground variant="particles" /> : <HeroBackgroundPlaceholder />}
       <div className="page-hero__inner">
         <motion.div ref={contentRef} className="page-hero__content">
@@ -330,22 +333,39 @@ export default function HeroSection({
             animate={contentInView ? "visible" : "hidden"}
             variants={ctaVariants}
           >
-            <button type="button" className="cta-primary" onClick={onPrimary}>
+            <motion.button
+              type="button"
+              className="cta-primary"
+              onClick={onPrimary}
+              whileHover={{
+                scale: 1.02,
+                boxShadow: "0 12px 32px rgba(99, 102, 241, 0.45)",
+                transition: { type: "spring", ...SPRING_CONFIGS.medium },
+              }}
+              whileTap={{ scale: 0.97 }}
+              transition={{ duration: 0.2 }}
+            >
               <span className="cta-primary__label">{primaryLabel}</span>
-            </button>
-            <button
+            </motion.button>
+            <motion.button
               type="button"
               className="cta-secondary"
               onClick={onSecondary}
               aria-haspopup="dialog"
               aria-controls={demoDialogId || undefined}
               aria-expanded={typeof demoOpen === "boolean" ? (demoOpen ? "true" : "false") : undefined}
+              whileHover={{
+                scale: 1.02,
+                y: -2,
+                transition: { type: "spring", ...SPRING_CONFIGS.slow },
+              }}
+              whileTap={{ scale: 0.97 }}
             >
               <span className="cta-secondary__icon" aria-hidden="true">
                 ▶
               </span>
               <span>{secondaryLabel}</span>
-            </button>
+            </motion.button>
           </motion.div>
           <motion.div
             className="hero-trust-row"
@@ -446,7 +466,7 @@ export default function HeroSection({
         <HeroRoiCalculator />
       </div>
       <ScrollIndicator targetId="problem-solution" />
-    </section>
+    </motion.section>
   );
 }
 
@@ -487,7 +507,6 @@ function HeroStats({ stats, prefersReducedMotion, initialInView }) {
           key={stat.label}
           index={index}
           prefersReducedMotion={prefersReducedMotion}
-          inView={statsInView}
           {...stat}
         />
       ))}
@@ -495,49 +514,7 @@ function HeroStats({ stats, prefersReducedMotion, initialInView }) {
   );
 }
 
-function StatCounter({ value, suffix = "", label, index, prefersReducedMotion, inView }) {
-  const valueMotion = useMotionValue(prefersReducedMotion ? value : 0);
-  const [display, setDisplay] = useState(valueMotion.get());
-  const isDocumentVisible = useDocumentVisibility();
-  const hasAnimatedRef = useRef(false);
-
-  useMotionValueEvent(valueMotion, "change", (latest) => {
-    setDisplay(latest);
-  });
-
-  useEffect(() => {
-    if (prefersReducedMotion) {
-      valueMotion.set(value);
-      setDisplay(value);
-      return;
-    }
-
-    if (!inView || !isDocumentVisible) {
-      if (!hasAnimatedRef.current) {
-        valueMotion.set(0);
-        setDisplay(0);
-      }
-      return;
-    }
-
-    hasAnimatedRef.current = true;
-    const controls = animate(valueMotion, value, {
-      duration: motionCatalog.durations.long,
-      ease: motionCatalog.easings.out,
-    });
-
-    return () => controls.stop();
-  }, [prefersReducedMotion, inView, isDocumentVisible, value, valueMotion]);
-
-  const formatted = useMemo(() => {
-    const currentValue = prefersReducedMotion ? value : display;
-    if (value >= 1000) {
-      return `${Math.round(currentValue).toLocaleString()}${suffix}`;
-    }
-    const decimals = Number.isInteger(value) ? 0 : 1;
-    return `${Number(currentValue).toFixed(decimals)}${suffix}`;
-  }, [display, suffix, value, prefersReducedMotion]);
-
+function StatCounter({ value, suffix = "", label, index, prefersReducedMotion }) {
   const itemVariants = useMemo(() => {
     const hidden = { opacity: 0 };
     if (!prefersReducedMotion) {
@@ -558,9 +535,25 @@ function StatCounter({ value, suffix = "", label, index, prefersReducedMotion, i
     return { hidden, visible };
   }, [prefersReducedMotion, index]);
 
+  const precision = Number.isInteger(value) ? 0 : 1;
+  const formattedStatic = useMemo(
+    () =>
+      `${Number(value).toLocaleString(undefined, {
+        minimumFractionDigits: precision,
+        maximumFractionDigits: precision,
+      })}${suffix}`,
+    [precision, suffix, value],
+  );
+
   return (
     <motion.div className="hero-stat" variants={itemVariants}>
-      <span className="hero-stat__value">{formatted}</span>
+      <span className="hero-stat__value">
+        {prefersReducedMotion ? (
+          formattedStatic
+        ) : (
+          <AnimatedNumber value={value} precision={precision} suffix={suffix} />
+        )}
+      </span>
       <span className="hero-stat__label">{label}</span>
     </motion.div>
   );

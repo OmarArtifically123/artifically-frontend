@@ -1310,7 +1310,7 @@ export default function Header({ user, onSignIn, onSignUp, onSignOut }) {
             })}
           </div>
           <div className="mobile-menu__footer">
-            <button
+            <motion.button
               type="button"
               className="mobile-menu__cta-button"
               onClick={(event) => {
@@ -1318,9 +1318,15 @@ export default function Header({ user, onSignIn, onSignUp, onSignOut }) {
                 closeMobileMenu();
                 onSignUp?.(event);
               }}
+              whileHover={{
+                scale: 1.02,
+                boxShadow: "0 12px 32px rgba(99, 102, 241, 0.45)",
+                transition: { type: "spring", stiffness: 220, damping: 18 },
+              }}
+              whileTap={{ scale: 0.97 }}
             >
               Start Free Trial
-            </button>
+            </motion.button>
             <button
               type="button"
               className="mobile-menu__secondary-link"

@@ -1,5 +1,6 @@
 "use client";
 
+import { AnimatePresence } from "framer-motion";
 import { SpeedInsights } from "@vercel/speed-insights/react";
 import {
   Suspense,
@@ -19,6 +20,7 @@ import apiClient, { pick } from "@/api";
 import BackToTopButton from "@/components/BackToTopButton";
 import ExperienceLayer from "@/components/ExperienceLayer";
 import GlobalProgressBar from "@/components/GlobalProgressBar";
+import ScrollProgressIndicator from "@/components/ScrollProgressIndicator";
 import ReactQueryProvider from "@/components/providers/ReactQueryProvider";
 import RouteShell from "@/components/skeletons/RouteShell";
 import { ToastHost, toast } from "@/components/Toast";
@@ -197,7 +199,7 @@ export default function AppShellClient({ children }: AppShellClientProps) {
       window.removeEventListener("load", register);
     };
   }, []);
-  
+
   useEffect(() => {
     setIsHydrated(true);
 
@@ -382,12 +384,20 @@ export default function AppShellClient({ children }: AppShellClientProps) {
       <AppShellProvider value={contextValue}>
         <ExperienceLayer enableExperience={enableExperience}>
           <GlobalProgressBar active={isNavigating || authChecking} />
+          <ScrollProgressIndicator />
           {children}
-          {authOpen ? (
-            <Suspense fallback={<RouteShell rows={4} />}>
-              <AuthModal onClose={closeAuth} onAuthenticated={onAuthenticated} initialMode={authMode} />
-            </Suspense>
-          ) : null}
+          <Suspense fallback={<RouteShell rows={4} />}>
+            <AnimatePresence>
+              {authOpen ? (
+                <AuthModal
+                  key="auth-modal"
+                  onClose={closeAuth}
+                  onAuthenticated={onAuthenticated}
+                  initialMode={authMode}
+                />
+              ) : null}
+            </AnimatePresence>
+          </Suspense>
           <CommandPalette />
           <ToastHost />
           <BackToTopButton />

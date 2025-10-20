@@ -1,9 +1,11 @@
 "use client";
 
 import { useMemo } from "react";
-import { useInView } from "react-intersection-observer";
+import { motion } from "framer-motion";
 
+import AnimatedSection from "../AnimatedSection";
 import { Icon } from "../icons";
+import { SPRING_CONFIGS } from "../../constants/animations.js";
 
 const personas = [
   {
@@ -38,45 +40,69 @@ const personas = [
   },
 ];
 
+const containerVariants = {
+  hidden: { opacity: 0 },
+  visible: {
+    opacity: 1,
+    transition: {
+      staggerChildren: 0.08,
+    },
+  },
+};
+
+const itemVariants = {
+  hidden: { opacity: 0, y: 20 },
+  visible: {
+    opacity: 1,
+    y: 0,
+    transition: {
+      duration: 0.6,
+      ease: [0.16, 1, 0.3, 1],
+    },
+  },
+};
+
 export default function PersonaScenarioSection() {
   const cards = useMemo(() => personas, []);
 
   return (
     <section className="persona-scenarios" aria-labelledby="persona-scenarios-heading">
       <div className="persona-scenarios__inner">
-        <header className="persona-scenarios__header">
-          <p className="persona-scenarios__eyebrow">SCENARIO-BASED NAVIGATION</p>
-          <h2 id="persona-scenarios-heading">Choose the journey that matches your role</h2>
-          <p className="persona-scenarios__description">
-            Skip generic tours. Tell us who you are and we&apos;ll tailor automations, ROI snapshots, and recommended
-            playbooks instantly.
-          </p>
-        </header>
-        <div className="persona-scenarios__grid">
-          {cards.map((persona, index) => (
-            <PersonaCard key={persona.id} persona={persona} index={index} />
+        <AnimatedSection>
+          <header className="persona-scenarios__header">
+            <p className="persona-scenarios__eyebrow">SCENARIO-BASED NAVIGATION</p>
+            <h2 id="persona-scenarios-heading">Choose the journey that matches your role</h2>
+            <p className="persona-scenarios__description">
+              Skip generic tours. Tell us who you are and we&apos;ll tailor automations, ROI snapshots, and recommended
+              playbooks instantly.
+            </p>
+          </header>
+        </AnimatedSection>
+        <motion.div
+          className="persona-scenarios__grid"
+          variants={containerVariants}
+          initial="hidden"
+          whileInView="visible"
+          viewport={{ once: true, amount: 0.3 }}
+        >
+          {cards.map((persona) => (
+            <motion.article
+              key={persona.id}
+              variants={itemVariants}
+              className="persona-scenarios__card"
+              whileHover={{
+                y: -8,
+                scale: 1.02,
+                transition: { type: "spring", ...SPRING_CONFIGS.medium },
+              }}
+              whileTap={{ scale: 0.98 }}
+            >
+              <PersonaCardContent persona={persona} />
+            </motion.article>
           ))}
-        </div>
+        </motion.div>
       </div>
     </section>
-  );
-}
-
-function PersonaCard({ persona, index }) {
-  const { ref, inView } = useInView({ threshold: 0.3, triggerOnce: true });
-
-  return (
-    <article
-      ref={ref}
-      className={`persona-scenarios__card${inView ? " is-visible" : ""}`}
-      style={inView ? { animationDelay: `${index * 150}ms` } : undefined}
-    >
-      {inView ? (
-        <PersonaCardContent persona={persona} />
-      ) : (
-        <PersonaCardSkeleton />
-      )}
-    </article>
   );
 }
 
@@ -103,75 +129,5 @@ function PersonaCardContent({ persona }) {
         </span>
       </a>
     </>
-  );
-}
-
-function PersonaCardSkeleton() {
-  const lines = useMemo(() => Array.from({ length: 3 }), []);
-
-  return (
-    <div
-      aria-hidden="true"
-      style={{
-        display: "grid",
-        gap: "0.85rem",
-        minHeight: "100%",
-      }}
-    >
-      <div
-        style={{
-          width: "3rem",
-          height: "3rem",
-          borderRadius: "50%",
-          background: "linear-gradient(135deg, rgba(148,163,184,0.22), rgba(148,163,184,0.08))",
-          animation: "pulse 1.6s ease-in-out infinite",
-        }}
-      />
-      <div
-        style={{
-          width: "80%",
-          height: "1.4rem",
-          borderRadius: "0.75rem",
-          background: "linear-gradient(135deg, rgba(148,163,184,0.18), rgba(148,163,184,0.08))",
-          animation: "pulse 1.6s ease-in-out infinite",
-        }}
-      />
-      <div
-        style={{
-          height: "0.95rem",
-          borderRadius: "0.65rem",
-          background: "linear-gradient(135deg, rgba(148,163,184,0.16), rgba(148,163,184,0.06))",
-          animation: "pulse 1.6s ease-in-out infinite",
-        }}
-      />
-      <div
-        style={{
-          display: "grid",
-          gap: "0.65rem",
-        }}
-      >
-        {lines.map((_, index) => (
-          <div
-            key={index}
-            style={{
-              height: "0.85rem",
-              borderRadius: "0.65rem",
-              width: `${85 - index * 10}%`,
-              background: "linear-gradient(135deg, rgba(148,163,184,0.16), rgba(148,163,184,0.05))",
-              animation: "pulse 1.6s ease-in-out infinite",
-            }}
-          />
-        ))}
-      </div>
-      <div
-        style={{
-          width: "60%",
-          height: "1.05rem",
-          borderRadius: "999px",
-          background: "linear-gradient(135deg, rgba(129,140,248,0.35), rgba(129,140,248,0.15))",
-          animation: "pulse 1.6s ease-in-out infinite",
-        }}
-      />
-    </div>
   );
 }

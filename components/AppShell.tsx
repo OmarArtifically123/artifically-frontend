@@ -6,6 +6,7 @@ import AppShellMain from "@/components/AppShellMain";
 import AppShellVerificationBanner from "@/components/AppShellVerificationBanner";
 import Footer from "@/components/Footer";
 import RouteShell from "@/components/skeletons/RouteShell";
+import RouteTransitionBoundary from "@/components/RouteTransitionBoundary";
 
 function FooterSkeleton() {
   return (
@@ -70,7 +71,9 @@ export default function AppShell({ children }: AppShellProps) {
       <AppShellHeader />
       <AppShellVerificationBanner />
       <AppShellMain>
-        <Suspense fallback={<RouteShell rows={6} />}>{children}</Suspense>
+        <RouteTransitionBoundary>
+          <Suspense fallback={<RouteShell rows={6} />}>{children}</Suspense>
+        </RouteTransitionBoundary>
       </AppShellMain>
       <Suspense fallback={<FooterSkeleton />}>
         <Footer />

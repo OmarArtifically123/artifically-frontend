@@ -3,6 +3,7 @@
 // components/AuthModal.jsx
 import { useState, useRef, useCallback, useEffect, useMemo } from "react";
 import { useTheme } from "../context/ThemeContext";
+import { motion } from "framer-motion";
 import { debounce } from "lodash-es";
 import api from "../api";
 import ThemeToggle from "./ThemeToggle";
@@ -526,9 +527,13 @@ const AuthModal = ({ onClose, onAuthenticated, initialMode = "signin" }) => {
   }, [onClose]);
 
   return (
-    <div
+    <motion.div
       className="modal-overlay"
       onClick={handleOverlayClick}
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      exit={{ opacity: 0 }}
+      transition={{ duration: 0.2 }}
       style={{
         position: 'fixed',
         inset: 0,
@@ -544,9 +549,13 @@ const AuthModal = ({ onClose, onAuthenticated, initialMode = "signin" }) => {
         overflowY: 'auto'
       }}
     >
-      <div
+      <motion.div
         ref={modalRef}
         className="modal"
+        initial={{ opacity: 0, scale: 0.9, y: 20 }}
+        animate={{ opacity: 1, scale: 1, y: 0 }}
+        exit={{ opacity: 0, scale: 0.95, y: 10 }}
+        transition={{ duration: 0.4, ease: [0.16, 1, 0.3, 1] }}
         style={{
           width: '100%',
           maxWidth: '520px',
@@ -815,9 +824,9 @@ const AuthModal = ({ onClose, onAuthenticated, initialMode = "signin" }) => {
             </>
           )}
         </div>
-      </div>
-    </div>
+      </motion.div>
+    </motion.div>
   );
-};
-// TEMP
+}
+
 export default AuthModal;

@@ -1946,12 +1946,12 @@
   }
 }
 
-@keyframes skeleton-shimmer {
+@keyframes shimmer {
   0% {
-    background-position: 200% 0;
+    background-position: -200% 0;
   }
   100% {
-    background-position: -200% 0;
+    background-position: 200% 0;
   }
 }
 
@@ -2215,15 +2215,15 @@
 .skeleton {
   display: block;
   width: 100%;
-  border-radius: 0.85rem;
+  border-radius: 8px;
   background: linear-gradient(
     90deg,
-    color-mix(in oklch, var(--glass-2) 60%, transparent) 25%,
-    color-mix(in oklch, white 18%, transparent) 50%,
-    color-mix(in oklch, var(--glass-2) 60%, transparent) 75%
+    rgba(255, 255, 255, 0.04) 0%,
+    rgba(255, 255, 255, 0.08) 50%,
+    rgba(255, 255, 255, 0.04) 100%
   );
   background-size: 200% 100%;
-  animation: skeleton-shimmer 1.4s ease-in-out infinite;
+  animation: shimmer 1.5s ease-in-out infinite;
 }
 
 .skeleton--preview {

@@ -1,8 +1,11 @@
 "use client";
 
 import { useEffect, useMemo, useRef, useState } from "react";
+import { motion } from "framer-motion";
 
+import AnimatedSection from "../AnimatedSection.jsx";
 import { Icon } from "../icons";
+import { SPRING_CONFIGS } from "../../constants/animations.js";
 
 const problems = [
   {
@@ -43,6 +46,23 @@ const solutions = [
 ];
 
 const clamp = (value, min, max) => Math.min(Math.max(value, min), max);
+
+const cardContainerVariants = {
+  hidden: { opacity: 0 },
+  visible: {
+    opacity: 1,
+    transition: { staggerChildren: 0.08 },
+  },
+};
+
+const cardVariants = {
+  hidden: { opacity: 0, y: 18 },
+  visible: {
+    opacity: 1,
+    y: 0,
+    transition: { duration: 0.6, ease: [0.16, 1, 0.3, 1] },
+  },
+};
 
 export default function ProblemSolutionSection() {
   const pairs = useMemo(() => problems.map((problem, index) => ({ problem, solution: solutions[index] })), []);
@@ -142,20 +162,26 @@ export default function ProblemSolutionSection() {
   return (
     <section id="problem-solution" className="comparison-section" aria-labelledby="problem-solution-title">
       <div className="comparison-shell">
-        <header className="comparison-header">
-          <h2 id="problem-solution-title" className="comparison-title">
-            THE OLD WAY VS. THE ARTIFICALLY WAY
-          </h2>
-          <p className="comparison-description">
-            Old-school automation stacks demand months of integration work. We designed Artifically for teams who need
-            impact now, not next quarter.
-          </p>
-        </header>
+        <AnimatedSection>
+          <header className="comparison-header">
+            <h2 id="problem-solution-title" className="comparison-title">
+              THE OLD WAY VS. THE ARTIFICALLY WAY
+            </h2>
+            <p className="comparison-description">
+              Old-school automation stacks demand months of integration work. We designed Artifically for teams who need
+              impact now, not next quarter.
+            </p>
+          </header>
+        </AnimatedSection>
         <div className="comparison-grid" ref={sliderRef} onPointerDown={handleTrackPointerDown}>
-          <article
+          <motion.article
             className="comparison-panel comparison-panel--old"
             style={leftClip}
             data-side="old"
+            initial={{ opacity: 0, y: 16 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true, amount: 0.3 }}
+            transition={{ duration: 0.5, ease: [0.16, 1, 0.3, 1] }}
           >
             <header className="comparison-panel__header">
               <span aria-hidden="true" className="comparison-panel__symbol">
@@ -163,22 +189,42 @@ export default function ProblemSolutionSection() {
               </span>
               <h3>Weeks of Setup</h3>
             </header>
-            <div className="comparison-panel__list">
+            <motion.div
+              className="comparison-panel__list"
+              variants={cardContainerVariants}
+              initial="hidden"
+              whileInView="visible"
+              viewport={{ once: true, amount: 0.35 }}
+            >
               {pairs.map(({ problem }) => (
-                <div key={problem.title} className="comparison-card comparison-card--problem">
+                <motion.div
+                  key={problem.title}
+                  className="comparison-card comparison-card--problem"
+                  variants={cardVariants}
+                  whileHover={{
+                    y: -6,
+                    scale: 1.02,
+                    transition: { type: "spring", ...SPRING_CONFIGS.medium },
+                  }}
+                  whileTap={{ scale: 0.97 }}
+                >
                   <span aria-hidden="true" className="comparison-card__glyph comparison-card__glyph--negative">
                     <Icon name="close" size={20} />
                   </span>
                   <h4>{problem.title}</h4>
                   <p>{problem.description}</p>
-                </div>
+                </motion.div>
               ))}
-            </div>
-          </article>
-          <article
+            </motion.div>
+          </motion.article>
+          <motion.article
             className="comparison-panel comparison-panel--new"
             style={rightClip}
             data-side="new"
+            initial={{ opacity: 0, y: 16 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true, amount: 0.3 }}
+            transition={{ duration: 0.5, ease: [0.16, 1, 0.3, 1] }}
           >
             <header className="comparison-panel__header">
               <span aria-hidden="true" className="comparison-panel__symbol comparison-panel__symbol--positive">
@@ -186,18 +232,34 @@ export default function ProblemSolutionSection() {
               </span>
               <h3>Deploy in Minutes</h3>
             </header>
-            <div className="comparison-panel__list">
+            <motion.div
+              className="comparison-panel__list"
+              variants={cardContainerVariants}
+              initial="hidden"
+              whileInView="visible"
+              viewport={{ once: true, amount: 0.35 }}
+            >
               {pairs.map(({ solution }) => (
-                <div key={solution.title} className="comparison-card comparison-card--solution">
+                <motion.div
+                  key={solution.title}
+                  className="comparison-card comparison-card--solution"
+                  variants={cardVariants}
+                  whileHover={{
+                    y: -6,
+                    scale: 1.02,
+                    transition: { type: "spring", ...SPRING_CONFIGS.medium },
+                  }}
+                  whileTap={{ scale: 0.97 }}
+                >
                   <span aria-hidden="true" className="comparison-card__glyph comparison-card__glyph--positive">
                     <Icon name="check" size={20} />
                   </span>
                   <h4>{solution.title}</h4>
                   <p>{solution.description}</p>
-                </div>
+                </motion.div>
               ))}
-            </div>
-          </article>
+            </motion.div>
+          </motion.article>
           {!isMobile ? (
             <div className={`comparison-divider${isDragging ? " is-dragging" : ""}`} style={dividerStyle}>
               <span aria-hidden="true" className="comparison-divider__arrow">

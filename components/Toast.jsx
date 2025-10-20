@@ -4,6 +4,8 @@ import { space } from "../styles/spacing";
 // src/components/Toast.jsx
 import { useEffect, useMemo, useState } from "react";
 import { createPortal } from "react-dom";
+import { AnimatePresence, motion } from "framer-motion";
+import { SPRING_CONFIGS } from "../constants/animations.js";
 import { useTheme } from "../context/ThemeContext";
 import { Icon } from "./icons";
 
@@ -94,8 +96,25 @@ export function ToastItem({ data, onClose }) {
   };
 
   return (
-    <div
+    <motion.div
       className="toast"
+      initial={{ opacity: 0, y: 20 }}
+      animate={{ opacity: 1, y: 0 }}
+      exit={{ opacity: 0, y: -20 }}
+      transition={{ duration: 0.3, ease: [0.16, 1, 0.3, 1] }}
+      drag="x"
+      dragConstraints={{ left: 0, right: 0 }}
+      dragElastic={0.2}
+      onDragEnd={(_, info) => {
+        if (Math.abs(info.offset.x) > 100 || Math.abs(info.velocity.x) > 500) {
+          onClose();
+        }
+      }}
+      whileHover={{
+        y: -4,
+        transition: { type: "spring", ...SPRING_CONFIGS.medium },
+      }}
+      whileTap={{ scale: 0.98 }}
       style={{
         display: "flex",
         alignItems: "center",
@@ -177,7 +196,7 @@ export function ToastItem({ data, onClose }) {
       >
         ×
       </button>
-    </div>
+    </motion.div>
   );
 }
 
@@ -240,15 +259,17 @@ export function ToastHost() {
       aria-label="Notifications"
     >
       <div style={{ display: "grid", gap: space("sm") }}>
-        {toasts.map((toastItem) => (
-          <ToastItem
-            key={toastItem.id}
-            data={toastItem}
-            onClose={() =>
-              _setToasts((prev) => prev.filter((toast) => toast.id !== toastItem.id))
-            }
-          />
-        ))}
+        <AnimatePresence initial={false}>
+          {toasts.map((toastItem) => (
+            <ToastItem
+              key={toastItem.id}
+              data={toastItem}
+              onClose={() =>
+                _setToasts((prev) => prev.filter((toast) => toast.id !== toastItem.id))
+              }
+            />
+          ))}
+        </AnimatePresence>
       </div>
     </div>,
     document.body
