@@ -25,6 +25,57 @@ const nextConfig = {
   experimental: {
     optimizeCss: true,
   },
+  async headers() {
+    const staticAssetHeaders = {
+      key: "Cache-Control",
+      value: "public, max-age=31536000, immutable",
+    };
+
+    return [
+      {
+        source: "/_next/static/(.*)",
+        headers: [staticAssetHeaders],
+      },
+      {
+        source: "/(.*)\\.(?:js|css|json|ico|svg|png|jpg|jpeg|gif|webp|avif|ttf|otf|woff|woff2)$",
+        headers: [staticAssetHeaders],
+      },
+      {
+        source: "/api/:path*",
+        headers: [
+          {
+            key: "Cache-Control",
+            value: "public, max-age=60, stale-while-revalidate=300",
+          },
+        ],
+      },
+      {
+        source: "/sw.js",
+        headers: [
+          {
+            key: "Cache-Control",
+            value: "public, max-age=0, must-revalidate",
+          },
+        ],
+      },
+      {
+        source: "/:path*",
+        has: [
+          {
+            type: "header",
+            key: "accept",
+            value: ".*text/html.*",
+          },
+        ],
+        headers: [
+          {
+            key: "Cache-Control",
+            value: "public, max-age=0, must-revalidate",
+          },
+        ],
+      },
+    ];
+  },
   webpack(config, { dev, isServer }) {
     // ✅ Ensure peer dependencies resolve to the project copy without clobbering Next.js internals
     const alias = { ...(config.resolve.alias ?? {}) };

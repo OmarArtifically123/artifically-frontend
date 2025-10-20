@@ -1,7 +1,8 @@
 "use client";
 
 import Image from "next/image";
-import { useEffect, useRef } from "react";
+import { useMemo } from "react";
+import { useInView } from "react-intersection-observer";
 
 function cx(baseClassName, additionalClassName) {
   if (!additionalClassName) {
@@ -40,68 +41,56 @@ function renderLogoContent(logo) {
 }
 
 export default function TrustedBy({ logos = [], className = "" }) {
-  const sectionRef = useRef(null);
-
-  useEffect(() => {
-    const section = sectionRef.current;
-    if (!section) {
-      return undefined;
-    }
-
-    const reveal = () => {
-      section.classList.add("trusted-by--visible");
-    };
-
-    if (typeof window === "undefined" || !("IntersectionObserver" in window)) {
-      reveal();
-      return undefined;
-    }
-
-    const observer = new IntersectionObserver(
-      (entries) => {
-        entries.forEach((entry) => {
-          if (entry.isIntersecting) {
-            reveal();
-            observer.disconnect();
-          }
-        });
-      },
-      { threshold: 0.3 },
-    );
-
-    observer.observe(section);
-
-    return () => {
-      observer.disconnect();
-    };
-  }, []);
+  const { ref, inView } = useInView({ threshold: 0.8, triggerOnce: true });
+  const skeletonCount = useMemo(() => (logos.length ? logos.length : 6), [logos.length]);
+  const containerClassName = cx("trusted-by", className, inView && "trusted-by--visible");
 
   return (
     <div
-      ref={sectionRef}
-      className={cx("trusted-by", className)}
+      ref={ref}
+      className={containerClassName}
       aria-label="Trusted by leading teams"
+      data-visible={inView ? "true" : undefined}
     >
       <p className="trusted-by__eyebrow">TRUSTED BY TEAMS SHIPPING AI IN PRODUCTION</p>
-      <div className="trusted-by__logos" role="list">
-        {logos.map((logo, index) => {
-          const key =
-            typeof logo === "string"
-              ? logo
-              : logo?.id || logo?.name || logo?.label || `trusted-logo-${index}`;
+      <div className="trusted-by__logos" role="list" aria-busy={!inView}>
+        {inView
+          ? logos.map((logo, index) => {
+              const key =
+                typeof logo === "string"
+                  ? logo
+                  : logo?.id || logo?.name || logo?.label || `trusted-logo-${index}`;
 
-          return (
-            <span
-              key={key}
-              role="listitem"
-              className="trusted-by__logo"
-              data-trusted-logo=""
-              style={{ "--trusted-index": index }}
-            >
-              {renderLogoContent(logo)}
-            </span>
-          );
-        })}
+              return (
+                <span
+                  key={key}
+                  role="listitem"
+                  className="trusted-by__logo"
+                  data-trusted-logo=""
+                  style={{ "--trusted-index": index }}
+                >
+                  {renderLogoContent(logo)}
+                </span>
+              );
+            })
+          : Array.from({ length: skeletonCount }).map((_, index) => (
+              <span
+                key={`trusted-logo-skeleton-${index}`}
+                role="presentation"
+                aria-hidden="true"
+                className="trusted-by__logo"
+                style={{
+                  "--trusted-index": index,
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "center",
+                  background: "linear-gradient(135deg, rgba(148,163,184,0.16), rgba(148,163,184,0.08))",
+                  color: "transparent",
+                }}
+              >
+                •
+              </span>
+            ))}
       </div>
     </div>
   );

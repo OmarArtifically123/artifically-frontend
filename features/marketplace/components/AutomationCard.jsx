@@ -1,6 +1,7 @@
 "use client";
 
 import { memo, useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { useInView } from "react-intersection-observer";
 import dynamic from "next/dynamic";
 import { useTheme } from "../../../context/ThemeContext";
 import useMicroInteractions from "../../../hooks/useMicroInteractions";
@@ -565,6 +566,25 @@ function AutomationCardComponent({
   const lastTelemetryUpdateRef = useRef(0);
   const inlineLoopRef = useRef(null);
   const inlineStateRef = useRef(null);
+  const { ref: previewVisibilityRef, inView: previewVisible } = useInView({
+    threshold: 0.25,
+    triggerOnce: true,
+  });
+  const [previewActive, setPreviewActive] = useState(false);
+
+  const assignPreviewContainer = useCallback(
+    (node) => {
+      previewVisibilityRef(node);
+      previewContainerRef.current = node;
+    },
+    [previewVisibilityRef],
+  );
+
+  useEffect(() => {
+    if (previewVisible) {
+      setPreviewActive(true);
+    }
+  }, [previewVisible]);
 
   useEffect(() => {
     graphRef.current = previewGraph;
@@ -770,24 +790,30 @@ function AutomationCardComponent({
   }, []);
 
   useEffect(() => {
+    if (!previewActive) {
+      return;
+    }
     scheduleRender();
-  }, [scheduleRender, darkMode]);
+  }, [scheduleRender, previewActive, darkMode]);
 
   useEffect(() => {
+    if (!previewActive) {
+      return;
+    }
     scheduleRender();
-  }, [scheduleRender, previewGraph]);
+  }, [scheduleRender, previewActive, previewGraph]);
 
   useEffect(() => {
-    if (typeof ResizeObserver === "undefined") return undefined;
+    if (!previewActive || typeof ResizeObserver === "undefined") return undefined;
     const container = previewContainerRef.current;
     if (!container) return undefined;
     const observer = new ResizeObserver(() => scheduleRender());
     observer.observe(container);
     return () => observer.disconnect();
-  }, [scheduleRender]);
+  }, [scheduleRender, previewActive]);
 
   useEffect(() => {
-    if (typeof window === "undefined") return undefined;
+    if (!previewActive || typeof window === "undefined") return undefined;
 
     const runFallback = () => beginInlinePreview(previewGraph);
 
@@ -875,7 +901,7 @@ function AutomationCardComponent({
       workerRef.current = null;
       return runFallback();
     }
-  }, [previewGraph, scheduleRender, beginInlinePreview]);
+  }, [previewActive, previewGraph, scheduleRender, beginInlinePreview]);
 
   useEffect(() => {
     if (typeof window === "undefined" || simulationSteps.length === 0) return undefined;
@@ -1213,23 +1239,30 @@ const handleVote = useCallback(
 
       <div
         className="automation-card__live-preview"
-        ref={previewContainerRef}
+        ref={assignPreviewContainer}
         role="img"
         aria-label={`Live automation data flow for ${item.name}`}
+        data-preview-ready={previewActive ? "true" : undefined}
       >
-        <canvas ref={canvasRef} aria-hidden="true" />
-        <div className="automation-card__live-hud" aria-live="polite">
-          <div className="automation-card__live-metric">
-            <strong>{formattedPerMinute}</strong>
-            <span>
-              events/min · {telemetry.activeConnections} {activeLinksLabel} live
-            </span>
-          </div>
-          <div className="automation-card__live-metric">
-            <strong>{formattedSavings}</strong>
-            <span>Savings across customers</span>
-          </div>
-        </div>
+        {previewActive ? (
+          <>
+            <canvas ref={canvasRef} aria-hidden="true" />
+            <div className="automation-card__live-hud" aria-live="polite">
+              <div className="automation-card__live-metric">
+                <strong>{formattedPerMinute}</strong>
+                <span>
+                  events/min · {telemetry.activeConnections} {activeLinksLabel} live
+                </span>
+              </div>
+              <div className="automation-card__live-metric">
+                <strong>{formattedSavings}</strong>
+                <span>Savings across customers</span>
+              </div>
+            </div>
+          </>
+        ) : (
+          <div className="automation-card__preview-skeleton" aria-hidden="true" />
+        )}
       </div>
 
       <div className="automation-card__live-summary">

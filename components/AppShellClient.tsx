@@ -172,6 +172,33 @@ export default function AppShellClient({ children }: AppShellClientProps) {
   }, []);
 
   useEffect(() => {
+    if (typeof window === "undefined" || process.env.NODE_ENV !== "production") {
+      return;
+    }
+
+    if (!("serviceWorker" in navigator)) {
+      return;
+    }
+
+    const register = () => {
+      navigator.serviceWorker
+        .register("/sw.js")
+        .catch((error) => console.error("Failed to register service worker", error));
+    };
+
+    if (document.readyState === "complete") {
+      register();
+      return undefined;
+    }
+
+    window.addEventListener("load", register, { once: true });
+
+    return () => {
+      window.removeEventListener("load", register);
+    };
+  }, []);
+  
+  useEffect(() => {
     setIsHydrated(true);
 
     if (process.env.NODE_ENV === "development") {

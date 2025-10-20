@@ -25,5 +25,73 @@ jobs:
       - name: Build application
         run: npm run build
 
-      - name: Run Lighthouse CI
-        run: npm run ci:lighthouse
+      - name: Collect Lighthouse reports (current branch)
+        run: |
+          rm -rf .lighthouseci
+          npx lhci collect --config=./lighthouserc.js
+          mkdir -p reports/lighthouse/pr
+          cp -R .lighthouseci/. reports/lighthouse/pr/
+
+      - name: Assert Lighthouse budgets
+        run: npx lhci assert --config=./lighthouserc.js
+
+      - name: Collect Lighthouse reports (base branch)
+        if: github.event_name == 'pull_request'
+        run: |
+          git fetch origin ${{ github.base_ref }} --depth=1
+          git worktree add ../base-ref origin/${{ github.base_ref }}
+          cd ../base-ref
+          npm ci
+          npm run build
+          rm -rf .lighthouseci
+          npx lhci collect --config=../artifically-frontend/lighthouserc.js
+          mkdir -p ../artifically-frontend/reports/lighthouse/base
+          cp -R .lighthouseci/. ../artifically-frontend/reports/lighthouse/base/
+
+      - name: Cleanup base worktree
+        if: github.event_name == 'pull_request'
+        run: git worktree remove --force ../base-ref
+
+      - name: Compare Lighthouse metrics
+        if: github.event_name == 'pull_request'
+        run: node scripts/perf/compare-lighthouse.mjs --base reports/lighthouse/base --pr reports/lighthouse/pr --summary reports/lighthouse/summary.json --comment reports/lighthouse/comment.md
+
+      - name: Post Lighthouse report
+        if: ${{ github.event_name == 'pull_request' && always() }}
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const fs = require('fs');
+            const marker = '<!-- lighthouse-report -->';
+            const commentPath = 'reports/lighthouse/comment.md';
+            if (!fs.existsSync(commentPath)) {
+              core.warning('No Lighthouse comment to post.');
+              return;
+            }
+            const body = fs.readFileSync(commentPath, 'utf8');
+            const fullBody = `${marker}\n${body}`;
+            const { data: comments } = await github.rest.issues.listComments({
+              ...context.repo,
+              issue_number: context.issue.number,
+            });
+            const existing = comments.find((comment) => comment.user?.login === 'github-actions[bot]' && comment.body?.includes(marker));
+            if (existing) {
+              await github.rest.issues.updateComment({
+                ...context.repo,
+                comment_id: existing.id,
+                body: fullBody,
+              });
+            } else {
+              await github.rest.issues.createComment({
+                ...context.repo,
+                issue_number: context.issue.number,
+                body: fullBody,
+              });
+            }
+
+      - name: Upload Lighthouse artifacts
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: lighthouse-report
+          path: reports/lighthouse

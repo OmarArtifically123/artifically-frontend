@@ -1,5 +1,6 @@
 import Script from "next/script";
 import type { Metadata, Viewport } from "next";
+import { Analytics } from "@vercel/analytics/react";
 import AppShell from "@/components/AppShell";
 import { ThemeProvider } from "@/context/ThemeContext";
 import inter from "@/lib/fonts/inter";
@@ -104,6 +105,7 @@ export default function RootLayout({
         <ThemeProvider>
           <AppShell>{children}</AppShell>
         </ThemeProvider>
+        <Analytics />
       </body>
     </html>
   );

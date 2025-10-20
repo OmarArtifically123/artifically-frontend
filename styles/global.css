@@ -6327,6 +6327,13 @@ body.solutions-mega-open {
   filter: saturate(1.15);
 }
 
+.automation-card__preview-skeleton {
+  width: 100%;
+  height: 170px;
+  border-radius: 1.15rem;
+  background: linear-gradient(135deg, rgba(148, 163, 184, 0.2), rgba(30, 41, 59, 0.35));
+}
+
 .automation-card__live-hud {
   position: absolute;
   inset: auto 0.8rem 0.75rem 0.8rem;

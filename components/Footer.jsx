@@ -1,7 +1,8 @@
 "use client";
 
 import Link from "next/link";
-import { useEffect, useId, useRef, useState } from "react";
+import { useEffect, useId, useMemo, useRef, useState } from "react";
+import { useInView } from "react-intersection-observer";
 
 import { Icon } from "./icons";
 import LogoWordmark from "./ui/LogoWordmark";
@@ -145,171 +146,177 @@ export default function Footer() {
     formStatus === "error" ? " has-error" : ""
   }${formStatus === "success" ? " has-success" : ""}`;
 
+  const { ref, inView } = useInView({ threshold: 0.5, triggerOnce: true });
+
   return (
-    <footer className="enterprise-footer" data-animate="true">
-      <div className="footer-inner">
-        <div className="footer-grid">
-          <nav className="footer-column" aria-label="Products">
-            <h4 className="footer-heading">Products</h4>
-            <ul className="footer-links">
-              {productLinks.map(({ label, description, href }) => (
-                <li key={label}>
-                  <Link href={href} className="footer-link">
-                    <span className="footer-link-text">
-                      <span className="footer-link-title">{label}</span>
-                      {description ? (
-                        <>
-                          <span className="footer-link-divider">-</span>
-                          <span className="footer-link-description">{description}</span>
-                        </>
-                      ) : null}
-                    </span>
-                  </Link>
-                </li>
-              ))}
-            </ul>
-          </nav>
+    <footer ref={ref} className="enterprise-footer" data-animate="true" aria-busy={!inView}>
+      {inView ? (
+        <div className="footer-inner">
+          <div className="footer-grid">
+            <nav className="footer-column" aria-label="Products">
+              <h4 className="footer-heading">Products</h4>
+              <ul className="footer-links">
+                {productLinks.map(({ label, description, href }) => (
+                  <li key={label}>
+                    <Link href={href} className="footer-link">
+                      <span className="footer-link-text">
+                        <span className="footer-link-title">{label}</span>
+                        {description ? (
+                          <>
+                            <span className="footer-link-divider">-</span>
+                            <span className="footer-link-description">{description}</span>
+                          </>
+                        ) : null}
+                      </span>
+                    </Link>
+                  </li>
+                ))}
+              </ul>
+            </nav>
 
-          <nav className="footer-column" aria-label="Resources">
-            <h4 className="footer-heading">Resources</h4>
-            <ul className="footer-links">
-              {resourceLinks.map(({ label, description, href }) => (
-                <li key={label}>
-                  <Link href={href} className="footer-link">
-                    <span className="footer-link-text">
-                      <span className="footer-link-title">{label}</span>
-                      <span className="footer-link-divider">-</span>
-                      <span className="footer-link-description">{description}</span>
-                    </span>
-                  </Link>
-                </li>
-              ))}
-            </ul>
-          </nav>
+            <nav className="footer-column" aria-label="Resources">
+              <h4 className="footer-heading">Resources</h4>
+              <ul className="footer-links">
+                {resourceLinks.map(({ label, description, href }) => (
+                  <li key={label}>
+                    <Link href={href} className="footer-link">
+                      <span className="footer-link-text">
+                        <span className="footer-link-title">{label}</span>
+                        <span className="footer-link-divider">-</span>
+                        <span className="footer-link-description">{description}</span>
+                      </span>
+                    </Link>
+                  </li>
+                ))}
+              </ul>
+            </nav>
 
-          <nav className="footer-column" aria-label="Company">
-            <h4 className="footer-heading">Company</h4>
-            <ul className="footer-links">
-              {companyLinks.map(({ label, description, href }) => (
-                <li key={label}>
-                  <Link href={href} className="footer-link">
-                    <span className="footer-link-text">
-                      <span className="footer-link-title">{label}</span>
-                      <span className="footer-link-divider">-</span>
-                      <span className="footer-link-description">{description}</span>
-                    </span>
-                  </Link>
-                </li>
-              ))}
-            </ul>
-          </nav>
+            <nav className="footer-column" aria-label="Company">
+              <h4 className="footer-heading">Company</h4>
+              <ul className="footer-links">
+                {companyLinks.map(({ label, description, href }) => (
+                  <li key={label}>
+                    <Link href={href} className="footer-link">
+                      <span className="footer-link-text">
+                        <span className="footer-link-title">{label}</span>
+                        <span className="footer-link-divider">-</span>
+                        <span className="footer-link-description">{description}</span>
+                      </span>
+                    </Link>
+                  </li>
+                ))}
+              </ul>
+            </nav>
 
-          <nav className="footer-column" aria-label="Support and legal">
-            <h4 className="footer-heading">Support &amp; Legal</h4>
-            <ul className="footer-links">
-              {supportLinks.map(({ label, description, href }) => (
-                <li key={label}>
-                  <Link href={href} className="footer-link">
-                    <span className="footer-link-text">
-                      <span className="footer-link-title">{label}</span>
-                      <span className="footer-link-divider">-</span>
-                      <span className="footer-link-description">{description}</span>
-                    </span>
-                  </Link>
-                </li>
-              ))}
-            </ul>
-          </nav>
+            <nav className="footer-column" aria-label="Support and legal">
+              <h4 className="footer-heading">Support &amp; Legal</h4>
+              <ul className="footer-links">
+                {supportLinks.map(({ label, description, href }) => (
+                  <li key={label}>
+                    <Link href={href} className="footer-link">
+                      <span className="footer-link-text">
+                        <span className="footer-link-title">{label}</span>
+                        <span className="footer-link-divider">-</span>
+                        <span className="footer-link-description">{description}</span>
+                      </span>
+                    </Link>
+                  </li>
+                ))}
+              </ul>
+            </nav>
 
-          <div className="footer-column newsletter-column">
-            <h4 className="footer-heading">Stay ahead of automation trends</h4>
-            <p className="newsletter-description">
-              Join 10,000+ operators getting curated updates.
-            </p>
-            <form className="newsletter-form" onSubmit={handleNewsletterSubmit} noValidate>
-              <label className="sr-only" htmlFor={emailId}>
-                Work email
-              </label>
-              <input
-                id={emailId}
-                type="email"
-                value={email}
-                onChange={(event) => setEmail(event.target.value)}
-                placeholder="Enter work email"
-                className={inputClassName}
-                aria-describedby={`${emailId}-message`}
-                disabled={formStatus === "loading"}
-                required
-              />
-              <button
-                type="submit"
-                className="newsletter-button"
-                disabled={formStatus === "loading"}
-              >
-                {formStatus === "loading" ? "Joining…" : "Join newsletter"}
-              </button>
-            </form>
-            <div
-              id={`${emailId}-message`}
-              className={`newsletter-message${formStatus ? ` ${formStatus}` : ""}`}
-              role="status"
-              aria-live="polite"
-            >
-              {formMessage || "We send product intelligence twice a month."}
-            </div>
-
-            <div className="footer-social">
-              {socialLinks.map(({ label, href, icon }) => (
-                <a
-                  key={label}
-                  href={href}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="footer-social-link"
-                  aria-label={label}
+            <div className="footer-column newsletter-column">
+              <h4 className="footer-heading">Stay ahead of automation trends</h4>
+              <p className="newsletter-description">
+                Join 10,000+ operators getting curated updates.
+              </p>
+              <form className="newsletter-form" onSubmit={handleNewsletterSubmit} noValidate>
+                <label className="sr-only" htmlFor={emailId}>
+                  Work email
+                </label>
+                <input
+                  id={emailId}
+                  type="email"
+                  value={email}
+                  onChange={(event) => setEmail(event.target.value)}
+                  placeholder="Enter work email"
+                  className={inputClassName}
+                  aria-describedby={`${emailId}-message`}
+                  disabled={formStatus === "loading"}
+                  required
+                />
+                <button
+                  type="submit"
+                  className="newsletter-button"
+                  disabled={formStatus === "loading"}
                 >
-                  <Icon name={icon} size={18} strokeWidth={1.6} />
-                </a>
-              ))}
+                  {formStatus === "loading" ? "Joining…" : "Join newsletter"}
+                </button>
+              </form>
+              <div
+                id={`${emailId}-message`}
+                className={`newsletter-message${formStatus ? ` ${formStatus}` : ""}`}
+                role="status"
+                aria-live="polite"
+              >
+                {formMessage || "We send product intelligence twice a month."}
+              </div>
+
+              <div className="footer-social">
+                {socialLinks.map(({ label, href, icon }) => (
+                  <a
+                    key={label}
+                    href={href}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="footer-social-link"
+                    aria-label={label}
+                  >
+                    <Icon name={icon} size={18} strokeWidth={1.6} />
+                  </a>
+                ))}
+              </div>
+            </div>
+          </div>
+
+          <div className="footer-divider" aria-hidden="true" />
+
+          <div className="footer-bottom">
+            <div className="footer-bottom-left">
+              <LogoWordmark variant="dark" style={{ width: "120px", height: "auto" }} />
+              <p className="footer-copyright">
+                © 2025 Artifically. All rights reserved.
+              </p>
+            </div>
+
+            <div className="footer-bottom-right">
+              <div className="footer-certifications">
+                <div className="footer-badge">
+                  <div className="footer-badge-icon">SOC 2</div>
+                  <span>SOC 2 Certified</span>
+                </div>
+                <div className="footer-badge">
+                  <div className="footer-badge-icon">GDPR</div>
+                  <span>GDPR Compliant</span>
+                </div>
+              </div>
+
+              <div className="footer-stats" aria-label="Platform performance stats">
+                {footerStats.map((stat, index) => (
+                  <span key={stat} className="footer-stat">
+                    {stat}
+                    {index < footerStats.length - 1 ? (
+                      <span aria-hidden="true" className="footer-stat-divider" />
+                    ) : null}
+                  </span>
+                ))}
+              </div>
             </div>
           </div>
         </div>
-
-        <div className="footer-divider" aria-hidden="true" />
-
-        <div className="footer-bottom">
-          <div className="footer-bottom-left">
-            <LogoWordmark variant="dark" style={{ width: "120px", height: "auto" }} />
-            <p className="footer-copyright">
-              © 2025 Artifically. All rights reserved.
-            </p>
-          </div>
-
-          <div className="footer-bottom-right">
-            <div className="footer-certifications">
-              <div className="footer-badge">
-                <div className="footer-badge-icon">SOC 2</div>
-                <span>SOC 2 Certified</span>
-              </div>
-              <div className="footer-badge">
-                <div className="footer-badge-icon">GDPR</div>
-                <span>GDPR Compliant</span>
-              </div>
-            </div>
-
-            <div className="footer-stats" aria-label="Platform performance stats">
-              {footerStats.map((stat, index) => (
-                <span key={stat} className="footer-stat">
-                  {stat}
-                  {index < footerStats.length - 1 ? (
-                    <span aria-hidden="true" className="footer-stat-divider" />
-                  ) : null}
-                </span>
-              ))}
-            </div>
-          </div>
-        </div>
-      </div>
+      ) : (
+        <FooterSkeleton />
+      )}
 
       <style jsx>{`
         .enterprise-footer {
@@ -657,5 +664,65 @@ export default function Footer() {
         }
       `}</style>
     </footer>
+  );
+}
+
+function FooterSkeleton() {
+  const columnSkeletons = useMemo(() => Array.from({ length: 4 }), []);
+  const linkSkeletons = useMemo(() => Array.from({ length: 4 }), []);
+
+  const blockStyle = {
+    background: "linear-gradient(135deg, rgba(148,163,184,0.18), rgba(148,163,184,0.08))",
+    borderRadius: "0.75rem",
+  };
+
+  return (
+    <div className="footer-inner" aria-hidden="true">
+      <div className="footer-grid">
+        {columnSkeletons.map((_, index) => (
+          <div key={`footer-skeleton-${index}`} className="footer-column" style={{ display: "grid", gap: "0.85rem" }}>
+            <div style={{ ...blockStyle, height: "1.3rem", width: "65%" }} />
+            {linkSkeletons.map((__, rowIndex) => (
+              <div
+                key={`footer-skeleton-${index}-${rowIndex}`}
+                style={{
+                  ...blockStyle,
+                  height: "0.85rem",
+                  width: `${85 - rowIndex * 12}%`,
+                  opacity: 0.7,
+                }}
+              />
+            ))}
+          </div>
+        ))}
+        <div className="footer-column newsletter-column" style={{ display: "grid", gap: "0.85rem" }}>
+          <div style={{ ...blockStyle, height: "1.3rem", width: "70%" }} />
+          <div style={{ ...blockStyle, height: "0.9rem", width: "90%", opacity: 0.7 }} />
+          <div style={{ ...blockStyle, height: "3rem", width: "100%", opacity: 0.6 }} />
+          <div style={{ ...blockStyle, height: "2.75rem", width: "100%", opacity: 0.6 }} />
+        </div>
+      </div>
+      <div className="footer-divider" aria-hidden="true" />
+      <div className="footer-bottom">
+        <div className="footer-bottom-left" style={{ gap: "1.2rem" }}>
+          <div style={{ ...blockStyle, height: "1.75rem", width: "7.5rem" }} />
+          <div style={{ ...blockStyle, height: "0.9rem", width: "11rem", opacity: 0.6 }} />
+        </div>
+        <div className="footer-bottom-right" style={{ gap: "1.2rem" }}>
+          <div className="footer-certifications" style={{ gap: "1.2rem" }}>
+            <div style={{ ...blockStyle, height: "2.5rem", width: "6.5rem", opacity: 0.6 }} />
+            <div style={{ ...blockStyle, height: "2.5rem", width: "6.5rem", opacity: 0.6 }} />
+          </div>
+          <div className="footer-stats" style={{ gap: "1.1rem" }}>
+            {Array.from({ length: 3 }).map((_, statIndex) => (
+              <div
+                key={`footer-stat-skeleton-${statIndex}`}
+                style={{ ...blockStyle, height: "0.85rem", width: "7.5rem", opacity: 0.6 }}
+              />
+            ))}
+          </div>
+        </div>
+      </div>
+    </div>
   );
 }

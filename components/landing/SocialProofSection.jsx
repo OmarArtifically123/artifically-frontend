@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useMemo, useRef, useState } from "react";
+import { useInView } from "react-intersection-observer";
 
 const customerLogos = [
   "Mercury Labs",
@@ -49,6 +50,12 @@ export default function SocialProofSection() {
   const [activeIndex, setActiveIndex] = useState(0);
   const isPausedRef = useRef(false);
   const autoplayRef = useRef();
+  const { ref: logosRef, inView: logosVisible } = useInView({
+    threshold: 0.8,
+    triggerOnce: true,
+  });
+
+  const logoSkeletons = useMemo(() => Array.from({ length: customerLogos.length }), []);
 
   const total = testimonials.length;
   const activeTestimonial = useMemo(() => testimonials[activeIndex % total], [activeIndex, total]);
@@ -97,24 +104,46 @@ export default function SocialProofSection() {
           Join 12,500+ Companies
         </h2>
       </header>
-      <div className="logo-wall" aria-label="Customer logos">
-        {customerLogos.map((logo) => (
-          <span
-            key={logo}
-            style={{
-              padding: "1rem 1.5rem",
-              borderRadius: "0.85rem",
-              border: "1px solid color-mix(in oklch, white 10%, transparent)",
-              background: "color-mix(in oklch, var(--glass-2) 70%, transparent)",
-              fontSize: "0.9rem",
-              letterSpacing: "0.12em",
-              textTransform: "uppercase",
-              color: "color-mix(in oklch, white 75%, var(--gray-200))",
-            }}
-          >
-            {logo}
-          </span>
-        ))}
+      <div ref={logosRef} className="logo-wall" aria-label="Customer logos" aria-busy={!logosVisible}>
+        {logosVisible
+          ? customerLogos.map((logo) => (
+              <span
+                key={logo}
+                style={{
+                  padding: "1rem 1.5rem",
+                  borderRadius: "0.85rem",
+                  border: "1px solid color-mix(in oklch, white 10%, transparent)",
+                  background: "color-mix(in oklch, var(--glass-2) 70%, transparent)",
+                  fontSize: "0.9rem",
+                  letterSpacing: "0.12em",
+                  textTransform: "uppercase",
+                  color: "color-mix(in oklch, white 75%, var(--gray-200))",
+                }}
+              >
+                {logo}
+              </span>
+            ))
+          : logoSkeletons.map((_, index) => (
+              <span
+                key={`logo-skeleton-${index}`}
+                aria-hidden="true"
+                style={{
+                  padding: "1rem 1.5rem",
+                  borderRadius: "0.85rem",
+                  border: "1px solid color-mix(in oklch, white 6%, transparent)",
+                  background: "linear-gradient(135deg, rgba(148,163,184,0.18), rgba(148,163,184,0.08))",
+                  minWidth: "8rem",
+                  display: "inline-flex",
+                  alignItems: "center",
+                  justifyContent: "center",
+                  opacity: 0.8,
+                  color: "transparent",
+                  animation: "pulse 1.6s ease-in-out infinite",
+                }}
+              >
+                •
+              </span>
+            ))}
       </div>
       <div
         className="testimonial-carousel"
