@@ -14,6 +14,7 @@ import {
 import { createPortal } from "react-dom";
 import Icon from "@/components/icons/Icon";
 import { useAppShell } from "@/context/AppShellContext";
+import { useFocusTrap } from "@/hooks/useFocusTrap";
 import {
   getCommandPaletteItems,
   type CommandPaletteItem,
@@ -190,6 +191,7 @@ export default function CommandPalette() {
     [items],
   );
   const inputRef = useRef<HTMLInputElement | null>(null);
+  const modalRef = useRef<HTMLDivElement | null>(null);
   const trimmedQuery = query.trim();
 
   useEffect(() => {
@@ -220,6 +222,8 @@ export default function CommandPalette() {
     setQuery("");
   }, []);
 
+  useFocusTrap(open, modalRef, { initialFocusRef: inputRef, onEscape: closePalette });
+
   useEffect(() => {
     if (!open) {
       return;
@@ -243,10 +247,18 @@ export default function CommandPalette() {
         return;
       }
 
+      const target = event.target as HTMLElement | null;
+      if (target) {
+        const tagName = target.tagName.toLowerCase();
+        if (tagName === "input" || tagName === "textarea" || target.isContentEditable) {
+          return;
+        }
+      }
+
       const isMeta = event.metaKey || (event.ctrlKey && !event.metaKey);
       const isK = event.key.toLowerCase() === "k";
 
-      if (isMeta && isK) {
+      if (isMeta && isK && !event.altKey && !event.shiftKey) {
         event.preventDefault();
         setOpen(true);
         return;
@@ -549,6 +561,7 @@ export default function CommandPalette() {
           exit={{ opacity: 0 }}
           transition={{ duration: 0.18, ease: "easeOut" }}
           onClick={handleBackdropClick}
+          role="presentation"
         >
           <motion.div
             className="command-palette__modal"
@@ -556,7 +569,21 @@ export default function CommandPalette() {
             animate={{ opacity: 1, scale: 1, y: 0 }}
             exit={{ opacity: 0, scale: 0.98 }}
             transition={{ duration: 0.25, ease: [0.16, 1, 0.3, 1] }}
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="command-palette-title"
+            aria-describedby="command-palette-modal-description"
+            ref={modalRef}
+            tabIndex={-1}
           >
+          <h2 id="command-palette-title" className="sr-only">
+              Command palette
+            </h2>
+            <p id="command-palette-modal-description" className="sr-only">
+              Search automations, documentation, and quick actions. Use the arrow keys to move through results, press
+              Enter to run a command, and press Escape to close. Press Command+K on Mac or Control+K on Windows from
+              anywhere to open this dialog.
+            </p>
             <div className="command-palette__input-wrapper">
               <Icon name="search" size={20} strokeWidth={2} className="command-palette__input-icon" />
               <input

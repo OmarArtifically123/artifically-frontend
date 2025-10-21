@@ -2,6 +2,7 @@
 
 import { useEffect, useRef } from "react";
 import { createPortal } from "react-dom";
+import { useFocusTrap } from "@/hooks/useFocusTrap";
 import { cn } from "../utils/cn";
 import { Button } from "./Button";
 import type { ReactNode } from "react";
@@ -39,27 +40,18 @@ export function Modal({
   const dialogRef = useRef<HTMLDivElement>(null);
   const portalTarget = typeof document !== "undefined" ? document.body : null;
 
+  useFocusTrap(isOpen, dialogRef, { onEscape: onClose });
+
   useEffect(() => {
     if (!isOpen || !portalTarget) {
       return undefined;
     }
     const previousOverflow = portalTarget.style.overflow;
     portalTarget.style.overflow = "hidden";
-    const dialog = dialogRef.current;
-    dialog?.focus();
-
-    const handleKeyDown = (event: KeyboardEvent) => {
-      if (event.key === "Escape") {
-        onClose();
-      }
-    };
-
-    window.addEventListener("keydown", handleKeyDown);
     return () => {
       portalTarget.style.overflow = previousOverflow;
-      window.removeEventListener("keydown", handleKeyDown);
     };
-  }, [isOpen, onClose, portalTarget]);
+  }, [isOpen, portalTarget]);
 
   if (!isOpen || !portalTarget) {
     return null;

@@ -2,96 +2,21 @@
 
 import { useEffect, useMemo, useRef, useState } from "react";
 
-const FOCUSABLE_SELECTOR = [
-  "a[href]",
-  "button:not([disabled])",
-  "textarea:not([disabled])",
-  "input:not([disabled])",
-  "select:not([disabled])",
-  "details summary",
-  "[tabindex]:not([tabindex='-1'])",
-].join(",");
+import { useFocusTrap } from "@/hooks/useFocusTrap";
 
 export default function HeroDemoModal({ open, onClose, dialogId = "hero-demo-modal" }) {
   const dialogRef = useRef(null);
-  const focusTrapRef = useRef({ first: null, last: null });
-  const previousActiveElementRef = useRef(null);
+  const closeButtonRef = useRef(null);
   const [isVisible, setIsVisible] = useState(false);
+
+  useFocusTrap(open, dialogRef, { initialFocusRef: closeButtonRef, onEscape: onClose });
 
   useEffect(() => {
     if (!open) {
       setIsVisible(false);
-      return undefined;
-    }
-
-    previousActiveElementRef.current = document.activeElement;
-    setIsVisible(true);
-
-    const handleKeyDown = (event) => {
-      if (event.key === "Escape") {
-        event.preventDefault();
-        onClose();
-        return;
-      }
-
-      if (event.key === "Tab") {
-        const { first, last } = focusTrapRef.current;
-        if (!first || !last) {
-          return;
-        }
-
-        if (event.shiftKey) {
-          if (document.activeElement === first) {
-            event.preventDefault();
-            last.focus();
-          }
-        } else if (document.activeElement === last) {
-          event.preventDefault();
-          first.focus();
-        }
-      }
-    };
-
-    const handleFocusIn = (event) => {
-      if (!dialogRef.current) return;
-      if (dialogRef.current.contains(event.target)) {
-        return;
-      }
-      focusTrapRef.current.first?.focus();
-    };
-
-    window.addEventListener("keydown", handleKeyDown);
-    window.addEventListener("focusin", handleFocusIn);
-
-    return () => {
-      window.removeEventListener("keydown", handleKeyDown);
-      window.removeEventListener("focusin", handleFocusIn);
-    };
-  }, [open, onClose]);
-
-  useEffect(() => {
-    if (!open || !dialogRef.current) {
       return;
     }
-
-    const dialogNode = dialogRef.current;
-    const updateFocusable = () => {
-      const focusable = Array.from(dialogNode.querySelectorAll(FOCUSABLE_SELECTOR));
-      focusTrapRef.current = {
-        first: focusable[0] || dialogNode,
-        last: focusable[focusable.length - 1] || focusable[0] || dialogNode,
-      };
-      requestAnimationFrame(() => {
-        focusTrapRef.current.first?.focus({ preventScroll: true });
-      });
-    };
-
-    updateFocusable();
-
-    const observer = new MutationObserver(updateFocusable);
-    observer.observe(dialogNode, { childList: true, subtree: true, attributes: true });
-
-    return () => observer.disconnect();
+    setIsVisible(true);
   }, [open]);
 
   useEffect(() => {
@@ -105,9 +30,6 @@ export default function HeroDemoModal({ open, onClose, dialogId = "hero-demo-mod
 
     return () => {
       body.style.overflow = previousOverflow;
-      if (previousActiveElementRef.current?.focus) {
-        previousActiveElementRef.current.focus({ preventScroll: true });
-      }
     };
   }, [open]);
 
@@ -135,13 +57,18 @@ export default function HeroDemoModal({ open, onClose, dialogId = "hero-demo-mod
       aria-describedby="hero-demo-description"
       onMouseDown={handleOverlayClick}
     >
-      <div className="hero-demo-modal__content" ref={dialogRef}>
+      <div className="hero-demo-modal__content" ref={dialogRef} tabIndex={-1}>
         <header className="hero-demo-modal__header">
           <div>
             <p className="hero-demo-modal__eyebrow">Product walkthrough</p>
             <h2 id="hero-demo-title">See Artifically automate a live support incident</h2>
           </div>
-          <button type="button" className="hero-demo-modal__close" onClick={onClose}>
+          <button
+            type="button"
+            className="hero-demo-modal__close"
+            onClick={onClose}
+            ref={closeButtonRef}
+          >
             <span aria-hidden="true">×</span>
             <span className="sr-only">Close demo</span>
           </button>

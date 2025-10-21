@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useMemo, useState } from "react";
+import { useCallback, useMemo, useRef, useState } from "react";
 
 const BILLING_OPTIONS = [
   { id: "monthly", label: "Monthly" },
@@ -232,6 +232,7 @@ function PricingPlanCard({ plan, billingCycle }) {
 
 function Slider({ label, min, max, step, value, onChange, formatValue }) {
   const [active, setActive] = useState(false);
+  const interactionValueRef = useRef(value);
   const percent = ((value - min) / (max - min)) * 100;
 
   const handlePointerUpdate = useCallback(
@@ -255,9 +256,10 @@ function Slider({ label, min, max, step, value, onChange, formatValue }) {
       const track = event.currentTarget;
       track.setPointerCapture(event.pointerId);
       setActive(true);
+      interactionValueRef.current = value;
       handlePointerUpdate(event);
     },
-    [handlePointerUpdate],
+    [handlePointerUpdate, value],
   );
 
   const handlePointerMove = useCallback(
@@ -273,8 +275,9 @@ function Slider({ label, min, max, step, value, onChange, formatValue }) {
       if (!active) return;
       event.currentTarget.releasePointerCapture?.(event.pointerId);
       setActive(false);
+      interactionValueRef.current = value;
     },
-    [active],
+    [active, value],
   );
 
   const handleKeyDown = useCallback(
@@ -292,6 +295,11 @@ function Slider({ label, min, max, step, value, onChange, formatValue }) {
         onChange(max);
         event.preventDefault();
         return;
+        } else if (event.key === "Escape") {
+        event.preventDefault();
+        onChange(interactionValueRef.current ?? value);
+        setActive(false);
+        return;
       }
 
       if (delta !== 0) {
@@ -300,8 +308,12 @@ function Slider({ label, min, max, step, value, onChange, formatValue }) {
         onChange(next);
       }
     },
-    [max, min, onChange, step, value],
+    [interactionValueRef, max, min, onChange, step, value],
   );
+
+  const handleFocus = useCallback(() => {
+    interactionValueRef.current = value;
+  }, [value]);
 
   const valueLabel = formatValue(value);
 
@@ -317,6 +329,7 @@ function Slider({ label, min, max, step, value, onChange, formatValue }) {
         aria-valuenow={value}
         aria-label={label}
         onKeyDown={handleKeyDown}
+        onFocus={handleFocus}
         onPointerDown={handlePointerDown}
         onPointerMove={handlePointerMove}
         onPointerUp={handlePointerUp}
@@ -399,6 +412,7 @@ function PricingCalculator() {
 
 function FAQAccordion() {
   const [openItems, setOpenItems] = useState(() => new Set());
+  const questionRefs = useRef([]);
 
   const toggleItem = useCallback((question) => {
     setOpenItems((prev) => {
@@ -412,13 +426,54 @@ function FAQAccordion() {
     });
   }, []);
 
+  const handleQuestionKeyDown = useCallback(
+    (event, index, question) => {
+      const totalItems = FAQ_ITEMS.length;
+      if (event.key === "ArrowDown") {
+        event.preventDefault();
+        const nextIndex = (index + 1) % totalItems;
+        questionRefs.current[nextIndex]?.focus();
+        return;
+      }
+
+      if (event.key === "ArrowUp") {
+        event.preventDefault();
+        const previousIndex = (index - 1 + totalItems) % totalItems;
+        questionRefs.current[previousIndex]?.focus();
+        return;
+      }
+
+      if (event.key === "Home") {
+        event.preventDefault();
+        questionRefs.current[0]?.focus();
+        return;
+      }
+
+      if (event.key === "End") {
+        event.preventDefault();
+        questionRefs.current[totalItems - 1]?.focus();
+        return;
+      }
+
+      if (event.key === "Escape") {
+        event.preventDefault();
+        if (openItems.has(question)) {
+          toggleItem(question);
+        } else {
+          questionRefs.current[index]?.blur();
+        }
+      }
+    },
+    [openItems, toggleItem],
+  );
+
   return (
     <section className="pricing-faq">
       <div className="pricing-faq__header">
         <h2>Frequently Asked Questions</h2>
       </div>
       <div className="pricing-faq__items">
-        {FAQ_ITEMS.map((item) => {
+        {FAQ_ITEMS.map((item, index) => {
           const isOpen = openItems.has(item.question);
           return (
             <div key={item.question} className={`pricing-faq__item${isOpen ? " is-open" : ""}`}>
@@ -427,6 +482,10 @@ function FAQAccordion() {
                 onClick={() => toggleItem(item.question)}
                 aria-expanded={isOpen}
                 className="pricing-faq__question"
+                onKeyDown={(event) => handleQuestionKeyDown(event, index, item.question)}
+                ref={(node) => {
+                  questionRefs.current[index] = node;
+                }}
               >
                 <span>{item.question}</span>
                 <span className="pricing-faq__chevron" aria-hidden="true">

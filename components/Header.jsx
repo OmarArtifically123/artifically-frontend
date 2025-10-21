@@ -18,6 +18,7 @@ import { Icon } from "./icons";
 import AutomationsMegaMenu from "./header/AutomationsMegaMenu";
 import SolutionsMegaMenu from "./header/SolutionsMegaMenu";
 import ResourcesMegaMenu from "./header/ResourcesMegaMenu";
+import { useFocusTrap } from "@/hooks/useFocusTrap";
 
 const resourcesMenuId = "mega-menu-resources";
 const automationsMenuId = "mega-menu-automations";
@@ -36,6 +37,8 @@ export default function Header({ user, onSignIn, onSignUp, onSignOut }) {
   const automationsRestoreFocusRef = useRef(false);
   const solutionsTriggerRef = useRef(null);
   const solutionsRestoreFocusRef = useRef(false);
+  const mobileMenuTriggerRef = useRef(null);
+  const mobileMenuRef = useRef(null);
   const scrollIntentRef = useRef({
     y: typeof window !== "undefined" ? window.scrollY : 0,
     time: typeof performance !== "undefined" ? performance.now() : Date.now(),
@@ -791,6 +794,11 @@ export default function Header({ user, onSignIn, onSignUp, onSignOut }) {
     setIsMobileMenuOpen(false);
   }, []);
 
+  useFocusTrap(isMobileMenuOpen, mobileMenuRef, {
+    onEscape: closeMobileMenu,
+    returnFocusRef: mobileMenuTriggerRef,
+  });
+
   const handleMobileLinkNavigation = useCallback(
     (event, path, options) => {
       closeMobileMenu();
@@ -1088,6 +1096,7 @@ export default function Header({ user, onSignIn, onSignUp, onSignOut }) {
             aria-controls="site-mobile-menu"
             aria-label={isMobileMenuOpen ? "Close navigation menu" : "Open navigation menu"}
             onClick={handleMobileMenuToggle}
+            ref={mobileMenuTriggerRef}
           >
             <span className="mobile-menu-toggle__line" />
             <span className="mobile-menu-toggle__line" />
@@ -1136,11 +1145,14 @@ export default function Header({ user, onSignIn, onSignUp, onSignOut }) {
             type="button"
             className="header-actions__search"
             onClick={handleCommandPaletteOpen}
+            aria-describedby="command-palette-shortcut-hint"
             aria-label="Open command palette"
             title="⌘K"
           >
             <Icon name="search" size={18} aria-hidden="true" />
-            <span className="sr-only">Open command palette</span>
+            <span className="sr-only" id="command-palette-shortcut-hint">
+              Open command palette. Press Command+K on Mac or Control+K on Windows to open from anywhere.
+            </span>
           </button>
           <div
             style={{
@@ -1232,6 +1244,8 @@ export default function Header({ user, onSignIn, onSignUp, onSignOut }) {
         aria-modal={isMobileMenuOpen ? "true" : undefined}
         aria-hidden={isMobileMenuOpen ? "false" : "true"}
         aria-labelledby="site-mobile-menu-heading"
+        ref={mobileMenuRef}
+        tabIndex={-1}
       >
         <div className="mobile-menu__content">
           <h2 id="site-mobile-menu-heading" className="mobile-menu__heading">

@@ -1,10 +1,12 @@
 "use client";
 
 import Link from "next/link";
-import { useEffect, useState, type MouseEvent } from "react";
+import { useEffect, useRef, useState, type MouseEvent } from "react";
 import { createPortal } from "react-dom";
 
 import { featuredMarketplaceListings } from "@/data/marketplace";
+import { useFocusTrap } from "@/hooks/useFocusTrap";
+import { useRovingFocus } from "@/hooks/useRovingFocus";
 
 import { Icon } from "../icons";
 import type { IconName } from "../icons";
@@ -107,10 +109,16 @@ type AutomationsMegaMenuProps = {
 
 export default function AutomationsMegaMenu({ menuId, state, onRequestClose, onNavigate }: AutomationsMegaMenuProps) {
   const [mounted, setMounted] = useState(false);
+  const panelRef = useRef<HTMLDivElement | null>(null);
+  const closeButtonRef = useRef<HTMLButtonElement | null>(null);
 
   useEffect(() => {
     setMounted(true);
   }, []);
+
+  const isActive = state === "opening" || state === "open";
+  useFocusTrap(isActive, panelRef, { initialFocusRef: closeButtonRef, onEscape: onRequestClose });
+  useRovingFocus(panelRef, { onEscape: onRequestClose });
 
   if (!mounted || state === "closed") {
     return null;
@@ -125,12 +133,15 @@ export default function AutomationsMegaMenu({ menuId, state, onRequestClose, onN
         id={menuId}
         aria-modal="true"
         aria-labelledby="automations-mega-heading"
+        ref={panelRef}
+        tabIndex={-1}
       >
         <button
           type="button"
           className="automations-mega__close"
           onClick={onRequestClose}
           aria-label="Close automations menu"
+          ref={closeButtonRef}
         >
           <Icon name="close" size={18} strokeWidth={2} />
         </button>

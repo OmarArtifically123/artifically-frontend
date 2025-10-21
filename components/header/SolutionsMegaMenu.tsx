@@ -1,10 +1,12 @@
 "use client";
 
 import Link from "next/link";
-import { useEffect, useState, type MouseEvent } from "react";
+import { useEffect, useRef, useState, type MouseEvent } from "react";
 import { createPortal } from "react-dom";
 
 import { caseStudyLinks, industrySolutionLinks, teamSizeSolutionLinks } from "@/data/solutions";
+import { useFocusTrap } from "@/hooks/useFocusTrap";
+import { useRovingFocus } from "@/hooks/useRovingFocus";
 
 import { Icon } from "../icons";
 
@@ -19,10 +21,16 @@ type SolutionsMegaMenuProps = {
 
 export default function SolutionsMegaMenu({ menuId, state, onRequestClose, onNavigate }: SolutionsMegaMenuProps) {
   const [mounted, setMounted] = useState(false);
+  const panelRef = useRef<HTMLDivElement | null>(null);
+  const closeButtonRef = useRef<HTMLButtonElement | null>(null);
 
   useEffect(() => {
     setMounted(true);
   }, []);
+
+  const isActive = state === "opening" || state === "open";
+  useFocusTrap(isActive, panelRef, { initialFocusRef: closeButtonRef, onEscape: onRequestClose });
+  useRovingFocus(panelRef, { onEscape: onRequestClose });
 
   if (!mounted || state === "closed") {
     return null;
@@ -37,12 +45,15 @@ export default function SolutionsMegaMenu({ menuId, state, onRequestClose, onNav
         id={menuId}
         aria-modal="true"
         aria-labelledby="solutions-mega-heading"
+        ref={panelRef}
+        tabIndex={-1}
       >
         <button
           type="button"
           className="solutions-mega__close"
           onClick={onRequestClose}
           aria-label="Close solutions menu"
+          ref={closeButtonRef}
         >
           <Icon name="close" size={18} strokeWidth={2} />
         </button>

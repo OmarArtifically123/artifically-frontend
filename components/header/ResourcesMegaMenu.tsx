@@ -1,11 +1,13 @@
 "use client";
 
 import Link from "next/link";
-import { useEffect, useState, type MouseEvent } from "react";
+import { useEffect, useRef, useState, type MouseEvent } from "react";
 import { createPortal } from "react-dom";
 
 import { Icon } from "../icons";
 import type { IconName } from "../icons";
+import { useFocusTrap } from "@/hooks/useFocusTrap";
+import { useRovingFocus } from "@/hooks/useRovingFocus";
 
 type ResourcesColumn = {
   heading: string;
@@ -37,10 +39,16 @@ export default function ResourcesMegaMenu({
   onNavigate,
 }: ResourcesMegaMenuProps) {
   const [mounted, setMounted] = useState(false);
+  const panelRef = useRef<HTMLDivElement | null>(null);
+  const closeButtonRef = useRef<HTMLButtonElement | null>(null);
 
   useEffect(() => {
     setMounted(true);
   }, []);
+
+  const isActive = state === "opening" || state === "open";
+  useFocusTrap(isActive, panelRef, { initialFocusRef: closeButtonRef, onEscape: onRequestClose });
+  useRovingFocus(panelRef, { onEscape: onRequestClose });
 
   if (!mounted || state === "closed") {
     return null;
@@ -55,12 +63,15 @@ export default function ResourcesMegaMenu({
         id={menuId}
         aria-modal="true"
         aria-labelledby="resources-mega-heading"
+        ref={panelRef}
+        tabIndex={-1}
       >
         <button
           type="button"
           className="resources-mega__close"
           onClick={onRequestClose}
           aria-label="Close resources menu"
+          ref={closeButtonRef}
         >
           <Icon name="close" size={18} strokeWidth={2} />
         </button>

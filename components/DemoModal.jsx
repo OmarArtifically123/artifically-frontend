@@ -1,11 +1,12 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import api from "../api.js";
 import { toast } from "./Toast";
 import { useTheme } from "../context/ThemeContext";
 import Button from "./ui/Button";
 import { Icon } from "./icons";
+import { useFocusTrap } from "@/hooks/useFocusTrap";
 
 const clamp = (value, min, max) => Math.min(Math.max(value, min), max);
 
@@ -104,6 +105,8 @@ export default function DemoModal({ automation, user, onClose }) {
   const [result, setResult] = useState(null);
   const [isVisible, setIsVisible] = useState(false);
   const [activeStage, setActiveStage] = useState(0);
+  const dialogRef = useRef(null);
+  const closeButtonRef = useRef(null);
 
   const currency = automation?.currency || "USD";
   const fallbackPrice = 1299;
@@ -175,6 +178,8 @@ export default function DemoModal({ automation, user, onClose }) {
     setRoiInputs((prev) => ({ ...prev, [key]: clamp(value, 0, 1000) }));
   };
 
+  useFocusTrap(true, dialogRef, { initialFocusRef: closeButtonRef, onEscape: onClose });
+
   useEffect(() => {
     setRoiInputs({
       hoursPerMonth: clamp(Number(automation?.estimatedHoursPerMonth) || 160, 40, 640),
@@ -192,20 +197,12 @@ export default function DemoModal({ automation, user, onClose }) {
     document.body.classList.add("demo-experience-open");
     const frame = requestAnimationFrame(() => setIsVisible(true));
 
-    const onKeyDown = (event) => {
-      if (event.key === "Escape") {
-        onClose();
-      }
-    };
-    window.addEventListener("keydown", onKeyDown);
-
     return () => {
       cancelAnimationFrame(frame);
-      window.removeEventListener("keydown", onKeyDown);
       document.body.style.overflow = prevOverflow;
       document.body.classList.remove("demo-experience-open");
     };
-  }, [onClose]);
+  }, []);
 
   const run = async () => {
     setRunning(true);
@@ -254,6 +251,8 @@ export default function DemoModal({ automation, user, onClose }) {
       <div
         className={`demo-experience__shell${isVisible ? " is-visible" : ""}`}
         onClick={(event) => event.stopPropagation()}
+        ref={dialogRef}
+        tabIndex={-1}
       >
         <header className="demo-experience__header">
           <div className="demo-experience__identity">
@@ -271,7 +270,13 @@ export default function DemoModal({ automation, user, onClose }) {
               <h2 id="demo-experience-title">Immersive preview for {companyName}</h2>
             </div>
           </div>
-          <button type="button" className="demo-experience__close" onClick={onClose} aria-label="Close demo">
+          <button
+            type="button"
+            className="demo-experience__close"
+            onClick={onClose}
+            aria-label="Close demo"
+            ref={closeButtonRef}
+          >
             ×
           </button>
         </header>

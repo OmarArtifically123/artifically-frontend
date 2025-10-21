@@ -3,6 +3,7 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 import { Icon } from "../../../components/icons";
+import { useFocusTrap } from "@/hooks/useFocusTrap";
 
 function titleCase(value = "") {
   return value
@@ -25,6 +26,8 @@ export default function AutomationModal({
 }) {
   const [closing, setClosing] = useState(false);
   const closeTimerRef = useRef(null);
+  const containerRef = useRef(null);
+  const closeButtonRef = useRef(null);
 
   const handleRequestClose = useCallback(() => {
     if (closing) return;
@@ -46,18 +49,10 @@ export default function AutomationModal({
     };
   }, []);
 
-  useEffect(() => {
-    if (typeof document === "undefined") return undefined;
-    const handleKeyDown = (event) => {
-      if (event.key === "Escape") {
-        handleRequestClose();
-      }
-    };
-    document.addEventListener("keydown", handleKeyDown);
-    return () => {
-      document.removeEventListener("keydown", handleKeyDown);
-    };
-  }, [handleRequestClose]);
+  useFocusTrap(!closing, containerRef, {
+    initialFocusRef: closeButtonRef,
+    onEscape: handleRequestClose,
+  });
 
   useEffect(() => {
     if (typeof document === "undefined") return undefined;
@@ -220,6 +215,8 @@ export default function AutomationModal({
         role="dialog"
         aria-modal="true"
         aria-labelledby={item?.id ? `automation-modal-title-${item.id}` : undefined}
+        ref={containerRef}
+        tabIndex={-1}
       >
         <header className="automation-modal__header">
           <h2
@@ -233,6 +230,7 @@ export default function AutomationModal({
             className="automation-modal__close"
             onClick={handleRequestClose}
             aria-label="Close automation details"
+            ref={closeButtonRef}
           >
             <span aria-hidden="true">×</span>
           </button>

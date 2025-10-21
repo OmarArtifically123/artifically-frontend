@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { AnimatePresence, motion } from "framer-motion";
 import { useInView } from "react-intersection-observer";
 
@@ -82,6 +82,7 @@ export default function SocialProofSection() {
   const total = testimonials.length;
   const activeTestimonial = useMemo(() => testimonials[activeIndex % total], [activeIndex, total]);
   const touchStateRef = useRef({ startX: 0, startY: 0, active: false, handled: false });
+  const carouselRef = useRef(null);
 
   useEffect(() => {
     if (isPausedRef.current) {
@@ -95,27 +96,73 @@ export default function SocialProofSection() {
     return () => clearTimeout(autoplayRef.current);
   }, [activeIndex, total]);
 
-  const handleNavigate = (direction) => {
-    if (!isPausedRef.current && autoplayRef.current) {
-      clearTimeout(autoplayRef.current);
-    }
-    setActiveIndex((index) => (index + direction + total) % total);
-  };
+  const handleNavigate = useCallback(
+    (direction) => {
+      if (!isPausedRef.current && autoplayRef.current) {
+        clearTimeout(autoplayRef.current);
+      }
+      setActiveIndex((index) => (index + direction + total) % total);
+    },
+    [total],
+  );
 
-  const pauseAutoplay = () => {
+  const pauseAutoplay = useCallback(() => {
     isPausedRef.current = true;
     if (autoplayRef.current) {
       clearTimeout(autoplayRef.current);
     }
-  };
+  }, []);
 
-  const resumeAutoplay = () => {
+  const resumeAutoplay = useCallback(() => {
     if (!isPausedRef.current) return;
     isPausedRef.current = false;
     autoplayRef.current = setTimeout(() => {
       setActiveIndex((index) => (index + 1) % total);
     }, 7000);
-  };
+  }, [total]);
+
+  const handleCarouselKeyDown = useCallback(
+    (event) => {
+      if (!carouselRef.current?.contains(event.target)) {
+        return;
+      }
+
+      if (event.key === "ArrowLeft") {
+        event.preventDefault();
+        pauseAutoplay();
+        handleNavigate(-1);
+        return;
+      }
+
+      if (event.key === "ArrowRight") {
+        event.preventDefault();
+        pauseAutoplay();
+        handleNavigate(1);
+        return;
+      }
+
+      if (event.key === "Home") {
+        event.preventDefault();
+        pauseAutoplay();
+        setActiveIndex(0);
+        return;
+      }
+
+      if (event.key === "End") {
+        event.preventDefault();
+        pauseAutoplay();
+        setActiveIndex(total - 1);
+        return;
+      }
+
+      if (event.key === "Escape") {
+        event.preventDefault();
+        pauseAutoplay();
+        carouselRef.current?.focus({ preventScroll: true });
+      }
+    },
+    [handleNavigate, pauseAutoplay, total],
+  );
 
   const handleTouchStart = (event) => {
     const touch = event.touches[0];
@@ -237,7 +284,18 @@ export default function SocialProofSection() {
         onMouseLeave={resumeAutoplay}
         onFocus={pauseAutoplay}
         onBlur={resumeAutoplay}
+        onKeyDown={handleCarouselKeyDown}
+        ref={carouselRef}
+        role="region"
+        aria-roledescription="carousel"
+        aria-label="Customer testimonials"
+        aria-describedby="testimonial-carousel-instructions"
+        tabIndex={-1}
       >
+        <p className="sr-only" id="testimonial-carousel-instructions">
+          Use the left and right arrow keys to switch testimonials, Home to jump to the first story, End to move to the
+          last story, and Escape to pause autoplay.
+        </p>
         <div
           className="testimonial-carousel__slides"
           onTouchStart={handleTouchStart}
