@@ -1,7 +1,7 @@
 "use client";
 
 // components/AuthModal.jsx
-import { useState, useRef, useCallback, useEffect, useMemo } from "react";
+import { useState, useRef, useCallback, useEffect, useMemo, useId } from "react";
 import { useTheme } from "../context/ThemeContext";
 import { motion } from "framer-motion";
 import { debounce } from "lodash-es";
@@ -9,6 +9,7 @@ import api from "../api";
 import ThemeToggle from "./ThemeToggle";
 import Button from "./ui/Button";
 import { Icon } from "./icons";
+import { useFocusTrap } from "../hooks/useFocusTrap";
 
 // ✅ Move InputField outside the component to prevent remounting
 const InputField = ({
@@ -23,7 +24,9 @@ const InputField = ({
   fieldErrors,
   handleInputChange,
   loading,
-  darkMode
+  darkMode,
+  id,
+  inputRef,
 }) => (
   <div
     className="form-group"
@@ -35,6 +38,7 @@ const InputField = ({
         fontWeight: 600,
         color: darkMode ? '#e2e8f0' : '#1f2937'
       }}
+      htmlFor={id}
     >
       {label} {required && <span style={{ color: '#ef4444' }}>*</span>}
     </label>
@@ -47,6 +51,13 @@ const InputField = ({
       required={required}
       disabled={loading}
       autoComplete={autoComplete}
+      id={id}
+      ref={inputRef}
+      aria-invalid={fieldErrors[field] ? "true" : undefined}
+      aria-describedby={[fieldErrors[field] ? `${id}-error` : null, hint ? `${id}-hint` : null]
+        .filter(Boolean)
+        .join(" ") || undefined}
+      aria-required={required ? "true" : undefined}
       style={{
         borderColor: fieldErrors[field] ? '#ef4444' : (darkMode ? 'rgba(148,163,184,0.4)' : 'rgba(148,163,184,0.55)'),
         background: darkMode ? 'rgba(15,23,42,0.85)' : 'rgba(255,255,255,0.95)',
@@ -57,20 +68,26 @@ const InputField = ({
       }}
     />
     {fieldErrors[field] && (
-      <div style={{
-        color: '#ef4444',
-        fontSize: '0.75rem',
-        marginTop: 'var(--space-2xs)',
-        display: 'flex',
-        alignItems: 'center',
-        gap: 'var(--space-2xs)'
-      }}>
+      <div
+        id={`${id}-error`}
+        role="alert"
+        aria-live="assertive"
+        style={{
+          color: '#ef4444',
+          fontSize: '0.75rem',
+          marginTop: 'var(--space-2xs)',
+          display: 'flex',
+          alignItems: 'center',
+          gap: 'var(--space-2xs)'
+        }}
+      >
         <Icon name="alert" size={16} aria-hidden="true" />
         {fieldErrors[field]}
       </div>
     )}
-    {hint && !fieldErrors[field] && (
+    {hint && (
       <small
+        id={`${id}-hint`}
         className="form-hint"
         style={{ color: darkMode ? '#94a3b8' : '#475569', fontSize: '0.8rem' }}
       >
@@ -97,7 +114,12 @@ const AuthModal = ({ onClose, onAuthenticated, initialMode = "signin" }) => {
   const [csrfToken, setCsrfToken] = useState("");
   const [step, setStep] = useState(0);
   const modalRef = useRef(null);
+  const firstFieldRef = useRef(null);
   const submitRef = useRef(false);
+  const headingId = useId();
+  const instructionsId = useId();
+  const errorSummaryId = useId();
+  const fieldIdBase = useId();
 
   const stepGroups = useMemo(
     () =>
@@ -403,6 +425,30 @@ const AuthModal = ({ onClose, onAuthenticated, initialMode = "signin" }) => {
     setStep((prev) => Math.max(0, prev - 1));
   }, []);
 
+  const fieldId = useCallback(
+    (name) => `${fieldIdBase}-${name}`,
+    [fieldIdBase],
+  );
+
+  const focusField = useCallback(
+    (name) => {
+      if (typeof document === "undefined") {
+        return;
+      }
+      const target = document.getElementById(fieldId(name));
+      if (target && typeof target.focus === "function") {
+        target.focus({ preventScroll: true });
+      }
+    },
+    [fieldId],
+  );
+
+  const aggregatedFieldErrors = useMemo(
+    () =>
+      Object.entries(fieldErrors).filter(([, message]) => Boolean(message)),
+    [fieldErrors],
+  );
+
   const accountFields = (
     <>
       <InputField
@@ -417,6 +463,8 @@ const AuthModal = ({ onClose, onAuthenticated, initialMode = "signin" }) => {
         handleInputChange={handleInputChange}
         loading={loading}
         darkMode={darkMode}
+        id={fieldId("email")}
+        inputRef={firstFieldRef}
       />
 
       <InputField
@@ -434,6 +482,7 @@ const AuthModal = ({ onClose, onAuthenticated, initialMode = "signin" }) => {
         handleInputChange={handleInputChange}
         loading={loading}
         darkMode={darkMode}
+        id={fieldId("password")}
       />
     </>
   );
@@ -451,6 +500,7 @@ const AuthModal = ({ onClose, onAuthenticated, initialMode = "signin" }) => {
         handleInputChange={handleInputChange}
         loading={loading}
         darkMode={darkMode}
+        id={fieldId("businessName")}
       />
 
       <InputField
@@ -464,6 +514,7 @@ const AuthModal = ({ onClose, onAuthenticated, initialMode = "signin" }) => {
         handleInputChange={handleInputChange}
         loading={loading}
         darkMode={darkMode}
+        id={fieldId("businessPhone")}
       />
 
       <InputField
@@ -478,6 +529,7 @@ const AuthModal = ({ onClose, onAuthenticated, initialMode = "signin" }) => {
         handleInputChange={handleInputChange}
         loading={loading}
         darkMode={darkMode}
+        id={fieldId("businessEmail")}
       />
 
       <InputField
@@ -491,6 +543,7 @@ const AuthModal = ({ onClose, onAuthenticated, initialMode = "signin" }) => {
         handleInputChange={handleInputChange}
         loading={loading}
         darkMode={darkMode}
+        id={fieldId("websiteUrl")}
       />
     </>
   );
@@ -525,6 +578,19 @@ const AuthModal = ({ onClose, onAuthenticated, initialMode = "signin" }) => {
     document.addEventListener('keydown', handleKeyDown);
     return () => document.removeEventListener('keydown', handleKeyDown);
   }, [onClose]);
+
+  useFocusTrap(true, modalRef, {
+    initialFocusRef: firstFieldRef,
+    onEscape: onClose,
+  });
+
+  const describedBy = [instructionsId];
+  if (error) {
+    describedBy.push(`${errorSummaryId}-general`);
+  }
+  if (aggregatedFieldErrors.length > 0) {
+    describedBy.push(`${errorSummaryId}-fields`);
+  }
 
   return (
     <motion.div
@@ -578,25 +644,34 @@ const AuthModal = ({ onClose, onAuthenticated, initialMode = "signin" }) => {
           backdropFilter: 'blur(32px) saturate(180%)',
           WebkitBackdropFilter: 'blur(32px) saturate(180%)'
         }}
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby={headingId}
+        aria-describedby={describedBy.join(" ")}
+        tabIndex={-1}
       >
         {/* Header */}
         <div className="modal-header" style={{ marginBottom: 'var(--space-md)' }}>
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 'var(--space-sm)' }}>
-            <h2 style={{
-              fontSize: '1.5rem',
-              fontWeight: '700',
-              color: darkMode ? '#f8fafc' : '#0f172a',
-              margin: 0
-            }}>
+            <h2
+              id={headingId}
+              style={{
+                fontSize: '1.5rem',
+                fontWeight: '700',
+                color: darkMode ? '#f8fafc' : '#0f172a',
+                margin: 0,
+              }}
+            >
               {mode === "signin" ? "Welcome Back" : "Create Your Account"}
             </h2>
             <ThemeToggle />
           </div>
-          <button 
-            className="close-btn" 
-            onClick={onClose} 
+          <button
+            className="close-btn"
+            onClick={onClose}
             type="button"
             disabled={loading}
+            aria-label="Close authentication dialog"
             style={{
               background: 'none',
               border: 'none',
@@ -623,6 +698,20 @@ const AuthModal = ({ onClose, onAuthenticated, initialMode = "signin" }) => {
           </button>
         </div>
 
+        <p
+          id={instructionsId}
+          style={{
+            marginTop: '0',
+            marginBottom: 'var(--space-sm)',
+            color: darkMode ? '#cbd5f5' : '#334155',
+            fontSize: '0.95rem',
+          }}
+        >
+          {mode === "signin"
+            ? "Enter your email address and password to access your account."
+            : `Complete the ${totalSteps > 1 ? `${totalSteps}-step` : ""} form to create your Artifically account.`}
+        </p>
+
         {/* Error Display */}
         {error && (
           <div style={{
@@ -638,7 +727,11 @@ const AuthModal = ({ onClose, onAuthenticated, initialMode = "signin" }) => {
             display: 'flex',
             alignItems: 'center',
             gap: 'var(--space-xs)'
-          }}>
+          }}
+          id={`${errorSummaryId}-general`}
+          role="alert"
+          aria-live="assertive"
+        >
             <Icon name="alert" size={16} aria-hidden="true" />
             {error}
           </div>
@@ -646,6 +739,45 @@ const AuthModal = ({ onClose, onAuthenticated, initialMode = "signin" }) => {
 
         {/* Form */}
         <form onSubmit={handleFormSubmit} noValidate style={{ display: 'grid', gap: 'var(--space-md)' }}>
+          {aggregatedFieldErrors.length > 0 && (
+            <div
+              id={`${errorSummaryId}-fields`}
+              role="alert"
+              aria-live="assertive"
+              style={{
+                borderRadius: 'var(--rounded-lg)',
+                border: darkMode ? '1px solid rgba(252, 165, 165, 0.6)' : '1px solid rgba(239, 68, 68, 0.6)',
+                background: darkMode ? 'rgba(127, 29, 29, 0.25)' : 'rgba(254, 202, 202, 0.45)',
+                color: darkMode ? '#fecaca' : '#7f1d1d',
+                padding: 'var(--space-sm)',
+                display: 'grid',
+                gap: 'var(--space-2xs)',
+              }}
+            >
+              <strong>There {aggregatedFieldErrors.length === 1 ? 'is' : 'are'} {aggregatedFieldErrors.length} issue{aggregatedFieldErrors.length === 1 ? '' : 's'} to review:</strong>
+              <ul style={{ margin: 0, paddingLeft: '1.2rem', display: 'grid', gap: 'var(--space-3xs)' }}>
+                {aggregatedFieldErrors.map(([name, message]) => (
+                  <li key={name}>
+                    <button
+                      type="button"
+                      onClick={() => focusField(name)}
+                      style={{
+                        background: 'none',
+                        border: 'none',
+                        padding: 0,
+                        color: darkMode ? '#bfdbfe' : '#1d4ed8',
+                        textDecoration: 'underline',
+                        cursor: 'pointer',
+                        font: 'inherit',
+                      }}
+                    >
+                      {message}
+                    </button>
+                  </li>
+                ))}
+              </ul>
+            </div>
+          )}
           <div style={{ display: 'grid', gap: 'var(--space-xs)' }}>
             <div
               style={{
