@@ -1,7 +1,7 @@
 // @ts-nocheck
 "use client";
 
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState, useId } from "react";
 import { space } from "@/styles/spacing";
 import Button from "@/components/ui/Button";
 import Input from "@/components/ui/Input";
@@ -61,7 +61,7 @@ const shouldOpenAdvanced = (state) =>
   state.timeline !== FORM_DEFAULTS.timeline ||
   state.shareMetrics !== FORM_DEFAULTS.shareMetrics;
 
-  const decodeParam = (value) => {
+const decodeParam = (value) => {
   if (!value && value !== 0) return "";
   try {
     return decodeURIComponent(String(value).replace(/\+/g, " "));
@@ -69,6 +69,51 @@ const shouldOpenAdvanced = (state) =>
     return String(value);
   }
 };
+
+const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+
+const contactValidators = {
+  name: (value) => {
+    if (!String(value).trim()) {
+      return "Enter your name so we know who to contact.";
+    }
+    return "";
+  },
+  email: (value) => {
+    const email = String(value).trim();
+    if (!email) {
+      return "Enter your work email address.";
+    }
+    if (!EMAIL_PATTERN.test(email)) {
+      return "Enter a valid email address (for example, name@company.com).";
+    }
+    return "";
+  },
+  message: (value) => {
+    const message = String(value).trim();
+    if (!message) {
+      return "Tell us how we can help your team.";
+    }
+    if (message.length < 10) {
+      return "Share at least 10 characters so we understand your request.";
+    }
+    return "";
+  },
+};
+
+const validateContactField = (field, value) => {
+  const validator = contactValidators[field];
+  return validator ? validator(value ?? "") : "";
+};
+
+const validateContactForm = (state) =>
+  Object.entries(contactValidators).reduce((issues, [field, validator]) => {
+    const message = validator(state[field] ?? "");
+    if (message) {
+      issues[field] = message;
+    }
+    return issues;
+  }, {});
 
 const toTitleCase = (input = "") =>
   input
@@ -183,10 +228,13 @@ export default function ContactPage() {
 
   const [formState, setFormState] = useState(baseInitialState);
   const [status, setStatus] = useState("");
+  const [errors, setErrors] = useState({});
   const [showAdvanced, setShowAdvanced] = useState(() => shouldOpenAdvanced(baseInitialState));
   const [topicHistory, setTopicHistory] = useState(() => getTopicHistory());
   const [activeHint, setActiveHint] = useState(null);
   const hesitationTimers = useRef({});
+  const errorSummaryRef = useRef(null);
+  const formInstanceId = useId();
 
   useEffect(() => {
     setIsHydrated(true);
@@ -213,8 +261,32 @@ export default function ContactPage() {
   
   const handleChange = (event) => {
     const { name, value, type, checked } = event.target;
-    setFormState((prev) => ({ ...prev, [name]: type === "checkbox" ? checked : value }));
+    const nextValue = type === "checkbox" ? checked : value;
+    setFormState((prev) => ({ ...prev, [name]: nextValue }));
     stopHesitation(name);
+    if (!errors[name]) {
+      return;
+    }
+
+    const message = validateContactField(name, nextValue);
+    setErrors((prev) => {
+      const next = { ...prev };
+      if (message) {
+        next[name] = message;
+      } else {
+        delete next[name];
+      }
+      if (!Object.keys(next).length) {
+        setStatus((current) => (current === "error" ? "" : current));
+      }
+      return next;
+    });
+  };
+
+  const focusField = (field) => {
+    if (typeof document === "undefined") return;
+    const target = document.getElementById(`${formInstanceId}-${field}`);
+    target?.focus();
   };
 
   const startHesitation = (field, value) => {
@@ -247,6 +319,17 @@ export default function ContactPage() {
 
   const handleSubmit = async (event) => {
     event.preventDefault();
+    const validationIssues = validateContactForm(formState);
+    if (Object.keys(validationIssues).length) {
+      setErrors(validationIssues);
+      setStatus("error");
+      requestAnimationFrame(() => {
+        errorSummaryRef.current?.focus();
+      });
+      return;
+    }
+
+    setErrors({});
     setStatus("loading");
     await new Promise((resolve) => setTimeout(resolve, 1000));
     setStatus("success");
@@ -290,8 +373,9 @@ export default function ContactPage() {
   ]);
 
   useEffect(() => {
+    const timers = hesitationTimers.current;
     return () => {
-      Object.values(hesitationTimers.current).forEach((timer) => clearTimeout(timer));
+      Object.values(timers).forEach((timer) => clearTimeout(timer));
     };
   }, []);
 
@@ -304,6 +388,24 @@ export default function ContactPage() {
     }
   }, [formState.topic, showAdvanced]);
 
+  const errorEntries = Object.entries(errors);
+  const feedbackMessage =
+    status === "success"
+      ? "Thanks! We'll reach out shortly."
+      : status === "error"
+        ? "Please correct the highlighted fields before resubmitting."
+        : "";
+
+  const nameFieldId = `${formInstanceId}-name`;
+  const emailFieldId = `${formInstanceId}-email`;
+  const topicFieldId = `${formInstanceId}-topic`;
+  const messageFieldId = `${formInstanceId}-message`;
+  const nameHintId = `${nameFieldId}-hint`;
+  const emailHintId = `${emailFieldId}-hint`;
+  const topicHintId = `${topicFieldId}-hint`;
+  const messageHintId = `${messageFieldId}-hint`;
+  const messageErrorId = `${messageFieldId}-error`;
+
   return (
     <main className="container" style={{ padding: `${space("2xl")} 0`, minHeight: "80vh" }}>
       <header style={{ maxWidth: "720px", margin: `0 auto ${space("xl")}`, textAlign: "center" }}>
@@ -315,6 +417,47 @@ export default function ContactPage() {
 
       <section className="glass" style={{ padding: space("lg"), borderRadius: "16px" }}>
         <form onSubmit={handleSubmit} style={{ display: "grid", gap: space("fluid-sm") }}>
+          {errorEntries.length > 0 && (
+            <div
+              ref={errorSummaryRef}
+              tabIndex={-1}
+              role="alert"
+              aria-live="assertive"
+              style={{
+                display: "grid",
+                gap: space("2xs", 1.5),
+                padding: space("sm"),
+                borderRadius: "12px",
+                border: "1px solid rgba(248, 113, 113, 0.6)",
+                background: "rgba(127, 29, 29, 0.35)",
+                color: "#fecaca",
+              }}
+            >
+              <strong>We couldn't submit the form. Please review the highlighted fields:</strong>
+              <ul style={{ margin: 0, paddingLeft: "1.25rem", display: "grid", gap: space("3xs") }}>
+                {errorEntries.map(([field, message]) => (
+                  <li key={field}>
+                    <button
+                      type="button"
+                      onClick={() => focusField(field)}
+                      style={{
+                        background: "none",
+                        border: "none",
+                        padding: 0,
+                        color: "#bfdbfe",
+                        textDecoration: "underline",
+                        cursor: "pointer",
+                        font: "inherit",
+                      }}
+                    >
+                      {message}
+                    </button>
+                  </li>
+                ))}
+              </ul>
+            </div>
+          )}
+
           <div style={{ display: "grid", gap: space("xs") }}>
             <Input
               label="Name"
@@ -324,8 +467,13 @@ export default function ContactPage() {
               onFocus={() => startHesitation("name", formState.name)}
               onBlur={() => stopHesitation("name")}
               required
+              id={nameFieldId}
+              aria-describedby={nameHintId}
+              error={errors.name}
             />
-            <FieldHint visible={activeHint === "name"}>{hints.name}</FieldHint>
+            <FieldHint id={nameHintId} visible={activeHint === "name"}>
+              {hints.name}
+            </FieldHint>
           </div>
           <div style={{ display: "grid", gap: space("xs") }}>
             <Input
@@ -337,8 +485,13 @@ export default function ContactPage() {
               onFocus={() => startHesitation("email", formState.email)}
               onBlur={() => stopHesitation("email")}
               required
+              id={emailFieldId}
+              aria-describedby={emailHintId}
+              error={errors.email}
             />
-            <FieldHint visible={activeHint === "email"}>{hints.email}</FieldHint>
+            <FieldHint id={emailHintId} visible={activeHint === "email"}>
+              {hints.email}
+            </FieldHint>
           </div>
           <div style={{ display: "grid", gap: space("xs") }}>
             <Input
@@ -349,8 +502,12 @@ export default function ContactPage() {
               onFocus={() => startHesitation("topic", formState.topic)}
               onBlur={() => stopHesitation("topic")}
               placeholder="Deployment, pricing, partnership..."
+              id={topicFieldId}
+              aria-describedby={topicHintId}
             />
-            <FieldHint visible={activeHint === "topic"}>{hints.topic}</FieldHint>
+            <FieldHint id={topicHintId} visible={activeHint === "topic"}>
+              {hints.topic}
+            </FieldHint>
             {!!topicHistory.length && (
               <div style={suggestionRowStyle}>
                 <span style={{ color: "var(--gray-400)", fontSize: "0.85rem" }}>Recent topics:</span>
@@ -373,19 +530,38 @@ export default function ContactPage() {
               </div>
             )}
           </div>
-          <label style={{ display: "grid", gap: space("xs") }}>
-            <span>Message</span>
-            <textarea
-              name="message"
-              value={formState.message}
-              onChange={handleChange}
-              onFocus={() => startHesitation("message", formState.message)}
-              onBlur={() => stopHesitation("message")}
-              rows={4}
-              style={{ ...inputStyle, resize: "vertical", minHeight: "140px" }}
-            />
-            <FieldHint visible={activeHint === "message"}>{hints.message}</FieldHint>
-          </label>
+          <div style={{ display: "grid", gap: space("xs") }}>
+            <label htmlFor={messageFieldId} style={{ display: "grid", gap: space("2xs", 1.5) }}>
+              <span>Message</span>
+              <textarea
+                id={messageFieldId}
+                name="message"
+                value={formState.message}
+                onChange={handleChange}
+                onFocus={() => startHesitation("message", formState.message)}
+                onBlur={() => stopHesitation("message")}
+                rows={4}
+                aria-invalid={errors.message ? "true" : "false"}
+                aria-describedby={
+                  [messageHintId, errors.message ? messageErrorId : null].filter(Boolean).join(" ") || undefined
+                }
+                style={{ ...inputStyle, resize: "vertical", minHeight: "140px" }}
+              />
+            </label>
+            {errors.message && (
+              <p
+                id={messageErrorId}
+                role="alert"
+                aria-live="assertive"
+                style={errorTextStyle}
+              >
+                {errors.message}
+              </p>
+            )}
+            <FieldHint id={messageHintId} visible={activeHint === "message"}>
+              {hints.message}
+            </FieldHint>
+          </div>
 
           <div style={{ display: "grid", gap: space("xs", 1.5) }}>
             <Button
@@ -425,13 +601,16 @@ export default function ContactPage() {
                     onChange={handleChange}
                     onFocus={() => startHesitation("contactMethod", formState.contactMethod)}
                     onBlur={() => stopHesitation("contactMethod")}
+                    aria-describedby={`${formInstanceId}-contactMethod-hint`}
                     style={{ ...inputStyle, appearance: "none" }}
                   >
                     <option value="email">Email</option>
                     <option value="video-call">Video call</option>
                     <option value="slack">Shared Slack channel</option>
                   </select>
-                  <FieldHint visible={activeHint === "contactMethod"}>{hints.contactMethod}</FieldHint>
+                  <FieldHint id={`${formInstanceId}-contactMethod-hint`} visible={activeHint === "contactMethod"}>
+                    {hints.contactMethod}
+                  </FieldHint>
                 </label>
 
                 <label style={{ display: "grid", gap: space("2xs", 1.5) }}>
@@ -442,6 +621,7 @@ export default function ContactPage() {
                     onChange={handleChange}
                     onFocus={() => startHesitation("timeline", formState.timeline)}
                     onBlur={() => stopHesitation("timeline")}
+                    aria-describedby={`${formInstanceId}-timeline-hint`}
                     style={{ ...inputStyle, appearance: "none" }}
                   >
                     <option value="immediate">Ready to start this month</option>
@@ -449,7 +629,9 @@ export default function ContactPage() {
                     <option value="next-quarter">Exploring for next quarter</option>
                     <option value="no-rush">Gathering information</option>
                   </select>
-                  <FieldHint visible={activeHint === "timeline"}>{hints.timeline}</FieldHint>
+                  <FieldHint id={`${formInstanceId}-timeline-hint`} visible={activeHint === "timeline"}>
+                    {hints.timeline}
+                  </FieldHint>
                 </label>
 
                 <label style={{ display: "flex", gap: space("xs", 1.5), alignItems: "flex-start" }}>
@@ -461,13 +643,16 @@ export default function ContactPage() {
                     onFocus={() => startHesitation("shareMetrics", formState.shareMetrics)}
                     onBlur={() => stopHesitation("shareMetrics")}
                     style={{ marginTop: space("2xs") }}
+                    aria-describedby={`${formInstanceId}-shareMetrics-hint`}
                   />
                   <span style={{ display: "grid", gap: space("2xs") }}>
                     <span>Share automation performance metrics</span>
                     <span style={{ color: "var(--gray-400)", fontSize: "0.85rem", lineHeight: 1.5 }}>
                       This helps our solutions team benchmark improvements against similar deployments.
                     </span>
-                    <FieldHint visible={activeHint === "shareMetrics"}>{hints.shareMetrics}</FieldHint>
+                    <FieldHint id={`${formInstanceId}-shareMetrics-hint`} visible={activeHint === "shareMetrics"}>
+                      {hints.shareMetrics}
+                    </FieldHint>
                   </span>
                 </label>
               </div>
@@ -485,7 +670,7 @@ export default function ContactPage() {
           </Button>
 
           <div aria-live="polite" style={{ color: status === "success" ? "#34d399" : "var(--gray-400)" }}>
-            {status === "success" && "Thanks! We'll reach out shortly."}
+            {feedbackMessage}
           </div>
         </form>
       </section>
@@ -507,6 +692,12 @@ const hintStyle = {
   lineHeight: 1.5,
 };
 
+const errorTextStyle = {
+  color: "#fca5a5",
+  fontSize: "0.85rem",
+  margin: 0,
+};
+
 const suggestionRowStyle = {
   display: "grid",
   gap: space("2xs", 1.5),
@@ -520,10 +711,10 @@ const chipStyle = {
   color: "var(--gray-050)",
 };
 
-function FieldHint({ visible, children }) {
+function FieldHint({ id, visible, children }) {
   if (!visible) return null;
   return (
-    <p role="status" style={hintStyle}>
+    <p id={id} role="status" aria-live="polite" style={hintStyle}>
       {children}
     </p>
   );

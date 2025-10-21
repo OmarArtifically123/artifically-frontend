@@ -95,7 +95,10 @@ export default function Footer() {
   const [email, setEmail] = useState("");
   const [formStatus, setFormStatus] = useState("");
   const [formMessage, setFormMessage] = useState("");
+  const [emailError, setEmailError] = useState("");
   const messageTimeoutRef = useRef(null);
+  const errorSummaryRef = useRef(null);
+  const emailInputRef = useRef(null);
   const emailId = useId();
 
   const handleNewsletterSubmit = async (event) => {
@@ -103,17 +106,29 @@ export default function Footer() {
     const trimmedEmail = email.trim();
     const emailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/i;
 
-    if (!emailPattern.test(trimmedEmail)) {
-      setFormStatus("error");
-      setFormMessage("Enter a valid work email to join the digest.");
+    if (!trimmedEmail) {
+      setEmailError("Enter your work email address.");
+      setFormStatus("");
+      setFormMessage("");
       if (messageTimeoutRef.current) clearTimeout(messageTimeoutRef.current);
-      messageTimeoutRef.current = setTimeout(() => {
-        setFormStatus("");
-        setFormMessage("");
-      }, 3600);
+      requestAnimationFrame(() => {
+        errorSummaryRef.current?.focus();
+      });
       return;
     }
 
+    if (!emailPattern.test(trimmedEmail)) {
+      setEmailError("Enter a valid work email to join the digest.");
+      setFormStatus("");
+      setFormMessage("");
+      if (messageTimeoutRef.current) clearTimeout(messageTimeoutRef.current);
+      requestAnimationFrame(() => {
+        errorSummaryRef.current?.focus();
+      });
+      return;
+    }
+
+    setEmailError("");
     setFormStatus("loading");
     setFormMessage("Subscribing you to curated updates…");
     try {
@@ -121,16 +136,20 @@ export default function Footer() {
       setFormStatus("success");
       setFormMessage("Thanks for subscribing! Check your inbox to confirm.");
       setEmail("");
-    } catch (error) {
-      console.error(error);
-      setFormStatus("error");
-      setFormMessage("We couldn't save that email. Please try again.");
-    } finally {
       if (messageTimeoutRef.current) clearTimeout(messageTimeoutRef.current);
       messageTimeoutRef.current = setTimeout(() => {
         setFormStatus("");
         setFormMessage("");
       }, 4200);
+    } catch (error) {
+      console.error(error);
+      setFormStatus("");
+      setFormMessage("");
+      setEmailError("We couldn't save that email. Please try again.");
+      if (messageTimeoutRef.current) clearTimeout(messageTimeoutRef.current);
+      requestAnimationFrame(() => {
+        errorSummaryRef.current?.focus();
+      });
     }
   };
 
@@ -143,8 +162,13 @@ export default function Footer() {
   }, []);
 
   const inputClassName = `newsletter-input${
-    formStatus === "error" ? " has-error" : ""
+    emailError ? " has-error" : ""
   }${formStatus === "success" ? " has-success" : ""}`;
+  const summaryId = `${emailId}-errors`;
+  const errorId = `${emailId}-error`;
+  const messageId = `${emailId}-message`;
+  const messageStateClass =
+    formStatus === "loading" || formStatus === "success" ? ` ${formStatus}` : "";
 
   const { ref, inView } = useInView({ threshold: 0.5, triggerOnce: true });
 
@@ -237,31 +261,67 @@ export default function Footer() {
                 Join 10,000+ operators getting curated updates.
               </p>
               <form className="newsletter-form" onSubmit={handleNewsletterSubmit} noValidate>
+                {emailError && (
+                  <div
+                    id={summaryId}
+                    ref={errorSummaryRef}
+                    tabIndex={-1}
+                    role="alert"
+                    aria-live="assertive"
+                    className="newsletter-error-summary"
+                  >
+                    <strong>We couldn't add your email yet.</strong>
+                    <ul>
+                      <li>
+                        <button type="button" onClick={() => emailInputRef.current?.focus()}>
+                          Work email: {emailError}
+                        </button>
+                      </li>
+                    </ul>
+                  </div>
+                )}
                 <label className="sr-only" htmlFor={emailId}>
                   Work email
                 </label>
-                <input
-                  id={emailId}
-                  type="email"
-                  value={email}
-                  onChange={(event) => setEmail(event.target.value)}
-                  placeholder="Enter work email"
-                  className={inputClassName}
-                  aria-describedby={`${emailId}-message`}
-                  disabled={formStatus === "loading"}
-                  required
-                />
-                <button
-                  type="submit"
-                  className="newsletter-button"
-                  disabled={formStatus === "loading"}
-                >
-                  {formStatus === "loading" ? "Joining…" : "Join newsletter"}
-                </button>
+                <div className="newsletter-field-row">
+                  <input
+                    id={emailId}
+                    type="email"
+                    value={email}
+                    onChange={(event) => {
+                      setEmail(event.target.value);
+                      if (emailError) {
+                        setEmailError("");
+                      }
+                    }}
+                    placeholder="Enter work email"
+                    className={inputClassName}
+                    aria-invalid={emailError ? "true" : "false"}
+                    aria-describedby={[emailError ? summaryId : null, emailError ? errorId : null, messageId]
+                      .filter(Boolean)
+                      .join(" ") || undefined}
+                    disabled={formStatus === "loading"}
+                    required
+                    ref={emailInputRef}
+                  />
+                  <button
+                    type="submit"
+                    className="newsletter-button"
+                    disabled={formStatus === "loading"}
+                  >
+                    {formStatus === "loading" ? "Joining…" : "Join newsletter"}
+                  </button>
+                </div>
+                {emailError && (
+                  <p id={errorId} role="alert" aria-live="assertive" className="newsletter-inline-error">
+                    <Icon name="alert" size={16} aria-hidden="true" />
+                    {emailError}
+                  </p>
+                )}
               </form>
               <div
-                id={`${emailId}-message`}
-                className={`newsletter-message${formStatus ? ` ${formStatus}` : ""}`}
+                id={messageId}
+                className={`newsletter-message${messageStateClass}`}
                 role="status"
                 aria-live="polite"
               >
@@ -412,8 +472,50 @@ export default function Footer() {
         }
 
         .newsletter-form {
+          display: grid;
+          gap: 8px;
+        }
+
+        .newsletter-field-row {
           display: flex;
           gap: 8px;
+          width: 100%;
+        }
+
+        .newsletter-field-row .newsletter-button {
+          white-space: nowrap;
+        }
+
+        .newsletter-error-summary {
+          display: grid;
+          gap: 6px;
+          padding: 12px;
+          border-radius: 10px;
+          border: 1px solid rgba(248, 113, 113, 0.6);
+          background: rgba(127, 29, 29, 0.35);
+          color: #fecaca;
+        }
+
+        .newsletter-error-summary ul {
+          margin: 0;
+          padding-left: 18px;
+          display: grid;
+          gap: 4px;
+        }
+
+        .newsletter-error-summary button {
+          background: none;
+          border: none;
+          color: #dbeafe;
+          text-decoration: underline;
+          cursor: pointer;
+          padding: 0;
+          font: inherit;
+        }
+
+        .newsletter-error-summary button:hover,
+        .newsletter-error-summary button:focus {
+          color: #93c5fd;
         }
 
         .sr-only {
@@ -438,6 +540,15 @@ export default function Footer() {
           color: #ffffff;
         }
 
+        .newsletter-inline-error {
+          display: flex;
+          align-items: center;
+          gap: 6px;
+          margin: 6px 0 0;
+          font-size: 13px;
+          color: #fecaca;
+        }
+          
         .newsletter-input.has-error {
           border-color: rgba(248, 113, 113, 0.85);
         }
