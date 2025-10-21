@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { useEffect, useRef, useState, type MouseEvent } from "react";
+import { useEffect, useRef, useState, type MouseEvent, type RefObject } from "react";
 import { createPortal } from "react-dom";
 
 import { Icon } from "../icons";
@@ -28,6 +28,7 @@ type ResourcesMegaMenuProps = {
   columns: ResourcesColumn[];
   onRequestClose: () => void;
   onNavigate: (event: MouseEvent<HTMLAnchorElement>, path: string) => void;
+  returnFocusRef?: RefObject<HTMLElement | null>;
 };
 
 export default function ResourcesMegaMenu({
@@ -37,6 +38,7 @@ export default function ResourcesMegaMenu({
   columns,
   onRequestClose,
   onNavigate,
+  returnFocusRef,
 }: ResourcesMegaMenuProps) {
   const [mounted, setMounted] = useState(false);
   const panelRef = useRef<HTMLDivElement | null>(null);
@@ -47,7 +49,11 @@ export default function ResourcesMegaMenu({
   }, []);
 
   const isActive = state === "opening" || state === "open";
-  useFocusTrap(isActive, panelRef, { initialFocusRef: closeButtonRef, onEscape: onRequestClose });
+  useFocusTrap(isActive, panelRef, {
+    initialFocusRef: closeButtonRef,
+    onEscape: onRequestClose,
+    returnFocusRef,
+  });
   useRovingFocus(panelRef, { onEscape: onRequestClose });
 
   if (!mounted || state === "closed") {

@@ -37,8 +37,10 @@ export default function Header({ user, onSignIn, onSignUp, onSignOut }) {
   const automationsRestoreFocusRef = useRef(false);
   const solutionsTriggerRef = useRef(null);
   const solutionsRestoreFocusRef = useRef(false);
+  const commandPaletteTriggerRef = useRef(null);
   const mobileMenuTriggerRef = useRef(null);
   const mobileMenuRef = useRef(null);
+  const mobileAccordionTriggerRefs = useRef([]);
   const scrollIntentRef = useRef({
     y: typeof window !== "undefined" ? window.scrollY : 0,
     time: typeof performance !== "undefined" ? performance.now() : Date.now(),
@@ -727,10 +729,21 @@ export default function Header({ user, onSignIn, onSignUp, onSignOut }) {
     [],
   );
 
-  const handleCommandPaletteOpen = useCallback(() => {
-    if (typeof window === "undefined") return;
-    window.dispatchEvent(new CustomEvent("command-palette:open"));
-  }, []);
+  const handleCommandPaletteOpen = useCallback(
+    (event) => {
+      if (typeof window === "undefined") return;
+      const trigger =
+        event?.currentTarget instanceof HTMLElement
+          ? event.currentTarget
+          : commandPaletteTriggerRef.current;
+      window.dispatchEvent(
+        new CustomEvent("command-palette:open", {
+          detail: { trigger },
+        }),
+      );
+    },
+    [],
+  );
 
   const toggleAutomationsMenu = useCallback(() => {
     closeSolutionsMenu();
@@ -813,6 +826,73 @@ export default function Header({ user, onSignIn, onSignUp, onSignOut }) {
       [label]: !state[label],
     }));
   }, []);
+
+  const setMobileAccordionTrigger = useCallback(
+    (index) => (element) => {
+      mobileAccordionTriggerRefs.current[index] = element;
+    },
+    [],
+  );
+
+  const handleMobileAccordionKeyDown = useCallback(
+    (event, index, label) => {
+      const triggers = mobileAccordionTriggerRefs.current;
+      const focusableTriggers = triggers.filter(Boolean);
+      if (focusableTriggers.length === 0) {
+        return;
+      }
+
+      const focusButton = (button) => {
+        button?.focus?.({ preventScroll: true });
+      };
+
+      if (event.key === "Escape") {
+        event.preventDefault();
+        setMobileAccordionState((state) => ({
+          ...state,
+          [label]: false,
+        }));
+        return;
+      }
+
+      if (event.key === "Home") {
+        event.preventDefault();
+        focusButton(focusableTriggers[0]);
+        return;
+      }
+
+      if (event.key === "End") {
+        event.preventDefault();
+        focusButton(focusableTriggers[focusableTriggers.length - 1]);
+        return;
+      }
+
+      const isNext = event.key === "ArrowDown" || event.key === "ArrowRight";
+      const isPrevious = event.key === "ArrowUp" || event.key === "ArrowLeft";
+
+      if (!isNext && !isPrevious) {
+        return;
+      }
+
+      event.preventDefault();
+
+      const step = isNext ? 1 : -1;
+      let nextIndex = index + step;
+      const total = triggers.length;
+
+      while (nextIndex >= 0 && nextIndex < total) {
+        const candidate = triggers[nextIndex];
+        if (candidate) {
+          focusButton(candidate);
+          return;
+        }
+        nextIndex += step;
+      }
+
+      focusButton(isNext ? focusableTriggers[0] : focusableTriggers[focusableTriggers.length - 1]);
+    },
+    [setMobileAccordionState],
+  );
 
   return (
     <>
@@ -914,6 +994,7 @@ export default function Header({ user, onSignIn, onSignUp, onSignOut }) {
                         state={resourcesMenuState}
                         menuId={resourcesMenuId}
                         columns={item.columns}
+                        returnFocusRef={resourcesTriggerRef}
                         onRequestClose={() => closeResourcesMenu({ focusTrigger: true })}
                         onNavigate={(event, path) => {
                           closeResourcesMenu();
@@ -959,6 +1040,7 @@ export default function Header({ user, onSignIn, onSignUp, onSignOut }) {
                         <AutomationsMegaMenu
                           menuId={automationsMenuId}
                           state={automationsMenuState}
+                          returnFocusRef={automationsTriggerRef}
                           onRequestClose={() => closeAutomationsMenu({ focusTrigger: true })}
                           onNavigate={(event, path) => {
                             closeAutomationsMenu();
@@ -1002,6 +1084,7 @@ export default function Header({ user, onSignIn, onSignUp, onSignOut }) {
                         <SolutionsMegaMenu
                           menuId={solutionsMenuId}
                           state={solutionsMenuState}
+                          returnFocusRef={solutionsTriggerRef}
                           onRequestClose={() => closeSolutionsMenu({ focusTrigger: true })}
                           onNavigate={(event, path) => {
                             closeSolutionsMenu();
@@ -1147,7 +1230,9 @@ export default function Header({ user, onSignIn, onSignUp, onSignOut }) {
             onClick={handleCommandPaletteOpen}
             aria-describedby="command-palette-shortcut-hint"
             aria-label="Open command palette"
-            title="⌘K"
+            title="Open command palette (⌘K or Ctrl+K)"
+            aria-keyshortcuts="Control+K Meta+K"
+            ref={commandPaletteTriggerRef}
           >
             <Icon name="search" size={18} aria-hidden="true" />
             <span className="sr-only" id="command-palette-shortcut-hint">
@@ -1252,12 +1337,14 @@ export default function Header({ user, onSignIn, onSignUp, onSignOut }) {
             Navigation
           </h2>
           <div className="mobile-menu__items">
-            {navItems.map((item) => {
-              if (item.type === "link") {
-                const isActive = pathname === item.path;
-                return (
-                  <Link
-                    key={item.path}
+            {(() => {
+              let mobileAccordionIndex = -1;
+              return navItems.map((item) => {
+                if (item.type === "link") {
+                  const isActive = pathname === item.path;
+                  return (
+                    <Link
+                      key={item.path}
                     href={item.path}
                     className={`mobile-menu__link${isActive ? " mobile-menu__link--active" : ""}`}
                     data-prefetch-route={item.path}
@@ -1270,6 +1357,8 @@ export default function Header({ user, onSignIn, onSignUp, onSignOut }) {
 
               if (item.type === "mega" || item.type === "resources") {
                 const label = item.label;
+                mobileAccordionIndex += 1;
+                const currentAccordionIndex = mobileAccordionIndex;
                 const isOpen = Boolean(mobileAccordionState[label]);
                 const sections =
                   item.type === "resources"
@@ -1289,6 +1378,10 @@ export default function Header({ user, onSignIn, onSignUp, onSignOut }) {
                       className="mobile-menu__accordion-trigger"
                       onClick={() => toggleMobileAccordion(label)}
                       aria-expanded={isOpen ? "true" : "false"}
+                      ref={setMobileAccordionTrigger(currentAccordionIndex)}
+                      onKeyDown={(event) =>
+                        handleMobileAccordionKeyDown(event, currentAccordionIndex, label)
+                      }
                     >
                       <span>{label}</span>
                       <Icon
@@ -1332,7 +1425,8 @@ export default function Header({ user, onSignIn, onSignUp, onSignOut }) {
               }
 
               return null;
-            })}
+            });
+            })()}
           </div>
           <div className="mobile-menu__footer">
             <motion.button

@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { useEffect, useRef, useState, type MouseEvent } from "react";
+import { useEffect, useRef, useState, type MouseEvent, type RefObject } from "react";
 import { createPortal } from "react-dom";
 
 import { caseStudyLinks, industrySolutionLinks, teamSizeSolutionLinks } from "@/data/solutions";
@@ -17,9 +17,16 @@ type SolutionsMegaMenuProps = {
   state: MenuState;
   onRequestClose: () => void;
   onNavigate: (event: MouseEvent<HTMLAnchorElement>, path: string) => void;
+  returnFocusRef?: RefObject<HTMLElement | null>;
 };
 
-export default function SolutionsMegaMenu({ menuId, state, onRequestClose, onNavigate }: SolutionsMegaMenuProps) {
+export default function SolutionsMegaMenu({
+  menuId,
+  state,
+  onRequestClose,
+  onNavigate,
+  returnFocusRef,
+}: SolutionsMegaMenuProps) {
   const [mounted, setMounted] = useState(false);
   const panelRef = useRef<HTMLDivElement | null>(null);
   const closeButtonRef = useRef<HTMLButtonElement | null>(null);
@@ -29,7 +36,11 @@ export default function SolutionsMegaMenu({ menuId, state, onRequestClose, onNav
   }, []);
 
   const isActive = state === "opening" || state === "open";
-  useFocusTrap(isActive, panelRef, { initialFocusRef: closeButtonRef, onEscape: onRequestClose });
+  useFocusTrap(isActive, panelRef, {
+    initialFocusRef: closeButtonRef,
+    onEscape: onRequestClose,
+    returnFocusRef,
+  });
   useRovingFocus(panelRef, { onEscape: onRequestClose });
 
   if (!mounted || state === "closed") {

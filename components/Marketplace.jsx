@@ -22,6 +22,7 @@ import {
 } from "../lib/graphqlClient.js";
 import ModalShell from "./skeletons/ModalShell.js";
 import "../styles/marketplace.css";
+import { isFocusableElement } from "@/utils/focus";
 
 const DemoModal = lazy(() => import(/* webpackChunkName: "demo-modal" */ "./DemoModal.jsx"));
 
@@ -325,6 +326,7 @@ function computeMatchScore(item, detectedNeeds, activeNeed, browsingSignals, ind
 export default function Marketplace({ user, openAuth }) {
   const { darkMode } = useTheme();
   const [demo, setDemo] = useState(null);
+  const demoReturnFocusRef = useRef(null);
   const [automations, setAutomations] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -891,14 +893,14 @@ export default function Marketplace({ user, openAuth }) {
     ? `${visibleResults} of ${totalResults} automations match your search`
     : `${totalResults} automations ready for evaluation`;
 
-  const buy = useCallback(async (item) => {
+  const buy = useCallback(async (item, trigger) => {
     if (!item || !item.id) {
       toast("Invalid automation selected", { type: "error" });
       return;
     }
 
     if (!user) {
-      openAuth("signup");
+      openAuth("signup", { trigger: trigger instanceof HTMLElement ? trigger : undefined });
       return;
     }
 
@@ -933,10 +935,20 @@ export default function Marketplace({ user, openAuth }) {
     }
   }, [user, openAuth, recordBrowsingSignal]);
 
-  const handleDemo = useCallback((item) => {
+  const handleDemo = useCallback((item, trigger) => {
     if (!item || !item.id) {
       toast("Invalid automation selected", { type: "error" });
       return;
+    }
+    if (trigger instanceof HTMLElement) {
+      demoReturnFocusRef.current = trigger;
+    } else if (typeof document !== "undefined") {
+      const activeElement = document.activeElement;
+      demoReturnFocusRef.current = isFocusableElement(activeElement ?? null)
+        ? activeElement
+        : null;
+    } else {
+      demoReturnFocusRef.current = null;
     }
     recordBrowsingSignal(item, setBrowsingSignals);
     setDemo(item);
@@ -1245,7 +1257,12 @@ export default function Marketplace({ user, openAuth }) {
 
       {demo && (
         <Suspense fallback={<ModalShell label="Preparing automation preview" />}>
-          <DemoModal automation={demo} user={user} onClose={() => setDemo(null)} />
+          <DemoModal
+            automation={demo}
+            user={user}
+            onClose={() => setDemo(null)}
+            returnFocusRef={demoReturnFocusRef}
+          />
         </Suspense>
       )}
     </section>

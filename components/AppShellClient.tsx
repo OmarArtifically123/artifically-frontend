@@ -27,13 +27,26 @@ import { ToastHost, toast } from "@/components/Toast";
 import usePredictivePrefetch from "@/hooks/usePredictivePrefetch";
 import { fetchAutomations } from "@/data/automations";
 import { MARKETPLACE_AUTOMATIONS_QUERY_KEY, MARKETPLACE_PAGE_SIZE } from "@/hooks/useMarketplaceData";
-import { AppShellProvider, type AuthMode, type AuthUser } from "@/context/AppShellContext";
+import {
+  AppShellProvider,
+  type AuthMode,
+  type AuthUser,
+  type OpenAuthOptions,
+} from "@/context/AppShellContext";
 import { applyDesignTokens } from "@/styles/applyDesignTokens";
+import { isFocusableElement } from "@/utils/focus";
 
 const AuthModal = lazy(() => import("@/components/AuthModal"));
 const CommandPalette = dynamic(() => import("@/components/CommandPalette"), {
   ssr: false,
 });
+
+const BODY_SCROLL_LOCK_CLASSES = [
+  "resources-mega-open",
+  "automations-mega-open",
+  "solutions-mega-open",
+  "demo-experience-open",
+];
 
 const experienceRoutes = new Set<string>([
   "/",
@@ -162,12 +175,35 @@ export default function AppShellClient({ children }: AppShellClientProps) {
   const [isHydrated, setIsHydrated] = useState(false);
   const [isNavigating, setIsNavigating] = useState(false);
 
+  const authReturnFocusRef = useRef<HTMLElement | null>(null);
+
   const navigationTimeoutRef = useRef<number | null>(null);
 
   const router = useRouter();
   const pathname = usePathname();
 
   const enableExperience = experienceRoutes.has(pathname ?? "");
+
+  const resetBodyScrollLocks = useCallback(() => {
+    if (typeof document === "undefined") {
+      return;
+    }
+
+    const { body } = document;
+    if (!body) {
+      return;
+    }
+
+    if (body.style.overflow) {
+      body.style.removeProperty("overflow");
+    }
+
+    BODY_SCROLL_LOCK_CLASSES.forEach((className) => {
+      if (body.classList.contains(className)) {
+        body.classList.remove(className);
+      }
+    });
+  }, []);
 
   useEffect(() => {
     applyDesignTokens();
@@ -211,6 +247,13 @@ export default function AppShellClient({ children }: AppShellClientProps) {
 
   usePredictivePrefetch(routeLoaders, pathname ?? "");
 
+  useEffect(() => {
+    resetBodyScrollLocks();
+    return () => {
+      resetBodyScrollLocks();
+    };
+  }, [pathname, resetBodyScrollLocks]);
+  
   useEffect(() => {
     if (typeof window === "undefined" || !isHydrated) {
       return undefined;
@@ -307,7 +350,19 @@ export default function AppShellClient({ children }: AppShellClientProps) {
   }, [pathname, isHydrated]);
 
   const openAuth = useCallback(
-    (mode: AuthMode = "signin") => {
+    (mode: AuthMode = "signin", options?: OpenAuthOptions) => {
+      if (typeof document !== "undefined") {
+        const activeElement = document.activeElement as HTMLElement | null;
+        const requestedTrigger = options?.trigger ?? activeElement;
+        authReturnFocusRef.current = isFocusableElement(requestedTrigger ?? null)
+          ? requestedTrigger
+          : isFocusableElement(activeElement ?? null)
+            ? activeElement
+            : null;
+      } else {
+        authReturnFocusRef.current = null;
+      }
+
       setAuthMode(mode);
       setAuthOpen(true);
     },
@@ -394,6 +449,7 @@ export default function AppShellClient({ children }: AppShellClientProps) {
                   onClose={closeAuth}
                   onAuthenticated={onAuthenticated}
                   initialMode={authMode}
+                  returnFocusRef={authReturnFocusRef}
                 />
               ) : null}
             </AnimatePresence>

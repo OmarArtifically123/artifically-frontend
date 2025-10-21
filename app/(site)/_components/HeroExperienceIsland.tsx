@@ -1,6 +1,6 @@
 "use client";
 
-import { lazy, Suspense, useCallback, useEffect, useState } from "react";
+import { lazy, Suspense, useCallback, useEffect, useRef, useState, type MouseEvent } from "react";
 import { ErrorBoundary } from "react-error-boundary";
 
 import HeroDemoModal from "@/components/landing/HeroDemoModal";
@@ -19,12 +19,21 @@ export default function HeroExperienceIsland({ initialMode = "signup" }: HeroExp
   const { openAuth } = useAppShell();
   const [demoOpen, setDemoOpen] = useState(false);
   const [enhanceHero, setEnhanceHero] = useState(false);
+  const demoTriggerRef = useRef<HTMLButtonElement | null>(null);
 
-  const handlePrimary = useCallback(() => {
-    openAuth(initialMode);
-  }, [initialMode, openAuth]);
+  const handlePrimary = useCallback(
+    (event?: MouseEvent<HTMLButtonElement>) => {
+      openAuth(initialMode, { trigger: event?.currentTarget ?? null });
+    },
+    [initialMode, openAuth],
+  );
 
-  const handleSecondary = useCallback(() => {
+  const handleSecondary = useCallback((event?: MouseEvent<HTMLButtonElement>) => {
+    if (event?.currentTarget instanceof HTMLElement) {
+      demoTriggerRef.current = event.currentTarget;
+    } else {
+      demoTriggerRef.current = null;
+    }
     setDemoOpen(true);
   }, []);
 
@@ -66,7 +75,12 @@ export default function HeroExperienceIsland({ initialMode = "signup" }: HeroExp
           </Suspense>
         </ErrorBoundary>
       ) : null}
-      <HeroDemoModal open={demoOpen} onClose={handleDemoClose} dialogId={demoDialogId} />
+      <HeroDemoModal
+        open={demoOpen}
+        onClose={handleDemoClose}
+        dialogId={demoDialogId}
+        returnFocusRef={demoTriggerRef}
+      />
     </>
   );
 }

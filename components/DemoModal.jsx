@@ -99,7 +99,7 @@ const buildBeforeAfter = ({
   };
 };
 
-export default function DemoModal({ automation, user, onClose }) {
+export default function DemoModal({ automation, user, onClose, returnFocusRef }) {
   const { darkMode } = useTheme();
   const [running, setRunning] = useState(false);
   const [result, setResult] = useState(null);
@@ -178,7 +178,11 @@ export default function DemoModal({ automation, user, onClose }) {
     setRoiInputs((prev) => ({ ...prev, [key]: clamp(value, 0, 1000) }));
   };
 
-  useFocusTrap(true, dialogRef, { initialFocusRef: closeButtonRef, onEscape: onClose });
+  useFocusTrap(true, dialogRef, {
+    initialFocusRef: closeButtonRef,
+    onEscape: onClose,
+    returnFocusRef,
+  });
 
   useEffect(() => {
     setRoiInputs({

@@ -15,7 +15,7 @@ export default function ThemeToggle({ className = "", label = "Toggle theme" }) 
       type="button"
       onClick={toggleTheme}
       aria-label={label}
-      aria-pressed={darkMode}
+      aria-pressed={darkMode ? "true" : "false"}
       title={title}
       className={`theme-toggle ${className}`.trim()}
     >

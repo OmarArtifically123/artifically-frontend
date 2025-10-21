@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, type RefObject } from "react";
 import { createPortal } from "react-dom";
 import { useFocusTrap } from "@/hooks/useFocusTrap";
 import { cn } from "../utils/cn";
@@ -24,6 +24,7 @@ export interface ModalProps {
   children?: ReactNode;
   footer?: ReactNode;
   className?: string;
+  returnFocusRef?: RefObject<HTMLElement | null>;
 }
 
 export function Modal({
@@ -36,11 +37,12 @@ export function Modal({
   children,
   footer,
   className,
+  returnFocusRef,
 }: ModalProps) {
   const dialogRef = useRef<HTMLDivElement>(null);
   const portalTarget = typeof document !== "undefined" ? document.body : null;
 
-  useFocusTrap(isOpen, dialogRef, { onEscape: onClose });
+  useFocusTrap(isOpen, dialogRef, { onEscape: onClose, returnFocusRef });
 
   useEffect(() => {
     if (!isOpen || !portalTarget) {

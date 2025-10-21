@@ -97,7 +97,7 @@ const InputField = ({
   </div>
 );
 
-const AuthModal = ({ onClose, onAuthenticated, initialMode = "signin" }) => {
+const AuthModal = ({ onClose, onAuthenticated, initialMode = "signin", returnFocusRef }) => {
   const { darkMode } = useTheme();
   const [mode, setMode] = useState(initialMode);
   const [form, setForm] = useState({
@@ -582,6 +582,7 @@ const AuthModal = ({ onClose, onAuthenticated, initialMode = "signin" }) => {
   useFocusTrap(true, modalRef, {
     initialFocusRef: firstFieldRef,
     onEscape: onClose,
+    returnFocusRef,
   });
 
   const describedBy = [instructionsId];

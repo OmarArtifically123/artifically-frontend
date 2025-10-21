@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState, useId } from "react";
 import { createPortal } from "react-dom";
 import { useTheme } from "../context/ThemeContext";
 import { space } from "../styles/spacing";
@@ -91,6 +91,10 @@ const OnboardingTour = ({
   const hasSteps = steps.length > 0;
   const [visible, setVisible] = useState(() => getInitialVisibility(storageKey, isActive, hasSteps));
   const coords = useStepPosition(steps, currentStep, visible);
+  const containerRef = useRef(null);
+  const dialogInstanceId = useId();
+  const titleId = `${dialogInstanceId}-title`;
+  const descriptionId = `${dialogInstanceId}-description`;
 
   const totalSteps = steps.length;
   const step = steps[currentStep];
@@ -100,24 +104,27 @@ const OnboardingTour = ({
     [darkMode]
   );
 
-  const finishTour = (shouldPersist = true) => {
-    setVisible(false);
-    if (shouldPersist && typeof window !== "undefined") {
-      window.localStorage.setItem(storageKey, "dismissed");
-    }
-  };
+  const finishTour = useCallback(
+    (shouldPersist = true) => {
+      setVisible(false);
+      if (shouldPersist && typeof window !== "undefined") {
+        window.localStorage.setItem(storageKey, "dismissed");
+      }
+    },
+    [storageKey],
+  );
 
-  const dismissTour = () => finishTour(true);
+  const dismissTour = useCallback(() => finishTour(true), [finishTour]);
 
-  const nextStep = () => {
+  const nextStep = useCallback(() => {
     if (currentStep < totalSteps - 1) {
       setCurrentStep((prev) => prev + 1);
     } else {
       finishTour(true);
     }
-  };
+  }, [currentStep, totalSteps, finishTour]);
 
-  const skipTour = () => finishTour(true);
+  const skipTour = useCallback(() => finishTour(true), [finishTour]);
 
   useEffect(() => {
     if (!hasSteps || !isActive) {
@@ -145,6 +152,12 @@ const OnboardingTour = ({
     window.addEventListener("keydown", handleKey);
     return () => window.removeEventListener("keydown", handleKey);
   }, [visible, dismissTour]);
+
+  useEffect(() => {
+    if (visible && containerRef.current) {
+      containerRef.current.focus();
+    }
+  }, [visible]);
 
   if (!visible || !hasSteps || typeof document === "undefined") {
     return null;
@@ -177,6 +190,7 @@ const OnboardingTour = ({
           background: darkMode ? "rgba(2,6,23,0.65)" : "rgba(15,23,42,0.45)",
           backdropFilter: "blur(2px)",
         }}
+        aria-hidden="true"
       />
 
       {coords && (
@@ -193,6 +207,7 @@ const OnboardingTour = ({
             pointerEvents: "none",
             transition: "all 0.2s ease",
           }}
+          aria-hidden="true"
         />
       )}
 
@@ -214,6 +229,12 @@ const OnboardingTour = ({
             : "1px solid rgba(99,102,241,0.25)",
           ...tooltipStyle,
         }}
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby={titleId}
+        aria-describedby={descriptionId}
+        ref={containerRef}
+        tabIndex={-1}
       >
         <div style={{ display: "flex", justifyContent: "space-between", marginBottom: space("xs") }}>
           <span style={{ fontSize: "0.8rem", fontWeight: 600, color: darkMode ? "#a5b4fc" : "#4338ca" }}>
@@ -235,8 +256,13 @@ const OnboardingTour = ({
             Skip
           </button>
         </div>
-        <h3 style={{ margin: 0, fontSize: "1.15rem", fontWeight: 700 }}>{step?.title}</h3>
-        <p style={{ margin: `${space("xs", 1.5)} 0`, fontSize: "0.9rem", lineHeight: 1.5 }}>
+        <h3 id={titleId} style={{ margin: 0, fontSize: "1.15rem", fontWeight: 700 }}>
+          {step?.title}
+        </h3>
+        <p
+          id={descriptionId}
+          style={{ margin: `${space("xs", 1.5)} 0`, fontSize: "0.9rem", lineHeight: 1.5 }}
+        >
           {step?.description}
         </p>
         <div style={{ display: "flex", justifyContent: "flex-end", gap: space("xs", 1.5), marginTop: space("sm") }}>
@@ -295,6 +321,7 @@ const OnboardingTour = ({
             borderBottom: coords.placeAbove ? `10px solid ${tooltipBg}` : "10px solid transparent",
             pointerEvents: "none",
           }}
+          aria-hidden="true"
         />
       )}
     </div>,

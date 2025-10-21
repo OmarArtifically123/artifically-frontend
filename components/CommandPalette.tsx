@@ -15,6 +15,7 @@ import { createPortal } from "react-dom";
 import Icon from "@/components/icons/Icon";
 import { useAppShell } from "@/context/AppShellContext";
 import { useFocusTrap } from "@/hooks/useFocusTrap";
+import { isFocusableElement } from "@/utils/focus";
 import {
   getCommandPaletteItems,
   type CommandPaletteItem,
@@ -29,6 +30,10 @@ const SECTION_ORDER: CommandPaletteSection[] = [
   "Documentation",
   "Actions",
 ];
+
+type CommandPaletteOpenDetail = {
+  trigger?: HTMLElement | null;
+};
 
 type PaletteResult = {
   item: CommandPaletteItem;
@@ -193,6 +198,7 @@ export default function CommandPalette() {
   const inputRef = useRef<HTMLInputElement | null>(null);
   const modalRef = useRef<HTMLDivElement | null>(null);
   const trimmedQuery = query.trim();
+  const triggerRestoreRef = useRef<HTMLElement | null>(null);
 
   useEffect(() => {
     setMounted(true);
@@ -222,7 +228,11 @@ export default function CommandPalette() {
     setQuery("");
   }, []);
 
-  useFocusTrap(open, modalRef, { initialFocusRef: inputRef, onEscape: closePalette });
+  useFocusTrap(open, modalRef, {
+    initialFocusRef: inputRef,
+    onEscape: closePalette,
+    returnFocusRef: triggerRestoreRef,
+  });
 
   useEffect(() => {
     if (!open) {
@@ -260,6 +270,10 @@ export default function CommandPalette() {
 
       if (isMeta && isK && !event.altKey && !event.shiftKey) {
         event.preventDefault();
+        if (typeof document !== "undefined") {
+          const activeElement = document.activeElement as HTMLElement | null;
+          triggerRestoreRef.current = isFocusableElement(activeElement ?? null) ? activeElement : null;
+        }
         setOpen(true);
         return;
       }
@@ -270,16 +284,25 @@ export default function CommandPalette() {
       }
     };
 
-    const handleOpenEvent = () => {
+    const handleOpenEvent = (event: Event) => {
+      const detail = (event as CustomEvent<CommandPaletteOpenDetail>).detail;
+      if (detail?.trigger && isFocusableElement(detail.trigger)) {
+        triggerRestoreRef.current = detail.trigger;
+      } else if (typeof document !== "undefined") {
+        const activeElement = document.activeElement as HTMLElement | null;
+        triggerRestoreRef.current = isFocusableElement(activeElement ?? null) ? activeElement : null;
+      } else {
+        triggerRestoreRef.current = null;
+      }
       setOpen(true);
     };
 
     window.addEventListener("keydown", handleGlobalKeyDown);
-    window.addEventListener("command-palette:open", handleOpenEvent);
+    window.addEventListener("command-palette:open", handleOpenEvent as EventListener);
 
     return () => {
       window.removeEventListener("keydown", handleGlobalKeyDown);
-      window.removeEventListener("command-palette:open", handleOpenEvent);
+      window.removeEventListener("command-palette:open", handleOpenEvent as EventListener);
     };
   }, [closePalette, open]);
 

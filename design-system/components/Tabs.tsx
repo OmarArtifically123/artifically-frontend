@@ -33,34 +33,46 @@ export function Tabs({ items, defaultActiveId, onChange, className, ariaLabel }:
   return (
     <div className={cn("ads-tabs", className)}>
       <div className="ads-tabs__list" role="tablist" aria-label={ariaLabel}>
-        {resolvedItems.map((item) => (
-          <button
-            key={item.id}
-            className="ads-tabs__trigger"
-            role="tab"
-            id={item.id}
-            type="button"
-            data-active={item.id === activeId ? "true" : undefined}
-            aria-selected={item.id === activeId}
-            onClick={() => {
-              setActiveId(item.id);
-              onChange?.(item.id);
-            }}
-          >
-            {item.label}
-          </button>
-        ))}
+        {resolvedItems.map((item) => {
+          const panelId = `${item.id}-panel`;
+          const isActive = item.id === activeId;
+          return (
+            <button
+              key={item.id}
+              className="ads-tabs__trigger"
+              role="tab"
+              id={item.id}
+              type="button"
+              data-active={isActive ? "true" : undefined}
+              aria-selected={isActive ? "true" : "false"}
+              aria-controls={panelId}
+              tabIndex={isActive ? 0 : -1}
+              onClick={() => {
+                setActiveId(item.id);
+                onChange?.(item.id);
+              }}
+            >
+              {item.label}
+            </button>
+          );
+        })}
       </div>
-      {resolvedItems.map((item) => (
-        <div
-          key={`${item.id}-panel`}
-          role="tabpanel"
-          hidden={item.id !== activeId}
-          aria-labelledby={item.id}
-        >
-          {item.content}
-        </div>
-      ))}
+      {resolvedItems.map((item) => {
+        const panelId = `${item.id}-panel`;
+        const isActive = item.id === activeId;
+        return (
+          <div
+            key={`${item.id}-panel`}
+            role="tabpanel"
+            id={panelId}
+            hidden={!isActive}
+            tabIndex={isActive ? 0 : -1}
+            aria-labelledby={item.id}
+          >
+            {item.content}
+          </div>
+        );
+      })}
     </div>
   );
 }

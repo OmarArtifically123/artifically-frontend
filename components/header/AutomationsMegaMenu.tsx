@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { useEffect, useRef, useState, type MouseEvent } from "react";
+import { useEffect, useRef, useState, type MouseEvent, type RefObject } from "react";
 import { createPortal } from "react-dom";
 
 import { featuredMarketplaceListings } from "@/data/marketplace";
@@ -105,9 +105,16 @@ type AutomationsMegaMenuProps = {
   state: "opening" | "open" | "closing" | "closed";
   onRequestClose: () => void;
   onNavigate: (event: MouseEvent<HTMLAnchorElement>, path: string) => void;
+  returnFocusRef?: RefObject<HTMLElement | null>;
 };
 
-export default function AutomationsMegaMenu({ menuId, state, onRequestClose, onNavigate }: AutomationsMegaMenuProps) {
+export default function AutomationsMegaMenu({
+  menuId,
+  state,
+  onRequestClose,
+  onNavigate,
+  returnFocusRef,
+}: AutomationsMegaMenuProps) {
   const [mounted, setMounted] = useState(false);
   const panelRef = useRef<HTMLDivElement | null>(null);
   const closeButtonRef = useRef<HTMLButtonElement | null>(null);
@@ -117,7 +124,11 @@ export default function AutomationsMegaMenu({ menuId, state, onRequestClose, onN
   }, []);
 
   const isActive = state === "opening" || state === "open";
-  useFocusTrap(isActive, panelRef, { initialFocusRef: closeButtonRef, onEscape: onRequestClose });
+  useFocusTrap(isActive, panelRef, {
+    initialFocusRef: closeButtonRef,
+    onEscape: onRequestClose,
+    returnFocusRef,
+  });
   useRovingFocus(panelRef, { onEscape: onRequestClose });
 
   if (!mounted || state === "closed") {

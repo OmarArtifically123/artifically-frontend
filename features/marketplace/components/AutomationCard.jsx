@@ -1,6 +1,6 @@
 "use client";
 
-import { memo, useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { memo, useCallback, useEffect, useMemo, useRef, useState, useId } from "react";
 import { useInView } from "react-intersection-observer";
 import dynamic from "next/dynamic";
 import { useTheme } from "../../../context/ThemeContext";
@@ -547,6 +547,14 @@ function AutomationCardComponent({
     };
   }, [previewGraph]);
   const cardCurrency = item.currency || "USD";
+  const generatedId = useId();
+  const modalId = item?.id ? `automation-modal-${item.id}` : `${generatedId}-automation-modal`;
+  const modalDescriptionId = item?.id
+    ? `automation-modal-description-${item.id}`
+    : `${generatedId}-automation-modal-description`;
+  const cardDescriptionId = item?.id
+    ? `automation-card-${item.id}-description`
+    : `${generatedId}-automation-card-description`;
 
   const [roiCounter, setRoiCounter] = useState(() =>
     Math.round(previewGraph.metrics?.baselineSavings || 0),
@@ -1140,7 +1148,7 @@ function AutomationCardComponent({
     (event) => {
       event?.stopPropagation?.();
       dispatchInteraction("cta-secondary", { event });
-      onDemo?.(item);
+      onDemo?.(item, event?.currentTarget ?? null);
     },
     [dispatchInteraction, item, onDemo],
   );
@@ -1149,7 +1157,7 @@ function AutomationCardComponent({
     (event) => {
       event?.stopPropagation?.();
       dispatchInteraction("cta-primary", { event, particles: true });
-      onBuy?.(item);
+      onBuy?.(item, event?.currentTarget ?? null);
     },
     [dispatchInteraction, item, onBuy],
   );
@@ -1166,7 +1174,7 @@ const handleVote = useCallback(
   const handleModalDemo = useCallback(
     (event) => {
       dispatchInteraction("cta-secondary", { event });
-      onDemo?.(item);
+      onDemo?.(item, event?.currentTarget ?? null);
     },
     [dispatchInteraction, item, onDemo],
   );
@@ -1174,7 +1182,7 @@ const handleVote = useCallback(
   const handleModalDeploy = useCallback(
     (event) => {
       dispatchInteraction("cta-primary", { event, particles: true });
-      onBuy?.(item);
+      onBuy?.(item, event?.currentTarget ?? null);
     },
     [dispatchInteraction, item, onBuy],
   );
@@ -1218,7 +1226,9 @@ const handleVote = useCallback(
       onKeyDown={handleCardKeyDown}
       role="button"
       aria-haspopup="dialog"
-      aria-expanded={detailOpen}
+      aria-expanded={detailOpen ? "true" : "false"}
+      aria-controls={modalId}
+      aria-describedby={cardDescriptionId}
       tabIndex={0}
     >
       <div className="automation-card__pulse-ring" aria-hidden="true" />
@@ -1306,7 +1316,7 @@ const handleVote = useCallback(
       
       <div className="automation-card__title-group">
         <h3>{item.name}</h3>
-        <p>{item.description}</p>
+        <p id={cardDescriptionId}>{item.description}</p>
       </div>
 
       <div className="automation-card__live-stat">
@@ -1448,6 +1458,9 @@ const handleVote = useCallback(
           priceLabel={formatPrice(item.priceMonthly, item.currency)}
           onDeploy={handleModalDeploy}
           onDemo={handleModalDemo}
+          modalId={modalId}
+          descriptionId={modalDescriptionId}
+          returnFocusRef={cardRef}
         />
       )}
     </>

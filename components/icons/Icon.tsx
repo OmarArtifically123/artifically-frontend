@@ -173,6 +173,7 @@ const Icon = forwardRef<SVGSVGElement, IconProps>(function Icon(
       strokeWidth={strokeWidth}
       className={className}
       aria-hidden={title ? undefined : true}
+      focusable={title ? undefined : false}
       role={title ? "img" : "presentation"}
       title={title}
       {...rest}

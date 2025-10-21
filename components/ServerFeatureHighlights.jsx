@@ -56,6 +56,7 @@ function FeatureHighlightFallback({
                 fill="none"
                 xmlns="http://www.w3.org/2000/svg"
                 aria-hidden="true"
+                focusable="false"
               >
                 <path
                   d="M2.5 8.5L6 12L13.5 4.5"

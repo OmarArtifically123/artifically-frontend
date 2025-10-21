@@ -95,6 +95,8 @@ export function ToastItem({ data, onClose }) {
     celebration: "celebration",
   };
 
+  const statusRole = type === "error" || type === "warn" ? "alert" : "status";
+
   return (
     <motion.div
       className="toast"
@@ -130,6 +132,9 @@ export function ToastItem({ data, onClose }) {
         position: "relative",
         overflow: "hidden",
       }}
+      role={statusRole}
+      aria-live={statusRole === "alert" ? "assertive" : "polite"}
+      aria-atomic="true"
     >
       <div
         style={{

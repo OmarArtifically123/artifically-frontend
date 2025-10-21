@@ -4,12 +4,16 @@ import { useEffect, useMemo, useRef, useState } from "react";
 
 import { useFocusTrap } from "@/hooks/useFocusTrap";
 
-export default function HeroDemoModal({ open, onClose, dialogId = "hero-demo-modal" }) {
+export default function HeroDemoModal({ open, onClose, dialogId = "hero-demo-modal", returnFocusRef }) {
   const dialogRef = useRef(null);
   const closeButtonRef = useRef(null);
   const [isVisible, setIsVisible] = useState(false);
 
-  useFocusTrap(open, dialogRef, { initialFocusRef: closeButtonRef, onEscape: onClose });
+  useFocusTrap(open, dialogRef, {
+    initialFocusRef: closeButtonRef,
+    onEscape: onClose,
+    returnFocusRef,
+  });
 
   useEffect(() => {
     if (!open) {

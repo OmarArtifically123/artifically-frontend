@@ -15,7 +15,7 @@ export default function ContrastToggle({ className = "", label = "Toggle high co
       className={`contrast-toggle ${className}`.trim()}
       onClick={toggleContrast}
       aria-label={label}
-      aria-pressed={highContrast}
+      aria-pressed={highContrast ? "true" : "false"}
       title={title}
       data-active={highContrast}
     >

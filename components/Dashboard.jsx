@@ -582,7 +582,10 @@ export default function Dashboard({ user, openAuth }) {
     return renderGate(
       "Authentication Required",
       "Please sign in to access your dashboard.",
-      <Button variant="primary" onClick={() => openAuth("signin")}>
+      <Button
+        variant="primary"
+        onClick={(event) => openAuth("signin", { trigger: event.currentTarget })}
+      >
         <span>Sign In</span>
       </Button>
     );

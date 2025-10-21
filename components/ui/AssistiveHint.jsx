@@ -10,6 +10,8 @@ export default function AssistiveHint({ id, label = "Need guidance?", message, p
       <button
         type="button"
         aria-describedby={`${id}-tooltip`}
+        aria-controls={`${id}-tooltip`}
+        aria-expanded={visible ? "true" : "false"}
         onFocus={() => setVisible(true)}
         onBlur={() => setVisible(false)}
         onMouseEnter={() => setVisible(true)}

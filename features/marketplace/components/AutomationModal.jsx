@@ -23,6 +23,9 @@ export default function AutomationModal({
   priceLabel,
   onDeploy,
   onDemo,
+  modalId,
+  descriptionId,
+  returnFocusRef,
 }) {
   const [closing, setClosing] = useState(false);
   const closeTimerRef = useRef(null);
@@ -52,6 +55,7 @@ export default function AutomationModal({
   useFocusTrap(!closing, containerRef, {
     initialFocusRef: closeButtonRef,
     onEscape: handleRequestClose,
+    returnFocusRef,
   });
 
   useEffect(() => {
@@ -203,6 +207,10 @@ export default function AutomationModal({
     [onDemo],
   );
 
+  const resolvedModalId = modalId ?? (item?.id ? `automation-modal-${item.id}` : "automation-modal");
+  const resolvedDescriptionId =
+    descriptionId ?? (item?.id ? `automation-modal-description-${item.id}` : "automation-modal-description");
+
   if (typeof document === "undefined") {
     return null;
   }
@@ -215,6 +223,8 @@ export default function AutomationModal({
         role="dialog"
         aria-modal="true"
         aria-labelledby={item?.id ? `automation-modal-title-${item.id}` : undefined}
+        aria-describedby={resolvedDescriptionId}
+        id={resolvedModalId}
         ref={containerRef}
         tabIndex={-1}
       >
@@ -262,7 +272,12 @@ export default function AutomationModal({
               <section className="automation-modal__section">
                 <h3 className="automation-modal__section-title">Overview</h3>
                 {overviewParagraphs.map((paragraph, index) => (
-                  <p key={`overview-${index}`}>{paragraph}</p>
+                  <p
+                    key={`overview-${index}`}
+                    id={index === 0 ? resolvedDescriptionId : undefined}
+                  >
+                    {paragraph}
+                  </p>
                 ))}
               </section>
 

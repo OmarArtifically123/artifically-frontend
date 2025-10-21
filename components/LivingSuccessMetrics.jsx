@@ -52,7 +52,12 @@ export default function LivingSuccessMetrics({ industry, focus, activeCombo }) {
           <strong>{summaries.savings}</strong>
           <p>Financial impact tracking boots up alongside your first workflow.</p>
           <div className="living-metrics__sparkline" aria-hidden="true">
-            <svg viewBox="0 0 240 72" preserveAspectRatio="none">
+            <svg
+              viewBox="0 0 240 72"
+              preserveAspectRatio="none"
+              aria-hidden="true"
+              focusable="false"
+            >
               <polyline points={sparkline.map((value, index) => `${index * 10},${72 - value}`).join(" ")} />
             </svg>
           </div>

@@ -9,8 +9,12 @@ export type AuthUser = {
   [key: string]: unknown;
 } | null;
 
+type OpenAuthOptions = {
+  trigger?: HTMLElement | null;
+};
+
 type AppShellContextValue = {
-  openAuth: (mode?: AuthMode) => void;
+  openAuth: (mode?: AuthMode, options?: OpenAuthOptions) => void;
   closeAuth: () => void;
   setUser: (user: AuthUser) => void;
   user: AuthUser;
@@ -39,3 +43,5 @@ export function useAppShell() {
   }
   return context;
 }
+
+export type { OpenAuthOptions };
