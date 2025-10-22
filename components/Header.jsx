@@ -781,22 +781,40 @@ export default function Header({ user, onSignIn, onSignUp, onSignOut }) {
     });
   }, [closeAutomationsMenu, closeSolutionsMenu, prefersReducedMotion]);
 
+  const shouldHandleNavigation = useCallback((event) => {
+    if (!event || typeof event !== "object") {
+      return false;
+    }
+    if (event.defaultPrevented) {
+      return false;
+    }
+    if ("metaKey" in event && event.metaKey) {
+      return false;
+    }
+    if ("ctrlKey" in event && event.ctrlKey) {
+      return false;
+    }
+    if ("shiftKey" in event && event.shiftKey) {
+      return false;
+    }
+    if ("altKey" in event && event.altKey) {
+      return false;
+    }
+    if ("button" in event && event.button !== 0) {
+      return false;
+    }
+    return true;
+  }, []);
+
   const handleLinkNavigation = useCallback(
     (event, path, options) => {
-      if (
-        event.defaultPrevented ||
-        event.metaKey ||
-        event.ctrlKey ||
-        event.shiftKey ||
-        event.altKey ||
-        event.button !== 0
-      ) {
+      if (!shouldHandleNavigation(event)) {
         return;
       }
       event.preventDefault();
       navigate(path, options);
     },
-    [navigate],
+    [navigate, shouldHandleNavigation],
   );
 
   const handleMobileMenuToggle = useCallback(() => {
@@ -814,10 +832,25 @@ export default function Header({ user, onSignIn, onSignUp, onSignOut }) {
 
   const handleMobileLinkNavigation = useCallback(
     (event, path, options) => {
+      if (!shouldHandleNavigation(event)) {
+        return;
+      }
+
+      event.preventDefault();
       closeMobileMenu();
-      handleLinkNavigation(event, path, options);
+
+      const runNavigation = () => {
+        navigate(path, options);
+      };
+
+      if (typeof window !== "undefined" && typeof window.requestAnimationFrame === "function") {
+        window.requestAnimationFrame(runNavigation);
+        return;
+      }
+
+      runNavigation();
     },
-    [closeMobileMenu, handleLinkNavigation],
+    [closeMobileMenu, navigate, shouldHandleNavigation],
   );
 
   const toggleMobileAccordion = useCallback((label) => {
