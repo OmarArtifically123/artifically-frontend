@@ -227,57 +227,39 @@ export default function SocialProofSection() {
           </h2>
         </header>
       </AnimatedSection>
-      <motion.div
+      <motion.ul
         ref={logosRef}
         className="logo-wall"
-        aria-label="Customer logos"
-        aria-busy={!logosVisible}
+        role="list"
+        aria-live={logosVisible ? "polite" : "off"}
         variants={logoContainerVariants}
         initial="hidden"
         animate={logosVisible ? "visible" : "hidden"}
       >
         {logosVisible
           ? customerLogos.map((logo) => (
-              <motion.span
+              <motion.li
                 key={logo}
+                className="logo-wall__item"
                 variants={logoItemVariants}
                 whileHover={{
                   scale: 1.05,
                   transition: { type: "spring", ...SPRING_CONFIGS.slow },
                 }}
-                style={{
-                  padding: "1rem 1.5rem",
-                  borderRadius: "0.85rem",
-                  border: "1px solid color-mix(in oklch, white 10%, transparent)",
-                  background: "color-mix(in oklch, var(--glass-2) 70%, transparent)",
-                  fontSize: "0.9rem",
-                  letterSpacing: "0.12em",
-                  textTransform: "uppercase",
-                  color: "color-mix(in oklch, white 75%, var(--gray-200))",
-                }}
               >
                 {logo}
-              </motion.span>
+              </motion.li>
             ))
           : logoSkeletons.map((_, index) => (
-              <span
+              <li
                 key={`logo-skeleton-${index}`}
                 aria-hidden="true"
-                className="skeleton"
-                style={{
-                  padding: "1rem 1.5rem",
-                  borderRadius: "0.85rem",
-                  border: "1px solid color-mix(in oklch, white 6%, transparent)",
-                  minWidth: "8rem",
-                  display: "inline-flex",
-                  alignItems: "center",
-                  justifyContent: "center",
-                }}
+                className="logo-wall__item logo-wall__item--placeholder skeleton"
               >
                 •
-              </span>
+              </li>
             ))}
-      </motion.div>
+      </motion.ul>
       <div
         className="testimonial-carousel"
         onMouseEnter={pauseAutoplay}

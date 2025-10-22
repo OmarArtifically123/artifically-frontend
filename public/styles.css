@@ -474,7 +474,7 @@ main :where(section, div)[id] {
   z-index: 1;
 }
 
-@media (max-width: 767px) {
+@media (max-width: 1023px) {
   .nav {
     display: none;
   }
@@ -1249,6 +1249,8 @@ main :where(section, div)[id] {
   border-radius: 1.9rem;
   border: 1px solid rgba(148, 163, 184, 0.2);
   background: rgba(8, 15, 32, 0.72);
+  list-style: none;
+  padding-inline-start: 0;
 }
 
 .logo-wall__marquee {
@@ -1266,16 +1268,23 @@ main :where(section, div)[id] {
   padding: clamp(1rem, 3vw, 1.75rem) clamp(1.2rem, 4vw, 2.5rem);
 }
 
-.logo-item {
+.logo-wall__item {
   min-width: clamp(96px, 12vw, 160px);
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  color: rgba(226, 232, 240, 0.7);
+  padding: 1rem 1.5rem;
+  border-radius: 0.85rem;
+  border: 1px solid color-mix(in oklch, white 10%, transparent);
+  background: color-mix(in oklch, var(--glass-2) 70%, transparent);
+  font-size: 0.9rem;
   font-weight: 600;
   letter-spacing: 0.16em;
   text-transform: uppercase;
-  opacity: 0.82;
+  color: color-mix(in oklch, white 94%, var(--gray-200));
+  text-align: center;
+  transition: transform 0.25s ease, filter 0.3s ease, color 200ms ease;
+  filter: grayscale(1);
 }
 
 .logo-item__image {
@@ -2041,4 +2050,20 @@ main :where(section, div)[id] {
   gap: 0.35rem;
   position: relative;
 }
+}
+.logo-wall__item:hover,
+.logo-wall__item:focus-visible {
+  transform: translateY(-4px);
+  filter: grayscale(0);
+}
+
+.logo-wall__item:focus-visible {
+  outline: 2px solid color-mix(in oklch, white 40%, transparent);
+  outline-offset: 3px;
+}
+
+.logo-wall__item--placeholder {
+  border: 1px solid color-mix(in oklch, white 6%, transparent);
+  background: color-mix(in oklch, var(--glass-2) 35%, transparent);
+  color: transparent;
 }

@@ -435,9 +435,12 @@
 .preview-grid__icon {
   width: 36px;
   height: 36px;
+  display: block;
   transition: transform 400ms ease;
   opacity: 0.9;
   color: white;
+  transform-origin: center;
+  transform-box: fill-box;
 }
 
 .preview-grid__cell:hover .preview-grid__icon,
@@ -1856,17 +1859,12 @@
   gap: 1.25rem;
   align-items: center;
   justify-items: center;
+  list-style: none;
+  padding-left: 0;
 }
 
-.logo-wall span {
-  filter: grayscale(1);
+.logo-wall__item {
   transition: transform 0.25s ease, filter 0.3s ease;
-}
-
-.logo-wall span:hover,
-.logo-wall span:focus-visible {
-  filter: grayscale(0);
-  transform: translateY(-4px);
 }
 
 .testimonial-carousel {

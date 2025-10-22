@@ -524,7 +524,7 @@ export default function CommandPalette() {
         setSelectedIndex(flattenedResults.length - 1);
         return;
       }
-      
+
       if (event.key === "Enter") {
         event.preventDefault();
         executeItem(selectedItem);
@@ -622,77 +622,79 @@ export default function CommandPalette() {
           onClick={handleBackdropClick}
           role="presentation"
         >
-          <motion.div
-            className="command-palette__modal"
-            initial={{ opacity: 0, scale: 0.96, y: -30 }}
-            animate={{ opacity: 1, scale: 1, y: 0 }}
-            exit={{ opacity: 0, scale: 0.98 }}
-            transition={{ duration: 0.25, ease: [0.16, 1, 0.3, 1] }}
-            role="dialog"
-            aria-modal="true"
-            aria-labelledby="command-palette-title"
-            aria-describedby="command-palette-modal-description"
-            ref={modalRef}
-            tabIndex={-1}
-          >
-          <h2 id="command-palette-title" className="sr-only">
-              Command palette
-            </h2>
-            <p id="command-palette-modal-description" className="sr-only">
-              Search automations, documentation, and quick actions. Use the arrow keys to move through results, press
-              Enter to run a command, and press Escape to close. Press Command+K on Mac or Control+K on Windows from
-              anywhere to open this dialog.
-            </p>
-            <div className="command-palette__input-wrapper">
-              <Icon name="search" size={20} strokeWidth={2} className="command-palette__input-icon" />
-              <input
-                ref={inputRef}
-                className="command-palette__input"
-                type="text"
-                value={query}
-                placeholder="Search automations, docs, or type a command..."
-                onChange={(event) => setQuery(event.target.value)}
-                onKeyDown={handleInputKeyDown}
-                autoComplete="off"
-              />
-            </div>
-            <div className="command-palette__results" role="listbox">
-              {sections.length === 0 || flattenedResults.length === 0 ? (
-                <div className="command-palette__empty">No matches. Try a different keyword.</div>
-              ) : (
-                (() => {
-                  let runningIndex = 0;
-                  return sections.map((section) => {
-                    const sectionNodes = section.items.map((result) => {
-                      const currentIndex = runningIndex;
-                      runningIndex += 1;
-                      return renderResultItem(result, currentIndex);
+          <div className="command-palette__modal-container">
+            <motion.div
+              className="command-palette__modal"
+              initial={{ opacity: 0, scale: 0.96, y: -30 }}
+              animate={{ opacity: 1, scale: 1, y: 0 }}
+              exit={{ opacity: 0, scale: 0.98 }}
+              transition={{ duration: 0.25, ease: [0.16, 1, 0.3, 1] }}
+              role="dialog"
+              aria-modal="true"
+              aria-labelledby="command-palette-title"
+              aria-describedby="command-palette-modal-description"
+              ref={modalRef}
+              tabIndex={-1}
+            >
+              <h2 id="command-palette-title" className="sr-only">
+                Command palette
+              </h2>
+              <p id="command-palette-modal-description" className="sr-only">
+                Search automations, documentation, and quick actions. Use the arrow keys to move through results, press
+                Enter to run a command, and press Escape to close. Press Command+K on Mac or Control+K on Windows from
+                anywhere to open this dialog.
+              </p>
+              <div className="command-palette__input-wrapper">
+                <Icon name="search" size={20} strokeWidth={2} className="command-palette__input-icon" />
+                <input
+                  ref={inputRef}
+                  className="command-palette__input"
+                  type="text"
+                  value={query}
+                  placeholder="Search automations, docs, or type a command..."
+                  onChange={(event) => setQuery(event.target.value)}
+                  onKeyDown={handleInputKeyDown}
+                  autoComplete="off"
+                />
+              </div>
+              <div className="command-palette__results" role="listbox">
+                {sections.length === 0 || flattenedResults.length === 0 ? (
+                  <div className="command-palette__empty">No matches. Try a different keyword.</div>
+                ) : (
+                  (() => {
+                    let runningIndex = 0;
+                    return sections.map((section) => {
+                      const sectionNodes = section.items.map((result) => {
+                        const currentIndex = runningIndex;
+                        runningIndex += 1;
+                        return renderResultItem(result, currentIndex);
+                      });
+                      return (
+                        <div key={section.title} className="command-palette__section">
+                          <div className="command-palette__section-title">{section.title.toUpperCase()}</div>
+                          {sectionNodes}
+                        </div>
+                      );
                     });
-                    return (
-                      <div key={section.title} className="command-palette__section">
-                        <div className="command-palette__section-title">{section.title.toUpperCase()}</div>
-                        {sectionNodes}
-                      </div>
-                    );
-                  });
-                })()
-              )}
-            </div>
+                  })()
+                )}
+              </div>
             <footer className="command-palette__footer">
-              <div className="command-palette__hint">
-                <span className="command-palette__hint-key">↑↓</span>
-                <span>Navigate</span>
-              </div>
-              <div className="command-palette__hint">
-                <span className="command-palette__hint-key">↵</span>
-                <span>Select</span>
-              </div>
-              <div className="command-palette__hint">
-                <span className="command-palette__hint-key">esc</span>
-                <span>Close</span>
-              </div>
-            </footer>
-          </motion.div>
+                <div className="command-palette__hint">
+                  <span className="command-palette__hint-key">↑↓</span>
+                  <span>Navigate</span>
+                </div>
+                <div className="command-palette__hint">
+                  <span className="command-palette__hint-key">↵</span>
+                  <span>Select</span>
+                </div>
+                <div className="command-palette__hint">
+                  <span className="command-palette__hint-key">esc</span>
+                  <span>Close</span>
+                </div>
+              </footer>
+            </motion.div>
+          </div>
           <style jsx>{`
             .command-palette__overlay {
               position: fixed;
@@ -706,9 +708,17 @@ export default function CommandPalette() {
               padding: 24px;
             }
 
-            .command-palette__modal {
-              width: 640px;
+            .command-palette__modal-container {
+              position: absolute;
+              top: 50%;
+              left: 50%;
+              transform: translate(-50%, -40vh);
+              width: min(640px, 100%);
               max-height: 560px;
+          }
+
+          .command-palette__modal {
+              width: 100%;
               background: #1a1f35;
               border: 1px solid rgba(255, 255, 255, 0.2);
               border-radius: 20px;
@@ -716,10 +726,6 @@ export default function CommandPalette() {
               overflow: hidden;
               display: flex;
               flex-direction: column;
-              position: absolute;
-              top: 50%;
-              left: 50%;
-              transform: translate(-50%, -40vh);
             }
 
             .command-palette__input-wrapper {
@@ -890,9 +896,9 @@ export default function CommandPalette() {
             }
 
             @media (max-width: 720px) {
-              .command-palette__modal {
+              .command-palette__modal-container {
                 width: 100%;
-                transform: translate(-50%, -40vh) scale(0.98);
+                transform: translate(-50%, -40vh);
               }
             }
           `}</style>
