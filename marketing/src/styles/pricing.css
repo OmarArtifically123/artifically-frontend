@@ -368,6 +368,15 @@
   margin-bottom: 16px;
 }
 
+@media (forced-colors: active) {
+  .pricing-calculator__savings {
+    forced-color-adjust: none;
+    background: none !important;
+    color: CanvasText !important;
+    -webkit-text-fill-color: CanvasText !important;
+  }
+}
+
 .pricing-calculator__savings-label {
   display: block;
   font-size: 12px;

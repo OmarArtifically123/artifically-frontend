@@ -36,6 +36,10 @@
   --glass-1: var(--surface-glass-layer1, oklch(0.12 0.02 264 / 0.85));
   --glass-2: var(--surface-glass-layer2, oklch(0.18 0.04 264 / 0.75));
   --glass-3: var(--surface-glass-layer3, oklch(0.25 0.06 264 / 0.65));
+  --glass-surface-strong: var(--surface-glass-surfaceStrong, oklch(0.15 0.04 264 / 0.78));
+  --glass-surface-emphasis: var(--surface-glass-surfaceEmphasis, oklch(0.2 0.05 264 / 0.64));
+  --glass-foreground-strong: var(--surface-glass-foregroundStrong, rgba(248, 250, 252, 0.98));
+  --glass-foreground-muted: var(--surface-glass-foregroundMuted, rgba(226, 232, 240, 0.9));
   --glass-gradient-primary: linear-gradient(
     135deg,
     oklch(0.15 0.03 264 / 0.88) 0%,
@@ -258,6 +262,10 @@
   --overlay-backdrop-strong: rgba(4, 7, 15, 0.82);
   --badge-overlay-surface: color-mix(in srgb, white 82%, var(--brand-emerald) 18%);
   --badge-overlay-foreground: #064e3b;
+  --glass-surface-strong: rgba(255, 255, 255, 0.92);
+  --glass-surface-emphasis: rgba(241, 245, 249, 0.9);
+  --glass-foreground-strong: rgba(15, 23, 42, 0.92);
+  --glass-foreground-muted: rgba(30, 41, 59, 0.78);
   --primary: color-mix(in oklch, var(--brand-primary) 70%, white);
   --primary-hover: color-mix(in oklch, var(--brand-primary) 80%, black 20%);
   --primary-light: color-mix(in oklch, var(--brand-primary) 35%, white);
@@ -1028,6 +1036,15 @@ samp {
   animation-delay: calc(var(--char-index) * var(--kinetic-stagger));
 }
 
+@media (forced-colors: active) {
+  [data-kinetic] .kinetic-char {
+    background: none !important;
+    color: currentColor !important;
+    -webkit-text-fill-color: currentColor !important;
+    filter: none !important;
+  }
+}
+
 .kinetic-reveal {
   animation-name: kineticReveal;
 }
@@ -1106,6 +1123,21 @@ samp {
   background-clip: text;
   color: transparent;
   -webkit-text-fill-color: transparent;
+}
+
+@media (forced-colors: active) {
+  .text-gradient,
+  .hero[data-hero-version="reimagined"] .gradient-text,
+  .hero-kinetic-word,
+  .hero-kinetic-word[data-split="true"],
+  .hero-kinetic-word[data-split="true"] .hero-kinetic-char,
+  [data-kinetic] .kinetic-char,
+  .section-header h2 {
+    forced-color-adjust: none;
+    background: none !important;
+    color: CanvasText !important;
+    -webkit-text-fill-color: CanvasText !important;
+  }
 }
 
 .text-glow {
@@ -4849,7 +4881,7 @@ body.solutions-mega-open {
 .hero[data-hero-version="reimagined"] .hero-cta__subtext {
   font-size: 0.8rem;
   font-weight: 500;
-  color: rgba(226, 232, 240, 0.75);
+  color: var(--glass-foreground-muted, rgba(226, 232, 240, 0.9));
 }
 
 .hero[data-hero-version="reimagined"] .hero-cta__icon {
@@ -5098,9 +5130,9 @@ body.solutions-mega-open {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
   gap: 0.8rem;
-  background: rgba(8, 15, 32, 0.55);
+  background: var(--glass-surface-strong, rgba(8, 15, 32, 0.72));
   border-radius: 1.25rem;
-  border: 1px solid rgba(148, 163, 184, 0.18);
+  border: 1px solid color-mix(in oklch, var(--glass-foreground-muted, rgba(226, 232, 240, 0.9)) 18%, transparent);
   padding: 0.9rem 1rem;
 }
 
@@ -5110,8 +5142,8 @@ body.solutions-mega-open {
   gap: 0.6rem;
   padding: 0.6rem 0.75rem;
   border-radius: 0.85rem;
-  background: rgba(15, 23, 42, 0.45);
-  color: rgba(226, 232, 240, 0.88);
+  background: var(--glass-surface-emphasis, rgba(15, 23, 42, 0.6));
+  color: var(--glass-foreground-strong, rgba(248, 250, 252, 0.98));
   font-size: 0.85rem;
   font-weight: 600;
 }

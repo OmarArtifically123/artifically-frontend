@@ -280,12 +280,20 @@ export default function HeroSection({
   }, []);
 
   const visibleTile = activeTile ?? defaultPreviewTile;
+  const visibleTileIndex = Math.max(
+    previewTiles.findIndex((tile) => tile.label === visibleTile.label),
+    0,
+  );
+  const previewPanelId = "hero-preview-panel";
+  const activeTabId = `hero-preview-tab-${visibleTileIndex}`;
 
   return (
     <motion.section
+      data-hero-enhanced="true"
       ref={heroRef}
       className="page-hero"
       aria-labelledby="hero-headline"
+      tabIndex={-1}
       style={prefersReducedMotion ? undefined : { y: heroParallaxY, opacity: heroFade }}
     >
       {heroInView ? <HeroBackground variant="particles" /> : <HeroBackgroundPlaceholder />}
@@ -336,6 +344,7 @@ export default function HeroSection({
             <motion.button
               type="button"
               className="cta-primary"
+              data-hero-focus-target="primary-cta"
               onClick={onPrimary}
               whileHover={{
                 scale: 1.02,
@@ -409,31 +418,42 @@ export default function HeroSection({
           >
             <span className="preview-card__chip">LIVE PRODUCT PREVIEW</span>
             <div className="preview-card__stage">
-              <div className="preview-grid">
-                {previewTiles.map((tile, index) => (
-                  <motion.button
-                    key={tile.label}
-                    type="button"
-                    className="preview-grid__cell"
-                    whileTap={{ scale: 0.95 }}
-                    onClick={() => handleTileSelect(tile)}
-                    onMouseEnter={() => handleTileSelect(tile)}
-                    onFocus={() => handleTileSelect(tile)}
-                    onBlur={handleTileBlur}
-                    onMouseLeave={handleTileBlur}
-                    aria-pressed={visibleTile.label === tile.label ? "true" : "false"}
-                    data-index={index}
-                    data-active={visibleTile.label === tile.label ? "true" : "false"}
-                  >
-                    <Icon name={tile.icon} size={32} strokeWidth={1.6} className="preview-grid__icon" />
-                    <span className="sr-only">{tile.label}</span>
-                  </motion.button>
-                ))}
+              <div className="preview-grid" role="tablist" aria-label="Product preview options">
+                {previewTiles.map((tile, index) => {
+                  const isActive = visibleTile.label === tile.label;
+                  const tabId = `hero-preview-tab-${index}`;
+                  return (
+                    <motion.button
+                      key={tile.label}
+                      type="button"
+                      className="preview-grid__cell"
+                      whileTap={{ scale: 0.95 }}
+                      onClick={() => handleTileSelect(tile)}
+                      onMouseEnter={() => handleTileSelect(tile)}
+                      onFocus={() => handleTileSelect(tile)}
+                      onBlur={handleTileBlur}
+                      onMouseLeave={handleTileBlur}
+                      role="tab"
+                      id={tabId}
+                      aria-selected={isActive ? "true" : "false"}
+                      aria-controls={previewPanelId}
+                      data-index={index}
+                      data-active={isActive ? "true" : "false"}
+                    >
+                      <Icon name={tile.icon} size={32} strokeWidth={1.6} className="preview-grid__icon" />
+                      <span className="sr-only">{tile.label}</span>
+                    </motion.button>
+                  );
+                })}
               </div>
               <AnimatePresence mode="wait" initial={false}>
                 <motion.div
                   key={visibleTile.label}
                   className="preview-card__tooltip"
+                  role="tabpanel"
+                  id={previewPanelId}
+                  aria-labelledby={activeTabId}
+                  tabIndex={0}
                   initial={{ opacity: 0, y: 12 }}
                   animate={{ opacity: 1, y: 0, transition: { duration: 0.3, ease: "easeOut" } }}
                   exit={{ opacity: 0, y: 12, transition: { duration: 0.2, ease: "easeInOut" } }}

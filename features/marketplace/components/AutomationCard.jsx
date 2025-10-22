@@ -569,6 +569,7 @@ function AutomationCardComponent({
   const canvasRef = useRef(null);
   const previewContainerRef = useRef(null);
   const cardRef = useRef(null);
+  const triggerRef = useRef(null);
   const workerRef = useRef(null);
   const lastRoiUpdateRef = useRef(0);
   const lastTelemetryUpdateRef = useRef(0);
@@ -1133,13 +1134,6 @@ function AutomationCardComponent({
     setDetailOpen(true);
   }, []);
 
-  const handleCardKeyDown = useCallback((event) => {
-    if (event.key === "Enter" || event.key === " ") {
-      event.preventDefault();
-      setDetailOpen(true);
-    }
-  }, []);
-
   const handleCloseModal = useCallback(() => {
     setDetailOpen(false);
   }, []);
@@ -1189,263 +1183,273 @@ const handleVote = useCallback(
 
   return (
     <>
-      <div
-      className={`automation-card glass-panel${hovered ? " is-hovered" : ""}${
-        intensity > 0.45 ? " is-priority" : ""
-      }${predicted ? " is-psychic" : ""}`}
-      data-glass="true"
-      data-predicted={predicted}
+      <article
+        className={`automation-card glass-panel${hovered ? " is-hovered" : ""}${
+          intensity > 0.45 ? " is-priority" : ""
+        }${predicted ? " is-psychic" : ""}`}
+        data-glass="true"
+        data-predicted={predicted}
       data-attention-level={attentionIntensity.toFixed(3)}
       data-spotlight={spotlighted}
       data-live="true"
       id={item?.id ? `automation-${item.id}` : undefined}
-      style={{
-        position: "relative",
-        display: "grid",
-        gap: space("sm"),
-        padding: space("md", 1.2667),
-        borderRadius: "1.35rem",
-        border: "1px solid transparent",
-        borderColor: baseBorderColor,
-        background: `linear-gradient(145deg, ${palette.secondary}, rgba(15,23,42,0.85))`,
-        boxShadow: computedShadow,
-        color: darkMode ? "#e2e8f0" : "#1f2937",
-        transform: transformValue,
-        transition:
-          "transform 200ms ease, box-shadow 300ms ease-out, border-color 300ms ease-out, filter 300ms ease-out",
-        contain: "layout style paint",
-        "--attention-level": attentionIntensity,
-      }}
-      ref={cardRef}
-      onMouseEnter={handlePointerEnter}
-      onMouseLeave={handlePointerLeave}
-      onPointerMove={handlePointerMove}
-      onFocus={handlePointerEnter}
-      onBlur={handlePointerLeave}
-      onClick={handleCardClick}
-      onKeyDown={handleCardKeyDown}
-      role="button"
-      aria-haspopup="dialog"
-      aria-expanded={detailOpen ? "true" : "false"}
-      aria-controls={modalId}
-      aria-describedby={cardDescriptionId}
-      tabIndex={0}
-    >
-      <div className="automation-card__pulse-ring" aria-hidden="true" />
-      <div className="automation-card__header">
-        <div
-          className="automation-card__icon"
-          style={{
-            background: `linear-gradient(135deg, ${palette.primary}, rgba(255,255,255,0.12))`,
-            boxShadow: `0 12px 25px ${palette.shadow}`,
-          }}
-        >
-          {item.icon}
-        </div>
-        <div className="automation-card__price">
-          {formatPrice(item.priceMonthly, item.currency)}/mo
-        </div>
-      </div>
-
-      <AutomationCardPreviewMedia previewImage={item.previewImage} name={item.name} palette={palette} />
-
-      <div
-        className="automation-card__live-preview"
-        ref={assignPreviewContainer}
-        role="img"
-        aria-label={`Live automation data flow for ${item.name}`}
-        data-preview-ready={previewActive ? "true" : undefined}
+        style={{
+          position: "relative",
+          display: "grid",
+          gap: space("sm"),
+          padding: space("md", 1.2667),
+          borderRadius: "1.35rem",
+          border: "1px solid transparent",
+          borderColor: baseBorderColor,
+          background: `linear-gradient(145deg, ${palette.secondary}, rgba(15,23,42,0.85))`,
+          boxShadow: computedShadow,
+          color: darkMode ? "#e2e8f0" : "#1f2937",
+          transform: transformValue,
+          transition:
+            "transform 200ms ease, box-shadow 300ms ease-out, border-color 300ms ease-out, filter 300ms ease-out",
+          contain: "layout style paint",
+          "--attention-level": attentionIntensity,
+        }}
+        ref={cardRef}
+        onMouseEnter={handlePointerEnter}
+        onMouseLeave={handlePointerLeave}
+        onPointerMove={handlePointerMove}
       >
-        {previewActive ? (
-          <>
-            <canvas ref={canvasRef} aria-hidden="true" />
-            <div className="automation-card__live-hud" aria-live="polite">
-              <div className="automation-card__live-metric">
-                <strong>{formattedPerMinute}</strong>
-                <span>
-                  events/min · {telemetry.activeConnections} {activeLinksLabel} live
-                </span>
-              </div>
-              <div className="automation-card__live-metric">
-                <strong>{formattedSavings}</strong>
-                <span>Savings across customers</span>
-              </div>
-            </div>
-          </>
-        ) : (
-          <div className="automation-card__preview-skeleton" aria-hidden="true" />
-        )}
-      </div>
-
-      <div className="automation-card__live-summary">
-        <span className="automation-card__live-summary-segment" data-role="sources">
-          {previewSummary.sources.length
-            ? previewSummary.sources.join(" • ")
-            : "Live data sources"}
-        </span>
-        <span className="automation-card__live-summary-separator" aria-hidden="true">
-          →
-        </span>
-        <span className="automation-card__live-summary-segment" data-role="core">
-          {previewSummary.focus}
-        </span>
-        <span className="automation-card__live-summary-separator" aria-hidden="true">
-          →
-        </span>
-        <span className="automation-card__live-summary-segment" data-role="destinations">
-          {previewSummary.destinations.length
-            ? previewSummary.destinations.join(" • ")
-            : "Active destinations"}
-        </span>
-      </div>
-
-      {(industryMatch || browsingMatch) && (
-        <div className="automation-card__badge-tray">
-          {industryMatch && industryLabel ? (
-            <span className="automation-card__badge automation-card__badge--industry">
-              Tailored for {industryLabel}
-            </span>
-          ) : null}
-          {browsingMatch ? (
-            <span className="automation-card__badge automation-card__badge--signal">
-              Personalized pick
-            </span>
-          ) : null}
-        </div>
-      )}
-      
-      <div className="automation-card__title-group">
-        <h3>{item.name}</h3>
-        <p id={cardDescriptionId}>{item.description}</p>
-      </div>
-
-      <div className="automation-card__live-stat">
-        <span className="automation-card__stat-icon" aria-hidden="true">
-          <Icon name="zap" size={18} />
-        </span>
-        <span className="automation-card__stat-copy">{metrics.statement}</span>
-      </div>
-
-      <div className="automation-card__psychic" data-visible={predicted}>
-        <span aria-hidden="true" className="automation-card__psychic-icon">
-          <Icon name="sparkles" size={18} />
-        </span>
-        <span>Marketplace senses you're about to open this.</span>
-      </div>
-
-      <div className="automation-card__flow" aria-label="Automation data flow visualization">
-        <div className="automation-card__flow-track">
-          {simulationSteps.map((step, index) => (
-            <div
-              key={step.id}
-              className="automation-card__flow-node"
-              data-active={index === simulationStep}
-            >
-              <span className="automation-card__flow-label">{step.label}</span>
-              <span className="automation-card__flow-summary">{step.summary}</span>
-            </div>
-          ))}
-        </div>
-        <div
-          className="automation-card__progress"
-          role="progressbar"
-          aria-valuenow={progressPercent}
-          aria-valuemin="0"
-          aria-valuemax="100"
+        <button
+          type="button"
+          ref={triggerRef}
+          className="automation-card__trigger"
+          onClick={handleCardClick}
+          onFocus={handlePointerEnter}
+          onBlur={handlePointerLeave}
+          aria-haspopup="dialog"
+          aria-expanded={detailOpen ? "true" : "false"}
+          aria-controls={modalId}
+          aria-describedby={cardDescriptionId}
         >
-          <div className="automation-card__progress-bar" style={{ width: `${progressPercent}%` }} />
-        </div>
-      </div>
-
-      {featureHighlights.length > 0 && (
-        <ul className="automation-card__features">
-          {featureHighlights.map((feature) => (
-            <li
-              key={feature}
-              className="automation-card__feature"
-              data-highlight={
-                activeNeed ? normalize(feature).includes(normalize(activeNeed)) : false
-              }
+          <div className="automation-card__pulse-ring" aria-hidden="true" />
+          <div className="automation-card__header">
+            <div
+              className="automation-card__icon"
               style={{
-                transform: `scale(${1 + intensity * 0.04})`,
+                background: `linear-gradient(135deg, ${palette.primary}, rgba(255,255,255,0.12))`,
+                boxShadow: `0 12px 25px ${palette.shadow}`,
               }}
             >
-              <span className="automation-card__feature-indicator" aria-hidden="true" />
-              <span>{feature}</span>
-            </li>
-          ))}
-        </ul>
-      )}
+              {item.icon}
+            </div>
+            <div className="automation-card__price">
+              {formatPrice(item.priceMonthly, item.currency)}/mo
+            </div>
+          </div>
 
-      {item.tags?.length > 0 && (
-        <div className="automation-card__tags" aria-label="Automation tags">
-          {item.tags.map((tag) => (
-            <span
-              className="automation-card__tag"
-              key={tag}
-              data-active={
-                activeNeed ? normalize(tag).includes(normalize(activeNeed)) : false
-              }
-              style={{
-                background: `linear-gradient(135deg, ${palette.primary}, ${palette.secondary})`,
-              }}
-            >
-              {tag}
-            </span>
-          ))}
-        </div>
-      )}
+      <AutomationCardPreviewMedia
+            previewImage={item.previewImage}
+            name={item.name}
+            palette={palette}
+          />
 
-      <div className="automation-card__simulation" data-visible={hovered}>
-        <header>
-          <span className="automation-card__simulation-badge">Live preview</span>
-          <div className="automation-card__simulation-step">
-            <span>{currentStep?.summary}</span>
-            {currentStep?.detail && (
-              <span className="automation-card__simulation-detail">{currentStep.detail}</span>
+          <div
+            className="automation-card__live-preview"
+            ref={assignPreviewContainer}
+            role="img"
+            aria-label={`Live automation data flow for ${item.name}`}
+            data-preview-ready={previewActive ? "true" : undefined}
+          >
+            {previewActive ? (
+              <>
+                <canvas ref={canvasRef} aria-hidden="true" />
+                <div className="automation-card__live-hud" aria-live="polite">
+                  <div className="automation-card__live-metric">
+                    <strong>{formattedPerMinute}</strong>
+                    <span>
+                      events/min · {telemetry.activeConnections} {activeLinksLabel} live
+                    </span>
+                  </div>
+                  <div className="automation-card__live-metric">
+                    <strong>{formattedSavings}</strong>
+                    <span>Savings across customers</span>
+                  </div>
+                </div>
+              </>
+            ) : (
+              <div className="automation-card__preview-skeleton" aria-hidden="true" />
             )}
           </div>
-        </header>
-        <ul>
-          {activeStream.map((entry, index) => (
-            <li key={entry.id} data-active={index === 0}>
-              <span className="automation-card__simulation-context">{entry.context}</span>
-              <span className="automation-card__simulation-payload">{entry.payload}</span>
-              <span className="automation-card__simulation-meta">{entry.confidence}</span>
-              <span className="automation-card__simulation-focus">{entry.focus}</span>
-            </li>
-          ))}
-        </ul>
-      </div>
 
-      <div className="automation-card__actions">
-        <Button size="sm" variant="secondary" magnetic glowOnHover={false} onClick={handleDemo}>
-          Preview Automation
-        </Button>
-        <Button size="sm" variant="primary" magnetic onClick={handleBuy}>
-          <span>Deploy Automation</span>
-        </Button>
-      </div>
-
-      {onVote && (
-        <div className="automation-card__collab">
-          <Button
-            type="button"
-            variant="secondary"
-            magnetic
-            glowOnHover={false}
-            className="automation-card__vote"
-            onClick={handleVote}
-          >
-            <span aria-hidden="true" className="automation-card__vote-icon">
-              <Icon name="vote" size={18} />
+          <div className="automation-card__live-summary">
+            <span className="automation-card__live-summary-segment" data-role="sources">
+              {previewSummary.sources.length
+                ? previewSummary.sources.join(" • ")
+                : "Live data sources"}
             </span>
-            <span>Vote to deploy</span>
+            <span className="automation-card__live-summary-separator" aria-hidden="true">
+              →
+            </span>
+            <span className="automation-card__live-summary-segment" data-role="core">
+              {previewSummary.focus}
+            </span>
+            <span className="automation-card__live-summary-separator" aria-hidden="true">
+              →
+            </span>
+            <span className="automation-card__live-summary-segment" data-role="destinations">
+              {previewSummary.destinations.length
+                ? previewSummary.destinations.join(" • ")
+                : "Active destinations"}
+            </span>
+          </div>
+
+          {(industryMatch || browsingMatch) && (
+            <div className="automation-card__badge-tray">
+              {industryMatch && industryLabel ? (
+                <span className="automation-card__badge automation-card__badge--industry">
+                  Tailored for {industryLabel}
+                </span>
+              ) : null}
+              {browsingMatch ? (
+                <span className="automation-card__badge automation-card__badge--signal">
+                  Personalized pick
+                </span>
+              ) : null}
+            </div>
+          )}
+
+          <div className="automation-card__title-group">
+            <h3>{item.name}</h3>
+            <p id={cardDescriptionId}>{item.description}</p>
+          </div>
+
+          <div className="automation-card__live-stat">
+            <span className="automation-card__stat-icon" aria-hidden="true">
+              <Icon name="zap" size={18} />
+            </span>
+            <span className="automation-card__stat-copy">{metrics.statement}</span>
+          </div>
+
+          <div className="automation-card__psychic" data-visible={predicted}>
+            <span aria-hidden="true" className="automation-card__psychic-icon">
+              <Icon name="sparkles" size={18} />
+            </span>
+            <span>Marketplace senses you're about to open this.</span>
+          </div>
+
+          <div className="automation-card__flow" aria-label="Automation data flow visualization">
+            <div className="automation-card__flow-track">
+              {simulationSteps.map((step, index) => (
+                <div
+                  key={step.id}
+                  className="automation-card__flow-node"
+                  data-active={index === simulationStep}
+                >
+                  <span className="automation-card__flow-label">{step.label}</span>
+                  <span className="automation-card__flow-summary">{step.summary}</span>
+                </div>
+              ))}
+            </div>
+            <div
+              className="automation-card__progress"
+              role="progressbar"
+              aria-valuenow={progressPercent}
+              aria-valuemin="0"
+              aria-valuemax="100"
+            >
+              <div
+                className="automation-card__progress-bar"
+                style={{ width: `${progressPercent}%` }}
+              />
+            </div>
+          </div>
+
+          {featureHighlights.length > 0 && (
+            <ul className="automation-card__features">
+              {featureHighlights.map((feature) => (
+                <li
+                  key={feature}
+                  className="automation-card__feature"
+                  data-highlight={
+                    activeNeed ? normalize(feature).includes(normalize(activeNeed)) : false
+                  }
+                  style={{
+                    transform: `scale(${1 + intensity * 0.04})`,
+                  }}
+                >
+                  <span className="automation-card__feature-indicator" aria-hidden="true" />
+                  <span>{feature}</span>
+                </li>
+              ))}
+            </ul>
+          )}
+
+          {item.tags?.length > 0 && (
+            <div className="automation-card__tags" aria-label="Automation tags">
+              {item.tags.map((tag) => (
+                <span
+                  className="automation-card__tag"
+                  key={tag}
+                  data-active={
+                    activeNeed ? normalize(tag).includes(normalize(activeNeed)) : false
+                  }
+                  style={{
+                    background: `linear-gradient(135deg, ${palette.primary}, ${palette.secondary})`,
+                  }}
+                >
+                  {tag}
+                </span>
+              ))}
+            </div>
+          )}
+
+          <div className="automation-card__simulation" data-visible={hovered}>
+            <header>
+              <span className="automation-card__simulation-badge">Live preview</span>
+              <div className="automation-card__simulation-step">
+                <span>{currentStep?.summary}</span>
+                {currentStep?.detail && (
+                  <span className="automation-card__simulation-detail">{currentStep.detail}</span>
+                )}
+              </div>
+            </header>
+            <ul>
+              {activeStream.map((entry, index) => (
+                <li key={entry.id} data-active={index === 0}>
+                  <span className="automation-card__simulation-context">{entry.context}</span>
+                  <span className="automation-card__simulation-payload">{entry.payload}</span>
+                  <span className="automation-card__simulation-meta">{entry.confidence}</span>
+                  <span className="automation-card__simulation-focus">{entry.focus}</span>
+                </li>
+              ))}
+            </ul>
+          </div>
+        </button>
+
+        <div className="automation-card__actions">
+          <Button size="sm" variant="secondary" magnetic glowOnHover={false} onClick={handleDemo}>
+            Preview Automation
           </Button>
-          <span className="automation-card__vote-count">{voteCount} team votes</span>
+          <Button size="sm" variant="primary" magnetic onClick={handleBuy}>
+            <span>Deploy Automation</span>
+          </Button>
         </div>
-      )}
-    </div>
+
+        {onVote && (
+          <div className="automation-card__collab">
+            <Button
+              type="button"
+              variant="secondary"
+              magnetic
+              glowOnHover={false}
+              className="automation-card__vote"
+              onClick={handleVote}
+            >
+              <span aria-hidden="true" className="automation-card__vote-icon">
+                <Icon name="vote" size={18} />
+              </span>
+              <span>Vote to deploy</span>
+            </Button>
+            <span className="automation-card__vote-count">{voteCount} team votes</span>
+          </div>
+        )}
+      </article>
       {detailOpen && (
         <AutomationModal
           item={item}
@@ -1460,7 +1464,7 @@ const handleVote = useCallback(
           onDemo={handleModalDemo}
           modalId={modalId}
           descriptionId={modalDescriptionId}
-          returnFocusRef={cardRef}
+          returnFocusRef={triggerRef}
         />
       )}
     </>

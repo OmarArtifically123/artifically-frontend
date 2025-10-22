@@ -19,6 +19,7 @@ export default function HeroExperienceIsland({ initialMode = "signup" }: HeroExp
   const { openAuth } = useAppShell();
   const [demoOpen, setDemoOpen] = useState(false);
   const [enhanceHero, setEnhanceHero] = useState(false);
+  const [heroReadyAnnouncement, setHeroReadyAnnouncement] = useState<string | null>(null);
   const demoTriggerRef = useRef<HTMLButtonElement | null>(null);
 
   const handlePrimary = useCallback(
@@ -41,13 +42,50 @@ export default function HeroExperienceIsland({ initialMode = "signup" }: HeroExp
     setDemoOpen(false);
   }, []);
 
-  const handleHeroReady = useCallback(() => {
+  const toggleStaticHero = useCallback((shouldHide: boolean) => {
+    if (typeof document === "undefined") {
+      return;
+    }
+
     const staticHero = document.querySelector<HTMLElement>("[data-hero-static]");
-    if (staticHero) {
+    if (!staticHero) {
+      return;
+    }
+
+    if (shouldHide) {
       staticHero.hidden = true;
       staticHero.setAttribute("aria-hidden", "true");
+      staticHero.setAttribute("inert", "");
+    } else {
+      staticHero.hidden = false;
+      staticHero.removeAttribute("aria-hidden");
+      staticHero.removeAttribute("inert");
     }
   }, []);
+
+  const handleHeroReady = useCallback(() => {
+    if (typeof document === "undefined") {
+      return;
+    }
+
+    const staticHero = document.querySelector<HTMLElement>("[data-hero-static]");
+    const previouslyFocused = document.activeElement;
+
+    toggleStaticHero(true);
+
+    if (
+      staticHero &&
+      previouslyFocused instanceof HTMLElement &&
+      staticHero.contains(previouslyFocused)
+    ) {
+      const focusTarget =
+        document.querySelector<HTMLElement>("[data-hero-enhanced] [data-hero-focus-target]") ??
+        document.querySelector<HTMLElement>("[data-hero-enhanced]");
+      focusTarget?.focus({ preventScroll: true });
+    }
+
+    setHeroReadyAnnouncement((current) => current ?? "Interactive hero experience is now available.");
+  }, [toggleStaticHero]);
 
   useEffect(() => {
     setEnhanceHero(true);
@@ -57,11 +95,18 @@ export default function HeroExperienceIsland({ initialMode = "signup" }: HeroExp
     if (process.env.NODE_ENV !== "production") {
       console.error("Hero enhancement failed", error);
     }
+    toggleStaticHero(false);
     setEnhanceHero(false);
-  }, []);
+    setHeroReadyAnnouncement(null);
+  }, [toggleStaticHero]);
 
   return (
     <>
+      {heroReadyAnnouncement ? (
+        <p role="status" aria-live="polite" className="sr-only">
+          {heroReadyAnnouncement}
+        </p>
+      ) : null}
       {enhanceHero ? (
         <ErrorBoundary fallback={null} onError={handleHeroError}>
           <Suspense fallback={null}>

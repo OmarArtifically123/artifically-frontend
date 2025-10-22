@@ -374,6 +374,15 @@ export default function ROICalculator({
           margin: 0;
         }
 
+        @media (forced-colors: active) {
+          .pricing-calculator__results-value {
+            forced-color-adjust: none;
+            background: none !important;
+            color: CanvasText !important;
+            -webkit-text-fill-color: CanvasText !important;
+          }
+        }
+          
         .pricing-calculator__results-label {
           font-size: 12px;
           font-weight: 700;

@@ -174,6 +174,29 @@
   transform-style: preserve-3d;
 }
 
+.automation-card__trigger {
+  display: block;
+  width: 100%;
+  padding: 0;
+  margin: 0;
+  background: none;
+  border: none;
+  text-align: inherit;
+  color: inherit;
+  font: inherit;
+  cursor: pointer;
+}
+
+.automation-card__trigger:focus {
+  outline: none;
+}
+
+.automation-card__trigger:focus-visible {
+  outline: none;
+  box-shadow: 0 0 0 3px rgba(139, 92, 246, 0.45);
+  border-radius: inherit;
+}
+
 .automation-card::before {
   content: '';
   position: absolute;

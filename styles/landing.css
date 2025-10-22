@@ -163,6 +163,15 @@
   animation: heroHeadlineGradient 8s ease-in-out infinite;
 }
 
+@media (forced-colors: active) {
+  .headline-word--gradient {
+    forced-color-adjust: none;
+    background: none !important;
+    color: CanvasText !important;
+    -webkit-text-fill-color: CanvasText !important;
+  }
+}
+
 .page-hero__subheadline {
   max-width: 560px;
   font-size: clamp(1.1rem, 1.8vw, 1.25rem);
@@ -2675,6 +2684,15 @@
   color: transparent;
 }
 
+@media (forced-colors: active) {
+  .roi-calculator__results-value {
+    forced-color-adjust: none;
+    background: none !important;
+    color: CanvasText !important;
+    -webkit-text-fill-color: CanvasText !important;
+  }
+}
+
 .roi-calculator__results-details {
   display: grid;
   gap: 8px;
@@ -3459,8 +3477,8 @@
 .goal-wizard__card {
   width: min(100%, 720px);
   margin: 0 auto;
-  background: color-mix(in oklch, var(--brand-depth) 78%, transparent 22%);
-  border: 1px solid color-mix(in oklch, var(--brand-primary) 18%, transparent);
+  background: var(--glass-surface-strong, color-mix(in oklch, var(--brand-depth) 82%, transparent 18%));
+  border: 1px solid color-mix(in oklch, var(--brand-primary) 22%, transparent);
   border-radius: 1.5rem;
   padding: clamp(1.75rem, 5vw, 2.75rem);
   display: grid;
@@ -3483,8 +3501,8 @@
 }
 
 .goal-wizard__option[data-selected] {
-  border-color: color-mix(in oklch, var(--brand-primary) 45%, transparent);
-  background: color-mix(in oklch, var(--brand-primary) 18%, transparent);
+  border-color: color-mix(in oklch, var(--brand-primary) 55%, transparent);
+  background: var(--glass-surface-emphasis, color-mix(in oklch, var(--brand-primary) 24%, transparent));
 }
 
 .goal-wizard__option input {
@@ -3493,11 +3511,12 @@
 
 .goal-wizard__option-label {
   font-weight: 600;
+  color: var(--glass-foreground-strong, #f8fafc);
 }
 
 .goal-wizard__option-hint {
   font-size: 0.9rem;
-  color: color-mix(in oklch, white 80%, var(--gray-300));
+  color: var(--glass-foreground-muted, rgba(226, 232, 240, 0.9));
 }
 
 .goal-wizard__actions {

@@ -36,6 +36,10 @@
   --glass-1: var(--surface-glass-layer1, oklch(0.12 0.02 264 / 0.85));
   --glass-2: var(--surface-glass-layer2, oklch(0.18 0.04 264 / 0.75));
   --glass-3: var(--surface-glass-layer3, oklch(0.25 0.06 264 / 0.65));
+  --glass-surface-strong: var(--surface-glass-surfaceStrong, oklch(0.15 0.04 264 / 0.78));
+  --glass-surface-emphasis: var(--surface-glass-surfaceEmphasis, oklch(0.2 0.05 264 / 0.64));
+  --glass-foreground-strong: var(--surface-glass-foregroundStrong, rgba(248, 250, 252, 0.98));
+  --glass-foreground-muted: var(--surface-glass-foregroundMuted, rgba(226, 232, 240, 0.9));
   --glass-gradient-primary: linear-gradient(
     135deg,
     oklch(0.15 0.03 264 / 0.88) 0%,
@@ -843,6 +847,16 @@ main :where(section, div)[id] {
   animation: gradient-shift 3s ease infinite;
 }
 
+@media (forced-colors: active) {
+  .hero[data-hero-version="reimagined"] .gradient-text,
+  .section-header h2 {
+    forced-color-adjust: none;
+    background: none !important;
+    color: CanvasText !important;
+    -webkit-text-fill-color: CanvasText !important;
+  }
+}
+
 @keyframes gradient-shift {
   0%,
   100% {
@@ -954,7 +968,7 @@ main :where(section, div)[id] {
 .hero[data-hero-version="reimagined"] .hero-cta__subtext {
   font-size: 0.8rem;
   font-weight: 500;
-  color: rgba(226, 232, 240, 0.75);
+  color: var(--glass-foreground-muted, rgba(226, 232, 240, 0.9));
 }
 
 .hero[data-hero-version="reimagined"] .hero-cta__icon {
@@ -1203,9 +1217,9 @@ main :where(section, div)[id] {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
   gap: 0.8rem;
-  background: rgba(8, 15, 32, 0.55);
+  background: var(--glass-surface-strong, rgba(8, 15, 32, 0.72));
   border-radius: 1.25rem;
-  border: 1px solid rgba(148, 163, 184, 0.18);
+  background: var(--glass-surface-strong, rgba(8, 15, 32, 0.72));
   padding: 0.9rem 1rem;
 }
 
@@ -1215,8 +1229,8 @@ main :where(section, div)[id] {
   gap: 0.6rem;
   padding: 0.6rem 0.75rem;
   border-radius: 0.85rem;
-  background: rgba(15, 23, 42, 0.45);
-  color: rgba(226, 232, 240, 0.88);
+  background: var(--glass-surface-emphasis, rgba(15, 23, 42, 0.6));
+  color: var(--glass-foreground-strong, rgba(248, 250, 252, 0.98));
   font-size: 0.85rem;
   font-weight: 600;
 }
