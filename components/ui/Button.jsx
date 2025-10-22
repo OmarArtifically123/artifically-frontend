@@ -1,7 +1,7 @@
 "use client";
 
 import { forwardRef, useRef } from "react";
-import { motion } from "framer-motion";
+import { motion, useReducedMotion } from "framer-motion";
 import useMicroInteractions from "../../hooks/useMicroInteractions";
 import { cn } from "../../utils/cn";
 import { createRipple } from "../../utils/createRipple";
@@ -11,14 +11,22 @@ const buttonMotion = {
   whileTap: { scale: 0.98 },
 };
 
-export const ButtonShine = () => (
-  <motion.span
-    aria-hidden="true"
-    className="button__shine"
-    animate={{ x: [-120, 240] }}
-    transition={{ duration: 3, repeat: Infinity, repeatDelay: 5, ease: "easeInOut" }}
-  />
-);
+export const ButtonShine = () => {
+  const prefersReducedMotion = useReducedMotion();
+
+  if (prefersReducedMotion) {
+    return null;
+  }
+
+  return (
+    <motion.span
+      aria-hidden="true"
+      className="button__shine"
+      animate={{ x: [-120, 240] }}
+      transition={{ duration: 3, repeat: Infinity, repeatDelay: 5, ease: "easeInOut" }}
+    />
+  );
+};
 
 const Button = forwardRef(
   (
@@ -40,6 +48,7 @@ const Button = forwardRef(
     forwardedRef
   ) => {
     const { dispatchInteraction } = useMicroInteractions();
+    const prefersReducedMotion = useReducedMotion();
     const internalRef = useRef(null);
     const mergedRef = (node) => {
       internalRef.current = node;
@@ -83,7 +92,7 @@ const Button = forwardRef(
         {iconLeft && <span className="button__icon button__icon--left">{iconLeft}</span>}
         <span className="button__content">{children}</span>
         {iconRight && <span className="button__icon button__icon--right">{iconRight}</span>}
-        {shine && <ButtonShine />}
+        {shine && !prefersReducedMotion && <ButtonShine />}
       </motion.button>
     );
   }

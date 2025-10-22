@@ -1,6 +1,6 @@
 "use client";
 
-import { useId, useMemo, useState } from "react";
+import { useEffect, useId, useMemo, useState } from "react";
 import { cn } from "../utils/cn";
 import type { InputHTMLAttributes } from "react";
 
@@ -53,10 +53,27 @@ export function Autocomplete<T = string>({
     return options.filter((option) => predicate(option, trimmed)).slice(0, 8);
   }, [filter, options, query]);
 
+  useEffect(() => {
+    if (!results.length) {
+      setHighlightedIndex(0);
+      return;
+    }
+
+    setHighlightedIndex((previous) => {
+      if (previous >= results.length) {
+        return results.length - 1;
+      }
+      return previous;
+    });
+  }, [results]);
+
+  const activeOptionId = isOpen && results[highlightedIndex] ? `${inputId}-option-${highlightedIndex}` : undefined;
+
   const handleSelect = (option: AutocompleteOption<T> | null) => {
     setQuery(option?.label ?? "");
     onChange?.(option);
     setIsOpen(false);
+    setHighlightedIndex(0);
   };
 
   return (
@@ -72,6 +89,7 @@ export function Autocomplete<T = string>({
           aria-autocomplete="list"
           aria-expanded={isOpen}
           aria-controls={`${inputId}-list`}
+          aria-activedescendant={activeOptionId}
           aria-describedby={helperText ? helperId : undefined}
           value={query}
           onFocus={() => setIsOpen(true)}
@@ -108,11 +126,13 @@ export function Autocomplete<T = string>({
         <div className="ads-autocomplete__list" id={`${inputId}-list`} role="listbox">
           {results.map((option, index) => {
             const active = highlightedIndex === index;
+            const optionId = `${inputId}-option-${index}`;
             return (
               <div
                 key={`${option.label}-${index}`}
                 role="option"
-                aria-selected={value?.value === option.value}
+                id={optionId}
+                aria-selected={active}
                 className="ads-autocomplete__option"
                 data-highlighted={active ? "true" : undefined}
                 tabIndex={-1}

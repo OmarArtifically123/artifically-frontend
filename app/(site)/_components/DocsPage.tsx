@@ -2,7 +2,7 @@
 "use client";
 
 import Link from "next/link";
-import { useCallback, useMemo, useState } from "react";
+import { useCallback, useId, useMemo, useState } from "react";
 import ThemeToggle from "@/components/ThemeToggle";
 import { useTheme } from "@/context/ThemeContext";
 import { space } from "@/styles/spacing";
@@ -20,16 +20,43 @@ type TooltipTermProps = {
 };
 
 function TooltipTerm({ label, description }: TooltipTermProps) {
-  const [visible, setVisible] = useState(false);
+  const [isHovered, setIsHovered] = useState(false);
+  const [isFocused, setIsFocused] = useState(false);
+  const tooltipId = useId();
+
+  const visible = isHovered || isFocused;
 
   return (
-    <span
-      style={tooltipStyle}
-      onMouseEnter={() => setVisible(true)}
-      onMouseLeave={() => setVisible(false)}
+    <button
+      type="button"
+      style={{
+        ...tooltipStyle,
+        background: "none",
+        border: "none",
+        padding: 0,
+        font: "inherit",
+        display: "inline",
+      }}
+      onMouseEnter={() => setIsHovered(true)}
+      onMouseLeave={() => setIsHovered(false)}
+      onFocus={() => setIsFocused(true)}
+      onBlur={() => setIsFocused(false)}
+      onKeyDown={(event) => {
+        if (event.key === "Escape") {
+          setIsFocused(false);
+          setIsHovered(false);
+        }
+      }}
+      aria-describedby={tooltipId}
+      aria-controls={tooltipId}
+      aria-haspopup="true"
+      aria-expanded={visible}
     >
       {label}
       <span
+        id={tooltipId}
+        role="tooltip"
+        aria-hidden={!visible}
         style={{
           position: "absolute",
           bottom: "110%",
@@ -55,7 +82,7 @@ function TooltipTerm({ label, description }: TooltipTermProps) {
       >
         {description}
       </span>
-    </span>
+    </button>
   );
 }
 
