@@ -1231,7 +1231,7 @@
   flex-direction: column;
   gap: 20px;
   position: relative;
-  transition: clip-path 160ms ease-out;
+  transition: clip-path 60ms ease-out;
 }
 
 .comparison-panel--old {

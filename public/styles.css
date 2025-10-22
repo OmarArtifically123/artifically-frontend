@@ -134,8 +134,8 @@
   --text-muted: var(--color-text-muted, rgba(184, 196, 235, 0.7));
 
   /* Background */
-  --bg-from: #0c2340;
-  --bg-to: #182b57;
+  --bg-from: #050b1f;
+  --bg-to: #102347;
   --bg-primary: var(--surface-background-primary, #050510);
   --bg-secondary: var(--surface-background-secondary, color-mix(in srgb, var(--brand-depth) 80%, black));
   --bg-tertiary: var(--surface-background-tertiary, color-mix(in srgb, var(--brand-muted) 75%, black));
@@ -510,12 +510,12 @@ main :where(section, div)[id] {
   width: 100vw;
   height: 100dvh;
   background:
-    radial-gradient(circle at 12% 18%, rgba(93, 47, 254, 0.32), transparent 58%),
-    radial-gradient(circle at 78% 12%, rgba(62, 249, 197, 0.18), transparent 60%),
-    radial-gradient(circle at 68% 82%, rgba(255, 145, 83, 0.16), transparent 65%);
+    radial-gradient(circle at 15% 20%, color-mix(in oklch, var(--brand-energy) 65%, transparent) 0%, transparent 52%),
+    radial-gradient(circle at 85% 25%, color-mix(in oklch, var(--brand-glow) 60%, transparent) 0%, transparent 55%),
+    linear-gradient(160deg, color-mix(in oklch, var(--brand-depth) 85%, black) 0%, color-mix(in oklch, var(--brand-muted) 35%, black) 100%);
   pointer-events: none;
   z-index: 0;
-  opacity: 1;
+  opacity: 0.94;
   transform: translateZ(0);
 }
 
@@ -555,7 +555,32 @@ main :where(section, div)[id] {
 }
 
 .hero-background {
-  background: linear-gradient(180deg, var(--bg-from), var(--bg-to));
+  background-color: var(--bg-from);
+  background-image: linear-gradient(
+      160deg,
+      color-mix(in srgb, var(--bg-from) 90%, transparent) 0%,
+      color-mix(in srgb, var(--bg-to) 88%, transparent) 100%
+    ),
+    url("/images/hero-background.jpg");
+  background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat;
+  filter: saturate(1.08);
+}
+
+@supports (background-image: image-set(url("/images/hero-background.avif") type("image/avif") 1x)) {
+  .hero-background {
+    background-image: linear-gradient(
+        160deg,
+        color-mix(in srgb, var(--bg-from) 90%, transparent) 0%,
+        color-mix(in srgb, var(--bg-to) 88%, transparent) 100%
+      ),
+      image-set(
+        url("/images/hero-background.avif") type("image/avif") 1x,
+        url("/images/hero-background.webp") type("image/webp") 1x,
+        url("/images/hero-background.jpg") type("image/jpeg") 1x
+      );
+  }
 }
 
 .hero-bg-fixed {
