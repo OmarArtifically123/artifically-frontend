@@ -4,6 +4,8 @@ import { useCallback, useEffect, useMemo, useRef, useState, useId } from "react"
 import { createPortal } from "react-dom";
 import { useTheme } from "../context/ThemeContext";
 import { space } from "../styles/spacing";
+import { useFocusTrap } from "@/hooks/useFocusTrap";
+import { isFocusableElement } from "@/utils/focus";
 
 const clamp = (value, min, max) => Math.min(Math.max(value, min), max);
 
@@ -92,6 +94,8 @@ const OnboardingTour = ({
   const [visible, setVisible] = useState(() => getInitialVisibility(storageKey, isActive, hasSteps));
   const coords = useStepPosition(steps, currentStep, visible);
   const containerRef = useRef(null);
+  const restoreFocusRef = useRef(null);
+  const previousVisibilityRef = useRef(false);
   const dialogInstanceId = useId();
   const titleId = `${dialogInstanceId}-title`;
   const descriptionId = `${dialogInstanceId}-description`;
@@ -127,6 +131,21 @@ const OnboardingTour = ({
   const skipTour = useCallback(() => finishTour(true), [finishTour]);
 
   useEffect(() => {
+    if (visible && !previousVisibilityRef.current) {
+      if (typeof document !== "undefined") {
+        const activeElement = document.activeElement;
+        restoreFocusRef.current = isFocusableElement(activeElement) ? activeElement : null;
+      }
+    }
+    previousVisibilityRef.current = visible;
+  }, [visible]);
+
+  useFocusTrap(visible, containerRef, {
+    onEscape: skipTour,
+    returnFocusRef: restoreFocusRef,
+  });
+
+  useEffect(() => {
     if (!hasSteps || !isActive) {
       setVisible(false);
       return;
@@ -137,27 +156,6 @@ const OnboardingTour = ({
       setVisible(shouldShow);
     }
   }, [hasSteps, isActive, storageKey, visible]);
-
-  useEffect(() => {
-    if (!visible || typeof window === "undefined") {
-      return;
-    }
-
-    const handleKey = (event) => {
-      if (event.key === "Escape") {
-        dismissTour();
-      }
-    };
-
-    window.addEventListener("keydown", handleKey);
-    return () => window.removeEventListener("keydown", handleKey);
-  }, [visible, dismissTour]);
-
-  useEffect(() => {
-    if (visible && containerRef.current) {
-      containerRef.current.focus();
-    }
-  }, [visible]);
 
   if (!visible || !hasSteps || typeof document === "undefined") {
     return null;

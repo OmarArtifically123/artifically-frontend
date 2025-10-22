@@ -17,10 +17,28 @@ import { Icon } from "./icons";
 import useInViewState from "../hooks/useInViewState";
 import motionCatalog from "../design/motion/catalog";
 
-const statusColors = {
-  active: { bg: "rgba(16,185,129,0.18)", color: "#10b981" },
-  paused: { bg: "rgba(245,158,11,0.18)", color: "#b45309" },
-  error: { bg: "rgba(239,68,68,0.18)", color: "#dc2626" },
+const statusStyles = {
+  active: {
+    label: "Active",
+    icon: "check",
+    description: "Automation is running normally",
+    light: { background: "#d1fae5", color: "#064e3b", border: "#34d399" },
+    dark: { background: "#064e3b", color: "#d1fae5", border: "#34d399" },
+  },
+  paused: {
+    label: "Paused",
+    icon: "hourglass",
+    description: "Automation is paused awaiting action",
+    light: { background: "#fff2c1", color: "#78350f", border: "#f59e0b" },
+    dark: { background: "#78350f", color: "#fff2c1", border: "#f59e0b" },
+  },
+  error: {
+    label: "Needs attention",
+    icon: "alert",
+    description: "Automation has reported an error",
+    light: { background: "#fee2e2", color: "#7f1d1d", border: "#f87171" },
+    dark: { background: "#7f1d1d", color: "#fee2e2", border: "#f87171" },
+  },
 };
 
 const clamp = (value, min, max) => Math.min(Math.max(value, min), max);
@@ -1200,7 +1218,8 @@ export default function Dashboard({ user, openAuth }) {
           >
             {deployments.map((deployment, index) => {
               const status = (deployment.status || "active").toLowerCase();
-              const colors = statusColors[status] || statusColors.active;
+              const statusVisual = statusStyles[status] || statusStyles.active;
+              const palette = darkMode ? statusVisual.dark : statusVisual.light;
               const usagePercent = deployment.requestLimit
                 ? Math.min(100, Math.round((deployment.requestsUsed / deployment.requestLimit) * 100))
                 : null;
@@ -1242,17 +1261,26 @@ export default function Dashboard({ user, openAuth }) {
                     </div>
                     <div style={{ display: "flex", alignItems: "center", gap: space("xs", 1.5) }}>
                       <span
+                        role="status"
+                        aria-label={`${statusVisual.label}. ${statusVisual.description}`}
                         style={{
                           padding: `${space("2xs", 1.4)} ${space("xs", 1.5)}`,
                           borderRadius: "0.75rem",
                           fontSize: "0.8rem",
                           fontWeight: 700,
                           textTransform: "uppercase",
-                          background: colors.bg,
-                          color: colors.color,
+                          display: "inline-flex",
+                          alignItems: "center",
+                          gap: "0.35rem",
+                          background: palette.background,
+                          color: palette.color,
+                          border: `1px solid ${palette.border}`,
+                          letterSpacing: "0.04em",
                         }}
                       >
-                        {status}
+                        <Icon name={statusVisual.icon} size={16} aria-hidden focusable="false" />
+                        <span>{statusVisual.label}</span>
+                        <span className="sr-only">{statusVisual.description}</span>
                       </span>
                       {deployment.automation?.priceMonthly && (
                         <span style={{ color: darkMode ? "#cbd5e1" : "#475569" }}>

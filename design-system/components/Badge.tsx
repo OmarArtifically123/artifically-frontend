@@ -5,26 +5,37 @@ import type { HTMLAttributes, ReactNode } from "react";
 
 export type BadgeTone = "neutral" | "brand" | "success" | "danger" | "warning";
 
-const toneMap: Record<BadgeTone, Record<string, string>> = {
+type ToneStyle = {
+  background: string;
+  color: string;
+  borderColor: string;
+};
+
+const toneMap: Record<BadgeTone, ToneStyle> = {
   neutral: {
-    background: "color-mix(in srgb, var(--ads-color-palette-neutral-500, #64748b) 16%, transparent)",
-    color: "var(--ads-color-semantic-text-default, #0f172a)",
+    background: "var(--ads-badge-neutral-bg, #e2e8f0)",
+    color: "var(--ads-badge-neutral-fg, #0f172a)",
+    borderColor: "var(--ads-badge-neutral-border, #94a3b8)",
   },
   brand: {
-    background: "color-mix(in srgb, var(--ads-color-semantic-brand-primary, #1f7eff) 18%, transparent)",
-    color: "var(--ads-color-semantic-brand-primary, #1f7eff)",
+    background: "var(--ads-badge-brand-bg, #d7e6ff)",
+    color: "var(--ads-badge-brand-fg, #1048aa)",
+    borderColor: "var(--ads-badge-brand-border, #4d9dff)",
   },
   success: {
-    background: "color-mix(in srgb, var(--ads-color-semantic-status-success, #10b981) 18%, transparent)",
-    color: "var(--ads-color-semantic-status-success, #10b981)",
+    background: "var(--ads-badge-success-bg, #d1fae5)",
+    color: "var(--ads-badge-success-fg, #064e3b)",
+    borderColor: "var(--ads-badge-success-border, #34d399)",
   },
   danger: {
-    background: "color-mix(in srgb, var(--ads-color-semantic-status-danger, #ef4444) 18%, transparent)",
-    color: "var(--ads-color-semantic-status-danger, #ef4444)",
+    background: "var(--ads-badge-danger-bg, #fee2e2)",
+    color: "var(--ads-badge-danger-fg, #7f1d1d)",
+    borderColor: "var(--ads-badge-danger-border, #f87171)",
   },
   warning: {
-    background: "color-mix(in srgb, var(--ads-color-semantic-status-warning, #f59e0b) 18%, transparent)",
-    color: "var(--ads-color-semantic-status-warning, #f59e0b)",
+    background: "var(--ads-badge-warning-bg, #fff2c1)",
+    color: "var(--ads-badge-warning-fg, #78350f)",
+    borderColor: "var(--ads-badge-warning-border, #f59e0b)",
   },
 };
 
@@ -47,8 +58,11 @@ export function Badge({
   return (
     <span
       className={cn("ads-badge", className)}
+      data-tone={tone}
       style={{
-        ...toneStyles,
+        background: toneStyles.background,
+        color: toneStyles.color,
+        borderColor: toneStyles.borderColor,
         ...style,
       }}
       {...rest}

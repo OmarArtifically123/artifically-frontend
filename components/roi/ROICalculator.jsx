@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState, useId } from "react";
 import { calculateSavings } from "../../utils/calculateSavings";
 
 const TEAM_RANGE = { min: 1, max: 1000 };
@@ -98,6 +98,10 @@ export default function ROICalculator({
     (hourlyRate - RATE_RANGE.min) / (RATE_RANGE.max - RATE_RANGE.min);
   const teamPosition = normalize(teamPercentage);
   const ratePosition = normalize(ratePercentage);
+  const teamSliderInputId = useId();
+  const teamSliderValueId = useId();
+  const rateSliderInputId = useId();
+  const rateSliderValueId = useId();
 
   return (
     <section className={classes.join(" ")} id={id} style={style}>
@@ -108,7 +112,9 @@ export default function ROICalculator({
 
       <div className="pricing-calculator__sliders">
         <div className="pricing-calculator__slider-group">
-          <span className="pricing-calculator__label">Team size</span>
+          <label className="pricing-calculator__label" htmlFor={teamSliderInputId}>
+            Team size
+          </label>
           <div
             className="pricing-slider"
             style={{ "--slider-position": `${teamPosition * 100}%` }}
@@ -119,21 +125,26 @@ export default function ROICalculator({
               style={{ width: `${teamPosition * 100}%` }}
             />
             <input
+              id={teamSliderInputId}
               type="range"
               min={TEAM_RANGE.min}
               max={TEAM_RANGE.max}
               value={teamSize}
               onChange={(event) => handleTeamSizeChange(event.target.value)}
               className="pricing-slider__input"
+              aria-describedby={teamSliderValueId}
+              aria-valuetext={`${teamSize.toLocaleString()} people`}
             />
-            <div className="pricing-slider__value">
+            <div className="pricing-slider__value" id={teamSliderValueId}>
               {teamSize.toLocaleString()} people
             </div>
           </div>
         </div>
 
         <div className="pricing-calculator__slider-group">
-          <span className="pricing-calculator__label">Average hourly rate</span>
+          <label className="pricing-calculator__label" htmlFor={rateSliderInputId}>
+            Average hourly rate
+          </label>
           <div
             className="pricing-slider"
             style={{ "--slider-position": `${ratePosition * 100}%` }}
@@ -144,14 +155,17 @@ export default function ROICalculator({
               style={{ width: `${ratePosition * 100}%` }}
             />
             <input
+              id={rateSliderInputId}
               type="range"
               min={RATE_RANGE.min}
               max={RATE_RANGE.max}
               value={hourlyRate}
               onChange={(event) => handleHourlyRateChange(event.target.value)}
               className="pricing-slider__input"
+              aria-describedby={rateSliderValueId}
+              aria-valuetext={`$${hourlyRate.toLocaleString()}/hr`}
             />
-            <div className="pricing-slider__value">
+            <div className="pricing-slider__value" id={rateSliderValueId}>
               ${hourlyRate.toLocaleString()}/hr
             </div>
           </div>

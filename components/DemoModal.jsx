@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState, useId } from "react";
 import api from "../api.js";
 import { toast } from "./Toast";
 import { useTheme } from "../context/ThemeContext";
@@ -107,6 +107,9 @@ export default function DemoModal({ automation, user, onClose, returnFocusRef })
   const [activeStage, setActiveStage] = useState(0);
   const dialogRef = useRef(null);
   const closeButtonRef = useRef(null);
+  const detailRegionId = useId();
+  const detailTitleId = `${detailRegionId}-title`;
+  const detailDescriptionId = `${detailRegionId}-description`;
 
   const currency = automation?.currency || "USD";
   const fallbackPrice = 1299;
@@ -150,6 +153,15 @@ export default function DemoModal({ automation, user, onClose, returnFocusRef })
     () => buildWorkflow(automation, roiInputs.automationCoverage),
     [automation, roiInputs.automationCoverage],
   );
+  const tabIds = useMemo(
+    () => workflow.map((_, index) => `${detailRegionId}-tab-${index}`),
+    [workflow, detailRegionId],
+  );
+  const metricIds = useMemo(
+    () => workflow.map((_, index) => `${detailRegionId}-metric-${index}`),
+    [workflow, detailRegionId],
+  );
+  const activeTabId = tabIds[activeStage] ?? tabIds[0];
 
   const beforeAfter = useMemo(
     () =>
@@ -308,29 +320,67 @@ export default function DemoModal({ automation, user, onClose, returnFocusRef })
           <div className="demo-experience__main">
             <section className="demo-experience__workflow" aria-label="3D workflow visualization">
               <div className="demo-experience__workflow-scene">
-                <div className="demo-experience__workflow-track">
+                <div
+                  className="demo-experience__workflow-track"
+                  role="tablist"
+                  aria-label="Workflow stages"
+                >
                   {workflow.map((stage, index) => (
                     <button
                       type="button"
                       key={stage.title}
                       className="demo-experience__workflow-stage"
-                      data-active={index === activeStage}
+                      data-active={index === activeStage ? "true" : undefined}
                       style={{
                         transitionDelay: `${index * 60}ms`,
                       }}
                       onMouseEnter={() => setActiveStage(index)}
                       onFocus={() => setActiveStage(index)}
+                      onKeyDown={(event) => {
+                        if (event.key !== "ArrowRight" && event.key !== "ArrowLeft") {
+                          return;
+                        }
+                        if (workflow.length === 0) {
+                          return;
+                        }
+                        event.preventDefault();
+                        const direction = event.key === "ArrowRight" ? 1 : -1;
+                        const nextIndex = (index + direction + workflow.length) % workflow.length;
+                        setActiveStage(nextIndex);
+                        const nextId = tabIds[nextIndex];
+                        if (nextId) {
+                          requestAnimationFrame(() => {
+                            const nextTab = document.getElementById(nextId);
+                            nextTab?.focus();
+                          });
+                        }
+                      }}
+                      role="tab"
+                      id={tabIds[index]}
+                      aria-controls={detailRegionId}
+                      aria-selected={index === activeStage ? "true" : "false"}
+                      aria-describedby={metricIds[index] || undefined}
+                      tabIndex={index === activeStage ? 0 : -1}
                     >
                       <span className="demo-experience__stage-index">{index + 1}</span>
                       <span className="demo-experience__stage-title">{stage.title}</span>
-                      <span className="demo-experience__stage-metric">{stage.metric}</span>
+                      <span className="demo-experience__stage-metric" id={metricIds[index]}>
+                        {stage.metric}
+                      </span>
                     </button>
                   ))}
                 </div>
               </div>
-              <div className="demo-experience__workflow-detail">
-                <h4>{workflow[activeStage]?.title}</h4>
-                <p>{workflow[activeStage]?.detail}</p>
+              <div
+                className="demo-experience__workflow-detail"
+                id={detailRegionId}
+                role="tabpanel"
+                aria-labelledby={activeTabId || undefined}
+                aria-describedby={detailDescriptionId}
+                aria-live="polite"
+              >
+                <h4 id={detailTitleId}>{workflow[activeStage]?.title}</h4>
+                <p id={detailDescriptionId}>{workflow[activeStage]?.detail}</p>
               </div>
             </section>
 

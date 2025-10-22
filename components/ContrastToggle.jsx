@@ -22,7 +22,7 @@ export default function ContrastToggle({ className = "", label = "Toggle high co
       <span className="contrast-toggle__track" aria-hidden="true">
         <span className="contrast-toggle__indicator" data-active={highContrast} />
       </span>
-      <span className="contrast-toggle__icon" role="presentation">
+      <span className="contrast-toggle__icon" role="presentation" aria-hidden="true">
         <Icon name={iconName} size={16} />
       </span>
     </button>

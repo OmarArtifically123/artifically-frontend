@@ -27,6 +27,7 @@ const InputField = ({
   darkMode,
   id,
   inputRef,
+  summaryIdWhenInvalid,
 }) => (
   <div
     className="form-group"
@@ -53,8 +54,12 @@ const InputField = ({
       autoComplete={autoComplete}
       id={id}
       ref={inputRef}
-      aria-invalid={fieldErrors[field] ? "true" : undefined}
-      aria-describedby={[fieldErrors[field] ? `${id}-error` : null, hint ? `${id}-hint` : null]
+      aria-invalid={fieldErrors[field] ? "true" : "false"}
+      aria-describedby={[
+        fieldErrors[field] && summaryIdWhenInvalid ? summaryIdWhenInvalid : null,
+        fieldErrors[field] ? `${id}-error` : null,
+        hint ? `${id}-hint` : null,
+      ]
         .filter(Boolean)
         .join(" ") || undefined}
       aria-required={required ? "true" : undefined}
@@ -116,6 +121,7 @@ const AuthModal = ({ onClose, onAuthenticated, initialMode = "signin", returnFoc
   const modalRef = useRef(null);
   const firstFieldRef = useRef(null);
   const submitRef = useRef(false);
+  const fieldSummaryRef = useRef(null);
   const headingId = useId();
   const instructionsId = useId();
   const errorSummaryId = useId();
@@ -449,6 +455,18 @@ const AuthModal = ({ onClose, onAuthenticated, initialMode = "signin", returnFoc
     [fieldErrors],
   );
 
+  const fieldErrorSummaryId = aggregatedFieldErrors.length > 0 ? `${errorSummaryId}-fields` : undefined;
+
+  useEffect(() => {
+    if (aggregatedFieldErrors.length === 0) {
+      return;
+    }
+
+    requestAnimationFrame(() => {
+      fieldSummaryRef.current?.focus();
+    });
+  }, [aggregatedFieldErrors.length]);
+
   const accountFields = (
     <>
       <InputField
@@ -465,6 +483,7 @@ const AuthModal = ({ onClose, onAuthenticated, initialMode = "signin", returnFoc
         darkMode={darkMode}
         id={fieldId("email")}
         inputRef={firstFieldRef}
+        summaryIdWhenInvalid={fieldErrorSummaryId}
       />
 
       <InputField
@@ -483,6 +502,7 @@ const AuthModal = ({ onClose, onAuthenticated, initialMode = "signin", returnFoc
         loading={loading}
         darkMode={darkMode}
         id={fieldId("password")}
+        summaryIdWhenInvalid={fieldErrorSummaryId}
       />
     </>
   );
@@ -501,6 +521,7 @@ const AuthModal = ({ onClose, onAuthenticated, initialMode = "signin", returnFoc
         loading={loading}
         darkMode={darkMode}
         id={fieldId("businessName")}
+        summaryIdWhenInvalid={fieldErrorSummaryId}
       />
 
       <InputField
@@ -515,6 +536,7 @@ const AuthModal = ({ onClose, onAuthenticated, initialMode = "signin", returnFoc
         loading={loading}
         darkMode={darkMode}
         id={fieldId("businessPhone")}
+        summaryIdWhenInvalid={fieldErrorSummaryId}
       />
 
       <InputField
@@ -530,6 +552,7 @@ const AuthModal = ({ onClose, onAuthenticated, initialMode = "signin", returnFoc
         loading={loading}
         darkMode={darkMode}
         id={fieldId("businessEmail")}
+        summaryIdWhenInvalid={fieldErrorSummaryId}
       />
 
       <InputField
@@ -544,6 +567,7 @@ const AuthModal = ({ onClose, onAuthenticated, initialMode = "signin", returnFoc
         loading={loading}
         darkMode={darkMode}
         id={fieldId("websiteUrl")}
+        summaryIdWhenInvalid={fieldErrorSummaryId}
       />
     </>
   );
@@ -743,6 +767,8 @@ const AuthModal = ({ onClose, onAuthenticated, initialMode = "signin", returnFoc
           {aggregatedFieldErrors.length > 0 && (
             <div
               id={`${errorSummaryId}-fields`}
+              ref={fieldSummaryRef}
+              tabIndex={-1}
               role="alert"
               aria-live="assertive"
               style={{

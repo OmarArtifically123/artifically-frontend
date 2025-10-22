@@ -405,6 +405,18 @@ export default function ContactPage() {
   const topicHintId = `${topicFieldId}-hint`;
   const messageHintId = `${messageFieldId}-hint`;
   const messageErrorId = `${messageFieldId}-error`;
+  const errorSummaryId = `${formInstanceId}-error-summary`;
+
+  const describedBy = (fieldError, hintId) => {
+    const ids = [];
+    if (fieldError) {
+      ids.push(errorSummaryId);
+    }
+    if (hintId) {
+      ids.push(hintId);
+    }
+    return ids.length ? ids.join(" ") : undefined;
+  };
 
   return (
     <main className="container" style={{ padding: `${space("2xl")} 0`, minHeight: "80vh" }}>
@@ -419,6 +431,7 @@ export default function ContactPage() {
         <form onSubmit={handleSubmit} style={{ display: "grid", gap: space("fluid-sm") }}>
           {errorEntries.length > 0 && (
             <div
+              id={errorSummaryId}
               ref={errorSummaryRef}
               tabIndex={-1}
               role="alert"
@@ -468,7 +481,7 @@ export default function ContactPage() {
               onBlur={() => stopHesitation("name")}
               required
               id={nameFieldId}
-              aria-describedby={nameHintId}
+              aria-describedby={describedBy(errors.name, nameHintId)}
               error={errors.name}
             />
             <FieldHint id={nameHintId} visible={activeHint === "name"}>
@@ -486,7 +499,7 @@ export default function ContactPage() {
               onBlur={() => stopHesitation("email")}
               required
               id={emailFieldId}
-              aria-describedby={emailHintId}
+              aria-describedby={describedBy(errors.email, emailHintId)}
               error={errors.email}
             />
             <FieldHint id={emailHintId} visible={activeHint === "email"}>
@@ -503,7 +516,7 @@ export default function ContactPage() {
               onBlur={() => stopHesitation("topic")}
               placeholder="Deployment, pricing, partnership..."
               id={topicFieldId}
-              aria-describedby={topicHintId}
+              aria-describedby={describedBy(errors.topic, topicHintId)}
             />
             <FieldHint id={topicHintId} visible={activeHint === "topic"}>
               {hints.topic}
@@ -543,7 +556,9 @@ export default function ContactPage() {
                 rows={4}
                 aria-invalid={errors.message ? "true" : "false"}
                 aria-describedby={
-                  [messageHintId, errors.message ? messageErrorId : null].filter(Boolean).join(" ") || undefined
+                  [errors.message ? errorSummaryId : null, messageHintId, errors.message ? messageErrorId : null]
+                    .filter(Boolean)
+                    .join(" ") || undefined
                 }
                 style={{ ...inputStyle, resize: "vertical", minHeight: "140px" }}
               />

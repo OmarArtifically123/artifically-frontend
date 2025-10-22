@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useMemo, useRef, useState } from "react";
+import { useCallback, useMemo, useRef, useState, useId } from "react";
 
 const BILLING_OPTIONS = [
   { id: "monthly", label: "Monthly" },
@@ -234,6 +234,8 @@ function Slider({ label, min, max, step, value, onChange, formatValue }) {
   const [active, setActive] = useState(false);
   const interactionValueRef = useRef(value);
   const percent = ((value - min) / (max - min)) * 100;
+  const labelId = useId();
+  const valueId = useId();
 
   const handlePointerUpdate = useCallback(
     (event) => {
@@ -319,7 +321,7 @@ function Slider({ label, min, max, step, value, onChange, formatValue }) {
 
   return (
     <div className="pricing-calculator__slider">
-      <label>{label}</label>
+      <label id={labelId}>{label}</label>
       <div
         className="pricing-calculator__track"
         role="slider"
@@ -327,17 +329,22 @@ function Slider({ label, min, max, step, value, onChange, formatValue }) {
         aria-valuemin={min}
         aria-valuemax={max}
         aria-valuenow={value}
-        aria-label={label}
+        aria-labelledby={labelId}
+        aria-describedby={valueId}
+        aria-valuetext={valueLabel}
         onKeyDown={handleKeyDown}
         onFocus={handleFocus}
         onPointerDown={handlePointerDown}
         onPointerMove={handlePointerMove}
         onPointerUp={handlePointerUp}
         onPointerLeave={handlePointerUp}
+        aria-orientation="horizontal"
       >
         <div className="pricing-calculator__fill" style={{ width: `${percent}%` }} />
         <div className={`pricing-calculator__thumb${active ? " is-active" : ""}`} style={{ left: `${percent}%` }}>
-          <span className="pricing-calculator__thumb-value">{valueLabel}</span>
+          <span className="pricing-calculator__thumb-value" id={valueId}>
+            {valueLabel}
+          </span>
         </div>
       </div>
     </div>
@@ -475,12 +482,16 @@ function FAQAccordion() {
       <div className="pricing-faq__items">
         {FAQ_ITEMS.map((item, index) => {
           const isOpen = openItems.has(item.question);
+          const questionId = `pricing-faq-question-${index}`;
+          const answerId = `pricing-faq-answer-${index}`;
           return (
             <div key={item.question} className={`pricing-faq__item${isOpen ? " is-open" : ""}`}>
               <button
                 type="button"
                 onClick={() => toggleItem(item.question)}
-                aria-expanded={isOpen}
+                aria-expanded={isOpen ? "true" : "false"}
+                aria-controls={answerId}
+                id={questionId}
                 className="pricing-faq__question"
                 onKeyDown={(event) => handleQuestionKeyDown(event, index, item.question)}
                 ref={(node) => {
@@ -489,7 +500,7 @@ function FAQAccordion() {
               >
                 <span>{item.question}</span>
                 <span className="pricing-faq__chevron" aria-hidden="true">
-                  <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
+                  <svg width="20" height="20" viewBox="0 0 20 20" fill="none" aria-hidden="true" focusable="false">
                     <path
                       d="M5 7.5 10 12.5 15 7.5"
                       stroke="currentColor"
@@ -500,7 +511,14 @@ function FAQAccordion() {
                   </svg>
                 </span>
               </button>
-              <div className="pricing-faq__answer" data-open={isOpen ? "true" : "false"}>
+              <div
+                className="pricing-faq__answer"
+                data-open={isOpen ? "true" : "false"}
+                id={answerId}
+                role="region"
+                aria-labelledby={questionId}
+                aria-hidden={isOpen ? "false" : "true"}
+              >
                 <p>{item.answer}</p>
               </div>
             </div>

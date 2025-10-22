@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState, useId } from "react";
 import { motion } from "framer-motion";
 
 import AnimatedSection from "../AnimatedSection.jsx";
@@ -47,6 +47,12 @@ const solutions = [
 
 const clamp = (value, min, max) => Math.min(Math.max(value, min), max);
 
+const MIN_POSITION = 0.02;
+const MAX_POSITION = 0.98;
+const KEYBOARD_STEP = 0.05;
+
+const clampPosition = (value) => Number(clamp(value, MIN_POSITION, MAX_POSITION).toFixed(3));
+
 const cardContainerVariants = {
   hidden: { opacity: 0 },
   visible: {
@@ -67,9 +73,11 @@ const cardVariants = {
 export default function ProblemSolutionSection() {
   const pairs = useMemo(() => problems.map((problem, index) => ({ problem, solution: solutions[index] })), []);
   const sliderRef = useRef(null);
+  const sliderHelpId = useId();
   const [position, setPosition] = useState(0.5);
   const [isDragging, setIsDragging] = useState(false);
   const [isMobile, setIsMobile] = useState(false);
+  const keyboardOriginRef = useRef(null);
 
   useEffect(() => {
     const mediaQuery = window.matchMedia("(max-width: 900px)");
@@ -111,7 +119,7 @@ export default function ProblemSolutionSection() {
 
     const bounds = sliderRef.current.getBoundingClientRect();
     const offset = clamp(clientX - bounds.left, 0, bounds.width);
-    const ratio = clamp(offset / bounds.width, 0.02, 0.98);
+    const ratio = clamp(offset / bounds.width, MIN_POSITION, MAX_POSITION);
     setPosition(Number(ratio.toFixed(3)));
   };
 
@@ -120,6 +128,7 @@ export default function ProblemSolutionSection() {
       return;
     }
 
+    keyboardOriginRef.current = null;
     setIsDragging(true);
     updatePosition(clientX);
   };
@@ -143,21 +152,69 @@ export default function ProblemSolutionSection() {
     beginDrag(event.clientX);
   };
 
-  const handleKeyDown = (event) => {
-    if (isMobile) {
-      return;
-    }
+  const handleKeyDown = useCallback(
+    (event) => {
+      if (isMobile) {
+        return;
+      }
 
-    if (event.key === "ArrowLeft" || event.key === "ArrowRight") {
-      event.preventDefault();
-      const delta = event.key === "ArrowLeft" ? -0.05 : 0.05;
-      setPosition((previous) => clamp(Number((previous + delta).toFixed(3)), 0.02, 0.98));
-    }
-  };
+    const applyKeyboardChange = (resolver) => {
+        event.preventDefault();
+        setPosition((previous) => {
+          if (keyboardOriginRef.current === null) {
+            keyboardOriginRef.current = previous;
+          }
+          const nextValue = typeof resolver === "function" ? resolver(previous) : resolver;
+          return clampPosition(nextValue);
+        });
+      };
+
+      if (event.key === "ArrowLeft") {
+        applyKeyboardChange((previous) => previous - KEYBOARD_STEP);
+        return;
+      }
+
+      if (event.key === "ArrowRight") {
+        applyKeyboardChange((previous) => previous + KEYBOARD_STEP);
+        return;
+      }
+
+      if (event.key === "Home") {
+        applyKeyboardChange(MIN_POSITION);
+        return;
+      }
+
+      if (event.key === "End") {
+        applyKeyboardChange(MAX_POSITION);
+        return;
+      }
+
+      if (event.key === "Escape") {
+        if (keyboardOriginRef.current !== null) {
+          event.preventDefault();
+          const origin = keyboardOriginRef.current;
+          keyboardOriginRef.current = null;
+          setPosition(clampPosition(origin));
+        } else {
+          event.preventDefault();
+          setIsDragging(false);
+          event.currentTarget.blur();
+        }
+      }
+    },
+    [isMobile],
+  );
+
+  const handleHandleBlur = useCallback(() => {
+    keyboardOriginRef.current = null;
+    setIsDragging(false);
+  }, []);
 
   const leftClip = !isMobile ? { clipPath: `inset(0 ${Math.max(0, 100 - position * 100)}% 0 0)` } : undefined;
   const rightClip = !isMobile ? { clipPath: `inset(0 0 0 ${position * 100}%)` } : undefined;
   const dividerStyle = !isMobile ? { left: `${position * 100}%` } : undefined;
+  const sliderValue = Math.round(position * 100);
+  const sliderValueText = `${sliderValue}% of the Artifically experience revealed`;
 
   return (
     <section id="problem-solution" className="comparison-section" aria-labelledby="problem-solution-title">
@@ -270,10 +327,21 @@ export default function ProblemSolutionSection() {
                 className="comparison-handle"
                 onPointerDown={handlePointerDown}
                 onKeyDown={handleKeyDown}
+                onBlur={handleHandleBlur}
                 aria-label="Drag to reveal the old way versus the Artifically way"
+                role="slider"
+                aria-orientation="horizontal"
+                aria-valuemin={2}
+                aria-valuemax={98}
+                aria-valuenow={sliderValue}
+                aria-valuetext={sliderValueText}
+                aria-describedby={sliderHelpId}
               >
                 <Icon name="arrowRight" size={20} className="comparison-handle__icon" />
               </button>
+              <span id={sliderHelpId} className="sr-only">
+                Use left and right arrow keys to adjust the comparison split.
+              </span>
             </div>
           ) : null}
         </div>

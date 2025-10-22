@@ -246,20 +246,20 @@ main.marketing-main {
 }
 
 .hero-island[data-status="loading"]::after {
-  content: "Loading live preview…";
+  content: "⏳ Loading live preview…";
   position: absolute;
   inset: auto 1.5rem 1.5rem auto;
   font-size: var(--text-sm);
-  color: color-mix(in oklch, white 70%, var(--gray-500));
+  color: color-mix(in srgb, #f8fafc 88%, var(--gray-400));
   letter-spacing: 0.08em;
 }
 
 .hero-island[data-status="error"]::after {
-  content: "Live preview unavailable";
+  content: "⚠️ Live preview unavailable";
   position: absolute;
   inset: auto 1.5rem 1.5rem auto;
   font-size: var(--text-sm);
-  color: color-mix(in oklch, var(--warning-bold) 55%, white);
+  color: color-mix(in srgb, #fee2e2 65%, var(--error-sharp));
   letter-spacing: 0.08em;
 }
 

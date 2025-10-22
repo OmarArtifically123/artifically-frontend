@@ -3528,7 +3528,7 @@
 .hero-demo-modal__overlay {
   position: fixed;
   inset: 0;
-  background: rgba(4, 7, 15, 0.7);
+  background: var(--overlay-backdrop-strong, rgba(4, 7, 15, 0.82));
   display: grid;
   place-items: center;
   padding: clamp(1rem, 4vw, 2rem);

@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef, type RefObject } from "react";
+import { useEffect, useId, useRef, type RefObject } from "react";
 import { createPortal } from "react-dom";
 import { useFocusTrap } from "@/hooks/useFocusTrap";
 import { cn } from "../utils/cn";
@@ -41,6 +41,8 @@ export function Modal({
 }: ModalProps) {
   const dialogRef = useRef<HTMLDivElement>(null);
   const portalTarget = typeof document !== "undefined" ? document.body : null;
+  const titleId = useId();
+  const descriptionId = `${titleId}-description`;
 
   useFocusTrap(isOpen, dialogRef, { onEscape: onClose, returnFocusRef });
 
@@ -73,18 +75,18 @@ export function Modal({
         className={cn("ads-modal", className)}
         role="dialog"
         aria-modal="true"
-        aria-labelledby={title ? "ads-modal-title" : undefined}
-        aria-describedby={description ? "ads-modal-description" : undefined}
+        aria-labelledby={title ? titleId : undefined}
+        aria-describedby={description ? descriptionId : undefined}
         ref={dialogRef}
         tabIndex={-1}
       >
         {title ? (
           <div>
-            <h2 id="ads-modal-title" className="ads-heading">
+            <h2 id={titleId} className="ads-heading">
               {title}
             </h2>
             {description ? (
-              <p id="ads-modal-description" className="ads-text-subtle">
+              <p id={descriptionId} className="ads-text-subtle">
                 {description}
               </p>
             ) : null}

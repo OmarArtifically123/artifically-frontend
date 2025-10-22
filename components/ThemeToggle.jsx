@@ -22,7 +22,7 @@ export default function ThemeToggle({ className = "", label = "Toggle theme" }) 
       <span className="toggle-track" aria-hidden="true">
         <span className="toggle-indicator" data-dark={darkMode} />
       </span>
-      <span className="toggle-icon" role="presentation">
+      <span className="toggle-icon" role="presentation" aria-hidden="true">
         <Icon name={iconName} size={16} />
       </span>
     </button>

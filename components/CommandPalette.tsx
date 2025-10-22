@@ -270,11 +270,20 @@ export default function CommandPalette() {
 
       if (isMeta && isK && !event.altKey && !event.shiftKey) {
         event.preventDefault();
+
         if (typeof document !== "undefined") {
           const activeElement = document.activeElement as HTMLElement | null;
-          triggerRestoreRef.current = isFocusableElement(activeElement ?? null) ? activeElement : null;
+          if (!open) {
+            triggerRestoreRef.current = isFocusableElement(activeElement ?? null) ? activeElement : null;
+          }
         }
-        setOpen(true);
+
+        if (open) {
+          closePalette();
+        } else {
+          setOpen(true);
+        }
+
         return;
       }
 
@@ -286,14 +295,23 @@ export default function CommandPalette() {
 
     const handleOpenEvent = (event: Event) => {
       const detail = (event as CustomEvent<CommandPaletteOpenDetail>).detail;
+      let trigger: HTMLElement | null = null;
       if (detail?.trigger && isFocusableElement(detail.trigger)) {
-        triggerRestoreRef.current = detail.trigger;
+        trigger = detail.trigger;
       } else if (typeof document !== "undefined") {
         const activeElement = document.activeElement as HTMLElement | null;
-        triggerRestoreRef.current = isFocusableElement(activeElement ?? null) ? activeElement : null;
-      } else {
-        triggerRestoreRef.current = null;
+        trigger = isFocusableElement(activeElement ?? null) ? activeElement : null;
       }
+
+      if (open) {
+        if (trigger) {
+          triggerRestoreRef.current = trigger;
+        }
+        closePalette();
+        return;
+      }
+
+      triggerRestoreRef.current = trigger;
       setOpen(true);
     };
 
@@ -489,6 +507,24 @@ export default function CommandPalette() {
         return;
       }
 
+      if (event.key === "Home") {
+        if (flattenedResults.length === 0) {
+          return;
+        }
+        event.preventDefault();
+        setSelectedIndex(0);
+        return;
+      }
+
+      if (event.key === "End") {
+        if (flattenedResults.length === 0) {
+          return;
+        }
+        event.preventDefault();
+        setSelectedIndex(flattenedResults.length - 1);
+        return;
+      }
+      
       if (event.key === "Enter") {
         event.preventDefault();
         executeItem(selectedItem);

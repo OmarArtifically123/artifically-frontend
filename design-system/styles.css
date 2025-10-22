@@ -1,6 +1,43 @@
 @import "./tokens/tokens.css" layer(tokens);
 
 @layer design-system-base {
+  :root,
+  [data-theme='light'] {
+    --ads-badge-neutral-bg: #e2e8f0;
+    --ads-badge-neutral-fg: #0f172a;
+    --ads-badge-neutral-border: #94a3b8;
+    --ads-badge-brand-bg: #d7e6ff;
+    --ads-badge-brand-fg: #1048aa;
+    --ads-badge-brand-border: #4d9dff;
+    --ads-badge-success-bg: #d1fae5;
+    --ads-badge-success-fg: #064e3b;
+    --ads-badge-success-border: #34d399;
+    --ads-badge-warning-bg: #fff2c1;
+    --ads-badge-warning-fg: #78350f;
+    --ads-badge-warning-border: #f59e0b;
+    --ads-badge-danger-bg: #fee2e2;
+    --ads-badge-danger-fg: #7f1d1d;
+    --ads-badge-danger-border: #f87171;
+  }
+
+  [data-theme='dark'] {
+    --ads-badge-neutral-bg: #1e293b;
+    --ads-badge-neutral-fg: #e2e8f0;
+    --ads-badge-neutral-border: #64748b;
+    --ads-badge-brand-bg: #072355;
+    --ads-badge-brand-fg: #d7e6ff;
+    --ads-badge-brand-border: #4d9dff;
+    --ads-badge-success-bg: #064e3b;
+    --ads-badge-success-fg: #d1fae5;
+    --ads-badge-success-border: #34d399;
+    --ads-badge-warning-bg: #78350f;
+    --ads-badge-warning-fg: #fff2c1;
+    --ads-badge-warning-border: #fbbf24;
+    --ads-badge-danger-bg: #7f1d1d;
+    --ads-badge-danger-fg: #fee2e2;
+    --ads-badge-danger-border: #f87171;
+  }
+
   :root {
     color-scheme: light dark;
   }
@@ -198,9 +235,41 @@
     border-radius: var(--ads-radii-pill, 9999px);
     font-size: var(--ads-typography-sizes-sm, 0.875rem);
     line-height: 1.5;
-    border: 1px solid transparent;
-    background: color-mix(in srgb, var(--ads-color-semantic-brand-primary, #1f7eff) 12%, transparent);
-    color: var(--ads-color-semantic-brand-primary, #1f7eff);
+    border: 1px solid var(--ads-badge-neutral-border, #94a3b8);
+    background: var(--ads-badge-neutral-bg, #e2e8f0);
+    color: var(--ads-badge-neutral-fg, #0f172a);
+    font-weight: var(--ads-typography-weights-semibold, 600);
+    letter-spacing: 0.02em;
+    text-transform: uppercase;
+  }
+
+  .ads-badge > span[aria-hidden] {
+    display: inline-flex;
+    align-items: center;
+  }
+
+  .ads-badge[data-tone='brand'] {
+    border-color: var(--ads-badge-brand-border, #4d9dff);
+    background: var(--ads-badge-brand-bg, #d7e6ff);
+    color: var(--ads-badge-brand-fg, #1048aa);
+  }
+
+  .ads-badge[data-tone='success'] {
+    border-color: var(--ads-badge-success-border, #34d399);
+    background: var(--ads-badge-success-bg, #d1fae5);
+    color: var(--ads-badge-success-fg, #064e3b);
+  }
+
+  .ads-badge[data-tone='warning'] {
+    border-color: var(--ads-badge-warning-border, #f59e0b);
+    background: var(--ads-badge-warning-bg, #fff2c1);
+    color: var(--ads-badge-warning-fg, #78350f);
+  }
+
+  .ads-badge[data-tone='danger'] {
+    border-color: var(--ads-badge-danger-border, #f87171);
+    background: var(--ads-badge-danger-bg, #fee2e2);
+    color: var(--ads-badge-danger-fg, #7f1d1d);
   }
 
   .ads-tabs {
