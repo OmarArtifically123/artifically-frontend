@@ -2,7 +2,7 @@
 
 import { motion } from "framer-motion";
 import { useEffect, useRef, useState } from "react";
-import { useInViewState } from "@/hooks/useInViewState";
+import useInViewState from "@/hooks/useInViewState";
 
 const TRANSFORMATIONS = [
   {

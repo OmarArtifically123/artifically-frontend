@@ -2,7 +2,7 @@
 
 import { motion } from "framer-motion";
 import { useRef, useState } from "react";
-import { useInViewState } from "@/hooks/useInViewState";
+import useInViewState from "@/hooks/useInViewState";
 
 export default function SystemInvitation() {
   const [email, setEmail] = useState("");
