@@ -1,27 +1,19 @@
 "use client";
 
-import { useEffect, useMemo, useRef, useState } from "react";
+import { AnimatePresence, motion } from "framer-motion";
+import { useEffect, useRef } from "react";
 
 import { useFocusTrap } from "@/hooks/useFocusTrap";
 
 export default function HeroDemoModal({ open, onClose, dialogId = "hero-demo-modal", returnFocusRef }) {
   const dialogRef = useRef(null);
   const closeButtonRef = useRef(null);
-  const [isVisible, setIsVisible] = useState(false);
 
   useFocusTrap(open, dialogRef, {
     initialFocusRef: closeButtonRef,
     onEscape: onClose,
     returnFocusRef,
   });
-
-  useEffect(() => {
-    if (!open) {
-      setIsVisible(false);
-      return;
-    }
-    setIsVisible(true);
-  }, [open]);
 
   useEffect(() => {
     if (!open) {
@@ -37,14 +29,6 @@ export default function HeroDemoModal({ open, onClose, dialogId = "hero-demo-mod
     };
   }, [open]);
 
-  const overlayClassName = useMemo(() => {
-    return `hero-demo-modal__overlay${open ? " is-open" : ""}${isVisible ? " is-visible" : ""}`;
-  }, [open, isVisible]);
-
-  if (!open) {
-    return null;
-  }
-
   const handleOverlayClick = (event) => {
     if (event.target === event.currentTarget) {
       onClose();
@@ -52,16 +36,36 @@ export default function HeroDemoModal({ open, onClose, dialogId = "hero-demo-mod
   };
 
   return (
-    <div
-      id={dialogId}
-      className={overlayClassName}
-      role="dialog"
-      aria-modal="true"
-      aria-labelledby="hero-demo-title"
-      aria-describedby="hero-demo-description"
-      onMouseDown={handleOverlayClick}
-    >
-      <div className="hero-demo-modal__content" ref={dialogRef} tabIndex={-1}>
+    <AnimatePresence>
+      {open && (
+        <>
+          <motion.div
+            key="hero-demo-backdrop"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            transition={{ duration: 0.2 }}
+            className="hero-demo-modal__overlay backdrop"
+            onMouseDown={handleOverlayClick}
+          />
+          <motion.div
+            key="hero-demo-modal"
+            id={dialogId}
+            ref={dialogRef}
+            className="hero-demo-modal__content modal"
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="hero-demo-title"
+            aria-describedby="hero-demo-description"
+            tabIndex={-1}
+            initial={{ opacity: 0, scale: 0.9, y: 20 }}
+            animate={{ opacity: 1, scale: 1, y: 0 }}
+            exit={{ opacity: 0, scale: 0.95, y: 10 }}
+            transition={{
+              duration: 0.4,
+              ease: [0.16, 1, 0.3, 1],
+            }}
+          >
         <header className="hero-demo-modal__header">
           <div>
             <p className="hero-demo-modal__eyebrow">Product walkthrough</p>
@@ -138,7 +142,9 @@ export default function HeroDemoModal({ open, onClose, dialogId = "hero-demo-mod
             </li>
           </ol>
         </details>
-      </div>
-    </div>
+      </motion.div>
+        </>
+      )}
+    </AnimatePresence>
   );
 }

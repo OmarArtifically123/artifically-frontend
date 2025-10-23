@@ -107,14 +107,14 @@ export function ToastItem({ data, onClose }) {
       drag="x"
       dragConstraints={{ left: 0, right: 0 }}
       dragElastic={0.2}
-      onDragEnd={(_, info) => {
-        if (Math.abs(info.offset.x) > 100 || Math.abs(info.velocity.x) > 500) {
+      onDragEnd={(event, { offset, velocity }) => {
+        if (Math.abs(offset.x) > 100 || Math.abs(velocity.x) > 500) {
           onClose();
         }
       }}
       whileHover={{
         y: -4,
-        transition: { type: "spring", ...SPRING_CONFIGS.medium },
+        transition: { ...SPRING_CONFIGS.medium },
       }}
       whileTap={{ scale: 0.98 }}
       style={{

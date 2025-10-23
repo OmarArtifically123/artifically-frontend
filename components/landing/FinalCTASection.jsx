@@ -4,7 +4,7 @@ import { useCallback, useEffect, useId, useRef, useState } from "react";
 import { AnimatePresence, motion } from "framer-motion";
 
 import AnimatedSection from "../AnimatedSection.jsx";
-import { ANIMATION_TIMINGS, SPRING_CONFIGS } from "../../constants/animations.js";
+import { ANIMATION_TIMINGS } from "../../constants/animations.js";
 import CTABackground from "./CTABackground";
 import { Icon } from "../icons";
 
@@ -197,15 +197,14 @@ export default function FinalCTASection({ onSubmit }) {
                   animate={isLoading ? "loading" : "idle"}
                   variants={{
                     idle: { width: "auto" },
-                    loading: { width: "140px" },
+                    loading: { width: "120px" },
                   }}
-                  transition={{ duration: ANIMATION_TIMINGS.fast / 1000, ease: [0.16, 1, 0.3, 1] }}
+                  transition={{ duration: 0.2 }}
                   whileHover={{
                     scale: 1.02,
-                    boxShadow: "0 12px 32px rgba(99, 102, 241, 0.5)",
-                    transition: { type: "spring", ...SPRING_CONFIGS.medium },
+                    boxShadow: "0 12px 32px rgba(139, 92, 246, 0.5)",
                   }}
-                  whileTap={{ scale: 0.97 }}
+                  whileTap={{ scale: 0.98 }}
                   disabled={isLoading}
                 >
                   <AnimatePresence mode="wait" initial={false}>

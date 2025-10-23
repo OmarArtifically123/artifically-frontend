@@ -2,6 +2,7 @@ import Script from "next/script";
 import type { Metadata, Viewport } from "next";
 import { Analytics } from "@vercel/analytics/react";
 import AppShell from "@/components/AppShell";
+import PageTransition from "@/components/PageTransition";
 import { ThemeProvider } from "@/context/ThemeContext";
 import inter from "@/lib/fonts/inter";
 import { getCriticalStyles } from "@/lib/styles/critical";
@@ -103,7 +104,9 @@ export default function RootLayout({
       </head>
       <body className={inter.className}>
         <ThemeProvider>
-          <AppShell>{children}</AppShell>
+          <AppShell>
+            <PageTransition>{children}</PageTransition>
+          </AppShell>
         </ThemeProvider>
         <Analytics />
       </body>

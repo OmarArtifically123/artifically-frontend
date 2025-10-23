@@ -3546,24 +3546,13 @@
   position: fixed;
   inset: 0;
   background: var(--overlay-backdrop-strong, rgba(4, 7, 15, 0.82));
-  display: grid;
-  place-items: center;
-  padding: clamp(1rem, 4vw, 2rem);
-  opacity: 0;
-  pointer-events: none;
-  transition: opacity 200ms ease;
   z-index: 2000;
 }
 
-.hero-demo-modal__overlay.is-open {
-  pointer-events: auto;
-}
-
-.hero-demo-modal__overlay.is-visible {
-  opacity: 1;
-}
-
-.hero-demo-modal__content {
+.hero-demo-modal__content.modal {
+  position: fixed;
+  inset: 0;
+  margin: auto;
   width: min(100%, 960px);
   max-height: min(92vh, 820px);
   overflow-y: auto;
@@ -3575,6 +3564,7 @@
   gap: clamp(1.25rem, 3vw, 2rem);
   color: white;
   box-shadow: var(--hero-surface-shadow);
+  z-index: 2001;
 }
 
 .hero-demo-modal__header {
@@ -3666,4 +3656,99 @@
     flex-direction: column;
   }
 }
+}
+.automation-showcase {
+  position: relative;
+  padding: clamp(4rem, 6vw, 6.5rem) 0;
+  background: linear-gradient(
+    180deg,
+    color-mix(in oklch, var(--glass-1) 70%, transparent) 0%,
+    transparent 60%,
+    color-mix(in oklch, var(--glass-1) 55%, transparent) 100%
+  );
+}
+
+.automation-showcase__inner {
+  width: min(1120px, 92vw);
+  margin: 0 auto;
+  display: grid;
+  gap: clamp(2rem, 4vw, 3.5rem);
+}
+
+.automation-showcase__header {
+  display: grid;
+  gap: 0.75rem;
+  text-align: center;
+  max-width: 720px;
+  margin: 0 auto;
+}
+
+.automation-showcase__eyebrow {
+  font-size: 0.85rem;
+  letter-spacing: 0.22em;
+  font-weight: 700;
+  text-transform: uppercase;
+  color: color-mix(in oklch, var(--brand-100) 75%, white 25%);
+}
+
+.automation-showcase__description {
+  color: color-mix(in oklch, var(--neutral-100) 65%, white 35%);
+}
+
+.automation-showcase__grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+  gap: clamp(1.5rem, 3vw, 2.25rem);
+}
+
+.automation-showcase__card {
+  display: grid;
+  gap: 1rem;
+  padding: clamp(1.5rem, 3vw, 2rem);
+  background: linear-gradient(
+    145deg,
+    color-mix(in oklch, var(--glass-2) 85%, transparent) 0%,
+    color-mix(in oklch, var(--glass-3) 65%, transparent) 100%
+  );
+  border-radius: 1.5rem;
+  border: 1px solid color-mix(in oklch, white 12%, transparent);
+  box-shadow: 0 30px 60px rgba(15, 23, 42, 0.22);
+  min-height: 220px;
+}
+
+.automation-showcase__card-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: 1rem;
+  color: color-mix(in oklch, white 92%, transparent);
+}
+
+.automation-showcase__card-header h3 {
+  margin: 0;
+  font-size: 1.15rem;
+}
+
+.automation-showcase__card-header span {
+  font-size: 0.85rem;
+  font-weight: 600;
+  padding: 0.35rem 0.75rem;
+  border-radius: 999px;
+  background: color-mix(in oklch, var(--brand-100) 45%, transparent);
+  color: color-mix(in oklch, white 85%, transparent);
+}
+
+.automation-showcase__card p {
+  margin: 0;
+  color: color-mix(in oklch, var(--neutral-100) 70%, white 30%);
+  line-height: 1.6;
+}
+
+.backdrop {
+  position: fixed;
+  inset: 0;
+}
+
+.modal {
+  will-change: opacity, transform;
 }

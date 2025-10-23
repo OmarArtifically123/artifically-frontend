@@ -7,6 +7,7 @@ import {
   type ReactNode,
   useCallback,
   useEffect,
+  useId,
   useMemo,
   useRef,
   useState,
@@ -139,7 +140,10 @@ function renderHighlightedText(text: string, highlights: Set<number>): ReactNode
         buffer = "";
       }
       segments.push(
-        <span key={`highlight-${index}`} style={{ color: HIGHLIGHT_COLOR }}>
+        <span
+          key={`highlight-${index}`}
+          style={{ color: HIGHLIGHT_COLOR, fontWeight: 600, textDecoration: "underline" }}
+        >
           {character}
         </span>,
       );
@@ -190,6 +194,7 @@ export default function CommandPalette() {
   const [query, setQuery] = useState("");
   const [recentIds, setRecentIds] = useState<string[]>([]);
   const [selectedIndex, setSelectedIndex] = useState(0);
+  const resultsListId = useId();
   const items = useMemo<CommandPaletteItem[]>(() => getCommandPaletteItems(), []);
   const itemsById = useMemo<Map<string, CommandPaletteItem>>(
     () => new Map(items.map((item) => [item.id, item] as const)),
@@ -439,6 +444,11 @@ export default function CommandPalette() {
   }, [flattenedResults, open]);
 
   const selectedItem = selectedIndex >= 0 ? flattenedResults[selectedIndex]?.item : undefined;
+  const getOptionId = useCallback(
+    (itemId: string) => `${resultsListId}-option-${itemId}`,
+    [resultsListId],
+  );
+  const activeDescendantId = selectedItem ? getOptionId(selectedItem.id) : undefined;
 
   const storeRecent = useCallback((itemId: string) => {
     setRecentIds((current) => {
@@ -575,14 +585,16 @@ export default function CommandPalette() {
       };
 
       return (
-        <button
+        <div
           key={item.id}
-          type="button"
+          id={getOptionId(item.id)}
           className={`command-palette__result ${isSelected ? "selected" : ""}`}
           onClick={() => handleResultClick(result)}
           onMouseEnter={() => setSelectedIndex(index)}
+          onMouseDown={(event) => event.preventDefault()}
           role="option"
           aria-selected={isSelected}
+          tabIndex={-1}
         >
           <span
             className="command-palette__result-icon"
@@ -600,10 +612,10 @@ export default function CommandPalette() {
             </span>
           </span>
           {item.shortcut ? <span className="command-palette__result-shortcut">{item.shortcut}</span> : null}
-        </button>
+        </div>
       );
     },
-    [handleResultClick, selectedIndex],
+    [getOptionId, handleResultClick, selectedIndex],
   );
 
   if (!mounted) {
@@ -655,9 +667,19 @@ export default function CommandPalette() {
                   onChange={(event) => setQuery(event.target.value)}
                   onKeyDown={handleInputKeyDown}
                   autoComplete="off"
+                  role="combobox"
+                  aria-autocomplete="list"
+                  aria-expanded={open}
+                  aria-controls={resultsListId}
+                  aria-activedescendant={activeDescendantId}
                 />
               </div>
-              <div className="command-palette__results" role="listbox">
+              <div
+                className="command-palette__results"
+                role="listbox"
+                id={resultsListId}
+                aria-labelledby="command-palette-title"
+              >
                 {sections.length === 0 || flattenedResults.length === 0 ? (
                   <div className="command-palette__empty">No matches. Try a different keyword.</div>
                 ) : (
@@ -787,10 +809,10 @@ export default function CommandPalette() {
             }
 
             .command-palette__section-title {
-              font-size: 11px;
+              font-size: 12px;
               font-weight: 700;
               letter-spacing: 1px;
-              color: rgba(255, 255, 255, 0.4);
+              color: rgba(255, 255, 255, 0.72);
               padding: 16px 8px 8px;
             }
 

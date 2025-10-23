@@ -51,7 +51,7 @@
     "critters": "^0.0.23",
     "date-fns": "^4.1.0",
     "dompurify": "^3.3.0",
-    "framer-motion": "^12.23.22",
+    "framer-motion": "^12.23.24",
     "gsap": "^3.12.5",
     "lodash-es": "^4.17.21",
     "lottie-react": "^2.4.1",

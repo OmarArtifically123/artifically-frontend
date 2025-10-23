@@ -157,8 +157,8 @@ export default function HeroSection({
   });
 
   const { scrollY } = useScroll();
-  const heroParallaxY = useTransform(scrollY, [0, 500], [0, 150]);
-  const heroFade = useTransform(scrollY, [0, 200, 900], [1, 1, 0]);
+  const y = useTransform(scrollY, [0, 500], [0, 150]);
+  const opacity = useTransform(scrollY, [0, 300], [1, 0]);
 
   useEffect(() => {
     if (typeof onReady === "function") {
@@ -294,7 +294,7 @@ export default function HeroSection({
       className="page-hero"
       aria-labelledby="hero-headline"
       tabIndex={-1}
-      style={prefersReducedMotion ? undefined : { y: heroParallaxY, opacity: heroFade }}
+      style={prefersReducedMotion ? undefined : { y, opacity }}
     >
       {heroInView ? <HeroBackground variant="particles" /> : <HeroBackgroundPlaceholder />}
       <div className="page-hero__inner">
@@ -348,10 +348,9 @@ export default function HeroSection({
               onClick={onPrimary}
               whileHover={{
                 scale: 1.02,
-                boxShadow: "0 12px 32px rgba(99, 102, 241, 0.45)",
-                transition: { type: "spring", ...SPRING_CONFIGS.medium },
+                boxShadow: "0 12px 32px rgba(139, 92, 246, 0.5)",
               }}
-              whileTap={{ scale: 0.97 }}
+              whileTap={{ scale: 0.98 }}
               transition={{ duration: 0.2 }}
             >
               <span className="cta-primary__label">{primaryLabel}</span>

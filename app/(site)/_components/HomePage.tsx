@@ -1,6 +1,7 @@
 import dynamic from "next/dynamic";
 import { Suspense } from "react";
 
+import AutomationShowcaseGrid from "@/components/landing/AutomationShowcaseGrid";
 import FeaturesShowcaseSection from "@/components/landing/FeaturesShowcaseSection";
 import PersonaScenarioSection from "@/components/landing/PersonaScenarioSection";
 import ProblemSolutionSection from "@/components/landing/ProblemSolutionSection";
@@ -28,6 +29,7 @@ export default function HomePage() {
         </Suspense>
         <PersonaScenarioSection />
         <ProblemSolutionSection />
+        <AutomationShowcaseGrid />
         <FeaturesShowcaseSection />
         <Suspense fallback={null}>
           <GoalOnboardingWizard />

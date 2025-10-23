@@ -93,7 +93,7 @@ export default function PersonaScenarioSection() {
               whileHover={{
                 y: -8,
                 scale: 1.02,
-                transition: { type: "spring", ...SPRING_CONFIGS.medium },
+                transition: { ...SPRING_CONFIGS.medium },
               }}
               whileTap={{ scale: 0.98 }}
             >

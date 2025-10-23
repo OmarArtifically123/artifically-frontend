@@ -12,11 +12,12 @@ const AnimatedNumber = ({ value, precision = 0, prefix = "", suffix = "" }) => {
   return (
     <animated.span>
       {props.number.to((n) => {
-        const formatted = Number(n.toFixed(precision)).toLocaleString(undefined, {
+        const base = precision > 0 ? Number(n.toFixed(precision)) : Number(n.toFixed(0));
+        const localized = base.toLocaleString(undefined, {
           minimumFractionDigits: precision,
           maximumFractionDigits: precision,
         });
-        return `${prefix}${formatted}${suffix}`;
+        return `${prefix}${localized}${suffix}`;
       })}
     </animated.span>
   );
