@@ -556,17 +556,12 @@ export default function HeroBackground({ variant = "particles" }) {
     frameTimesRef.current = [];
 
     const updateScrollEffects = () => {
-      const node = containerRef.current;
       const canvasElement = canvasRef.current;
-      if (!node || !canvasElement) {
+      if (!canvasElement) {
         return;
       }
-      const rect = node.getBoundingClientRect();
-      const heroHeight = rect.height || 1;
-      const scrolled = Math.min(Math.max(-rect.top, 0), heroHeight * 0.5);
-      canvasElement.style.transform = `translateY(${scrolled * 0.3}px)`;
-      const opacity = 1 - (scrolled / heroHeight) * 0.5;
-      canvasElement.style.opacity = `${Math.max(0, Math.min(1, opacity))}`;
+      canvasElement.style.transform = "";
+      canvasElement.style.opacity = "";
     };
 
     const resize = () => {
