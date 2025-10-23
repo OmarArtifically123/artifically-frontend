@@ -442,7 +442,13 @@ export default function HeroBackground({ variant = "particles" }) {
   }, [variant]);
 
   useEffect(() => {
-    if (prefersReducedMotion || variant !== "particles" || deviceProfile.isLowEndMobile || !isInViewport) {
+    if (
+      prefersReducedMotion ||
+      variant !== "particles" ||
+      deviceProfile.isLowEndMobile ||
+      prefersLowPowerMode ||
+      !isInViewport
+    ) {
       return undefined;
     }
 
@@ -793,7 +799,13 @@ export default function HeroBackground({ variant = "particles" }) {
       stopAnimationRef.current = null;
       shouldAnimateRef.current = false;
     };
-  }, [prefersReducedMotion, variant, deviceProfile.isLowEndMobile, isInViewport]);
+  }, [
+    prefersReducedMotion,
+    variant,
+    deviceProfile.isLowEndMobile,
+    prefersLowPowerMode,
+    isInViewport,
+  ]);
 
   useEffect(() => {
     shouldAnimateRef.current = shouldAnimate;
@@ -804,7 +816,7 @@ export default function HeroBackground({ variant = "particles" }) {
     }
   }, [shouldAnimate]);
 
-  if (prefersReducedMotion || deviceProfile.isLowEndMobile) {
+  if (prefersReducedMotion || deviceProfile.isLowEndMobile || prefersLowPowerMode || variant !== "particles") {
     return (
       <div
         ref={containerRef}
