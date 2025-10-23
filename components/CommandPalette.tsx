@@ -717,7 +717,7 @@ export default function CommandPalette() {
               </footer>
             </motion.div>
           </div>
-          <style jsx>{`
+          <style jsx global>{`
             .command-palette__overlay {
               position: fixed;
               inset: 0;

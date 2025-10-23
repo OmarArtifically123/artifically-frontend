@@ -160,7 +160,6 @@ export default function HeroSection({
 
   const { scrollY } = useScroll();
   const y = useTransform(scrollY, [0, 500], [0, 150]);
-  const opacity = useTransform(scrollY, [0, 300], [1, 0]);
 
   useEffect(() => {
     if (typeof onReady === "function") {
@@ -361,7 +360,7 @@ export default function HeroSection({
       className="page-hero"
       aria-labelledby="hero-headline"
       tabIndex={-1}
-      style={prefersReducedMotion ? undefined : { y, opacity }}
+      style={prefersReducedMotion ? undefined : { y }}
     >
       {heroInView ? <HeroBackground variant="particles" /> : <HeroBackgroundPlaceholder />}
       <div className="page-hero__inner">
