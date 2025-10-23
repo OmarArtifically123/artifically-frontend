@@ -5,7 +5,13 @@
       "Bash(npm run build:*)",
       "Bash(node:*)",
       "Bash(find:*)",
-      "Bash(cat:*)"
+      "Bash(cat:*)",
+      "Bash(dir \"C:\\artifically2.0\\frontend\")",
+      "Bash(dir \"C:\\artifically2.0\\frontend\\app\")",
+      "Bash(dir \"C:\\artifically2.0\\frontend\\app\\(site)\")",
+      "Bash(dir \"C:\\artifically2.0\\frontend\\app\\(site)\\_components\")",
+      "Bash(dir:*)",
+      "Bash(.tsx$ \")"
     ],
     "deny": [],
     "ask": []

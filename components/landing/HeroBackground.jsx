@@ -20,6 +20,7 @@ import {
   Scene,
   ShaderMaterial,
   SphereGeometry,
+  Vector2,
   Vector3,
   WebGLRenderer,
 } from "three";
@@ -30,27 +31,31 @@ import { getNetworkInformation, prefersLowPower } from "../../utils/networkPrefe
 const STATIC_GRADIENT_IMAGE_SET =
   "image-set(\n    url('/images/hero-background.avif') type('image/avif') 1x,\n    url('/images/hero-background.webp') type('image/webp') 1x,\n    url('/images/hero-background.jpg') type('image/jpeg') 1x\n  )";
 
-// Premium enterprise AI color palette with enhanced vibrancy
-const PARTICLE_COLORS = [
-  "#0ea5e9", // Electric Blue - Primary AI color
-  "#06b6d4", // Cyan - Data flow
-  "#7c3aed", // Violet - Intelligence & automation
-  "#3b82f6", // Blue - Trust & stability
-  "#8b5cf6", // Purple - Innovation
+// Premium iridescent color palette - from cool intelligence to warm interaction
+const CORE_COLORS = {
+  deepBlue: "#0a1628",      // Deep intelligence base
+  electricBlue: "#0ea5e9",  // Primary AI color
+  cyan: "#06b6d4",          // Data streams
+  violet: "#7c3aed",        // Learning & thought
+  gold: "#f59e0b",          // Warmth & interaction
+  rose: "#f43f5e",          // Energy
+};
+
+// Multiple layers of particles for depth
+const PARTICLE_LAYERS = [
+  { count: 0.3, speed: 0.04, size: 0.6, color: CORE_COLORS.deepBlue, z: -50 },
+  { count: 0.4, speed: 0.08, size: 0.8, color: CORE_COLORS.electricBlue, z: 0 },
+  { count: 0.3, speed: 0.12, size: 1.0, color: CORE_COLORS.cyan, z: 50 },
 ];
 
-// Enhanced connection logic for neural network aesthetic
-const BASE_CONNECTION_DISTANCE = 180; // Increased for more visible connections
-const MAX_MOUSE_ACCELERATION = 0.6;
-const MOUSE_FORCE_RADIUS = 250; // Larger interaction radius for enterprise scale
+const BASE_CONNECTION_DISTANCE = 200;
+const MAX_MOUSE_ACCELERATION = 0.8;
+const MOUSE_FORCE_RADIUS = 400;
 const LOW_FPS_THRESHOLD = 45;
 const FPS_SAMPLE_SIZE = 120;
-const MAX_PARTICLES = 200;
-
-// New constants for neural network effect
-const MIN_CONNECTION_OPACITY = 0.15;
-const MAX_CONNECTION_OPACITY = 0.7;
-const GLOW_INTENSITY = 1.2;
+const MAX_PARTICLES = 300;
+const VORTEX_STRENGTH = 2.5;
+const FLOW_FIELD_SCALE = 0.008;
 
 function resolveDeviceProfile(width, connection) {
   let formFactor = "desktop";
@@ -153,14 +158,30 @@ function createPerlinNoise(seed = Math.random()) {
   };
 }
 
-function getParticleCount(width) {
-  if (width <= 768) {
-    return 40;
+// Curl noise for organic flowing movement
+function createCurlNoise() {
+  const perlin = createPerlinNoise();
+  return (x, y, z) => {
+    const e = 0.001;
+    const n1 = perlin(x + e, y, z) - perlin(x - e, y, z);
+    const n2 = perlin(x, y + e, z) - perlin(x, y - e, z);
+    const n3x = perlin(x, y, z + e) - perlin(x, y, z - e);
+    const n3y = perlin(x + e, y, z + e) - perlin(x - e, y, z - e);
+    return {
+      x: n2 - n3y,
+      y: n3x - n1,
+    };
+  };
+}
+
+function getParticleCount(width, qualityTier = "desktop") {
+  if (qualityTier === "mobile" || width <= 768) {
+    return 60;
   }
-  if (width <= 1200) {
-    return 80;
+  if (qualityTier === "tablet" || width <= 1200) {
+    return 120;
   }
-  return 150;
+  return 200;
 }
 
 function clampDevicePixelRatio() {
@@ -171,73 +192,38 @@ function clampDevicePixelRatio() {
   return Math.min(ratio, 2);
 }
 
-function createLineMaterial() {
-  return new ShaderMaterial({
-    transparent: true,
-    depthWrite: false,
-    uniforms: {
-      uGlowIntensity: { value: GLOW_INTENSITY },
-    },
-    vertexShader: `
-      attribute vec4 color;
-      varying vec4 vColor;
-      varying float vAlpha;
-
-      void main() {
-        vColor = color;
-        vAlpha = color.a;
-        gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);
-      }
-    `,
-    fragmentShader: `
-      uniform float uGlowIntensity;
-      varying vec4 vColor;
-      varying float vAlpha;
-
-      void main() {
-        if (vAlpha <= 0.0) {
-          discard;
-        }
-        // Enhanced glow effect with improved blending
-        vec3 glowColor = vColor.rgb * uGlowIntensity;
-        gl_FragColor = vec4(glowColor, vAlpha * 0.85);
-      }
-    `,
-  });
-}
-
-function createGradientMaterial() {
+function createAdvancedGradientMaterial() {
   return new ShaderMaterial({
     side: DoubleSide,
     transparent: true,
     depthWrite: false,
     uniforms: {
       uTime: { value: 0 },
-      uColorTL: { value: new Color("#0f172a") }, // Deep Navy
-      uColorTR: { value: new Color("#1e293b") }, // Slate
-      uColorBL: { value: new Color("#1e1b4b") }, // Deep Indigo
-      uColorBR: { value: new Color("#0f172a") }, // Deep Navy
-      uGlowColor1: { value: new Color("#0ea5e9") }, // Electric Blue
-      uGlowColor2: { value: new Color("#7c3aed") }, // Violet
+      uInteractionEnergy: { value: 0 },
+      uColorBase: { value: new Color(CORE_COLORS.deepBlue) },
+      uColorAccent1: { value: new Color(CORE_COLORS.electricBlue) },
+      uColorAccent2: { value: new Color(CORE_COLORS.violet) },
+      uColorInteraction: { value: new Color(CORE_COLORS.gold) },
     },
     vertexShader: `
       varying vec2 vUv;
+      varying vec3 vPosition;
       void main() {
         vUv = uv;
+        vPosition = position;
         gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);
       }
     `,
     fragmentShader: `
       varying vec2 vUv;
+      varying vec3 vPosition;
       uniform float uTime;
-      uniform vec3 uColorTL;
-      uniform vec3 uColorTR;
-      uniform vec3 uColorBL;
-      uniform vec3 uColorBR;
-      uniform vec3 uGlowColor1;
-      uniform vec3 uGlowColor2;
+      uniform float uInteractionEnergy;
+      uniform vec3 uColorBase;
+      uniform vec3 uColorAccent1;
+      uniform vec3 uColorAccent2;
+      uniform vec3 uColorInteraction;
 
-      // Advanced Perlin-like noise function
       float noise(vec2 uv) {
         return sin(uv.x * 12.9898 + uv.y * 78.233) * 43758.5453;
       }
@@ -249,28 +235,41 @@ function createGradientMaterial() {
         return rotation * (uv - 0.5) + 0.5;
       }
 
+      float smoothPulse(float time, float speed) {
+        return sin(time * speed) * 0.5 + 0.5;
+      }
+
       void main() {
-        // Subtle rotating gradient
-        float angle = mod(uTime * 0.05, 20.0) / 20.0 * 6.28318530718;
+        // Animated rotating gradient with multiple layers
+        float angle = mod(uTime * 0.03, 20.0) / 20.0 * 6.28318530718;
         vec2 rotated = rotateUV(vUv, angle);
         rotated = clamp(rotated, 0.0, 1.0);
 
-        // Base gradient
-        vec3 top = mix(uColorTL, uColorTR, rotated.x);
-        vec3 bottom = mix(uColorBL, uColorBR, rotated.x);
-        vec3 baseColor = mix(top, bottom, rotated.y);
+        // Base gradient layer
+        vec3 baseGradient = mix(uColorBase, uColorAccent1, rotated.x);
+        baseGradient = mix(baseGradient, uColorAccent2, rotated.y);
 
-        // Add subtle glow highlights with energy nodes
+        // Distance-based glow from center
         float distFromCenter = distance(vUv, vec2(0.5, 0.5));
-        float glowFalloff = 1.0 - smoothstep(0.0, 1.2, distFromCenter);
+        float centerGlow = 1.0 - smoothstep(0.0, 1.4, distFromCenter);
 
-        // Multi-colored glow accent
-        vec3 glowAccent1 = uGlowColor1 * glowFalloff * 0.15;
-        vec3 glowAccent2 = uGlowColor2 * (1.0 - glowFalloff) * 0.1;
+        // Multi-layered accent colors
+        vec3 accentColor = mix(
+          uColorAccent1,
+          uColorInteraction,
+          smoothPulse(uTime, 0.5)
+        );
+        vec3 glowAccent = accentColor * centerGlow * (0.15 + uInteractionEnergy * 0.1);
 
-        // Subtle time-based variation
-        float timeVary = sin(uTime * 0.3 + distFromCenter * 3.0) * 0.05;
-        vec3 finalColor = baseColor + glowAccent1 + glowAccent2 + vec3(timeVary);
+        // Subtle fractal-like detail
+        float detailNoise = fract(sin(vUv.x * 31.41 + vUv.y * 17.29 + uTime * 0.1) * 415.92);
+        vec3 detail = vec3(detailNoise * 0.02);
+
+        // Time-based color shift
+        float timeShift = sin(uTime * 0.2) * 0.05;
+        vec3 finalColor = baseGradient + glowAccent + detail;
+        finalColor = mix(finalColor, accentColor * 0.3, uInteractionEnergy * 0.5);
+        finalColor = clamp(finalColor + vec3(timeShift), 0.0, 1.0);
 
         gl_FragColor = vec4(finalColor, 1.0);
       }
@@ -284,24 +283,25 @@ export default function HeroBackground({ variant = "particles" }) {
   const rendererRef = useRef(null);
   const sceneRef = useRef(null);
   const cameraRef = useRef(null);
-  const instancedMeshRef = useRef(null);
-  const lineGeometryRef = useRef(null);
+  const instancedMeshesRef = useRef([]);
   const noiseRef = useRef(null);
-  const particlesRef = useRef([]);
+  const curlNoiseRef = useRef(null);
+  const particleLayersRef = useRef([]);
   const animationRef = useRef();
   const frameTimesRef = useRef([]);
-  const connectionDistanceRef = useRef(BASE_CONNECTION_DISTANCE);
-  const performanceAdjustedRef = useRef(false);
   const clockRef = useRef(new Clock());
   const shouldAnimateRef = useRef(false);
   const mouseRef = useRef({
     x: 0,
     y: 0,
-    normalizedX: 0,
-    normalizedY: 0,
+    vx: 0,
+    vy: 0,
     lastMove: 0,
     active: false,
+    energy: 0,
+    vortex: { x: 0, y: 0, strength: 0 },
   });
+  const scrollRef = useRef({ speed: 0, energy: 0 });
   const startAnimationRef = useRef(null);
   const stopAnimationRef = useRef(null);
 
@@ -375,14 +375,6 @@ export default function HeroBackground({ variant = "particles" }) {
       const width = window.innerWidth || 0;
       const profile = resolveDeviceProfile(width, connection ?? getNetworkInformation());
 
-      if (profile.formFactor === "desktop") {
-        connectionDistanceRef.current = BASE_CONNECTION_DISTANCE;
-      } else if (profile.formFactor === "tablet") {
-        connectionDistanceRef.current = BASE_CONNECTION_DISTANCE * 0.85;
-      } else {
-        connectionDistanceRef.current = BASE_CONNECTION_DISTANCE * 0.7;
-      }
-
       setDeviceProfile((previous) => {
         if (
           previous.width === profile.width &&
@@ -422,26 +414,6 @@ export default function HeroBackground({ variant = "particles" }) {
       connection.onchange = null;
     };
   }, []);
-
-  useEffect(() => {
-    if (typeof window === "undefined") {
-      return;
-    }
-
-    const connection = getNetworkInformation();
-    const width = window.innerWidth || 0;
-    const profile = resolveDeviceProfile(width, connection);
-
-    if (profile.formFactor === "desktop") {
-      connectionDistanceRef.current = BASE_CONNECTION_DISTANCE;
-    } else if (profile.formFactor === "tablet") {
-      connectionDistanceRef.current = BASE_CONNECTION_DISTANCE * 0.85;
-    } else {
-      connectionDistanceRef.current = BASE_CONNECTION_DISTANCE * 0.7;
-    }
-
-    setDeviceProfile(profile);
-  }, [prefersLowPowerMode]);
 
   useEffect(() => {
     const node = containerRef.current;
@@ -500,120 +472,96 @@ export default function HeroBackground({ variant = "particles" }) {
     );
     camera.position.set(0, 0, 10);
 
-    const gradientMaterial = createGradientMaterial();
+    const gradientMaterial = createAdvancedGradientMaterial();
     const gradientGeometry = new PlaneGeometry(1, 1, 1, 1);
     const gradientMesh = new Mesh(gradientGeometry, gradientMaterial);
     gradientMesh.position.set(container.clientWidth / 2, container.clientHeight / 2, -50);
     gradientMesh.scale.set(container.clientWidth, container.clientHeight, 1);
     scene.add(gradientMesh);
 
-    const ambientLight = new AmbientLight(0xffffff, 0.6);
+    const ambientLight = new AmbientLight(0xffffff, 0.5);
     scene.add(ambientLight);
 
-    const particleGeometry = new SphereGeometry(1, 16, 16);
-    const particleMaterial = new MeshBasicMaterial({
-      color: new Color("#ffffff"),
-      transparent: true,
-      opacity: 0.8,
-      blending: AdditiveBlending,
-      depthWrite: false,
-    });
-    particleMaterial.vertexColors = true;
+    // Create multi-layer particle system
+    const particleGeometry = new SphereGeometry(1, 12, 12);
+    const instancedMeshes = [];
+    const particleLayers = [];
 
-    const instancedMesh = new InstancedMesh(particleGeometry, particleMaterial, MAX_PARTICLES);
-    instancedMesh.instanceMatrix.setUsage(DynamicDrawUsage);
-    instancedMesh.count = 0;
-    scene.add(instancedMesh);
+    const qualityTier = deviceProfile.formFactor;
+    const baseParticleCount = getParticleCount(container.clientWidth, qualityTier);
 
-    const maxConnections = MAX_PARTICLES * 8;
-    const lineGeometry = new BufferGeometry();
-    lineGeometry.setAttribute(
-      "position",
-      new Float32BufferAttribute(new Float32Array(maxConnections * 6), 3),
-    );
-    lineGeometry.setAttribute(
-      "color",
-      new Float32BufferAttribute(new Float32Array(maxConnections * 8), 4),
-    );
-    lineGeometry.setDrawRange(0, 0);
-    const lineMaterial = createLineMaterial();
-    const lineSegments = new LineSegments(lineGeometry, lineMaterial);
-    lineSegments.frustumCulled = false;
-    scene.add(lineSegments);
+    PARTICLE_LAYERS.forEach((layerConfig) => {
+      const count = Math.floor(baseParticleCount * layerConfig.count);
+      const particleMaterial = new MeshBasicMaterial({
+        color: new Color(layerConfig.color),
+        transparent: true,
+        opacity: 0.7,
+        blending: AdditiveBlending,
+        depthWrite: false,
+      });
 
-    const noise = createPerlinNoise();
-    const particles = [];
-    const tempMatrix = new Matrix4();
-    const tempScale = new Vector3();
-    const colorHelper = new Color();
+      const instancedMesh = new InstancedMesh(particleGeometry, particleMaterial, count);
+      instancedMesh.instanceMatrix.setUsage(DynamicDrawUsage);
+      instancedMesh.count = 0;
+      instancedMesh.position.z = layerConfig.z;
+      scene.add(instancedMesh);
+      instancedMeshes.push(instancedMesh);
 
-    const ensureParticleCount = (target) => {
+      // Initialize particles
+      const particles = [];
       const width = container.clientWidth;
       const height = container.clientHeight;
-      while (particles.length < target && particles.length < MAX_PARTICLES) {
-        // Varying particle sizes for neural network depth
-        const radius = 0.4 + Math.random() * 1.2;
-        const particleColor = colorHelper
-          .set(PARTICLE_COLORS[Math.floor(Math.random() * PARTICLE_COLORS.length)])
-          .convertSRGBToLinear()
-          .clone();
+      const tempMatrix = new Matrix4();
+      const tempScale = new Vector3();
+
+      for (let i = 0; i < count; i += 1) {
         const particle = {
           position: new Vector3(Math.random() * width, Math.random() * height, 0),
-          velocity: new Vector3((Math.random() - 0.5) * 0.15, (Math.random() - 0.5) * 0.15, 0),
-          speed: 0.08 + Math.random() * 0.18,
-          radius,
-          color: particleColor,
+          velocity: new Vector3((Math.random() - 0.5) * 0.2, (Math.random() - 0.5) * 0.2, 0),
+          speed: layerConfig.speed,
+          radius: layerConfig.size * (0.5 + Math.random() * 0.8),
           noiseOffset: new Vector3(Math.random() * 100, Math.random() * 100, Math.random() * 100),
-          connectionStrength: 0.5 + Math.random() * 0.5, // Neural node strength
-          isActive: Math.random() > 0.3, // Some nodes are more active
+          energy: Math.random(),
+          fluidInfluence: 0.8 + Math.random() * 0.2,
+          connectionStrength: 0.6 + Math.random() * 0.4,
         };
         particles.push(particle);
       }
-      if (particles.length > target) {
-        particles.length = target;
-      }
-      instancedMesh.count = particles.length;
-      lineGeometry.setDrawRange(0, 0);
-    };
 
-    const writeInstances = () => {
-      for (let i = 0; i < particles.length; i += 1) {
-        const particle = particles[i];
-        tempMatrix.makeTranslation(particle.position.x, particle.position.y, particle.position.z);
-        tempScale.set(particle.radius, particle.radius, particle.radius);
-        tempMatrix.scale(tempScale);
-        instancedMesh.setMatrixAt(i, tempMatrix);
-        if (instancedMesh.setColorAt) {
-          instancedMesh.setColorAt(i, particle.color);
-        }
-      }
-      instancedMesh.instanceMatrix.needsUpdate = true;
-      if (instancedMesh.instanceColor) {
-        instancedMesh.instanceColor.needsUpdate = true;
-      }
-    };
-
-    ensureParticleCount(getParticleCount(container.clientWidth));
-    writeInstances();
+      particleLayers.push({
+        particles,
+        instancedMesh,
+        geometry: particleGeometry,
+        material: particleMaterial,
+        config: layerConfig,
+      });
+    });
 
     rendererRef.current = renderer;
     sceneRef.current = scene;
     cameraRef.current = camera;
-    instancedMeshRef.current = instancedMesh;
-    lineGeometryRef.current = lineGeometry;
-    noiseRef.current = noise;
-    particlesRef.current = particles;
-    connectionDistanceRef.current = BASE_CONNECTION_DISTANCE;
-    performanceAdjustedRef.current = false;
-    frameTimesRef.current = [];
+    instancedMeshesRef.current = instancedMeshes;
+    noiseRef.current = createPerlinNoise();
+    curlNoiseRef.current = createCurlNoise();
+    particleLayersRef.current = particleLayers;
 
-    const updateScrollEffects = () => {
-      const canvasElement = canvasRef.current;
-      if (!canvasElement) {
-        return;
-      }
-      canvasElement.style.transform = "";
-      canvasElement.style.opacity = "";
+    const writeInstances = () => {
+      const tempMatrix = new Matrix4();
+      const tempScale = new Vector3();
+
+      particleLayers.forEach((layer) => {
+        const instancedMesh = layer.instancedMesh;
+        const particles = layer.particles;
+
+        for (let i = 0; i < particles.length; i += 1) {
+          const particle = particles[i];
+          tempMatrix.makeTranslation(particle.position.x, particle.position.y, particle.position.z);
+          tempScale.set(particle.radius, particle.radius, particle.radius);
+          tempMatrix.scale(tempScale);
+          instancedMesh.setMatrixAt(i, tempMatrix);
+        }
+        instancedMesh.instanceMatrix.needsUpdate = true;
+      });
     };
 
     const resize = () => {
@@ -628,15 +576,17 @@ export default function HeroBackground({ variant = "particles" }) {
       camera.updateProjectionMatrix();
       gradientMesh.position.set(width / 2, height / 2, -50);
       gradientMesh.scale.set(width, height, 1);
-      ensureParticleCount(getParticleCount(width));
-      particles.forEach((particle) => {
-        particle.position.x = ((particle.position.x % width) + width) % width;
-        particle.position.y = ((particle.position.y % height) + height) % height;
+
+      particleLayers.forEach((layer) => {
+        layer.particles.forEach((particle) => {
+          particle.position.x = ((particle.position.x % width) + width) % width;
+          particle.position.y = ((particle.position.y % height) + height) % height;
+        });
       });
       writeInstances();
-      updateScrollEffects();
     };
 
+    let lastScrollTime = 0;
     const updateMouse = (event) => {
       const pointerFine = window.matchMedia?.("(pointer: fine)").matches;
       if (!pointerFine) {
@@ -649,170 +599,147 @@ export default function HeroBackground({ variant = "particles" }) {
       const rect = node.getBoundingClientRect();
       const x = event.clientX - rect.left;
       const y = event.clientY - rect.top;
-      mouseRef.current.x = x;
-      mouseRef.current.y = y;
-      mouseRef.current.normalizedX = (x / rect.width) * 2 - 1;
-      mouseRef.current.normalizedY = (y / rect.height) * -2 + 1;
-      mouseRef.current.lastMove = performance.now();
-      mouseRef.current.active = true;
+
+      // Track velocity for vortex effect
+      const mouse = mouseRef.current;
+      mouse.vx = x - mouse.x;
+      mouse.vy = y - mouse.y;
+      mouse.x = x;
+      mouse.y = y;
+      mouse.lastMove = performance.now();
+      mouse.active = true;
+    };
+
+    const updateScroll = () => {
+      const now = performance.now();
+      lastScrollTime = now;
+      // Scroll speed will be calculated in render loop
     };
 
     const renderFrame = () => {
-      const rendererInstance = rendererRef.current;
-      const sceneInstance = sceneRef.current;
-      const cameraInstance = cameraRef.current;
-      const instancedMeshInstance = instancedMeshRef.current;
-      const lineGeometryInstance = lineGeometryRef.current;
-      if (!rendererInstance || !sceneInstance || !cameraInstance || !instancedMeshInstance || !lineGeometryInstance) {
+      if (!shouldAnimateRef.current) {
         animationRef.current = undefined;
         return;
       }
-      if (!shouldAnimateRef.current) {
+
+      const rendererInstance = rendererRef.current;
+      const sceneInstance = sceneRef.current;
+      const cameraInstance = cameraRef.current;
+      if (!rendererInstance || !sceneInstance || !cameraInstance) {
         animationRef.current = undefined;
         return;
       }
 
       const delta = clockRef.current.getDelta();
       const elapsed = clockRef.current.elapsedTime;
-      gradientMaterial.uniforms.uTime.value = elapsed;
-
-      const particlesArray = particlesRef.current;
+      const noise = noiseRef.current;
+      const curlNoise = curlNoiseRef.current;
+      const mouse = mouseRef.current;
       const width = container.clientWidth;
       const height = container.clientHeight;
-      const noise = noiseRef.current;
-      const mouse = mouseRef.current;
-      const mouseActive = mouse.active && performance.now() - mouse.lastMove < 800;
+
+      // Update mouse interaction energy
+      const mouseActive = mouse.active && performance.now() - mouse.lastMove < 1000;
       if (!mouseActive) {
         mouse.active = false;
+        mouse.energy = Math.max(0, mouse.energy - 0.02);
+      } else {
+        mouse.energy = Math.min(1, mouse.energy + 0.05);
       }
 
+      // Update vortex from mouse velocity
+      mouse.vortex.strength = Math.sqrt(mouse.vx * mouse.vx + mouse.vy * mouse.vy) * VORTEX_STRENGTH;
+      mouse.vortex.x = mouse.x;
+      mouse.vortex.y = mouse.y;
+
+      // Update gradient material with interaction energy
+      gradientMaterial.uniforms.uTime.value = elapsed;
+      gradientMaterial.uniforms.uInteractionEnergy.value = mouse.energy;
+
+      const tempMatrix = new Matrix4();
+      const tempScale = new Vector3();
       const directionVector = new Vector3();
-      for (let i = 0; i < particlesArray.length; i += 1) {
-        const particle = particlesArray[i];
-        const noiseX = noise((elapsed * 0.15 + particle.noiseOffset.x) * 0.1, particle.noiseOffset.y, particle.noiseOffset.z);
-        const noiseY = noise(particle.noiseOffset.x, (elapsed * 0.15 + particle.noiseOffset.y) * 0.1, particle.noiseOffset.z);
-        directionVector.set(noiseX, noiseY, 0);
-        if (directionVector.lengthSq() > 0) {
-          directionVector.normalize().multiplyScalar(particle.speed);
-          particle.velocity.lerp(directionVector, 0.025);
-        }
 
-        if (mouseActive) {
-          const dx = mouse.x - particle.position.x;
-          const dy = mouse.y - particle.position.y;
-          const distanceSq = dx * dx + dy * dy;
-          if (distanceSq > 0 && distanceSq < MOUSE_FORCE_RADIUS * MOUSE_FORCE_RADIUS) {
-            const distance = Math.sqrt(distanceSq);
-            const force = Math.min(MAX_MOUSE_ACCELERATION, (1 / distanceSq) * 6000);
-            particle.velocity.x += (dx / distance) * force;
-            particle.velocity.y += (dy / distance) * force;
+      particleLayersRef.current.forEach((layer) => {
+        const particles = layer.particles;
+        const speed = layer.config.speed;
+        const instancedMesh = layer.instancedMesh;
+
+        for (let i = 0; i < particles.length; i += 1) {
+          const particle = particles[i];
+
+          // Curl noise for organic flowing movement
+          const flowField = curlNoise(
+            (elapsed * 0.1 + particle.noiseOffset.x) * FLOW_FIELD_SCALE,
+            particle.noiseOffset.y * FLOW_FIELD_SCALE,
+            particle.noiseOffset.z * FLOW_FIELD_SCALE,
+          );
+
+          directionVector.set(flowField.x, flowField.y, 0);
+          if (directionVector.lengthSq() > 0) {
+            directionVector.normalize().multiplyScalar(speed);
+            particle.velocity.lerp(directionVector, 0.03);
           }
-        }
 
-        particle.position.add(particle.velocity);
+          // Mouse interaction - attraction zones with vortex
+          if (mouseActive) {
+            const dx = mouse.x - particle.position.x;
+            const dy = mouse.y - particle.position.y;
+            const distanceSq = dx * dx + dy * dy;
 
-        if (particle.position.x < 0) {
-          particle.position.x += width;
-        } else if (particle.position.x > width) {
-          particle.position.x -= width;
-        }
-        if (particle.position.y < 0) {
-          particle.position.y += height;
-        } else if (particle.position.y > height) {
-          particle.position.y -= height;
-        }
+            if (distanceSq > 0 && distanceSq < MOUSE_FORCE_RADIUS * MOUSE_FORCE_RADIUS) {
+              const distance = Math.sqrt(distanceSq);
+              const force = Math.min(MAX_MOUSE_ACCELERATION, (1 / (distanceSq + 1)) * 3000 * mouse.energy);
 
-        tempMatrix.makeTranslation(particle.position.x, particle.position.y, particle.position.z);
-        tempScale.set(particle.radius, particle.radius, particle.radius);
-        tempMatrix.scale(tempScale);
-        instancedMeshInstance.setMatrixAt(i, tempMatrix);
-      }
+              // Primary attraction force
+              particle.velocity.x += (dx / distance) * force;
+              particle.velocity.y += (dy / distance) * force;
 
-      instancedMeshInstance.instanceMatrix.needsUpdate = true;
-
-      const positionsAttribute = lineGeometryInstance.getAttribute("position");
-      const colorsAttribute = lineGeometryInstance.getAttribute("color");
-      const positionsArray = positionsAttribute.array;
-      const colorsArray = colorsAttribute.array;
-      let lineIndex = 0;
-      const connectionDistance = connectionDistanceRef.current;
-
-      for (let i = 0; i < particlesArray.length; i += 1) {
-        const particleA = particlesArray[i];
-        for (let j = i + 1; j < particlesArray.length; j += 1) {
-          const particleB = particlesArray[j];
-          const dx = particleA.position.x - particleB.position.x;
-          const dy = particleA.position.y - particleB.position.y;
-          const distance = Math.sqrt(dx * dx + dy * dy);
-          if (distance <= connectionDistance) {
-            // Enhanced opacity calculation for neural network feel
-            const closeness = 1 - distance / connectionDistance;
-            // Strength based on particle activity and connection strength
-            const connectionStrength = (particleA.connectionStrength + particleB.connectionStrength) * 0.5;
-            const baseOpacity = MIN_CONNECTION_OPACITY + (MAX_CONNECTION_OPACITY - MIN_CONNECTION_OPACITY) * closeness;
-            const finalOpacity = baseOpacity * connectionStrength;
-
-            const basePosition = lineIndex * 6;
-            positionsArray[basePosition] = particleA.position.x;
-            positionsArray[basePosition + 1] = particleA.position.y;
-            positionsArray[basePosition + 2] = 0;
-            positionsArray[basePosition + 3] = particleB.position.x;
-            positionsArray[basePosition + 4] = particleB.position.y;
-            positionsArray[basePosition + 5] = 0;
-
-            // Blend colors based on particle colors for richer connections
-            const baseColor = lineIndex * 8;
-            for (let k = 0; k < 2; k += 1) {
-              const source = k === 0 ? particleA : particleB;
-              colorsArray[baseColor + k * 4] = source.color.r;
-              colorsArray[baseColor + k * 4 + 1] = source.color.g;
-              colorsArray[baseColor + k * 4 + 2] = source.color.b;
-              colorsArray[baseColor + k * 4 + 3] = finalOpacity;
-            }
-            lineIndex += 1;
-            if (lineIndex >= maxConnections) {
-              break;
+              // Vortex twist effect
+              const angle = Math.atan2(dy, dx);
+              const tangentX = Math.cos(angle + Math.PI / 2);
+              const tangentY = Math.sin(angle + Math.PI / 2);
+              const vortexForce = mouse.vortex.strength * (1 - distance / MOUSE_FORCE_RADIUS);
+              particle.velocity.x += tangentX * vortexForce * 0.1;
+              particle.velocity.y += tangentY * vortexForce * 0.1;
             }
           }
-        }
-        if (lineIndex >= maxConnections) {
-          break;
-        }
-      }
 
-      lineGeometryInstance.setDrawRange(0, lineIndex * 2);
-      positionsAttribute.needsUpdate = true;
-      colorsAttribute.needsUpdate = true;
+          // Apply velocity
+          particle.position.add(particle.velocity);
+
+          // Wrap around edges
+          if (particle.position.x < 0) {
+            particle.position.x += width;
+          } else if (particle.position.x > width) {
+            particle.position.x -= width;
+          }
+          if (particle.position.y < 0) {
+            particle.position.y += height;
+          } else if (particle.position.y > height) {
+            particle.position.y -= height;
+          }
+
+          // Update instance
+          tempMatrix.makeTranslation(particle.position.x, particle.position.y, particle.position.z);
+          tempScale.set(particle.radius, particle.radius, particle.radius);
+          tempMatrix.scale(tempScale);
+          instancedMesh.setMatrixAt(i, tempMatrix);
+        }
+
+        instancedMesh.instanceMatrix.needsUpdate = true;
+      });
 
       rendererInstance.render(sceneInstance, cameraInstance);
 
+      // Performance monitoring
       const frameTimes = frameTimesRef.current;
       frameTimes.push(delta * 1000);
       if (frameTimes.length > FPS_SAMPLE_SIZE) {
         frameTimes.shift();
       }
-      const average = frameTimes.reduce((sum, value) => sum + value, 0) / frameTimes.length;
-      if (!performanceAdjustedRef.current && average > 1000 / LOW_FPS_THRESHOLD) {
-        performanceAdjustedRef.current = true;
-        const reducedCount = Math.max(10, Math.floor(particlesArray.length * 0.7));
-        particlesArray.length = reducedCount;
-        instancedMeshInstance.count = reducedCount;
-        instancedMeshInstance.instanceMatrix.needsUpdate = true;
-        if (instancedMeshInstance.instanceColor) {
-          instancedMeshInstance.instanceColor.needsUpdate = true;
-        }
-        connectionDistanceRef.current = connectionDistance * 1.2;
-      }
 
       animationRef.current = requestAnimationFrame(renderFrame);
-    };
-
-    const handleScroll = () => {
-      requestAnimationFrame(updateScrollEffects);
-    };
-
-    const handleResize = () => {
-      requestAnimationFrame(resize);
     };
 
     const stopAnimation = () => {
@@ -835,32 +762,33 @@ export default function HeroBackground({ variant = "particles" }) {
     stopAnimationRef.current = stopAnimation;
 
     resize();
-    updateScrollEffects();
 
-    window.addEventListener("resize", handleResize);
-    window.addEventListener("scroll", handleScroll, { passive: true });
+    window.addEventListener("resize", resize);
     window.addEventListener("mousemove", updateMouse);
+    window.addEventListener("scroll", updateScroll, { passive: true });
 
     return () => {
-      window.removeEventListener("resize", handleResize);
-      window.removeEventListener("scroll", handleScroll);
+      window.removeEventListener("resize", resize);
       window.removeEventListener("mousemove", updateMouse);
+      window.removeEventListener("scroll", updateScroll);
       stopAnimation();
-      instancedMesh.dispose();
-      particleGeometry.dispose();
-      particleMaterial.dispose();
+
+      particleLayers.forEach((layer) => {
+        layer.geometry.dispose();
+        layer.material.dispose();
+        layer.instancedMesh.dispose();
+      });
       gradientMaterial.dispose();
       gradientGeometry.dispose();
-      lineMaterial.dispose();
-      lineGeometry.dispose();
       renderer.dispose();
+
       rendererRef.current = null;
       sceneRef.current = null;
       cameraRef.current = null;
-      instancedMeshRef.current = null;
-      lineGeometryRef.current = null;
-      particlesRef.current = [];
+      instancedMeshesRef.current = [];
+      particleLayersRef.current = [];
       noiseRef.current = null;
+      curlNoiseRef.current = null;
       startAnimationRef.current = null;
       stopAnimationRef.current = null;
       shouldAnimateRef.current = false;
