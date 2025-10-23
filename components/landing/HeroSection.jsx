@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
 import { AnimatePresence, motion, useReducedMotion, useScroll, useTransform } from "framer-motion";
 import dynamic from "next/dynamic";
 import useInViewState from "../../hooks/useInViewState";
@@ -95,6 +95,8 @@ export default function HeroSection({
   const [ctaContext, setCtaContext] = useState("");
   const [activeTile, setActiveTile] = useState(defaultPreviewTile);
   const tooltipTimeoutRef = useRef(null);
+  const stageRef = useRef(null);
+  const tooltipRef = useRef(null);
   const [initialHeroInView] = useState(() => {
     if (typeof window === "undefined") {
       return true;
@@ -287,6 +289,71 @@ export default function HeroSection({
   const previewPanelId = "hero-preview-panel";
   const activeTabId = `hero-preview-tab-${visibleTileIndex}`;
 
+  const computeGridCellSize = useCallback(() => {
+    if (!stageRef.current || typeof window === "undefined") {
+      return;
+    }
+
+    const tooltipElement = tooltipRef.current;
+    const style = window.getComputedStyle(stageRef.current);
+    const paddingTop = Number.parseFloat(style.paddingTop) || 0;
+    const paddingBottom = Number.parseFloat(style.paddingBottom) || 0;
+    const stageHeight = stageRef.current.getBoundingClientRect().height;
+    const tooltipHeight = tooltipElement?.getBoundingClientRect().height ?? 0;
+    const rows = 3;
+    const gap = 12 * (rows - 1);
+    const available = Math.max(stageHeight - paddingTop - paddingBottom - tooltipHeight, 0);
+    const rawSize = rows > 0 ? (available - gap) / rows : 0;
+    const BASE_SIZE = 112;
+    const MIN_SIZE = 96;
+    const size = Number.isFinite(rawSize) ? Math.max(MIN_SIZE, Math.min(BASE_SIZE, rawSize)) : BASE_SIZE;
+    stageRef.current.style.setProperty("--preview-grid-cell-size", `${size}px`);
+  }, []);
+
+  useLayoutEffect(() => {
+    const stageElement = stageRef.current;
+    if (!stageElement || typeof window === "undefined") {
+      return undefined;
+    }
+
+    let frame = requestAnimationFrame(computeGridCellSize);
+
+    const observer = typeof ResizeObserver !== "undefined"
+      ? new ResizeObserver(() => {
+          cancelAnimationFrame(frame);
+          frame = requestAnimationFrame(computeGridCellSize);
+        })
+      : null;
+
+    if (observer) {
+      observer.observe(stageElement);
+      if (tooltipRef.current) {
+        observer.observe(tooltipRef.current);
+      }
+    } else {
+      window.addEventListener("resize", computeGridCellSize);
+    }
+
+    return () => {
+      cancelAnimationFrame(frame);
+      if (observer) {
+        observer.disconnect();
+      } else {
+        window.removeEventListener("resize", computeGridCellSize);
+      }
+    };
+  }, [computeGridCellSize, visibleTile]);
+
+  const setTooltipRef = useCallback(
+    (node) => {
+      tooltipRef.current = node;
+      if (node) {
+        requestAnimationFrame(computeGridCellSize);
+      }
+    },
+    [computeGridCellSize],
+  );
+
   return (
     <motion.section
       data-hero-enhanced="true"
@@ -416,7 +483,7 @@ export default function HeroSection({
             }
           >
             <span className="preview-card__chip">LIVE PRODUCT PREVIEW</span>
-            <div className="preview-card__stage">
+            <div className="preview-card__stage" ref={stageRef}>
               <div className="preview-grid" role="tablist" aria-label="Product preview options">
                 {previewTiles.map((tile, index) => {
                   const isActive = visibleTile.label === tile.label;
@@ -449,6 +516,7 @@ export default function HeroSection({
                 <motion.div
                   key={visibleTile.label}
                   className="preview-card__tooltip"
+                  ref={setTooltipRef}
                   role="tabpanel"
                   id={previewPanelId}
                   aria-labelledby={activeTabId}
