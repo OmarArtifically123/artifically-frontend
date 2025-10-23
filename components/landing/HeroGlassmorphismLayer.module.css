@@ -1,0 +1,232 @@
+/**
+ * HeroGlassmorphismLayer CSS Module
+ * Premium frosted-glass styling for enterprise UI
+ */
+
+.glassmorphism {
+  /* Frosted glass effect */
+  backdrop-filter: blur(40px);
+  -webkit-backdrop-filter: blur(40px);
+
+  /* Base styling */
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-radius: 1.25rem;
+  border-image: linear-gradient(
+    135deg,
+    rgba(255, 255, 255, 0.2) 0%,
+    rgba(255, 255, 255, 0.08) 50%,
+    rgba(255, 255, 255, 0) 100%
+  ) 1;
+
+  /* Premium shadow for depth */
+  box-shadow: 0 8px 32px rgba(15, 23, 47, 0.3),
+    inset 0 1px 1px rgba(255, 255, 255, 0.1);
+
+  /* Smooth transitions */
+  transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+
+  /* Prevent layout shift */
+  will-change: transform;
+}
+
+/* Variant: Surface - lightest */
+.variant-surface {
+  background: rgba(10, 22, 40, 0.05);
+  color: rgba(255, 255, 255, 0.95);
+}
+
+.variant-surface:hover {
+  background: rgba(10, 22, 40, 0.08);
+  box-shadow: 0 12px 40px rgba(15, 23, 47, 0.4),
+    inset 0 1px 2px rgba(255, 255, 255, 0.15);
+}
+
+/* Variant: Elevated - medium */
+.variant-elevated {
+  background: rgba(10, 22, 40, 0.1);
+  color: rgba(255, 255, 255, 0.98);
+}
+
+.variant-elevated:hover {
+  background: rgba(10, 22, 40, 0.13);
+  box-shadow: 0 16px 48px rgba(15, 23, 47, 0.5),
+    inset 0 1px 2px rgba(255, 255, 255, 0.2);
+}
+
+/* Variant: Overlay - deepest */
+.variant-overlay {
+  background: rgba(10, 22, 40, 0.15);
+  color: rgba(255, 255, 255, 1);
+}
+
+.variant-overlay:hover {
+  background: rgba(10, 22, 40, 0.18);
+  box-shadow: 0 20px 56px rgba(15, 23, 47, 0.6),
+    inset 0 1px 2px rgba(255, 255, 255, 0.25);
+}
+
+/* Blur intensity variants */
+.blur-light {
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+}
+
+.blur-medium {
+  backdrop-filter: blur(40px);
+  -webkit-backdrop-filter: blur(40px);
+}
+
+.blur-heavy {
+  backdrop-filter: blur(60px);
+  -webkit-backdrop-filter: blur(60px);
+}
+
+/* Card component */
+.card {
+  padding: 1.5rem;
+  background: rgba(10, 22, 40, 0.08);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 0.875rem;
+  backdrop-filter: blur(30px);
+  -webkit-backdrop-filter: blur(30px);
+  box-shadow: 0 4px 16px rgba(15, 23, 47, 0.25),
+    inset 0 1px 1px rgba(255, 255, 255, 0.08);
+  transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+.card:hover {
+  background: rgba(10, 22, 40, 0.12);
+  border-color: rgba(255, 255, 255, 0.15);
+  box-shadow: 0 8px 24px rgba(15, 23, 47, 0.35),
+    inset 0 1px 2px rgba(255, 255, 255, 0.12);
+}
+
+/* Button component */
+.button {
+  /* Base styling */
+  border: none;
+  border-radius: 0.75rem;
+  font-weight: 600;
+  font-size: 0.875rem;
+  cursor: pointer;
+  transition: all 0.2s cubic-bezier(0.34, 1.56, 0.64, 1);
+  backdrop-filter: blur(30px);
+  -webkit-backdrop-filter: blur(30px);
+
+  /* Remove default button styles */
+  appearance: none;
+  -webkit-appearance: none;
+
+  /* Prevent text selection on interaction */
+  user-select: none;
+
+  /* GPU acceleration */
+  will-change: transform, box-shadow;
+}
+
+.button:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+/* Button size variants */
+.size-sm {
+  padding: 0.5rem 1rem;
+  font-size: 0.75rem;
+}
+
+.size-md {
+  padding: 0.75rem 1.5rem;
+  font-size: 0.875rem;
+}
+
+.size-lg {
+  padding: 1rem 2rem;
+  font-size: 1rem;
+}
+
+/* Button color variants */
+.variant-primary {
+  background: linear-gradient(135deg, #0ea5e9 0%, #06b6d4 100%);
+  color: white;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  box-shadow: 0 4px 12px rgba(14, 165, 233, 0.3);
+}
+
+.variant-primary:hover:not(:disabled) {
+  background: linear-gradient(135deg, #0ea5e9 0%, #06b6d4 100%);
+  box-shadow: 0 8px 20px rgba(14, 165, 233, 0.5);
+  transform: translateY(-2px);
+}
+
+.variant-secondary {
+  background: rgba(10, 22, 40, 0.08);
+  color: rgba(255, 255, 255, 0.95);
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  box-shadow: 0 2px 8px rgba(15, 23, 47, 0.2);
+}
+
+.variant-secondary:hover:not(:disabled) {
+  background: rgba(10, 22, 40, 0.12);
+  border-color: rgba(255, 255, 255, 0.25);
+  box-shadow: 0 4px 12px rgba(15, 23, 47, 0.3);
+  transform: translateY(-2px);
+}
+
+.variant-tertiary {
+  background: transparent;
+  color: #0ea5e9;
+  border: 1px solid rgba(14, 165, 233, 0.4);
+  box-shadow: none;
+}
+
+.variant-tertiary:hover:not(:disabled) {
+  background: rgba(14, 165, 233, 0.1);
+  border-color: rgba(14, 165, 233, 0.8);
+  box-shadow: 0 2px 8px rgba(14, 165, 233, 0.2);
+}
+
+/* Focus states for accessibility */
+.button:focus-visible {
+  outline: none;
+  box-shadow: 0 0 0 3px rgba(14, 165, 233, 0.5);
+}
+
+/* Responsive adjustments */
+@media (prefers-reduced-motion: reduce) {
+  .glassmorphism,
+  .card,
+  .button {
+    transition: none;
+    animation: none;
+  }
+}
+
+/* High contrast mode support */
+@media (prefers-contrast: more) {
+  .glassmorphism {
+    border-color: rgba(255, 255, 255, 0.3);
+    background: rgba(10, 22, 40, 0.2);
+  }
+
+  .button {
+    border-width: 2px;
+  }
+}
+
+/* Ensure text remains legible (WCAG AA compliance) */
+.glassmorphism {
+  color: rgba(255, 255, 255, 0.95);
+}
+
+.card {
+  color: rgba(255, 255, 255, 0.9);
+}
+
+/* Dark mode compatibility (already dark theme, but for completeness) */
+@media (prefers-color-scheme: dark) {
+  .glassmorphism,
+  .card {
+    background: rgba(10, 22, 40, 0.08);
+  }
+}
