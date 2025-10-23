@@ -1,21 +1,21 @@
-import MarketingPlaceholder from "@/app/(site)/_components/MarketingPlaceholder";
+import HeroSection from "@/components/about/HeroSection";
+import CompanyStorySection from "@/components/about/CompanyStorySection";
+import ValuesSection from "@/components/about/ValuesSection";
+import CTASection from "@/components/about/CTASection";
 
 export const metadata = {
-  title: "About Artifically",
+  title: "About Artifically | Leading AI Enterprise Marketplace",
   description:
-    "Meet the team building Artifically and explore our mission to automate operational excellence. A refreshed company overview is underway.",
+    "Discover Artifically's mission to build the world's leading AI enterprise marketplace. Learn about our values, vision, and commitment to operational excellence through intelligent automation.",
 };
 
 export default function AboutRoute() {
   return (
-    <MarketingPlaceholder
-      eyebrow="About Artifically"
-      title="We're updating our company story"
-      description="The new About page will highlight our mission, leadership, and the principles guiding every automation launch."
-      ctas={[
-        { href: "/careers", label: "See open roles" },
-        { href: "/press", label: "Press resources", variant: "ghost" },
-      ]}
-    />
+    <>
+      <HeroSection />
+      <CompanyStorySection />
+      <ValuesSection />
+      <CTASection />
+    </>
   );
 }
