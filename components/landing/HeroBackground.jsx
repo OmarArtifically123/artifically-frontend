@@ -312,6 +312,7 @@ export default function HeroBackground({ variant = "particles" }) {
     return window.matchMedia("(prefers-reduced-motion: reduce)").matches;
   });
   const [prefersLowPowerMode, setPrefersLowPowerMode] = useState(() => prefersLowPower());
+  const [webglSupported, setWebglSupported] = useState(true);
   const [deviceProfile, setDeviceProfile] = useState(() =>
     resolveDeviceProfile(
       typeof window === "undefined" ? 1440 : window.innerWidth,
@@ -327,7 +328,8 @@ export default function HeroBackground({ variant = "particles" }) {
     isDocumentVisible &&
     !prefersReducedMotion &&
     !prefersLowPowerMode &&
-    !deviceProfile.isLowEndMobile;
+    !deviceProfile.isLowEndMobile &&
+    webglSupported;
 
   useEffect(() => {
     if (typeof window === "undefined" || typeof window.matchMedia !== "function") {
@@ -447,6 +449,7 @@ export default function HeroBackground({ variant = "particles" }) {
       variant !== "particles" ||
       deviceProfile.isLowEndMobile ||
       prefersLowPowerMode ||
+      !webglSupported ||
       !isInViewport
     ) {
       return undefined;
@@ -458,12 +461,37 @@ export default function HeroBackground({ variant = "particles" }) {
       return undefined;
     }
 
-    const renderer = new WebGLRenderer({
-      canvas,
-      alpha: true,
-      antialias: true,
-      powerPreference: "high-performance",
-    });
+    let renderer;
+    try {
+      renderer = new WebGLRenderer({
+        canvas,
+        alpha: true,
+        antialias: true,
+        powerPreference: "high-performance",
+      });
+    } catch (error) {
+      setWebglSupported((current) => {
+        if (!current) {
+          return current;
+        }
+        if (process.env.NODE_ENV !== "production") {
+          // eslint-disable-next-line no-console
+          console.error("Failed to initialise hero WebGL renderer", error);
+        }
+        return false;
+      });
+      shouldAnimateRef.current = false;
+      return undefined;
+    }
+
+    const gl = renderer.getContext();
+    if (!gl) {
+      renderer.dispose();
+      setWebglSupported((current) => (current ? false : current));
+      shouldAnimateRef.current = false;
+      return undefined;
+    }
+
     renderer.setPixelRatio(clampDevicePixelRatio());
     renderer.setSize(container.clientWidth, container.clientHeight, false);
 
@@ -804,6 +832,7 @@ export default function HeroBackground({ variant = "particles" }) {
     variant,
     deviceProfile.isLowEndMobile,
     prefersLowPowerMode,
+    webglSupported,
     isInViewport,
   ]);
 
@@ -816,7 +845,13 @@ export default function HeroBackground({ variant = "particles" }) {
     }
   }, [shouldAnimate]);
 
-  if (prefersReducedMotion || deviceProfile.isLowEndMobile || prefersLowPowerMode || variant !== "particles") {
+  if (
+    prefersReducedMotion ||
+    deviceProfile.isLowEndMobile ||
+    prefersLowPowerMode ||
+    variant !== "particles" ||
+    !webglSupported
+  ) {
     return (
       <div
         ref={containerRef}

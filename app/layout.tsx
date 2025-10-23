@@ -4,6 +4,7 @@ import { Analytics } from "@vercel/analytics/react";
 import AppShell from "@/components/AppShell";
 import PageTransition from "@/components/PageTransition";
 import { ThemeProvider } from "@/context/ThemeContext";
+import { CONTRAST_DEFAULT, THEME_DARK } from "@/context/themeConstants";
 import inter from "@/lib/fonts/inter";
 import { getCriticalStyles } from "@/lib/styles/critical";
 import { getThemeBootstrapScript } from "@/lib/themeScript";
@@ -58,13 +59,22 @@ export const viewport: Viewport = {
 const themeBootstrapScript = getThemeBootstrapScript();
 const criticalStyles = getCriticalStyles();
 
+const DEFAULT_THEME = THEME_DARK;
+const DEFAULT_CONTRAST = CONTRAST_DEFAULT;
+
 export default function RootLayout({
   children,
 }: {
   children: React.ReactNode;
 }) {
   return (
-    <html lang="en" className={inter.variable}>
+    <html
+      lang="en"
+      className={inter.variable}
+      data-theme={DEFAULT_THEME}
+      data-contrast={DEFAULT_CONTRAST}
+      suppressHydrationWarning
+    >
       <head>
         <meta name="viewport" content="width=device-width, initial-scale=1" />
         <meta name="msapplication-TileColor" content="#6366f1" />
@@ -102,7 +112,11 @@ export default function RootLayout({
           strategy="lazyOnload"
         />
       </head>
-      <body className={inter.className}>
+      <body
+        className={inter.className}
+        data-theme={DEFAULT_THEME}
+        data-contrast={DEFAULT_CONTRAST}
+      >
         <ThemeProvider>
           <AppShell>
             <PageTransition>{children}</PageTransition>
