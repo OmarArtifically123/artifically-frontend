@@ -19,10 +19,6 @@ vi.mock('../ScrollIndicator', () => ({
   default: () => <div data-testid="scroll-indicator" />,
 }));
 
-vi.mock('../HeroRoiCalculator', () => ({
-  default: () => <div data-testid="hero-roi" />,
-}));
-
 describe('HeroSection', () => {
   it('renders headline, actions and trusted logos', () => {
     const handlePrimary = vi.fn();

@@ -63,6 +63,8 @@ body {
   display: block;
   position: relative;
   min-height: max(100dvh, 720px);
+  width: 100vw;
+  margin-inline: calc(50% - 50vw);
   view-transition-name: hero-shell-placeholder;
 }
 
@@ -77,9 +79,23 @@ body {
   align-items: center;
   justify-content: center;
   min-height: max(100dvh, 720px);
+  width: 100vw;
+  margin-inline: calc(50% - 50vw);
   padding: clamp(5rem, 10vw, 8rem) 0;
   overflow: visible;
   isolation: isolate;
+}
+
+@supports (width: 100dvw) {
+  .page-hero {
+    width: 100dvw;
+    margin-inline: calc(50% - 50dvw);
+  }
+
+  .marketing-rsc-shell {
+    width: 100dvw;
+    margin-inline: calc(50% - 50dvw);
+  }
 }
 
 .hero-background {
@@ -162,22 +178,13 @@ body {
   justify-content: center;
 }
 
-.page-hero__roi {
-  margin-top: clamp(2rem, 5vw, 4rem);
-  display: flex;
-  justify-content: center;
-  padding: 0 clamp(1rem, 4vw, 2.5rem) clamp(3rem, 6vw, 5rem);
-}
-
-.page-hero--shell .page-hero__inner,
-.page-hero--shell .page-hero__roi {
+.page-hero--shell .page-hero__inner {
   position: relative;
   z-index: 1;
 }
 
 .page-hero--shell .page-hero__content,
-.page-hero--shell .page-hero__preview,
-.page-hero--shell .page-hero__roi {
+.page-hero--shell .page-hero__preview {
   pointer-events: none;
 }
 
@@ -212,8 +219,7 @@ body {
 .hero-shell__stats,
 .hero-shell__logos,
 .hero-shell__preview,
-.hero-shell__floating,
-.hero-shell__roi {
+.hero-shell__floating {
   display: grid;
   gap: 1rem;
 }
@@ -261,22 +267,6 @@ body {
 .hero-shell__floating {
   grid-auto-flow: row;
   justify-items: end;
-}
-
-.hero-shell__roi header,
-.hero-shell__roi-footnote {
-  display: grid;
-  gap: 0.75rem;
-}
-
-.hero-shell__roi-choices {
-  display: grid;
-  gap: 0.5rem;
-}
-
-.hero-shell__roi-meta {
-  display: grid;
-  gap: 0.35rem;
 }
 
 .hero-shell__line,
@@ -330,40 +320,6 @@ body {
 
 .hero-shell__preview-tooltip .hero-shell__line {
   height: 0.75rem;
-}
-
-.hero-shell__roi {
-  width: min(100%, 960px);
-}
-
-.hero-roi--shell {
-  display: grid;
-  gap: 1.5rem;
-  padding: clamp(2rem, 4vw, 3rem);
-  border-radius: clamp(1.5rem, 3vw, 2.5rem);
-  background: linear-gradient(
-    165deg,
-    color-mix(in oklch, var(--brand-depth, #0a0a0f) 82%, transparent 18%),
-    color-mix(in oklch, var(--brand-muted, #1e293b) 26%, transparent)
-  );
-  border: 1px solid color-mix(in oklch, var(--brand-primary, #6366f1) 15%, transparent);
-  box-shadow: 0 40px 90px color-mix(in oklch, var(--brand-depth, #0a0a0f) 55%, transparent);
-}
-
-.hero-roi__grid--shell {
-  display: grid;
-  gap: 1.5rem;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-}
-
-.hero-roi__options--shell {
-  display: grid;
-  gap: 0.75rem;
-}
-
-.hero-roi__result--shell {
-  display: grid;
-  gap: 0.75rem;
 }
 
 @keyframes skeletonShimmer {

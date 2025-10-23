@@ -6,7 +6,6 @@ import dynamic from "next/dynamic";
 import useInViewState from "../../hooks/useInViewState";
 import motionCatalog from "../../design/motion/catalog";
 import ScrollIndicator from "./ScrollIndicator";
-import HeroRoiCalculator from "./HeroRoiCalculator";
 import { Icon } from "../icons";
 import TrustedBy from "./TrustedBy";
 import AnimatedNumber from "../AnimatedNumber.jsx";
@@ -505,7 +504,16 @@ export default function HeroSection({
                       data-index={index}
                       data-active={isActive ? "true" : "false"}
                     >
-                      <Icon name={tile.icon} size={32} strokeWidth={1.6} className="preview-grid__icon" />
+                      <span className="preview-grid__icon-surface" aria-hidden="true">
+                        <Icon
+                          name={tile.icon}
+                          size={28}
+                          strokeWidth={1.8}
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                          className="preview-grid__icon"
+                        />
+                      </span>
                       <span className="sr-only">{tile.label}</span>
                     </motion.button>
                   );
@@ -547,9 +555,6 @@ export default function HeroSection({
             10K+ Active
           </div>
         </div>
-      </div>
-      <div className="page-hero__roi">
-        <HeroRoiCalculator />
       </div>
       <ScrollIndicator targetId="problem-solution" />
     </motion.section>

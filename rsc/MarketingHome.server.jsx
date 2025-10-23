@@ -11,11 +11,6 @@ const STAT_WIDTHS = [
 ];
 const LOGO_WIDTHS = ["9ch", "8ch", "9ch", "7ch", "8ch", "9ch", "8ch", "7ch"];
 const FLOATING_WIDTHS = ["12ch", "11ch", "10ch"];
-const ROI_OPTION_WIDTHS = [
-  ["12ch", "10ch", "11ch"],
-  ["11ch", "9ch", "10ch"],
-];
-const ROI_META_WIDTHS = ["18ch", "14ch"];
 
 export default function MarketingHomeServer() {
   return (
@@ -96,36 +91,6 @@ export default function MarketingHomeServer() {
             ))}
           </div>
         </div>
-      </div>
-      <div className="page-hero__roi hero-shell__roi" aria-hidden="true" data-static="true">
-        <section className="hero-roi hero-roi--shell">
-          <header>
-            <span className="hero-shell__line hero-shell__roi-eyebrow" style={{ width: "18ch" }} />
-            <span className="hero-shell__line hero-shell__roi-title" style={{ width: "36ch" }} />
-          </header>
-          <div className="hero-roi__grid hero-roi__grid--shell">
-            {ROI_OPTION_WIDTHS.map((options, fieldIndex) => (
-              <div key={`roi-options-${fieldIndex}`} className="hero-roi__options hero-roi__options--shell">
-                <span className="hero-shell__line hero-shell__roi-legend" style={{ width: "16ch" }} />
-                <div className="hero-shell__roi-choices">
-                  {options.map((width, index) => (
-                    <span key={`roi-choice-${fieldIndex}-${index}`} className="hero-shell__surface hero-shell__roi-choice" style={{ width }} />
-                  ))}
-                </div>
-              </div>
-            ))}
-            <div className="hero-roi__result hero-roi__result--shell">
-              <span className="hero-shell__line hero-shell__roi-label" style={{ width: "20ch" }} />
-              <span className="hero-shell__line hero-shell__roi-value" style={{ width: "24ch" }} />
-              <div className="hero-shell__roi-meta">
-                {ROI_META_WIDTHS.map((width, index) => (
-                  <span key={`roi-meta-${index}`} className="hero-shell__line hero-shell__roi-meta-line" style={{ width }} />
-                ))}
-              </div>
-            </div>
-          </div>
-          <span className="hero-shell__line hero-shell__roi-footnote" style={{ width: "44ch" }} />
-        </section>
       </div>
     </section>
   );
