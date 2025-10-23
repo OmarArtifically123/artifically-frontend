@@ -105,6 +105,19 @@ export default function FinalCTASection({ onSubmit }) {
     };
   }, []);
 
+  useEffect(() => {
+    if (typeof window === "undefined") {
+      return undefined;
+    }
+
+    const mediaQuery = window.matchMedia("(max-width: 640px)");
+    if (mediaQuery.matches && emailInputRef.current) {
+      emailInputRef.current.focus({ preventScroll: true });
+    }
+
+    return undefined;
+  }, []);
+
   const summaryId = `${emailFieldId}-errors`;
   const errorId = `${emailFieldId}-error`;
   const noticeId = `${emailFieldId}-notice`;
@@ -173,6 +186,8 @@ export default function FinalCTASection({ onSubmit }) {
                   id={emailFieldId}
                   name="email"
                   type="email"
+                  inputMode="email"
+                  autoComplete="email"
                   value={email}
                   onChange={(event) => {
                     setEmail(event.target.value);
