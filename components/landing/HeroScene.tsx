@@ -3,15 +3,8 @@
 import React, { useMemo, useRef, useEffect, useState, useCallback } from "react";
 import { useFrame, useThree } from "@react-three/fiber";
 import * as THREE from "three";
-import {
-  useGLTF,
-  useTexture,
-  OrbitControls,
-  PerspectiveCamera,
-  EffectComposer,
-  Bloom,
-  ChromaticAberration,
-} from "@react-three/drei";
+import { useGLTF, useTexture, OrbitControls, PerspectiveCamera } from "@react-three/drei";
+import { EffectComposer, Bloom, ChromaticAberration } from "@react-three/postprocessing";
 import { useReducedMotion } from "framer-motion";
 import HeroParticleSystem from "./HeroParticleSystem";
 import { createNoiseShader, createFlowFieldShader } from "./HeroShaders";
@@ -119,9 +112,16 @@ export default function HeroScene({
     return light;
   }, []);
 
+  const chromaticAberrationOffset = useMemo(
+    () => new THREE.Vector2(0.001, 0.001),
+    []
+  );
+
   useEffect(() => {
     scene.add(ambientLight);
-    return () => scene.remove(ambientLight);
+    return () => {
+      scene.remove(ambientLight);
+    };
   }, [scene, ambientLight]);
 
   // Additional point lights for dynamic lighting
@@ -132,7 +132,9 @@ export default function HeroScene({
     light2.position.set(-200, -200, 200);
 
     scene.add(light1, light2);
-    return () => scene.remove(light1, light2);
+    return () => {
+      scene.remove(light1, light2);
+    };
   }, [scene]);
 
   return (
@@ -153,7 +155,11 @@ export default function HeroScene({
             height={300}
             intensity={1.2}
           />
-          <ChromaticAberration offset={[0.001, 0.001]} />
+          <ChromaticAberration
+            offset={chromaticAberrationOffset}
+            radialModulation={false}
+            modulationOffset={0.15}
+          />
         </EffectComposer>
       )}
     </group>
