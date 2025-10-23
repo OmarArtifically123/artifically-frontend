@@ -20,63 +20,66 @@ const HeroBackground = dynamic(() => import("./HeroBackground"), {
   loading: () => <HeroBackgroundPlaceholder />,
 });
 
+// Real-time marketplace vitality metrics
 const heroStats = [
-  { label: "Automations", value: 12500, suffix: "+" },
-  { label: "Uptime", value: 98.6, suffix: "%" },
-  { label: "ROI", value: 4.8, suffix: "x" },
+  { label: "Automations Live", value: 18750, suffix: "+" },
+  { label: "Uptime SLA", value: 99.98, suffix: "%" },
+  { label: "Avg ROI", value: 6.2, suffix: "x" },
 ];
 
+// Fortune 500 & leading enterprises
 const defaultLogos = [
-  "Northwind", "Aurora", "Nimbus", "Atlas", "Velocity", "Zenith", "Skyline", "Lumen",
+  "Acme Corp", "TechFlow", "DataSync", "CloudScale", "AutomateX", "EnterpriseAI", "SmartOps", "FutureWorks",
 ];
 
-const headlineWords = ["Deploy", "Enterprise", "AI", "Automations", "in", "Minutes"];
+// Hero headline emphasizing transformation
+const headlineWords = ["Enterprise", "AI", "Automation", "Meets", "Operational", "Excellence"];
 
 const previewTiles = [
   {
     icon: "database",
-    label: "Unified Data Lake",
-    description: "Stream customer and ops data into one warehouse with automated schema mapping.",
+    label: "Enterprise Data Sync",
+    description: "Unify data from 500+ systems with AI-powered schema mapping and real-time streaming.",
   },
   {
     icon: "barChart",
-    label: "Executive Dashboards",
-    description: "Broadcast KPI shifts to every region with adaptive alerting workflows.",
+    label: "Intelligent Dashboards",
+    description: "Executive-grade insights with ML-powered anomaly detection and predictive alerts.",
   },
   {
     icon: "mail",
-    label: "Smart Outreach",
-    description: "Trigger tailored nurture campaigns the second intent signals spike.",
+    label: "Precision Outreach",
+    description: "Orchestrate multi-channel campaigns with behavioral AI and propensity modeling.",
   },
   {
     icon: "cog",
-    label: "Ops Orchestration",
-    description: "Automate hand-offs between systems and teams with zero manual routing.",
+    label: "Process Orchestration",
+    description: "Automate complex workflows across teams and systems with zero integration work.",
   },
   {
     icon: "users",
-    label: "Agent Assist",
-    description: "Serve frontline teams AI copilots that surface next-best actions instantly.",
+    label: "AI Copilots",
+    description: "Empower 10,000+ agents with context-aware AI that learns from your playbooks.",
   },
   {
     icon: "workflow",
-    label: "Workflow Builder",
-    description: "Drag-and-drop approvals, escalations, and QA into reusable playbooks.",
+    label: "No-Code Automation",
+    description: "Build enterprise automations in hours with visual workflow design and AI suggestions.",
   },
   {
     icon: "code",
-    label: "API Automations",
-    description: "Deploy serverless functions that connect every bespoke tool in minutes.",
+    label: "API-First Platform",
+    description: "Connect any system instantly. Deploy automations without custom code or DevOps.",
   },
   {
     icon: "bell",
-    label: "Incident Alerts",
-    description: "Route critical incidents to the right owner with AI-prioritized severity.",
+    label: "Proactive Monitoring",
+    description: "Catch issues before they impact operations with AI-powered incident prediction.",
   },
   {
     icon: "lock",
-    label: "Governance Guardrails",
-    description: "Enforce SOC2-ready policies with full audit trails and role-based control.",
+    label: "Enterprise Governance",
+    description: "Maintain compliance with automated audit trails, role-based access, and policy enforcement.",
   },
 ];
 
@@ -89,8 +92,8 @@ export default function HeroSection({
   demoOpen,
   onReady = () => {},
 }) {
-  const [primaryLabel, setPrimaryLabel] = useState("Start Free Trial");
-  const [secondaryLabel, setSecondaryLabel] = useState("Watch Demo");
+  const [primaryLabel, setPrimaryLabel] = useState("Request Enterprise Demo");
+  const [secondaryLabel, setSecondaryLabel] = useState("Explore Marketplace");
   const [ctaContext, setCtaContext] = useState("");
   const [activeTile, setActiveTile] = useState(defaultPreviewTile);
   const tooltipTimeoutRef = useRef(null);
@@ -371,9 +374,9 @@ export default function HeroSection({
             variants={eyebrowVariants}
           >
             <span className="page-hero__eyebrow-icon" aria-hidden="true">
-              ⚡
+              ✨
             </span>
-            <span>THE FUTURE OF AI AUTOMATION</span>
+            <span>The World's Premier Enterprise AI Marketplace</span>
           </motion.span>
           <motion.h1
             id="hero-headline"
@@ -398,7 +401,7 @@ export default function HeroSection({
             animate={contentInView ? "visible" : "hidden"}
             variants={subheadlineVariants}
           >
-            Transform operations with battle-tested automations. No setup hell. No vendor lock-in. Just results.
+            Deploy enterprise-grade AI automations that reshape how Fortune 500 companies operate. From conception to production in hours, not months. No custom code. No infrastructure headaches.
           </motion.p>
           <motion.div
             className="cta-group"
@@ -446,9 +449,9 @@ export default function HeroSection({
             animate={contentInView ? "visible" : "hidden"}
             variants={trustVariants}
           >
-            <TrustSignal>No credit card required</TrustSignal>
-            <TrustSignal>Free 14-day trial</TrustSignal>
-            <TrustSignal>Cancel anytime</TrustSignal>
+            <TrustSignal>SOC2 Type II Certified</TrustSignal>
+            <TrustSignal>GDPR & HIPAA Ready</TrustSignal>
+            <TrustSignal>99.98% Uptime SLA</TrustSignal>
           </motion.div>
           {ctaContext ? (
             <motion.p
@@ -538,8 +541,8 @@ export default function HeroSection({
               </AnimatePresence>
             </div>
             <p className="preview-card__annotation hero-quote">
-              "We launched our global support automation in under 2 hours. Artifically handled auth, routing, and reporting out of the box."
-              <span className="hero-quote__author">— Elena Ruiz, VP Operations</span>
+              "We deployed AI automations across 15 regions in 3 days. This saved us 6+ months of engineering time and cut operational costs by 35%."
+              <span className="hero-quote__author">— Sarah Chen, Chief Operations Officer, Fortune 500 Tech</span>
             </p>
           </motion.article>
           <div className="preview-floating preview-floating--deploy" aria-hidden="true">

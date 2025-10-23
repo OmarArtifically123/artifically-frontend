@@ -30,13 +30,27 @@ import { getNetworkInformation, prefersLowPower } from "../../utils/networkPrefe
 const STATIC_GRADIENT_IMAGE_SET =
   "image-set(\n    url('/images/hero-background.avif') type('image/avif') 1x,\n    url('/images/hero-background.webp') type('image/webp') 1x,\n    url('/images/hero-background.jpg') type('image/jpeg') 1x\n  )";
 
-const PARTICLE_COLORS = ["#7c3aed", "#3b82f6", "#06b6d4", "#ec4899"];
-const BASE_CONNECTION_DISTANCE = 150;
-const MAX_MOUSE_ACCELERATION = 0.5;
-const MOUSE_FORCE_RADIUS = 200;
+// Premium enterprise AI color palette with enhanced vibrancy
+const PARTICLE_COLORS = [
+  "#0ea5e9", // Electric Blue - Primary AI color
+  "#06b6d4", // Cyan - Data flow
+  "#7c3aed", // Violet - Intelligence & automation
+  "#3b82f6", // Blue - Trust & stability
+  "#8b5cf6", // Purple - Innovation
+];
+
+// Enhanced connection logic for neural network aesthetic
+const BASE_CONNECTION_DISTANCE = 180; // Increased for more visible connections
+const MAX_MOUSE_ACCELERATION = 0.6;
+const MOUSE_FORCE_RADIUS = 250; // Larger interaction radius for enterprise scale
 const LOW_FPS_THRESHOLD = 45;
 const FPS_SAMPLE_SIZE = 120;
 const MAX_PARTICLES = 200;
+
+// New constants for neural network effect
+const MIN_CONNECTION_OPACITY = 0.15;
+const MAX_CONNECTION_OPACITY = 0.7;
+const GLOW_INTENSITY = 1.2;
 
 function resolveDeviceProfile(width, connection) {
   let formFactor = "desktop";
@@ -161,22 +175,32 @@ function createLineMaterial() {
   return new ShaderMaterial({
     transparent: true,
     depthWrite: false,
-    uniforms: {},
+    uniforms: {
+      uGlowIntensity: { value: GLOW_INTENSITY },
+    },
     vertexShader: `
       attribute vec4 color;
       varying vec4 vColor;
+      varying float vAlpha;
+
       void main() {
         vColor = color;
+        vAlpha = color.a;
         gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);
       }
     `,
     fragmentShader: `
+      uniform float uGlowIntensity;
       varying vec4 vColor;
+      varying float vAlpha;
+
       void main() {
-        if (vColor.a <= 0.0) {
+        if (vAlpha <= 0.0) {
           discard;
         }
-        gl_FragColor = vColor;
+        // Enhanced glow effect with improved blending
+        vec3 glowColor = vColor.rgb * uGlowIntensity;
+        gl_FragColor = vec4(glowColor, vAlpha * 0.85);
       }
     `,
   });
@@ -189,10 +213,12 @@ function createGradientMaterial() {
     depthWrite: false,
     uniforms: {
       uTime: { value: 0 },
-      uColorTL: { value: new Color("#1e1b4b") },
-      uColorTR: { value: new Color("#134e4a") },
-      uColorBL: { value: new Color("#581c87") },
-      uColorBR: { value: new Color("#065f46") },
+      uColorTL: { value: new Color("#0f172a") }, // Deep Navy
+      uColorTR: { value: new Color("#1e293b") }, // Slate
+      uColorBL: { value: new Color("#1e1b4b") }, // Deep Indigo
+      uColorBR: { value: new Color("#0f172a") }, // Deep Navy
+      uGlowColor1: { value: new Color("#0ea5e9") }, // Electric Blue
+      uGlowColor2: { value: new Color("#7c3aed") }, // Violet
     },
     vertexShader: `
       varying vec2 vUv;
@@ -208,6 +234,13 @@ function createGradientMaterial() {
       uniform vec3 uColorTR;
       uniform vec3 uColorBL;
       uniform vec3 uColorBR;
+      uniform vec3 uGlowColor1;
+      uniform vec3 uGlowColor2;
+
+      // Advanced Perlin-like noise function
+      float noise(vec2 uv) {
+        return sin(uv.x * 12.9898 + uv.y * 78.233) * 43758.5453;
+      }
 
       vec2 rotateUV(vec2 uv, float angle) {
         float s = sin(angle);
@@ -217,13 +250,29 @@ function createGradientMaterial() {
       }
 
       void main() {
-        float angle = mod(uTime, 20.0) / 20.0 * 6.28318530718;
+        // Subtle rotating gradient
+        float angle = mod(uTime * 0.05, 20.0) / 20.0 * 6.28318530718;
         vec2 rotated = rotateUV(vUv, angle);
         rotated = clamp(rotated, 0.0, 1.0);
+
+        // Base gradient
         vec3 top = mix(uColorTL, uColorTR, rotated.x);
         vec3 bottom = mix(uColorBL, uColorBR, rotated.x);
-        vec3 color = mix(top, bottom, rotated.y);
-        gl_FragColor = vec4(color, 1.0);
+        vec3 baseColor = mix(top, bottom, rotated.y);
+
+        // Add subtle glow highlights with energy nodes
+        float distFromCenter = distance(vUv, vec2(0.5, 0.5));
+        float glowFalloff = 1.0 - smoothstep(0.0, 1.2, distFromCenter);
+
+        // Multi-colored glow accent
+        vec3 glowAccent1 = uGlowColor1 * glowFalloff * 0.15;
+        vec3 glowAccent2 = uGlowColor2 * (1.0 - glowFalloff) * 0.1;
+
+        // Subtle time-based variation
+        float timeVary = sin(uTime * 0.3 + distFromCenter * 3.0) * 0.05;
+        vec3 finalColor = baseColor + glowAccent1 + glowAccent2 + vec3(timeVary);
+
+        gl_FragColor = vec4(finalColor, 1.0);
       }
     `,
   });
@@ -502,18 +551,21 @@ export default function HeroBackground({ variant = "particles" }) {
       const width = container.clientWidth;
       const height = container.clientHeight;
       while (particles.length < target && particles.length < MAX_PARTICLES) {
-        const radius = 0.5 + Math.random();
+        // Varying particle sizes for neural network depth
+        const radius = 0.4 + Math.random() * 1.2;
         const particleColor = colorHelper
           .set(PARTICLE_COLORS[Math.floor(Math.random() * PARTICLE_COLORS.length)])
           .convertSRGBToLinear()
           .clone();
         const particle = {
           position: new Vector3(Math.random() * width, Math.random() * height, 0),
-          velocity: new Vector3((Math.random() - 0.5) * 0.2, (Math.random() - 0.5) * 0.2, 0),
-          speed: 0.1 + Math.random() * 0.2,
+          velocity: new Vector3((Math.random() - 0.5) * 0.15, (Math.random() - 0.5) * 0.15, 0),
+          speed: 0.08 + Math.random() * 0.18,
           radius,
           color: particleColor,
           noiseOffset: new Vector3(Math.random() * 100, Math.random() * 100, Math.random() * 100),
+          connectionStrength: 0.5 + Math.random() * 0.5, // Neural node strength
+          isActive: Math.random() > 0.3, // Some nodes are more active
         };
         particles.push(particle);
       }
@@ -693,7 +745,13 @@ export default function HeroBackground({ variant = "particles" }) {
           const dy = particleA.position.y - particleB.position.y;
           const distance = Math.sqrt(dx * dx + dy * dy);
           if (distance <= connectionDistance) {
-            const opacity = 1 - distance / connectionDistance;
+            // Enhanced opacity calculation for neural network feel
+            const closeness = 1 - distance / connectionDistance;
+            // Strength based on particle activity and connection strength
+            const connectionStrength = (particleA.connectionStrength + particleB.connectionStrength) * 0.5;
+            const baseOpacity = MIN_CONNECTION_OPACITY + (MAX_CONNECTION_OPACITY - MIN_CONNECTION_OPACITY) * closeness;
+            const finalOpacity = baseOpacity * connectionStrength;
+
             const basePosition = lineIndex * 6;
             positionsArray[basePosition] = particleA.position.x;
             positionsArray[basePosition + 1] = particleA.position.y;
@@ -702,12 +760,14 @@ export default function HeroBackground({ variant = "particles" }) {
             positionsArray[basePosition + 4] = particleB.position.y;
             positionsArray[basePosition + 5] = 0;
 
+            // Blend colors based on particle colors for richer connections
             const baseColor = lineIndex * 8;
             for (let k = 0; k < 2; k += 1) {
-              colorsArray[baseColor + k * 4] = 1;
-              colorsArray[baseColor + k * 4 + 1] = 1;
-              colorsArray[baseColor + k * 4 + 2] = 1;
-              colorsArray[baseColor + k * 4 + 3] = opacity;
+              const source = k === 0 ? particleA : particleB;
+              colorsArray[baseColor + k * 4] = source.color.r;
+              colorsArray[baseColor + k * 4 + 1] = source.color.g;
+              colorsArray[baseColor + k * 4 + 2] = source.color.b;
+              colorsArray[baseColor + k * 4 + 3] = finalOpacity;
             }
             lineIndex += 1;
             if (lineIndex >= maxConnections) {
