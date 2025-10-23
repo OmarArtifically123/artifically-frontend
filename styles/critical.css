@@ -62,7 +62,7 @@ body {
 .marketing-rsc-shell {
   display: block;
   position: relative;
-  min-height: clamp(540px, 85vh, 900px);
+  min-height: max(100dvh, 720px);
   view-transition-name: hero-shell-placeholder;
 }
 
@@ -76,9 +76,9 @@ body {
   display: flex;
   align-items: center;
   justify-content: center;
-  min-height: clamp(540px, 85vh, 900px);
+  min-height: max(100dvh, 720px);
   padding: clamp(5rem, 10vw, 8rem) 0;
-  overflow: hidden;
+  overflow: visible;
   isolation: isolate;
 }
 
@@ -91,7 +91,7 @@ body {
 .hero-background--placeholder {
   position: absolute;
   inset: 0;
-  height: 100%;
+  min-height: max(100%, 100dvh);
   z-index: -3;
   pointer-events: none;
   background-image: image-set(

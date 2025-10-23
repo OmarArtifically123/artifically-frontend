@@ -825,7 +825,9 @@ export default function HeroBackground({ variant = "particles" }) {
         style={{
           position: "absolute",
           inset: 0,
-          height: "100vh",
+          width: "100%",
+          height: "100%",
+          minHeight: "max(100%, 100dvh)",
           zIndex: 0,
           backgroundImage: STATIC_GRADIENT_IMAGE_SET,
           backgroundSize: "cover",
@@ -841,7 +843,15 @@ export default function HeroBackground({ variant = "particles" }) {
       ref={containerRef}
       className="hero-background"
       aria-hidden="true"
-      style={{ position: "absolute", inset: 0, height: "100vh", zIndex: 0, pointerEvents: "none" }}
+      style={{
+        position: "absolute",
+        inset: 0,
+        width: "100%",
+        height: "100%",
+        minHeight: "max(100%, 100dvh)",
+        zIndex: 0,
+        pointerEvents: "none",
+      }}
     >
       <canvas
         ref={canvasRef}
@@ -850,7 +860,8 @@ export default function HeroBackground({ variant = "particles" }) {
           position: "absolute",
           inset: 0,
           width: "100%",
-          height: "100vh",
+          height: "100%",
+          minHeight: "max(100%, 100dvh)",
           zIndex: 0,
           pointerEvents: "none",
         }}
