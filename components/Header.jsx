@@ -41,6 +41,8 @@ export default function Header({ user, onSignIn, onSignUp, onSignOut }) {
   const mobileMenuTriggerRef = useRef(null);
   const mobileMenuRef = useRef(null);
   const mobileAccordionTriggerRefs = useRef([]);
+  const mobileMenuAnnouncementTimeoutRef = useRef(null);
+  const hasAnnouncedMobileMenuRef = useRef(false);
   const scrollIntentRef = useRef({
     y: typeof window !== "undefined" ? window.scrollY : 0,
     time: typeof performance !== "undefined" ? performance.now() : Date.now(),
@@ -53,6 +55,7 @@ export default function Header({ user, onSignIn, onSignUp, onSignOut }) {
   const [automationsMenuState, setAutomationsMenuState] = useState("closed");
   const [solutionsMenuState, setSolutionsMenuState] = useState("closed");
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  const [mobileMenuAnnouncement, setMobileMenuAnnouncement] = useState("");
   const [mobileAccordionState, setMobileAccordionState] = useState({});
 
   const headerVariants = useMemo(() => {
@@ -830,6 +833,40 @@ export default function Header({ user, onSignIn, onSignUp, onSignOut }) {
     returnFocusRef: mobileMenuTriggerRef,
   });
 
+  useEffect(() => {
+    if (!hasAnnouncedMobileMenuRef.current) {
+      hasAnnouncedMobileMenuRef.current = true;
+      if (!isMobileMenuOpen) {
+        return undefined;
+      }
+    }
+
+    const message = isMobileMenuOpen
+      ? "Navigation menu opened"
+      : "Navigation menu closed";
+    setMobileMenuAnnouncement(message);
+
+    if (typeof window !== "undefined") {
+      if (mobileMenuAnnouncementTimeoutRef.current) {
+        window.clearTimeout(mobileMenuAnnouncementTimeoutRef.current);
+      }
+
+      mobileMenuAnnouncementTimeoutRef.current = window.setTimeout(() => {
+        setMobileMenuAnnouncement("");
+        mobileMenuAnnouncementTimeoutRef.current = null;
+      }, 1600);
+
+      return () => {
+        if (mobileMenuAnnouncementTimeoutRef.current) {
+          window.clearTimeout(mobileMenuAnnouncementTimeoutRef.current);
+          mobileMenuAnnouncementTimeoutRef.current = null;
+        }
+      };
+    }
+
+    return undefined;
+  }, [isMobileMenuOpen]);
+
   const handleMobileLinkNavigation = useCallback(
     (event, path, options) => {
       if (!shouldHandleNavigation(event)) {
@@ -1205,12 +1242,16 @@ export default function Header({ user, onSignIn, onSignUp, onSignOut }) {
         </nav>
 
         <div className="header-mobile-actions">
+          <span className="sr-only" role="status" aria-live="assertive">
+            {mobileMenuAnnouncement}
+          </span>
           <button
             type="button"
             className={`mobile-menu-toggle${isMobileMenuOpen ? " mobile-menu-toggle--open" : ""}`}
             aria-expanded={isMobileMenuOpen ? "true" : "false"}
             aria-controls="site-mobile-menu"
-            aria-label={isMobileMenuOpen ? "Close navigation menu" : "Open navigation menu"}
+            aria-label="Main menu"
+            aria-haspopup="true"
             onClick={handleMobileMenuToggle}
             ref={mobileMenuTriggerRef}
           >
@@ -1358,137 +1399,155 @@ export default function Header({ user, onSignIn, onSignUp, onSignOut }) {
       <div
         id="site-mobile-menu"
         className={`mobile-menu${isMobileMenuOpen ? " mobile-menu--open" : ""}`}
-        role={isMobileMenuOpen ? "dialog" : undefined}
-        aria-modal={isMobileMenuOpen ? "true" : undefined}
         aria-hidden={isMobileMenuOpen ? "false" : "true"}
-        aria-labelledby="site-mobile-menu-heading"
-        ref={mobileMenuRef}
-        tabIndex={-1}
       >
-        <div className="mobile-menu__content">
-          <h2 id="site-mobile-menu-heading" className="mobile-menu__heading">
-            Navigation
-          </h2>
-          <div className="mobile-menu__items">
-            {(() => {
-              let mobileAccordionIndex = -1;
-              return navItems.map((item) => {
-                if (item.type === "link") {
-                  const isActive = pathname === item.path;
-                  return (
-                    <Link
-                      key={item.path}
-                    href={item.path}
-                    className={`mobile-menu__link${isActive ? " mobile-menu__link--active" : ""}`}
-                    data-prefetch-route={item.path}
-                    onClick={(event) => handleMobileLinkNavigation(event, item.path)}
-                  >
-                    {item.label}
-                  </Link>
-                );
-              }
+        <div
+          className="mobile-menu__backdrop"
+          aria-hidden="true"
+          onClick={closeMobileMenu}
+        />
+        <div
+          className="mobile-menu__sheet"
+          role="navigation"
+          aria-label="Main menu"
+          aria-labelledby="site-mobile-menu-heading"
+          ref={mobileMenuRef}
+          tabIndex={-1}
+        >
+          <div className="mobile-menu__content">
+            <h2 id="site-mobile-menu-heading" className="mobile-menu__heading">
+              Navigation
+            </h2>
+            <div className="mobile-menu__items">
+              {(() => {
+                let mobileAccordionIndex = -1;
+                return navItems.map((item) => {
+                  if (item.type === "link") {
+                    const isActive = pathname === item.path;
+                    return (
+                      <Link
+                        key={item.path}
+                        href={item.path}
+                        className={`mobile-menu__link${isActive ? " mobile-menu__link--active" : ""}`}
+                        data-prefetch-route={item.path}
+                        onClick={(event) => handleMobileLinkNavigation(event, item.path)}
+                      >
+                        {item.label}
+                      </Link>
+                    );
+                  }
 
-              if (item.type === "mega" || item.type === "resources") {
-                const label = item.label;
-                mobileAccordionIndex += 1;
-                const currentAccordionIndex = mobileAccordionIndex;
-                const isOpen = Boolean(mobileAccordionState[label]);
-                const sections =
-                  item.type === "resources"
-                    ? item.columns.map((column) => ({
-                        heading: column.heading,
-                        links: column.links,
-                      }))
-                    : item.sections;
+                  if (item.type === "mega" || item.type === "resources") {
+                    const label = item.label;
+                    mobileAccordionIndex += 1;
+                    const currentAccordionIndex = mobileAccordionIndex;
+                    const isOpen = Boolean(mobileAccordionState[label]);
+                    const normalizedLabel = label
+                      .toLowerCase()
+                      .replace(/[^a-z0-9]+/g, "-")
+                      .replace(/^-+|-+$/g, "");
+                    const panelId = `mobile-menu-panel-${
+                      normalizedLabel || currentAccordionIndex
+                    }`;
+                    const sections =
+                      item.type === "resources"
+                        ? item.columns.map((column) => ({
+                            heading: column.heading,
+                            links: column.links,
+                          }))
+                        : item.sections;
 
-                return (
-                  <div
-                    key={label}
-                    className={`mobile-menu__accordion${isOpen ? " mobile-menu__accordion--open" : ""}`}
-                  >
-                    <button
-                      type="button"
-                      className="mobile-menu__accordion-trigger"
-                      onClick={() => toggleMobileAccordion(label)}
-                      aria-expanded={isOpen ? "true" : "false"}
-                      ref={setMobileAccordionTrigger(currentAccordionIndex)}
-                      onKeyDown={(event) =>
-                        handleMobileAccordionKeyDown(event, currentAccordionIndex, label)
-                      }
-                    >
-                      <span>{label}</span>
-                      <Icon
-                        name="chevronDown"
-                        size={18}
-                        aria-hidden="true"
-                        className="mobile-menu__accordion-chevron"
-                      />
-                    </button>
-                    <div className="mobile-menu__panel" aria-hidden={isOpen ? "false" : "true"}>
-                      <div className="mobile-menu__panel-inner">
-                        {sections.map((section) => (
-                          <div className="mobile-menu__section" key={`${label}-${section.heading}`}>
-                            {section.heading ? (
-                              <p className="mobile-menu__section-heading">{section.heading}</p>
-                            ) : null}
-                            <div className="mobile-menu__section-links">
-                              {section.links.map((link) => (
-                                <Link
-                                  key={link.path}
-                                  href={link.path}
-                                  className="mobile-menu__nested-link"
-                                  data-prefetch-route={link.path}
-                                  onClick={(event) => handleMobileLinkNavigation(event, link.path)}
-                                >
-                                  <span className="mobile-menu__nested-link-label">{link.label}</span>
-                                  {link.description ? (
-                                    <span className="mobile-menu__nested-link-description">
-                                      {link.description}
-                                    </span>
-                                  ) : null}
-                                </Link>
-                              ))}
-                            </div>
+                    return (
+                      <div
+                        key={label}
+                        className={`mobile-menu__accordion${isOpen ? " mobile-menu__accordion--open" : ""}`}
+                      >
+                        <button
+                          type="button"
+                          className="mobile-menu__accordion-trigger"
+                          onClick={() => toggleMobileAccordion(label)}
+                          aria-expanded={isOpen ? "true" : "false"}
+                          aria-controls={panelId}
+                          ref={setMobileAccordionTrigger(currentAccordionIndex)}
+                          onKeyDown={(event) =>
+                            handleMobileAccordionKeyDown(event, currentAccordionIndex, label)
+                          }
+                        >
+                          <span>{label}</span>
+                          <span className="mobile-menu__accordion-indicator" aria-hidden="true">
+                            {isOpen ? "−" : "+"}
+                          </span>
+                        </button>
+                        <div
+                          id={panelId}
+                          className="mobile-menu__panel"
+                          aria-hidden={isOpen ? "false" : "true"}
+                        >
+                          <div className="mobile-menu__panel-inner">
+                            {sections.map((section) => (
+                              <div className="mobile-menu__section" key={`${label}-${section.heading}`}>
+                                {section.heading ? (
+                                  <p className="mobile-menu__section-heading">{section.heading}</p>
+                                ) : null}
+                                <div className="mobile-menu__section-links">
+                                  {section.links.map((link) => (
+                                    <Link
+                                      key={link.path}
+                                      href={link.path}
+                                      className="mobile-menu__nested-link"
+                                      data-prefetch-route={link.path}
+                                      onClick={(event) => handleMobileLinkNavigation(event, link.path)}
+                                    >
+                                      <span className="mobile-menu__nested-link-label">{link.label}</span>
+                                      {link.description ? (
+                                        <span className="mobile-menu__nested-link-description">
+                                          {link.description}
+                                        </span>
+                                      ) : null}
+                                    </Link>
+                                  ))}
+                                </div>
+                              </div>
+                            ))}
                           </div>
-                        ))}
+                        </div>
                       </div>
-                    </div>
-                  </div>
-                );
-              }
+                    );
+                  }
 
               return null;
-            });
-            })()}
-          </div>
-          <div className="mobile-menu__footer">
-            <motion.button
-              type="button"
-              className="mobile-menu__cta-button"
-              onClick={(event) => {
-                dispatchInteraction("cta-primary", { event });
-                closeMobileMenu();
-                onSignUp?.(event);
-              }}
-              whileHover={{
-                scale: 1.02,
-                boxShadow: "0 12px 32px rgba(99, 102, 241, 0.45)",
-                transition: { type: "spring", stiffness: 220, damping: 18 },
-              }}
-              whileTap={{ scale: 0.97 }}
-            >
-              Start Free Trial
-            </motion.button>
-            <button
-              type="button"
-              className="mobile-menu__secondary-link"
-              onClick={(event) => {
-                closeMobileMenu();
-                handleLinkNavigation(event, "/contact");
-              }}
-            >
-              Contact Sales
-            </button>
+                });
+              })()}
+            </div>
+            <div className="mobile-menu__footer">
+              <motion.button
+                type="button"
+                className="mobile-menu__cta-button"
+                onClick={(event) => {
+                  dispatchInteraction("cta-primary", { event });
+                  closeMobileMenu();
+                  onSignUp?.(event);
+                }}
+                whileHover={{
+                  scale: 1.02,
+                  boxShadow: "0 12px 32px rgba(99, 102, 241, 0.45)",
+                  transition: { type: "spring", stiffness: 220, damping: 18 },
+                }}
+                whileTap={{ scale: 0.97 }}
+              >
+                Start Free Trial
+              </motion.button>
+              <button
+                type="button"
+                className="mobile-menu__secondary-link"
+                onClick={(event) => {
+                  closeMobileMenu();
+                  handleLinkNavigation(event, "/contact");
+                }}
+              >
+                Contact Sales
+              </button>
+            </div>
           </div>
         </div>
       </div>
