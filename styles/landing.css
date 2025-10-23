@@ -18,7 +18,7 @@
   display: flex;
   align-items: center;
   min-height: 90vh;
-  padding: clamp(5rem, 10vw, 8rem) 0;
+  padding: clamp(4rem, 8vw, 7rem) 0;
   overflow: hidden;
   view-transition-name: hero-shell;
 }
@@ -90,11 +90,11 @@
   width: 100%;
   max-width: 1400px;
   margin: 0 auto;
-  padding: 0 clamp(1.5rem, 5vw, 2.5rem);
+  padding: 0 clamp(1rem, 4vw, 2.5rem);
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: clamp(3rem, 6vw, 6rem);
+  gap: clamp(2.5rem, 6vw, 6rem);
   position: relative;
   container-type: inline-size;
   container-name: page-hero;
@@ -140,8 +140,8 @@
   display: flex;
   flex-wrap: wrap;
   align-items: center;
-  font-size: clamp(2.8rem, 5vw, 4rem);
-  line-height: 1.1;
+  font-size: clamp(32px, 6vw, 60px);
+  line-height: 1.2;
   letter-spacing: -0.02em;
   font-weight: 700;
   color: white;
@@ -174,7 +174,7 @@
 
 .page-hero__subheadline {
   max-width: 560px;
-  font-size: clamp(1.1rem, 1.8vw, 1.25rem);
+  font-size: clamp(18px, 2.2vw, 24px);
   line-height: 1.6;
   color: rgba(255, 255, 255, 0.8);
   margin: 24px 0 40px;
@@ -859,11 +859,11 @@
   }
 
   .page-hero__headline {
-    font-size: clamp(2.4rem, 8vw, 2.9rem);
+    font-size: clamp(34px, 7vw, 44px);
   }
 
   .page-hero__subheadline {
-    font-size: 18px;
+    font-size: 1.125rem;
   }
 
   .page-hero__preview {
@@ -877,6 +877,58 @@
 
   .preview-floating {
     display: none;
+  }
+}
+
+@media (max-width: 640px) {
+  .page-hero {
+    min-height: auto;
+    max-height: 100vh;
+    padding: clamp(3rem, 12vw, 4.5rem) 0;
+  }
+
+  .page-hero__inner {
+    flex-direction: column-reverse;
+    align-items: stretch;
+    gap: 2rem;
+  }
+
+  .page-hero__content,
+  .page-hero__preview {
+    max-width: 100%;
+    flex-basis: 100%;
+  }
+
+  .page-hero__content {
+    align-items: flex-start;
+    text-align: left;
+  }
+
+  .page-hero__headline {
+    font-size: clamp(32px, 7vw, 40px);
+    justify-content: flex-start;
+  }
+
+  .page-hero__subheadline {
+    font-size: 1.125rem;
+  }
+
+  .cta-group {
+    width: 100%;
+    flex-direction: column;
+    align-items: stretch;
+    gap: 0.875rem;
+  }
+
+  .cta-primary,
+  .cta-secondary {
+    width: 100%;
+    max-width: none;
+    min-height: 48px;
+  }
+
+  .page-hero__preview {
+    margin-top: 0;
   }
 }
 
@@ -2693,6 +2745,7 @@
   font-weight: 700;
   margin: 40px 0 16px;
   background: linear-gradient(135deg, #a78bfa, #ec4899);
+  background-clip: text;
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
   color: transparent;
