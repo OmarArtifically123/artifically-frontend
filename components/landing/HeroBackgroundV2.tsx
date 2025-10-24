@@ -85,14 +85,12 @@ function HeroBackgroundInner({
 
   return (
     <PerformanceMonitor onDecline={handlePerformanceMonitor}>
-      {HeroScene && (
-        <HeroScene
-          variant={variant}
-          particleCount={particleCount}
-          enablePostProcessing={enablePostProcessing}
-          dpr={dpr}
-        />
-      )}
+      <HeroScene
+        variant={variant}
+        particleCount={particleCount}
+        enablePostProcessing={enablePostProcessing}
+        dpr={dpr}
+      />
       <Preload all />
     </PerformanceMonitor>
   );
