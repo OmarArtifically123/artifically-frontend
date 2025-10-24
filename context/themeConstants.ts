@@ -2,9 +2,8 @@ export const THEME_STORAGE_KEY = "theme" as const;
 export const THEME_LIGHT = "light" as const;
 export const THEME_DARK = "dark" as const;
 export const THEME_CONTRAST = "contrast" as const;
-export const THEME_SYSTEM = "system" as const;
 
-export const THEME_OPTIONS = [THEME_LIGHT, THEME_DARK, THEME_CONTRAST, THEME_SYSTEM] as const;
+export const THEME_OPTIONS = [THEME_LIGHT, THEME_DARK, THEME_CONTRAST] as const;
 export const THEME_DEFAULT = THEME_DARK;
 
 // Legacy contrast constants (deprecated - kept for backward compatibility)

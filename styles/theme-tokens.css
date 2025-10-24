@@ -102,13 +102,13 @@
     --bg-card: #ffffff;
     --bg-overlay: rgba(255, 255, 255, 0.95);
 
-    /* Text Colors */
-    --text-primary: #0f172a;
-    --text-secondary: #475569;
-    --text-tertiary: #64748b;
+    /* Text Colors - MUCH DARKER for visibility */
+    --text-primary: #000000;
+    --text-secondary: #1e293b;
+    --text-tertiary: #334155;
     --text-inverse: #ffffff;
-    --text-link: #165fd7;
-    --text-link-hover: #1048aa;
+    --text-link: #0c4a9e;
+    --text-link-hover: #083573;
 
     /* Border Colors */
     --border-default: #e2e8f0;
@@ -407,5 +407,79 @@
   /* Disable transitions for transform and filter (can cause jank) */
   * {
     transition-property: background-color, color, border-color, box-shadow, opacity;
+  }
+
+  /* ============================================================
+     GLOBAL APPLICATION - Apply theme to all pages
+     ============================================================ */
+
+  /* Apply theme colors to HTML and body */
+  html,
+  body {
+    background-color: var(--bg-primary) !important;
+    color: var(--text-primary) !important;
+  }
+
+  /* Apply to all page containers */
+  main,
+  .page-container,
+  .page-content {
+    background-color: var(--bg-primary);
+    color: var(--text-primary);
+  }
+
+  /* Hero sections */
+  .page-hero,
+  .hero-section,
+  [class*="hero"] {
+    background-color: var(--bg-primary);
+    color: var(--text-primary);
+  }
+
+  /* All headings */
+  h1, h2, h3, h4, h5, h6 {
+    color: var(--text-primary);
+  }
+
+  /* All paragraphs */
+  p {
+    color: var(--text-secondary);
+  }
+
+  /* All links */
+  a {
+    color: var(--text-link);
+  }
+
+  a:hover {
+    color: var(--text-link-hover);
+  }
+
+  /* Marketplace page */
+  .marketplace,
+  .marketplace-page,
+  [class*="marketplace"] {
+    background-color: var(--bg-primary);
+    color: var(--text-primary);
+  }
+
+  /* Dashboard page */
+  .dashboard,
+  .dashboard-page,
+  [class*="dashboard"] {
+    background-color: var(--bg-primary);
+    color: var(--text-primary);
+  }
+
+  /* All sections */
+  section {
+    background-color: var(--bg-primary);
+    color: var(--text-primary);
+  }
+
+  /* All articles */
+  article {
+    background-color: var(--bg-card);
+    color: var(--text-primary);
   }
 }

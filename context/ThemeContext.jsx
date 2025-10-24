@@ -6,9 +6,9 @@ import {
   THEME_DARK,
   THEME_LIGHT,
   THEME_CONTRAST,
-  THEME_SYSTEM,
   THEME_OPTIONS,
   THEME_STORAGE_KEY,
+  THEME_DEFAULT,
 } from "./themeConstants";
 
 const ThemeContext = createContext();
@@ -53,15 +53,10 @@ const getInitialTheme = () => {
     return fromDom;
   }
 
-  return THEME_DARK;
+  return THEME_DEFAULT;
 };
 
-const getEffectiveTheme = (themePreference) => {
-  if (themePreference === THEME_SYSTEM) {
-    return detectSystemTheme();
-  }
-  return themePreference;
-};
+// No more system mode - just return the theme directly
 
 export function ThemeProvider({ children }) {
   const [themePreference, setThemePreference] = useState(getInitialTheme);
@@ -76,8 +71,8 @@ export function ThemeProvider({ children }) {
     }
   }, []);
 
-  // Calculate effective theme (resolves "system" to actual theme)
-  const effectiveTheme = useMemo(() => getEffectiveTheme(themePreference), [themePreference]);
+  // Effective theme is just the preference (no more system mode)
+  const effectiveTheme = themePreference;
 
   // Apply theme to DOM
   useEffect(() => {
@@ -105,19 +100,7 @@ export function ThemeProvider({ children }) {
     window.localStorage.setItem(THEME_STORAGE_KEY, themePreference);
   }, [themePreference]);
 
-  // Listen to system theme changes (only when preference is "system")
-  useEffect(() => {
-    if (typeof window === "undefined" || !window.matchMedia) return;
-    if (themePreference !== THEME_SYSTEM) return;
-
-    const media = window.matchMedia("(prefers-color-scheme: dark)");
-    const handleChange = () => {
-      // Force re-render to update effectiveTheme
-      setThemePreference(THEME_SYSTEM);
-    };
-    media.addEventListener?.("change", handleChange);
-    return () => media.removeEventListener?.("change", handleChange);
-  }, [themePreference]);
+  // No more system preference tracking
 
   const setTheme = useCallback((newTheme) => {
     if (THEME_SET.has(newTheme)) {
@@ -129,22 +112,20 @@ export function ThemeProvider({ children }) {
     setThemePreference((prev) => {
       if (prev === THEME_LIGHT) return THEME_DARK;
       if (prev === THEME_DARK) return THEME_CONTRAST;
-      if (prev === THEME_CONTRAST) return THEME_SYSTEM;
       return THEME_LIGHT;
     });
   }, []);
 
   const value = useMemo(
     () => ({
-      // Current user preference (may be "system")
+      // Current user preference
       themePreference,
-      // Actual resolved theme (never "system")
+      // Actual theme (same as preference now)
       theme: effectiveTheme,
       // Convenience flags
       isLight: effectiveTheme === THEME_LIGHT,
       isDark: effectiveTheme === THEME_DARK,
       isContrast: effectiveTheme === THEME_CONTRAST,
-      isSystem: themePreference === THEME_SYSTEM,
       // Legacy compatibility
       darkMode: effectiveTheme === THEME_DARK,
       // Methods
