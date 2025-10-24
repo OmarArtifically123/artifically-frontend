@@ -13,6 +13,7 @@ const withBundleAnalyzer = bundleAnalyzer({
 /** @type {import('next').NextConfig} */
 const nextConfig = {
   reactStrictMode: true,
+  transpilePackages: ['three', '@react-three/fiber', '@react-three/drei', '@react-three/postprocessing'],
   images: {
     domains: ["artifically.com", "cdn.artifically.com"],
     formats: ["image/avif", "image/webp"],
@@ -88,6 +89,7 @@ const nextConfig = {
 
     ensureAlias("@react-three/fiber", "node_modules/@react-three/fiber");
     ensureAlias("@react-three/drei", "node_modules/@react-three/drei");
+    ensureAlias("@react-three/postprocessing", "node_modules/@react-three/postprocessing");
     ensureAlias("zustand", "node_modules/zustand");
 
     config.resolve.alias = alias;

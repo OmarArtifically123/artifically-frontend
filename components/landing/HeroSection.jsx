@@ -15,7 +15,7 @@ function HeroBackgroundPlaceholder() {
   return <div className="hero-background hero-background--placeholder" aria-hidden="true" />;
 }
 
-const HeroBackground = dynamic(() => import("./HeroBackground"), {
+const HeroBackground = dynamic(() => import("./HeroBackgroundV2"), {
   ssr: false,
   loading: () => <HeroBackgroundPlaceholder />,
 });
@@ -364,7 +364,7 @@ export default function HeroSection({
       tabIndex={-1}
       style={prefersReducedMotion ? undefined : { y }}
     >
-      {heroInView ? <HeroBackground variant="particles" /> : <HeroBackgroundPlaceholder />}
+      {heroInView ? <HeroBackground variant="default" /> : <HeroBackgroundPlaceholder />}
       <div className="page-hero__inner">
         <motion.div ref={contentRef} className="page-hero__content">
           <motion.span
