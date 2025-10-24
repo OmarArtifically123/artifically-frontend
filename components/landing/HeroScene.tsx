@@ -14,6 +14,7 @@ interface HeroSceneProps {
   particleCount?: number;
   enablePostProcessing?: boolean;
   dpr?: number;
+  theme?: string;
 }
 
 interface MouseState {
@@ -38,6 +39,7 @@ export default function HeroScene({
   particleCount = 300,
   enablePostProcessing = true,
   dpr = 1,
+  theme = "dark",
 }: HeroSceneProps) {
   const groupRef = useRef<THREE.Group>(null);
   const sceneRef = useRef<THREE.Scene>(null);
@@ -184,6 +186,7 @@ export default function HeroScene({
         count={particleCount}
         mouseState={mouseStateRef}
         enableAnimation={!prefersReducedMotion}
+        theme={theme}
       />
 
       {/* Post-processing effects for desktop - disabled when context is lost */}

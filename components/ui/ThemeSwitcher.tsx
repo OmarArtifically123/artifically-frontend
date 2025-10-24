@@ -182,13 +182,24 @@ export default function ThemeSwitcher() {
       aria-label="Theme selection"
       style={{
         display: 'flex',
-        gap: '4px',
-        padding: '4px',
+        gap: '2px',
+        padding: '2px',
         backgroundColor: 'var(--bg-secondary)',
-        borderRadius: '12px',
+        borderRadius: '8px',
         border: '1px solid var(--border-default)',
       }}
     >
+      <style jsx>{`
+        @media (max-width: 768px) {
+          .theme-label {
+            display: none !important;
+          }
+          .theme-switcher-button {
+            min-width: 36px !important;
+            padding: 0 !important;
+          }
+        }
+      `}</style>
       {themeOptions.map((option) => {
         const isActive = themePreference === option.value;
 
@@ -207,15 +218,15 @@ export default function ThemeSwitcher() {
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'center',
-              gap: '6px',
-              minWidth: '48px',
-              height: '40px',
-              padding: '0 12px',
+              gap: '4px',
+              minWidth: '36px',
+              height: '36px',
+              padding: '0 8px',
               backgroundColor: isActive ? 'var(--accent-primary)' : 'transparent',
               color: isActive ? 'var(--text-inverse)' : 'var(--text-secondary)',
               border: '2px solid transparent',
-              borderRadius: '8px',
-              fontSize: '0.875rem',
+              borderRadius: '6px',
+              fontSize: '0.75rem',
               fontWeight: isActive ? 600 : 500,
               cursor: 'pointer',
               transition: 'all 0.2s ease',
@@ -244,7 +255,12 @@ export default function ThemeSwitcher() {
             }}
           >
             {option.icon}
-            <span className="theme-label" style={{ display: 'inline-block' }}>
+            <span
+              className="theme-label"
+              style={{
+                display: 'inline-block',
+              }}
+            >
               {option.label}
             </span>
           </button>

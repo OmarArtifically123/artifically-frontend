@@ -12,6 +12,7 @@ interface HeroParticleSystemProps {
     velocity: THREE.Vector2;
   }>;
   enableAnimation?: boolean;
+  theme?: string;
 }
 
 /**
@@ -29,6 +30,7 @@ export default function HeroParticleSystem({
   count = 300,
   mouseState,
   enableAnimation = true,
+  theme = "dark",
 }: HeroParticleSystemProps) {
   const groupRef = useRef<THREE.Group>(null);
   const { scene, gl } = useThree();
@@ -42,18 +44,38 @@ export default function HeroParticleSystem({
     console.log("[HeroParticleSystem] Initializing with", count, "particles, animation:", enableAnimation);
   }, []);
 
-  // Sophisticated color palette with iridescent quality
-  const colors = useMemo(
-    () => ({
-      deepBlue: new THREE.Color("#0a1628"),
-      electricBlue: new THREE.Color("#0ea5e9"),
-      cyan: new THREE.Color("#06b6d4"),
-      violet: new THREE.Color("#7c3aed"),
-      gold: new THREE.Color("#f59e0b"),
-      rose: new THREE.Color("#f43f5e"),
-    }),
-    []
-  );
+  // Theme-aware color palettes
+  const colors = useMemo(() => {
+    if (theme === "light") {
+      return {
+        deepBlue: new THREE.Color("#e0f2fe"),
+        electricBlue: new THREE.Color("#0ea5e9"),
+        cyan: new THREE.Color("#06b6d4"),
+        violet: new THREE.Color("#7c3aed"),
+        gold: new THREE.Color("#f59e0b"),
+        rose: new THREE.Color("#ec4899"),
+      };
+    } else if (theme === "contrast") {
+      return {
+        deepBlue: new THREE.Color("#00d4ff"),
+        electricBlue: new THREE.Color("#00eaff"),
+        cyan: new THREE.Color("#00ffe0"),
+        violet: new THREE.Color("#ff00ff"),
+        gold: new THREE.Color("#ffff00"),
+        rose: new THREE.Color("#ff00ff"),
+      };
+    } else {
+      // Dark theme (default)
+      return {
+        deepBlue: new THREE.Color("#0a1628"),
+        electricBlue: new THREE.Color("#0ea5e9"),
+        cyan: new THREE.Color("#06b6d4"),
+        violet: new THREE.Color("#7c3aed"),
+        gold: new THREE.Color("#f59e0b"),
+        rose: new THREE.Color("#f43f5e"),
+      };
+    }
+  }, [theme]);
 
   // Create particle geometry with multiple layers
   const particleData = useMemo(() => {

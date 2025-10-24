@@ -5,6 +5,7 @@ import { motion } from "framer-motion";
 
 interface HeroGradientOverlayProps {
   quality?: number; // 0-1, higher = more visual detail
+  theme?: string;
 }
 
 /**
@@ -19,46 +20,114 @@ interface HeroGradientOverlayProps {
  *
  * This runs independently of WebGL for better performance and accessibility
  */
-export default function HeroGradientOverlay({ quality = 1 }: HeroGradientOverlayProps) {
+export default function HeroGradientOverlay({ quality = 1, theme = "dark" }: HeroGradientOverlayProps) {
   const containerRef = useRef<HTMLDivElement>(null);
   const animationRef = useRef<number>();
 
-  // Gradient definitions with sophisticated colors
-  const gradients = useMemo(
-    () => [
-      {
-        position: "30% 20%",
-        colors: ["#0ea5e9", "#0a1628"], // Electric blue to deep blue
-        blur: 120,
-        opacity: 0.6,
-      },
-      {
-        position: "70% 80%",
-        colors: ["#7c3aed", "#0a1628"], // Violet to deep blue
-        blur: 100,
-        opacity: 0.4,
-      },
-      {
-        position: "50% 50%",
-        colors: ["#06b6d4", "#0a1628"], // Cyan to deep blue
-        blur: 90,
-        opacity: 0.3,
-      },
-      {
-        position: "15% 70%",
-        colors: ["#f59e0b", "#0a1628"], // Gold to deep blue
-        blur: 110,
-        opacity: 0.25,
-      },
-      {
-        position: "85% 30%",
-        colors: ["#f43f5e", "#0a1628"], // Rose to deep blue
-        blur: 100,
-        opacity: 0.2,
-      },
-    ],
-    []
-  );
+  // Theme-aware gradient definitions
+  const gradients = useMemo(() => {
+    if (theme === "light") {
+      return [
+        {
+          position: "30% 20%",
+          colors: ["#0ea5e9", "#f8f9ff"], // Electric blue to light bg
+          blur: 120,
+          opacity: 0.4,
+        },
+        {
+          position: "70% 80%",
+          colors: ["#7c3aed", "#f8f9ff"], // Violet to light bg
+          blur: 100,
+          opacity: 0.3,
+        },
+        {
+          position: "50% 50%",
+          colors: ["#06b6d4", "#f8f9ff"], // Cyan to light bg
+          blur: 90,
+          opacity: 0.25,
+        },
+        {
+          position: "15% 70%",
+          colors: ["#f59e0b", "#f8f9ff"], // Gold to light bg
+          blur: 110,
+          opacity: 0.2,
+        },
+        {
+          position: "85% 30%",
+          colors: ["#ec4899", "#f8f9ff"], // Rose to light bg
+          blur: 100,
+          opacity: 0.15,
+        },
+      ];
+    } else if (theme === "contrast") {
+      return [
+        {
+          position: "30% 20%",
+          colors: ["#00d4ff", "#000000"], // Cyan to black
+          blur: 120,
+          opacity: 0.8,
+        },
+        {
+          position: "70% 80%",
+          colors: ["#00ffe0", "#000000"], // Teal to black
+          blur: 100,
+          opacity: 0.6,
+        },
+        {
+          position: "50% 50%",
+          colors: ["#ff00ff", "#000000"], // Magenta to black
+          blur: 90,
+          opacity: 0.5,
+        },
+        {
+          position: "15% 70%",
+          colors: ["#ffff00", "#000000"], // Yellow to black
+          blur: 110,
+          opacity: 0.4,
+        },
+        {
+          position: "85% 30%",
+          colors: ["#00eaff", "#000000"], // Electric cyan to black
+          blur: 100,
+          opacity: 0.3,
+        },
+      ];
+    } else {
+      // Dark theme (default)
+      return [
+        {
+          position: "30% 20%",
+          colors: ["#0ea5e9", "#0a1628"], // Electric blue to deep blue
+          blur: 120,
+          opacity: 0.6,
+        },
+        {
+          position: "70% 80%",
+          colors: ["#7c3aed", "#0a1628"], // Violet to deep blue
+          blur: 100,
+          opacity: 0.4,
+        },
+        {
+          position: "50% 50%",
+          colors: ["#06b6d4", "#0a1628"], // Cyan to deep blue
+          blur: 90,
+          opacity: 0.3,
+        },
+        {
+          position: "15% 70%",
+          colors: ["#f59e0b", "#0a1628"], // Gold to deep blue
+          blur: 110,
+          opacity: 0.25,
+        },
+        {
+          position: "85% 30%",
+          colors: ["#f43f5e", "#0a1628"], // Rose to deep blue
+          blur: 100,
+          opacity: 0.2,
+        },
+      ];
+    }
+  }, [theme]);
 
   // Animate gradient positions subtly over time
   useEffect(() => {

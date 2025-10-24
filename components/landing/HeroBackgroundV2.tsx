@@ -9,6 +9,7 @@ import { ErrorBoundary } from "react-error-boundary";
 import useDocumentVisibility from "../../hooks/useDocumentVisibility";
 import useInViewState from "../../hooks/useInViewState";
 import HeroGradientOverlay from "./HeroGradientOverlay";
+import { useTheme } from "../../context/ThemeContext";
 
 // Dynamically import the 3D scene to prevent hydration issues
 const HeroScene = dynamic(() => import("./HeroScene"), {
@@ -66,9 +67,11 @@ function CanvasErrorFallback({ error }: { error: Error }) {
 function HeroBackgroundInner({
   variant = "default",
   onPerformanceDegrade,
+  theme,
 }: {
   variant?: "default" | "minimal";
   onPerformanceDegrade?: (quality: number) => void;
+  theme: string;
 }) {
   const [particleCount, setParticleCount] = useState(300);
   const [enablePostProcessing, setEnablePostProcessing] = useState(true);
@@ -114,6 +117,7 @@ function HeroBackgroundInner({
         particleCount={particleCount}
         enablePostProcessing={enablePostProcessing}
         dpr={dpr}
+        theme={theme}
       />
       <Preload all />
     </PerformanceMonitor>
@@ -124,6 +128,7 @@ export default function HeroBackgroundV2({
   variant = "default",
   className = "",
 }: HeroBackgroundV2Props) {
+  const { theme } = useTheme();
   const prefersReducedMotion = useReducedMotion();
   const [containerRef, isInViewport] = useInViewState({
     threshold: 0.1,
@@ -202,7 +207,7 @@ export default function HeroBackgroundV2({
       }}
     >
       {/* Aurora-style CSS gradient mesh overlay */}
-      <HeroGradientOverlay quality={quality} />
+      <HeroGradientOverlay quality={quality} theme={theme} />
 
       {/* WebGL canvas - only render when in viewport and WebGL is supported */}
       {showCanvas && (
@@ -244,6 +249,7 @@ export default function HeroBackgroundV2({
               <HeroBackgroundInner
                 variant={variant}
                 onPerformanceDegrade={setQuality}
+                theme={theme}
               />
             </Canvas>
           </Suspense>
