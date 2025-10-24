@@ -4,6 +4,11 @@ import Link from "next/link";
 import { space } from "@/styles/spacing";
 import complianceData from "@/data/security/compliance.json";
 
+type SecurityPracticeItem = {
+  name: string;
+  description: string;
+};
+
 export default function SecurityCompliancePage() {
   return (
     <main className="container" style={{ padding: `${space("2xl")} 0` }}>
@@ -124,7 +129,7 @@ export default function SecurityCompliancePage() {
             <div key={key} className="glass" style={{ padding: space("lg"), borderRadius: "16px" }}>
               <h3 style={{ fontSize: "1.5rem", marginBottom: space("md") }}>{section.title}</h3>
               <div style={{ display: "grid", gap: space("md") }}>
-                {section.items.map((item: any) => (
+                {section.items.map((item: SecurityPracticeItem) => (
                   <div key={item.name}>
                     <h4
                       style={{

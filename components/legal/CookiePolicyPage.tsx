@@ -57,7 +57,7 @@ export default function CookiePolicyPage() {
                 <tr>
                   <td style={{ padding: space("xs", 0.75) }}>cookie_consent</td>
                   <td style={{ padding: space("xs", 0.75) }}>Remembers your cookie preferences</td>
-                  <td style={{ padding: space("xs", 0.75") }}>1 year</td>
+                  <td style={{ padding: space("xs", 0.75) }}>1 year</td>
                 </tr>
               </tbody>
             </table>
@@ -82,17 +82,17 @@ export default function CookiePolicyPage() {
                 <tr style={{ borderBottom: "1px solid rgba(148, 163, 184, 0.1)" }}>
                   <td style={{ padding: space("xs", 0.75) }}>theme_preference</td>
                   <td style={{ padding: space("xs", 0.75) }}>Remembers dark/light mode choice</td>
-                  <td style={{ padding: space("xs", 0.75") }}>1 year</td>
+                  <td style={{ padding: space("xs", 0.75) }}>1 year</td>
                 </tr>
                 <tr style={{ borderBottom: "1px solid rgba(148, 163, 184, 0.1)" }}>
                   <td style={{ padding: space("xs", 0.75) }}>language</td>
                   <td style={{ padding: space("xs", 0.75) }}>Stores language preference</td>
-                  <td style={{ padding: space("xs", 0.75") }}>1 year</td>
+                  <td style={{ padding: space("xs", 0.75) }}>1 year</td>
                 </tr>
                 <tr>
                   <td style={{ padding: space("xs", 0.75) }}>dashboard_layout</td>
-                  <td style={{ padding: space("xs", 0.75") }}>Saves dashboard customizations</td>
-                  <td style={{ padding: space("xs", 0.75") }}>6 months</td>
+                  <td style={{ padding: space("xs", 0.75) }}>Saves dashboard customizations</td>
+                  <td style={{ padding: space("xs", 0.75) }}>6 months</td>
                 </tr>
               </tbody>
             </table>
@@ -117,17 +117,17 @@ export default function CookiePolicyPage() {
                 <tr style={{ borderBottom: "1px solid rgba(148, 163, 184, 0.1)" }}>
                   <td style={{ padding: space("xs", 0.75) }}>Google Analytics</td>
                   <td style={{ padding: space("xs", 0.75) }}>Website traffic and usage analytics</td>
-                  <td style={{ padding: space("xs", 0.75") }}>2 years</td>
+                  <td style={{ padding: space("xs", 0.75) }}>2 years</td>
                 </tr>
                 <tr style={{ borderBottom: "1px solid rgba(148, 163, 184, 0.1)" }}>
                   <td style={{ padding: space("xs", 0.75) }}>Mixpanel</td>
-                  <td style={{ padding: space("xs", 0.75") }}>Product usage and feature analytics</td>
-                  <td style={{ padding: space("xs", 0.75") }}>1 year</td>
+                  <td style={{ padding: space("xs", 0.75) }}>Product usage and feature analytics</td>
+                  <td style={{ padding: space("xs", 0.75) }}>1 year</td>
                 </tr>
                 <tr>
                   <td style={{ padding: space("xs", 0.75) }}>Hotjar</td>
-                  <td style={{ padding: space("xs", 0.75") }}>Heatmaps and user behavior</td>
-                  <td style={{ padding: space("xs", 0.75") }}>1 year</td>
+                  <td style={{ padding: space("xs", 0.75) }}>Heatmaps and user behavior</td>
+                  <td style={{ padding: space("xs", 0.75) }}>1 year</td>
                 </tr>
               </tbody>
             </table>
@@ -152,17 +152,17 @@ export default function CookiePolicyPage() {
                 <tr style={{ borderBottom: "1px solid rgba(148, 163, 184, 0.1)" }}>
                   <td style={{ padding: space("xs", 0.75) }}>Google Ads</td>
                   <td style={{ padding: space("xs", 0.75) }}>Ad targeting and conversion tracking</td>
-                  <td style={{ padding: space("xs", 0.75") }}>90 days</td>
+                  <td style={{ padding: space("xs", 0.75) }}>90 days</td>
                 </tr>
                 <tr style={{ borderBottom: "1px solid rgba(148, 163, 184, 0.1)" }}>
                   <td style={{ padding: space("xs", 0.75) }}>LinkedIn Insight</td>
-                  <td style={{ padding: space("xs", 0.75") }}>B2B ad targeting</td>
-                  <td style={{ padding: space("xs", 0.75") }}>180 days</td>
+                  <td style={{ padding: space("xs", 0.75) }}>B2B ad targeting</td>
+                  <td style={{ padding: space("xs", 0.75) }}>180 days</td>
                 </tr>
                 <tr>
                   <td style={{ padding: space("xs", 0.75) }}>Facebook Pixel</td>
-                  <td style={{ padding: space("xs", 0.75") }}>Social media ad optimization</td>
-                  <td style={{ padding: space("xs", 0.75") }}>90 days</td>
+                  <td style={{ padding: space("xs", 0.75) }}>Social media ad optimization</td>
+                  <td style={{ padding: space("xs", 0.75) }}>90 days</td>
                 </tr>
               </tbody>
             </table>

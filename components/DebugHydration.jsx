@@ -2,33 +2,31 @@
 
 import { space } from "../styles/spacing";
 // src/components/DebugHydration.jsx
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
 
 export function DebugHydration({ children, name = "Component" }) {
+  const renderCount = useRef(0);
   const [renderInfo, setRenderInfo] = useState({
     renderCount: 0,
     isClient: false,
     hasHydrated: false,
   });
 
+  // Track renders using ref to avoid infinite loops
+  renderCount.current += 1;
+
   useEffect(() => {
     setRenderInfo((prev) => ({
       ...prev,
       isClient: true,
       hasHydrated: true,
+      renderCount: renderCount.current,
     }));
 
     if (process.env.NODE_ENV !== "production") {
       console.log(`🔍 ${name} hydrated successfully`);
     }
   }, [name]);
-
-  useEffect(() => {
-    setRenderInfo((prev) => ({
-      ...prev,
-      renderCount: prev.renderCount + 1,
-    }));
-  });
 
   if (!process.env.NODE_ENV !== "production") {
     return <>{children}</>;

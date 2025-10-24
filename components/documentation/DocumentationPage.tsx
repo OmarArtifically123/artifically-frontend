@@ -5,6 +5,15 @@ import Link from "next/link";
 import { space } from "@/styles/spacing";
 import sections from "@/data/documentation/sections.json";
 
+type Article = {
+  id: string;
+  title: string;
+  slug: string;
+  description: string;
+  readTime: string;
+  difficulty: string;
+};
+
 export default function DocumentationPage() {
   const [activeSection, setActiveSection] = useState(sections[0].id);
   const [searchQuery, setSearchQuery] = useState("");
@@ -80,7 +89,7 @@ export default function DocumentationPage() {
 
               {activeSection === section.id && (
                 <div style={{ marginTop: space("xs"), paddingLeft: space("sm") }}>
-                  {section.articles.map((article: any) => (
+                  {section.articles.map((article: Article) => (
                     <Link
                       key={article.id}
                       href={`/documentation/${section.slug}/${article.slug}`}
@@ -196,7 +205,7 @@ export default function DocumentationPage() {
         {/* Articles Grid */}
         <section>
           <div style={{ display: "grid", gap: space("md") }}>
-            {currentSection?.articles.map((article: any) => (
+            {currentSection?.articles.map((article: Article) => (
               <Link
                 key={article.id}
                 href={`/documentation/${currentSection.slug}/${article.slug}`}

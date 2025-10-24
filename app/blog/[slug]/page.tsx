@@ -3,6 +3,8 @@ import { notFound } from "next/navigation";
 import Link from "next/link";
 import { space } from "@/styles/spacing";
 import posts from "@/data/blog/posts.json";
+import RelatedPostCard from "@/components/blog/RelatedPostCard";
+import InteractiveButton from "@/components/InteractiveButton";
 
 type BlogPostPageProps = {
   params: { slug: string };
@@ -214,40 +216,13 @@ export default function BlogPostPage({ params }: BlogPostPageProps) {
           <h2 style={{ fontSize: "2rem", marginBottom: space("md") }}>Related Articles</h2>
           <div style={{ display: "grid", gap: space("md"), gridTemplateColumns: "repeat(auto-fill, minmax(280px, 1fr))" }}>
             {relatedPosts.map((relatedPost) => (
-              <Link
+              <RelatedPostCard
                 key={relatedPost.id}
                 href={`/blog/${relatedPost.slug}`}
-                style={{ textDecoration: "none", color: "inherit" }}
-              >
-                <article
-                  className="glass"
-                  style={{
-                    padding: space("md"),
-                    borderRadius: "14px",
-                    height: "100%",
-                    cursor: "pointer",
-                    transition: "all 0.2s ease",
-                  }}
-                  onMouseEnter={(e) => {
-                    e.currentTarget.style.transform = "translateY(-4px)";
-                    e.currentTarget.style.boxShadow = "0 8px 24px rgba(0,0,0,0.3)";
-                  }}
-                  onMouseLeave={(e) => {
-                    e.currentTarget.style.transform = "translateY(0)";
-                    e.currentTarget.style.boxShadow = "none";
-                  }}
-                >
-                  <h3 style={{ fontSize: "1.1rem", marginBottom: space("sm"), lineHeight: 1.4 }}>
-                    {relatedPost.title}
-                  </h3>
-                  <p style={{ color: "var(--gray-400)", fontSize: "0.9rem", lineHeight: 1.6 }}>
-                    {relatedPost.excerpt.substring(0, 120)}...
-                  </p>
-                  <div style={{ marginTop: space("sm"), fontSize: "0.85rem", color: "var(--gray-500)" }}>
-                    {relatedPost.readTime}
-                  </div>
-                </article>
-              </Link>
+                title={relatedPost.title}
+                excerpt={relatedPost.excerpt}
+                readTime={relatedPost.readTime}
+              />
             ))}
           </div>
         </section>
@@ -267,23 +242,9 @@ export default function BlogPostPage({ params }: BlogPostPageProps) {
         <p style={{ color: "var(--gray-300)", marginBottom: space("md"), fontSize: "1rem", lineHeight: 1.7 }}>
           Subscribe to our newsletter for monthly updates on AI automation, best practices, and industry trends.
         </p>
-        <Link
-          href="/blog"
-          style={{
-            display: "inline-block",
-            padding: `${space("sm")} ${space("md", 1.5)}`,
-            background: "var(--primary)",
-            color: "white",
-            borderRadius: "8px",
-            fontWeight: 600,
-            textDecoration: "none",
-            transition: "opacity 0.2s ease",
-          }}
-          onMouseEnter={(e) => (e.currentTarget.style.opacity = "0.9")}
-          onMouseLeave={(e) => (e.currentTarget.style.opacity = "1")}
-        >
+        <InteractiveButton href="/blog" variant="primary">
           View All Articles
-        </Link>
+        </InteractiveButton>
       </section>
     </main>
   );

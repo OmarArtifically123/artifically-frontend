@@ -4,6 +4,8 @@ import Link from "next/link";
 import { space } from "@/styles/spacing";
 import categories from "@/data/help-center/categories.json";
 import articles from "@/data/help-center/articles.json";
+import ArticleCard from "@/components/help/ArticleCard";
+import InteractiveButton from "@/components/InteractiveButton";
 
 type CategoryPageProps = {
   params: { category: string };
@@ -82,53 +84,16 @@ export default function HelpCategoryPage({ params }: CategoryPageProps) {
         <div style={{ display: "grid", gap: space("sm"), maxWidth: "900px", margin: "0 auto" }}>
           {categoryArticles.length > 0 ? (
             categoryArticles.map((article) => (
-              <Link
+              <ArticleCard
                 key={article.id}
                 href={`/help/${params.category}/${article.slug}`}
-                style={{ textDecoration: "none", color: "inherit" }}
-              >
-                <article
-                  className="glass"
-                  style={{
-                    padding: space("md", 1.25),
-                    borderRadius: "14px",
-                    cursor: "pointer",
-                    transition: "all 0.2s ease",
-                  }}
-                  onMouseEnter={(e) => {
-                    e.currentTarget.style.transform = "translateX(4px)";
-                    e.currentTarget.style.background = "rgba(148, 163, 184, 0.05)";
-                  }}
-                  onMouseLeave={(e) => {
-                    e.currentTarget.style.transform = "translateX(0)";
-                    e.currentTarget.style.background = "";
-                  }}
-                >
-                  <h3 style={{ fontSize: "1.2rem", marginBottom: space("xs", 0.75), lineHeight: 1.4 }}>
-                    {article.title}
-                  </h3>
-                  <p style={{ color: "var(--gray-300)", lineHeight: 1.6, marginBottom: space("sm"), fontSize: "0.95rem" }}>
-                    {article.description}
-                  </p>
-                  <div
-                    style={{
-                      display: "flex",
-                      gap: space("md"),
-                      alignItems: "center",
-                      fontSize: "0.85rem",
-                      color: "var(--gray-400)",
-                    }}
-                  >
-                    <span>{article.readTime}</span>
-                    <span>•</span>
-                    <span>👁 {article.views.toLocaleString()} views</span>
-                    <span>•</span>
-                    <span>
-                      👍 {article.helpful} / 👎 {article.notHelpful}
-                    </span>
-                  </div>
-                </article>
-              </Link>
+                title={article.title}
+                description={article.description}
+                readTime={article.readTime}
+                views={article.views}
+                helpful={article.helpful}
+                notHelpful={article.notHelpful}
+              />
             ))
           ) : (
             <div
@@ -149,24 +114,9 @@ export default function HelpCategoryPage({ params }: CategoryPageProps) {
 
       {/* Back to Help Center */}
       <div style={{ textAlign: "center", marginTop: space("xl") }}>
-        <Link
-          href="/help"
-          style={{
-            display: "inline-block",
-            padding: `${space("sm")} ${space("md", 1.5)}`,
-            background: "transparent",
-            color: "var(--gray-100)",
-            border: "1px solid rgba(148, 163, 184, 0.3)",
-            borderRadius: "8px",
-            fontWeight: 600,
-            textDecoration: "none",
-            transition: "all 0.2s ease",
-          }}
-          onMouseEnter={(e) => (e.currentTarget.style.background = "rgba(148, 163, 184, 0.1)")}
-          onMouseLeave={(e) => (e.currentTarget.style.background = "transparent")}
-        >
+        <InteractiveButton href="/help" variant="secondary">
           ← Back to Help Center
-        </Link>
+        </InteractiveButton>
       </div>
     </main>
   );

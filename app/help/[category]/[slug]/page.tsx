@@ -4,6 +4,8 @@ import Link from "next/link";
 import { space } from "@/styles/spacing";
 import categories from "@/data/help-center/categories.json";
 import articles from "@/data/help-center/articles.json";
+import RelatedArticleCard from "@/components/help/RelatedArticleCard";
+import InteractiveButton from "@/components/InteractiveButton";
 
 type ArticlePageProps = {
   params: { category: string; slug: string };
@@ -238,30 +240,12 @@ export default function HelpArticlePage({ params }: ArticlePageProps) {
           <h2 style={{ fontSize: "1.75rem", marginBottom: space("md") }}>Related Articles</h2>
           <div style={{ display: "grid", gap: space("sm") }}>
             {relatedArticles.map((related) => (
-              <Link
+              <RelatedArticleCard
                 key={related.id}
                 href={`/help/${params.category}/${related.slug}`}
-                style={{ textDecoration: "none", color: "inherit" }}
-              >
-                <div
-                  className="glass"
-                  style={{
-                    padding: space("md"),
-                    borderRadius: "12px",
-                    cursor: "pointer",
-                    transition: "all 0.2s ease",
-                  }}
-                  onMouseEnter={(e) => (e.currentTarget.style.background = "rgba(148, 163, 184, 0.05)")}
-                  onMouseLeave={(e) => (e.currentTarget.style.background = "")}
-                >
-                  <h3 style={{ fontSize: "1.1rem", marginBottom: space("xs", 0.5), lineHeight: 1.4 }}>
-                    {related.title}
-                  </h3>
-                  <p style={{ color: "var(--gray-400)", fontSize: "0.9rem", lineHeight: 1.6, margin: 0 }}>
-                    {related.description.substring(0, 120)}...
-                  </p>
-                </div>
-              </Link>
+                title={related.title}
+                description={related.description}
+              />
             ))}
           </div>
         </section>
@@ -281,41 +265,12 @@ export default function HelpArticlePage({ params }: ArticlePageProps) {
           Our support team is here to help. Contact us for personalized assistance.
         </p>
         <div style={{ display: "flex", gap: space("sm"), justifyContent: "center", flexWrap: "wrap" }}>
-          <Link
-            href="/contact"
-            style={{
-              display: "inline-block",
-              padding: `${space("sm")} ${space("md", 1.5)}`,
-              background: "var(--primary)",
-              color: "white",
-              borderRadius: "8px",
-              fontWeight: 600,
-              textDecoration: "none",
-              transition: "opacity 0.2s ease",
-            }}
-            onMouseEnter={(e) => (e.currentTarget.style.opacity = "0.9")}
-            onMouseLeave={(e) => (e.currentTarget.style.opacity = "1")}
-          >
+          <InteractiveButton href="/contact" variant="primary">
             Contact Support
-          </Link>
-          <Link
-            href="/help"
-            style={{
-              display: "inline-block",
-              padding: `${space("sm")} ${space("md", 1.5)}`,
-              background: "transparent",
-              color: "var(--gray-100)",
-              border: "1px solid rgba(148, 163, 184, 0.3)",
-              borderRadius: "8px",
-              fontWeight: 600,
-              textDecoration: "none",
-              transition: "all 0.2s ease",
-            }}
-            onMouseEnter={(e) => (e.currentTarget.style.background = "rgba(148, 163, 184, 0.1)")}
-            onMouseLeave={(e) => (e.currentTarget.style.background = "transparent")}
-          >
+          </InteractiveButton>
+          <InteractiveButton href="/help" variant="secondary">
             Back to Help Center
-          </Link>
+          </InteractiveButton>
         </div>
       </section>
     </main>

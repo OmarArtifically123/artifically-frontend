@@ -204,7 +204,7 @@ export default function DemoModal({ automation, user, onClose, returnFocusRef })
     });
     setActiveStage(0);
     setResult(null);
-  }, [automation?.id]);
+  }, [automation?.id, automation?.estimatedHoursPerMonth, automation?.averageHandleCost]);
 
   useEffect(() => {
     if (typeof document === "undefined") return undefined;

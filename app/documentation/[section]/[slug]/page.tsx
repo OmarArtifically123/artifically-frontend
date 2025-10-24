@@ -3,6 +3,16 @@ import { notFound } from "next/navigation";
 import Link from "next/link";
 import { space } from "@/styles/spacing";
 import sections from "@/data/documentation/sections.json";
+import NavigationCard from "@/components/documentation/NavigationCard";
+
+type Article = {
+  id: string;
+  title: string;
+  slug: string;
+  description: string;
+  readTime: string;
+  difficulty: string;
+};
 
 type DocArticlePageProps = {
   params: { section: string; slug: string };
@@ -11,7 +21,7 @@ type DocArticlePageProps = {
 export function generateStaticParams() {
   const params: { section: string; slug: string }[] = [];
   sections.forEach((section) => {
-    section.articles.forEach((article: any) => {
+    section.articles.forEach((article: Article) => {
       params.push({
         section: section.slug,
         slug: article.slug,
@@ -23,7 +33,7 @@ export function generateStaticParams() {
 
 export function generateMetadata({ params }: DocArticlePageProps): Metadata {
   const section = sections.find((s) => s.slug === params.section);
-  const article = section?.articles.find((a: any) => a.slug === params.slug);
+  const article = section?.articles.find((a: Article) => a.slug === params.slug);
 
   if (!article) {
     return { title: "Documentation | Artifically" };
@@ -37,7 +47,7 @@ export function generateMetadata({ params }: DocArticlePageProps): Metadata {
 
 export default function DocArticlePage({ params }: DocArticlePageProps) {
   const section = sections.find((s) => s.slug === params.section);
-  const article = section?.articles.find((a: any) => a.slug === params.slug);
+  const article = section?.articles.find((a: Article) => a.slug === params.slug);
 
   if (!article || !section) {
     notFound();
@@ -45,7 +55,7 @@ export default function DocArticlePage({ params }: DocArticlePageProps) {
   }
 
   // Find next and previous articles in the section
-  const currentIndex = section.articles.findIndex((a: any) => a.slug === params.slug);
+  const currentIndex = section.articles.findIndex((a: Article) => a.slug === params.slug);
   const prevArticle = currentIndex > 0 ? section.articles[currentIndex - 1] : null;
   const nextArticle = currentIndex < section.articles.length - 1 ? section.articles[currentIndex + 1] : null;
 
@@ -321,51 +331,20 @@ const workflow = await artifically.workflows.create({
         }}
       >
         {prevArticle && (
-          <Link
-            href={`/documentation/${params.section}/${(prevArticle as any).slug}`}
-            style={{ textDecoration: "none", color: "inherit" }}
-          >
-            <div
-              className="glass"
-              style={{
-                padding: space("md"),
-                borderRadius: "12px",
-                cursor: "pointer",
-                transition: "all 0.2s ease",
-              }}
-              onMouseEnter={(e) => (e.currentTarget.style.background = "rgba(148, 163, 184, 0.05)")}
-              onMouseLeave={(e) => (e.currentTarget.style.background = "")}
-            >
-              <div style={{ fontSize: "0.85rem", color: "var(--gray-500)", marginBottom: space("xs", 0.5) }}>
-                ← Previous
-              </div>
-              <div style={{ fontWeight: 600 }}>{(prevArticle as any).title}</div>
-            </div>
-          </Link>
+          <NavigationCard
+            href={`/documentation/${params.section}/${prevArticle.slug}`}
+            direction="prev"
+            title={prevArticle.title}
+          />
         )}
         {nextArticle && (
-          <Link
-            href={`/documentation/${params.section}/${(nextArticle as any).slug}`}
-            style={{ textDecoration: "none", color: "inherit", gridColumn: prevArticle ? "auto" : "1" }}
-          >
-            <div
-              className="glass"
-              style={{
-                padding: space("md"),
-                borderRadius: "12px",
-                cursor: "pointer",
-                transition: "all 0.2s ease",
-                textAlign: prevArticle ? "right" : "left",
-              }}
-              onMouseEnter={(e) => (e.currentTarget.style.background = "rgba(148, 163, 184, 0.05)")}
-              onMouseLeave={(e) => (e.currentTarget.style.background = "")}
-            >
-              <div style={{ fontSize: "0.85rem", color: "var(--gray-500)", marginBottom: space("xs", 0.5) }}>
-                {prevArticle ? "Next →" : "← Next"}
-              </div>
-              <div style={{ fontWeight: 600 }}>{(nextArticle as any).title}</div>
-            </div>
-          </Link>
+          <NavigationCard
+            href={`/documentation/${params.section}/${nextArticle.slug}`}
+            direction="next"
+            title={nextArticle.title}
+            showOpposite={!prevArticle}
+            style={{ gridColumn: prevArticle ? "auto" : "1" }}
+          />
         )}
       </div>
 
