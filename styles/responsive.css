@@ -5,6 +5,8 @@
  * following WCAG 2.1 Level AAA standards and mobile-first best practices.
  */
 
+ @tailwind utilities;
+ 
 @layer utilities {
   /* ============================================
      TOUCH TARGET UTILITIES (WCAG 2.1 Level AAA)

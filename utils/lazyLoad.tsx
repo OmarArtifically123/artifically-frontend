@@ -270,7 +270,8 @@ export function lazyLoadWithMetrics<P extends Record<string, unknown>>(
       const startTime = performance.now();
 
       try {
-        const module = await loader();
+        const loaderResult = typeof loader === "function" ? loader() : loader;
+        const module = await loaderResult;
         const loadTime = performance.now() - startTime;
 
         // Log to analytics (replace with your analytics solution)

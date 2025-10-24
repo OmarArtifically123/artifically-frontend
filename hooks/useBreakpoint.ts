@@ -188,9 +188,7 @@ export function useMediaQuery(query: string): boolean {
     }
 
     // Fallback for older browsers
-    // @ts-expect-error - addListener is deprecated but needed for old browsers
     mediaQuery.addListener(handleChange);
-    // @ts-expect-error - removeListener is deprecated but needed for old browsers
     return () => mediaQuery.removeListener(handleChange);
   }, [query]);
 
