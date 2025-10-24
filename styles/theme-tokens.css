@@ -1,0 +1,390 @@
+/**
+ * BULLETPROOF THEME SYSTEM - COMPREHENSIVE COLOR TOKENS
+ * Three themes: Light, Dark, and Contrast (WCAG AAA)
+ * Each theme defines semantic tokens for consistent theming
+ */
+
+@layer tokens {
+  /* ============================================================
+     DEFAULT THEME (DARK MODE) - Base definitions
+     ============================================================ */
+
+  :root,
+  [data-theme='dark'],
+  .theme-dark {
+    /* Background Colors */
+    --bg-primary: #050510;
+    --bg-secondary: #0f172a;
+    --bg-tertiary: #1a1f3a;
+    --bg-elevated: #1e293b;
+    --bg-inverse: #f8f9ff;
+    --bg-card: #0f172a;
+    --bg-overlay: rgba(5, 5, 16, 0.92);
+
+    /* Text Colors */
+    --text-primary: #f4f6ff;
+    --text-secondary: rgba(214, 222, 255, 0.8);
+    --text-tertiary: rgba(184, 196, 235, 0.65);
+    --text-inverse: #0f172a;
+    --text-link: #7ab5ff;
+    --text-link-hover: #aecdff;
+
+    /* Border Colors */
+    --border-default: rgba(148, 163, 184, 0.18);
+    --border-strong: rgba(148, 163, 184, 0.35);
+    --border-subtle: rgba(148, 163, 184, 0.1);
+    --border-focus: rgba(122, 181, 255, 0.5);
+    --border-inverse: rgba(15, 23, 42, 0.35);
+
+    /* Accent Colors */
+    --accent-primary: oklch(0.65 0.32 264);
+    --accent-primary-hover: oklch(0.70 0.32 264);
+    --accent-primary-active: oklch(0.60 0.32 264);
+    --accent-secondary: oklch(0.75 0.28 192);
+    --accent-energy: oklch(0.70 0.26 330);
+
+    /* State Colors */
+    --accent-success: oklch(0.72 0.24 145);
+    --accent-success-bg: rgba(16, 185, 129, 0.12);
+    --accent-warning: oklch(0.75 0.22 85);
+    --accent-warning-bg: rgba(245, 158, 11, 0.12);
+    --accent-error: oklch(0.62 0.28 25);
+    --accent-error-bg: rgba(239, 68, 68, 0.12);
+    --accent-info: oklch(0.78 0.2 240);
+    --accent-info-bg: rgba(77, 157, 255, 0.12);
+
+    /* Interactive States */
+    --interactive-hover: rgba(148, 163, 184, 0.12);
+    --interactive-active: rgba(148, 163, 184, 0.20);
+    --interactive-disabled: rgba(148, 163, 184, 0.08);
+    --interactive-disabled-text: rgba(148, 163, 184, 0.4);
+
+    /* Shadows */
+    --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.3);
+    --shadow-md: 0 4px 8px rgba(0, 0, 0, 0.4);
+    --shadow-lg: 0 8px 16px rgba(0, 0, 0, 0.45);
+    --shadow-xl: 0 16px 32px rgba(0, 0, 0, 0.5);
+    --shadow-glow: 0 0 40px oklch(0.65 0.32 264 / 0.35);
+    --shadow-glow-strong: 0 0 60px oklch(0.65 0.32 264 / 0.5);
+
+    /* Glass/Glassmorphism */
+    --glass-bg: rgba(15, 23, 42, 0.72);
+    --glass-border: rgba(148, 163, 184, 0.18);
+    --glass-blur: blur(18px);
+
+    /* Gradient Colors */
+    --gradient-primary-start: oklch(0.65 0.32 264);
+    --gradient-primary-end: oklch(0.75 0.28 192);
+    --gradient-accent-start: #0ea5e9;
+    --gradient-accent-mid: #7c3aed;
+    --gradient-accent-end: #ec4899;
+  }
+
+  /* ============================================================
+     LIGHT MODE - Clean and accessible light theme
+     ============================================================ */
+
+  [data-theme='light'],
+  .theme-light {
+    /* Background Colors */
+    --bg-primary: #ffffff;
+    --bg-secondary: #f8fafc;
+    --bg-tertiary: #f1f5f9;
+    --bg-elevated: #ffffff;
+    --bg-inverse: #0f172a;
+    --bg-card: #ffffff;
+    --bg-overlay: rgba(255, 255, 255, 0.95);
+
+    /* Text Colors */
+    --text-primary: #0f172a;
+    --text-secondary: #475569;
+    --text-tertiary: #64748b;
+    --text-inverse: #ffffff;
+    --text-link: #165fd7;
+    --text-link-hover: #1048aa;
+
+    /* Border Colors */
+    --border-default: #e2e8f0;
+    --border-strong: #cbd5e1;
+    --border-subtle: #f1f5f9;
+    --border-focus: rgba(22, 95, 215, 0.4);
+    --border-inverse: rgba(148, 163, 184, 0.25);
+
+    /* Accent Colors */
+    --accent-primary: #1f7eff;
+    --accent-primary-hover: #165fd7;
+    --accent-primary-active: #1048aa;
+    --accent-secondary: #7a73ff;
+    --accent-energy: #ec4899;
+
+    /* State Colors */
+    --accent-success: #10b981;
+    --accent-success-bg: #ecfdf5;
+    --accent-warning: #f59e0b;
+    --accent-warning-bg: #fffbea;
+    --accent-error: #ef4444;
+    --accent-error-bg: #fef2f2;
+    --accent-info: #4d9dff;
+    --accent-info-bg: #eef5ff;
+
+    /* Interactive States */
+    --interactive-hover: rgba(15, 23, 42, 0.05);
+    --interactive-active: rgba(15, 23, 42, 0.10);
+    --interactive-disabled: rgba(15, 23, 42, 0.03);
+    --interactive-disabled-text: rgba(15, 23, 42, 0.35);
+
+    /* Shadows */
+    --shadow-sm: 0 1px 2px rgba(15, 23, 42, 0.06);
+    --shadow-md: 0 4px 8px rgba(15, 23, 42, 0.10);
+    --shadow-lg: 0 8px 16px rgba(15, 23, 42, 0.12);
+    --shadow-xl: 0 16px 32px rgba(15, 23, 42, 0.15);
+    --shadow-glow: 0 0 40px rgba(31, 126, 255, 0.25);
+    --shadow-glow-strong: 0 0 60px rgba(31, 126, 255, 0.35);
+
+    /* Glass/Glassmorphism */
+    --glass-bg: rgba(255, 255, 255, 0.85);
+    --glass-border: rgba(15, 23, 42, 0.1);
+    --glass-blur: blur(18px);
+
+    /* Gradient Colors */
+    --gradient-primary-start: #1f7eff;
+    --gradient-primary-end: #7a73ff;
+    --gradient-accent-start: #0ea5e9;
+    --gradient-accent-mid: #7c3aed;
+    --gradient-accent-end: #ec4899;
+  }
+
+  /* ============================================================
+     CONTRAST MODE - WCAG AAA Compliant (7:1 minimum contrast)
+     High contrast, no gradients, no shadows, fully opaque colors
+     ============================================================ */
+
+  [data-theme='contrast'],
+  .theme-contrast {
+    /* Background Colors - Pure black for maximum contrast */
+    --bg-primary: #000000;
+    --bg-secondary: #000000;
+    --bg-tertiary: #0a0a0a;
+    --bg-elevated: #000000;
+    --bg-inverse: #ffffff;
+    --bg-card: #000000;
+    --bg-overlay: #000000;
+
+    /* Text Colors - Pure white for 21:1 contrast ratio */
+    --text-primary: #ffffff;
+    --text-secondary: #ffffff;
+    --text-tertiary: #e5e5e5;
+    --text-inverse: #000000;
+    --text-link: #00d4ff;
+    --text-link-hover: #00eaff;
+
+    /* Border Colors - High contrast borders */
+    --border-default: #ffffff;
+    --border-strong: #ffffff;
+    --border-subtle: #8a8a8a;
+    --border-focus: #00eaff;
+    --border-inverse: #000000;
+
+    /* Accent Colors - High contrast, fully saturated */
+    --accent-primary: #00d4ff;
+    --accent-primary-hover: #00eaff;
+    --accent-primary-active: #00bfe6;
+    --accent-secondary: #00ffe0;
+    --accent-energy: #ff00ff;
+
+    /* State Colors - High contrast, no transparency */
+    --accent-success: #00ff00;
+    --accent-success-bg: #003300;
+    --accent-warning: #ffff00;
+    --accent-warning-bg: #333300;
+    --accent-error: #ff0000;
+    --accent-error-bg: #330000;
+    --accent-info: #00d4ff;
+    --accent-info-bg: #003344;
+
+    /* Interactive States */
+    --interactive-hover: #1a1a1a;
+    --interactive-active: #2a2a2a;
+    --interactive-disabled: #0a0a0a;
+    --interactive-disabled-text: #666666;
+
+    /* Shadows - REMOVED for contrast mode (reduces contrast) */
+    --shadow-sm: none;
+    --shadow-md: none;
+    --shadow-lg: none;
+    --shadow-xl: none;
+    --shadow-glow: none;
+    --shadow-glow-strong: none;
+
+    /* Glass/Glassmorphism - DISABLED in contrast mode */
+    --glass-bg: #000000;
+    --glass-border: #ffffff;
+    --glass-blur: none;
+
+    /* Gradient Colors - Solid colors only (no gradients) */
+    --gradient-primary-start: #00d4ff;
+    --gradient-primary-end: #00d4ff;
+    --gradient-accent-start: #00ffe0;
+    --gradient-accent-mid: #00ffe0;
+    --gradient-accent-end: #00ffe0;
+  }
+
+  /* ============================================================
+     CONTRAST MODE OVERRIDES - Disable visual complexity
+     ============================================================ */
+
+  .theme-contrast *,
+  [data-theme='contrast'] * {
+    /* Remove all shadows */
+    box-shadow: none !important;
+    text-shadow: none !important;
+
+    /* Remove all backdrop filters */
+    backdrop-filter: none !important;
+    -webkit-backdrop-filter: none !important;
+
+    /* Force full opacity */
+    opacity: 1;
+  }
+
+  /* Ensure links are always underlined in contrast mode */
+  .theme-contrast a,
+  [data-theme='contrast'] a {
+    text-decoration: underline;
+    text-decoration-thickness: 2px;
+  }
+
+  /* High contrast focus indicators */
+  .theme-contrast *:focus,
+  [data-theme='contrast'] *:focus {
+    outline: 3px solid var(--accent-primary) !important;
+    outline-offset: 2px !important;
+  }
+
+  /* Disable transitions in contrast mode (accessibility) */
+  .theme-contrast *,
+  [data-theme='contrast'] * {
+    transition: none !important;
+    animation: none !important;
+  }
+
+  /* ============================================================
+     UTILITY CLASSES - Theme-aware components
+     ============================================================ */
+
+  /* Button base styles using theme tokens */
+  .btn-primary {
+    background-color: var(--accent-primary);
+    color: var(--text-inverse);
+    border: 2px solid var(--accent-primary);
+  }
+
+  .btn-primary:hover {
+    background-color: var(--accent-primary-hover);
+    border-color: var(--accent-primary-hover);
+  }
+
+  .btn-primary:active {
+    background-color: var(--accent-primary-active);
+    border-color: var(--accent-primary-active);
+  }
+
+  /* Card base styles using theme tokens */
+  .card {
+    background-color: var(--bg-card);
+    border: 1px solid var(--border-default);
+    box-shadow: var(--shadow-md);
+  }
+
+  .card:hover {
+    box-shadow: var(--shadow-lg);
+    border-color: var(--border-strong);
+  }
+
+  /* Input base styles using theme tokens */
+  .input {
+    background-color: var(--bg-secondary);
+    color: var(--text-primary);
+    border: 2px solid var(--border-default);
+  }
+
+  .input:focus {
+    border-color: var(--border-focus);
+    outline: 2px solid var(--border-focus);
+    outline-offset: 0;
+  }
+
+  .input::placeholder {
+    color: var(--text-tertiary);
+  }
+
+  /* Link styles using theme tokens */
+  a {
+    color: var(--text-link);
+  }
+
+  a:hover {
+    color: var(--text-link-hover);
+  }
+
+  /* ============================================================
+     FORCED COLORS MODE (Windows High Contrast)
+     ============================================================ */
+
+  @media (forced-colors: active) {
+    :root {
+      --bg-primary: Canvas;
+      --text-primary: CanvasText;
+      --text-link: LinkText;
+      --border-default: CanvasText;
+      --border-focus: Highlight;
+      --accent-primary: Highlight;
+    }
+
+    /* Ensure borders are visible in forced colors mode */
+    .card,
+    .input,
+    .btn-primary {
+      border: 1px solid CanvasText !important;
+    }
+
+    /* Focus indicators */
+    *:focus {
+      outline: 2px solid Highlight !important;
+    }
+  }
+
+  /* ============================================================
+     REDUCED MOTION - Respect user preferences
+     ============================================================ */
+
+  @media (prefers-reduced-motion: reduce) {
+    *,
+    *::before,
+    *::after {
+      animation-duration: 0.01ms !important;
+      animation-iteration-count: 1 !important;
+      transition-duration: 0.01ms !important;
+    }
+  }
+
+  /* ============================================================
+     SMOOTH TRANSITIONS - Only when not in contrast mode
+     ============================================================ */
+
+  :root:not(.theme-contrast) *,
+  [data-theme='light'] *,
+  [data-theme='dark'] * {
+    transition:
+      background-color 0.2s ease,
+      color 0.2s ease,
+      border-color 0.2s ease,
+      box-shadow 0.2s ease,
+      opacity 0.2s ease;
+  }
+
+  /* Disable transitions for transform and filter (can cause jank) */
+  * {
+    transition-property: background-color, color, border-color, box-shadow, opacity;
+  }
+}

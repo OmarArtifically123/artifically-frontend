@@ -1,6 +1,7 @@
 /* Enhanced Global CSS - Production Grade */
 
 @import url("../design-system/tokens/tokens.css") layer(tokens);
+@import url("./theme-tokens.css");
 
 @tailwind base;
 @tailwind components;

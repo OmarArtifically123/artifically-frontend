@@ -4,8 +4,7 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { motion, useReducedMotion } from "framer-motion";
-import ThemeToggle from "./ThemeToggle";
-import ContrastToggle from "./ContrastToggle";
+import ThemeSwitcher from "./ui/ThemeSwitcher";
 import { useTheme } from "../context/ThemeContext";
 import useMicroInteractions from "../hooks/useMicroInteractions";
 import { space } from "../styles/spacing";
@@ -1313,16 +1312,7 @@ export default function Header({ user, onSignIn, onSignUp, onSignOut }) {
               Open command palette. Press Command+K on Mac or Control+K on Windows to open from anywhere.
             </span>
           </button>
-          <div
-            style={{
-              display: "inline-flex",
-              alignItems: "center",
-              gap: space("2xs", 1.4),
-            }}
-          >
-            <ContrastToggle />
-            <ThemeToggle />
-          </div>
+          <ThemeSwitcher />
 
           {user ? (
             <div
