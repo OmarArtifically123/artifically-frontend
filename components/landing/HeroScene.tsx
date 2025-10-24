@@ -112,8 +112,8 @@ export default function HeroScene({
     return light;
   }, []);
 
-  const chromaticAberrationOffset = useMemo(
-    () => new THREE.Vector2(0.001, 0.001),
+  const chromaticAberrationOffset = useMemo<[number, number]>(
+    () => [0.001, 0.001],
     []
   );
 
