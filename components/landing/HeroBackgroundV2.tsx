@@ -100,9 +100,8 @@ export default function HeroBackgroundV2({
   variant = "default",
   className = "",
 }: HeroBackgroundV2Props) {
-  const containerRef = useRef<HTMLDivElement>(null);
   const prefersReducedMotion = useReducedMotion();
-  const [isInViewport] = useInViewState({
+  const [containerRef, isInViewport] = useInViewState({
     threshold: 0.1,
     rootMargin: "100px",
     once: false,
@@ -119,8 +118,9 @@ export default function HeroBackgroundV2({
     }
   }, [isInViewport, isDocumentVisible]);
 
-  // Fallback for reduced motion or low-end devices
-  if (prefersReducedMotion) {
+  // Fallback for reduced motion or low-end devices (also temporarily disabling WebGL due to zustand version conflict)
+  const useStaticBackground = true; // TODO: Fix zustand version conflict with @react-three/fiber
+  if (prefersReducedMotion || useStaticBackground) {
     return (
       <div
         ref={containerRef}

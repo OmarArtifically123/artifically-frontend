@@ -94,6 +94,7 @@ export default function LogoWordmark({ variant = "light", className, ...props })
       aria-labelledby={getId("title")}
       focusable="false"
       className={className}
+      suppressHydrationWarning
       {...props}
     >
       <title id={getId("title")}>Artifically wordmark</title>

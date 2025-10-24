@@ -9,7 +9,18 @@
       "Bash(npm run dev:*)",
       "Bash(netstat:*)",
       "Bash(findstr:*)",
-      "Bash(rm:*)"
+      "Bash(rm:*)",
+      "Bash(tasklist:*)",
+      "Bash(taskkill /F /PID 15404)",
+      "Bash(taskkill //F //PID 15404)",
+      "Bash(curl:*)",
+      "Bash(for pid in 9128 9272 11536 8628 2024)",
+      "Bash(do taskkill //F //PID $pid)",
+      "Bash(done)",
+      "Bash(taskkill //F //PID 100)",
+      "Bash(npm install:*)",
+      "Bash(awk:*)",
+      "Bash(for pid in 10900 18628 5304 8004 8776)"
     ],
     "deny": [],
     "ask": []
