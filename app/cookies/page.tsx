@@ -1,21 +1,11 @@
-import MarketingPlaceholder from "@/app/(site)/_components/MarketingPlaceholder";
+import CookiePolicyPage from "@/components/legal/CookiePolicyPage";
 
 export const metadata = {
-  title: "Cookie preferences | Artifically",
+  title: "Cookie Policy | Artifically",
   description:
-    "Understand how Artifically uses cookies and control the preferences that power your experience.",
+    "Learn how Artifically uses cookies and tracking technologies. Detailed information on cookie types, purposes, and how to manage your preferences.",
 };
 
 export default function CookiesRoute() {
-  return (
-    <MarketingPlaceholder
-      eyebrow="Cookie controls"
-      title="Cookie management is being consolidated"
-      description="We're releasing an updated preferences center with granular controls for analytics, support, and personalization cookies."
-      ctas={[
-        { href: "/privacy", label: "Review our privacy notice" },
-        { href: "/compliance", label: "Compliance center", variant: "ghost" },
-      ]}
-    />
-  );
+  return <CookiePolicyPage />;
 }

@@ -1,0 +1,29 @@
+[
+  {
+    "id": 1,
+    "name": "Sarah Chen",
+    "role": "Senior Full-Stack Engineer",
+    "department": "Engineering",
+    "photo": "/team/sarah-chen.jpg",
+    "quote": "I joined to work on hard technical problems, and Artifically delivers. Last quarter I built a real-time workflow orchestrator handling 50k concurrent executions. The 4-day week means I actually have time to think deeply about architecture instead of burning out.",
+    "tenure": "18 months"
+  },
+  {
+    "id": 2,
+    "name": "Marcus Rodriguez",
+    "role": "Product Designer",
+    "department": "Design",
+    "photo": "/team/marcus-rodriguez.jpg",
+    "quote": "What drew me here was the chance to design for power users—operations teams who need sophisticated tools, not dumbed-down interfaces. We do real user research, iterate based on data, and the eng team actually cares about getting the details right. Rare combination.",
+    "tenure": "12 months"
+  },
+  {
+    "id": 3,
+    "name": "Priya Patel",
+    "role": "Customer Success Manager",
+    "department": "Customer Success",
+    "photo": "/team/priya-patel.jpg",
+    "quote": "Every CSM role says 'you'll make an impact,' but here it's real. I helped a logistics company save 18,000 hours annually by redesigning their customs workflow. Seeing that ROI and getting thanked by their COO? That's why I do this work. Plus the $3k learning budget funded my Six Sigma certification.",
+    "tenure": "24 months"
+  }
+]

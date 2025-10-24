@@ -1,0 +1,44 @@
+[
+  {
+    "id": "best-practices",
+    "name": "Best Practices",
+    "slug": "best-practices",
+    "description": "Proven strategies and frameworks for successful automation projects",
+    "count": 3
+  },
+  {
+    "id": "industry-guides",
+    "name": "Industry Guides",
+    "slug": "industry-guides",
+    "description": "Deep dives into automation for specific industries",
+    "count": 3
+  },
+  {
+    "id": "technical-deep-dive",
+    "name": "Technical Deep Dive",
+    "slug": "technical-deep-dive",
+    "description": "Engineering insights and implementation details",
+    "count": 2
+  },
+  {
+    "id": "compliance",
+    "name": "Compliance",
+    "slug": "compliance",
+    "description": "Regulatory requirements and compliance best practices",
+    "count": 2
+  },
+  {
+    "id": "engineering",
+    "name": "Engineering",
+    "slug": "engineering",
+    "description": "Technical architecture, infrastructure, and development practices",
+    "count": 1
+  },
+  {
+    "id": "case-studies",
+    "name": "Case Studies",
+    "slug": "case-studies",
+    "description": "Real-world implementations and customer success stories",
+    "count": 0
+  }
+]

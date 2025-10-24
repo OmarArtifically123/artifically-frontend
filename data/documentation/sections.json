@@ -1,0 +1,182 @@
+[
+  {
+    "id": "tutorials",
+    "name": "Tutorials",
+    "slug": "tutorials",
+    "description": "Step-by-step guides for beginners to learn Artifically from scratch",
+    "icon": "book-open",
+    "articles": [
+      {
+        "id": "intro-to-automation",
+        "title": "Introduction to Workflow Automation",
+        "slug": "intro-to-automation",
+        "description": "Understand the fundamentals of workflow automation and when to use it",
+        "readTime": "10 min",
+        "difficulty": "Beginner"
+      },
+      {
+        "id": "your-first-workflow",
+        "title": "Building Your First Workflow",
+        "slug": "your-first-workflow",
+        "description": "Create a simple lead routing workflow in under 30 minutes",
+        "readTime": "25 min",
+        "difficulty": "Beginner"
+      },
+      {
+        "id": "adding-approvals",
+        "title": "Adding Human Approvals to Workflows",
+        "slug": "adding-approvals",
+        "description": "Implement human-in-the-loop review for critical automations",
+        "readTime": "15 min",
+        "difficulty": "Beginner"
+      },
+      {
+        "id": "connecting-integrations",
+        "title": "Connecting External Integrations",
+        "slug": "connecting-integrations",
+        "description": "Integrate Salesforce, Slack, and other tools with your workflows",
+        "readTime": "20 min",
+        "difficulty": "Intermediate"
+      }
+    ]
+  },
+  {
+    "id": "how-to-guides",
+    "name": "How-To Guides",
+    "slug": "how-to-guides",
+    "description": "Task-focused instructions for accomplishing specific goals",
+    "icon": "list-checks",
+    "articles": [
+      {
+        "id": "route-leads-by-territory",
+        "title": "How to Route Leads by Territory",
+        "slug": "route-leads-by-territory",
+        "description": "Automatically assign leads to the right sales rep based on location",
+        "readTime": "12 min",
+        "difficulty": "Intermediate"
+      },
+      {
+        "id": "schedule-recurring-tasks",
+        "title": "How to Schedule Recurring Tasks",
+        "slug": "schedule-recurring-tasks",
+        "description": "Set up daily, weekly, or monthly automated tasks",
+        "readTime": "8 min",
+        "difficulty": "Beginner"
+      },
+      {
+        "id": "handle-errors-gracefully",
+        "title": "How to Handle Errors Gracefully",
+        "slug": "handle-errors-gracefully",
+        "description": "Implement retry logic, fallbacks, and error notifications",
+        "readTime": "14 min",
+        "difficulty": "Intermediate"
+      },
+      {
+        "id": "build-approval-chains",
+        "title": "How to Build Multi-Stage Approval Chains",
+        "slug": "build-approval-chains",
+        "description": "Create complex approval workflows with multiple reviewers",
+        "readTime": "18 min",
+        "difficulty": "Advanced"
+      }
+    ]
+  },
+  {
+    "id": "reference",
+    "name": "API Reference",
+    "slug": "api-reference",
+    "description": "Complete technical documentation for the Artifically API",
+    "icon": "code",
+    "articles": [
+      {
+        "id": "authentication",
+        "title": "Authentication",
+        "slug": "authentication",
+        "description": "API keys, OAuth, and authentication best practices",
+        "readTime": "8 min",
+        "difficulty": "Intermediate"
+      },
+      {
+        "id": "workflows-api",
+        "title": "Workflows API",
+        "slug": "workflows-api",
+        "description": "Create, update, trigger, and manage workflows programmatically",
+        "readTime": "15 min",
+        "difficulty": "Advanced"
+      },
+      {
+        "id": "executions-api",
+        "title": "Executions API",
+        "slug": "executions-api",
+        "description": "Query workflow execution history and status",
+        "readTime": "10 min",
+        "difficulty": "Advanced"
+      },
+      {
+        "id": "webhooks-api",
+        "title": "Webhooks API",
+        "slug": "webhooks-api",
+        "description": "Receive real-time events from workflow executions",
+        "readTime": "12 min",
+        "difficulty": "Advanced"
+      },
+      {
+        "id": "rate-limits",
+        "title": "Rate Limits & Quotas",
+        "slug": "rate-limits",
+        "description": "API rate limits, quotas, and best practices for high-volume usage",
+        "readTime": "6 min",
+        "difficulty": "Intermediate"
+      },
+      {
+        "id": "error-codes",
+        "title": "Error Codes & Responses",
+        "slug": "error-codes",
+        "description": "Complete list of API error codes and how to handle them",
+        "readTime": "10 min",
+        "difficulty": "Intermediate"
+      }
+    ]
+  },
+  {
+    "id": "concepts",
+    "name": "Core Concepts",
+    "slug": "concepts",
+    "description": "Deep dives into how Artifically works under the hood",
+    "icon": "lightbulb",
+    "articles": [
+      {
+        "id": "workflow-architecture",
+        "title": "Workflow Architecture",
+        "slug": "workflow-architecture",
+        "description": "How workflows are structured, executed, and scaled",
+        "readTime": "14 min",
+        "difficulty": "Advanced"
+      },
+      {
+        "id": "execution-model",
+        "title": "Execution Model & Concurrency",
+        "slug": "execution-model",
+        "description": "Understanding parallel execution, queuing, and resource limits",
+        "readTime": "16 min",
+        "difficulty": "Advanced"
+      },
+      {
+        "id": "data-flow",
+        "title": "Data Flow & Variables",
+        "slug": "data-flow",
+        "description": "How data moves between workflow nodes and persists across steps",
+        "readTime": "12 min",
+        "difficulty": "Intermediate"
+      },
+      {
+        "id": "security-model",
+        "title": "Security Model & Access Control",
+        "slug": "security-model",
+        "description": "How Artifically secures data, manages credentials, and enforces permissions",
+        "readTime": "18 min",
+        "difficulty": "Advanced"
+      }
+    ]
+  }
+]

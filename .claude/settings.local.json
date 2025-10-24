@@ -22,7 +22,8 @@
       "Bash(awk:*)",
       "Bash(for pid in 10900 18628 5304 8004 8776)",
       "Bash(taskkill //F //PID 16472)",
-      "Read(//c/Users/omar2/Downloads/**)"
+      "Read(//c/Users/omar2/Downloads/**)",
+      "Bash(npx tsc:*)"
     ],
     "deny": [],
     "ask": []

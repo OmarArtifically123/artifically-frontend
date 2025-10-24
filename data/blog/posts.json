@@ -1,0 +1,146 @@
+[
+  {
+    "id": "ai-automation-roi-framework",
+    "slug": "ai-automation-roi-framework",
+    "title": "The Complete ROI Framework for AI Automation Projects",
+    "excerpt": "Stop guessing at automation value. Use this proven framework to calculate, forecast, and track ROI from day one—including hidden costs most teams miss.",
+    "category": "Best Practices",
+    "author": {
+      "name": "Sarah Mitchell",
+      "role": "Head of Customer Success",
+      "photo": "/authors/sarah-mitchell.jpg"
+    },
+    "publishedDate": "2024-10-15",
+    "readTime": "12 min",
+    "featured": true,
+    "image": "/blog/roi-framework-hero.jpg",
+    "tags": ["ROI", "Business Case", "Implementation"],
+    "content": "Full blog post content here..."
+  },
+  {
+    "id": "human-in-loop-best-practices",
+    "slug": "human-in-loop-best-practices",
+    "title": "Human-in-the-Loop Automation: When to Automate, When to Review",
+    "excerpt": "Not every workflow should be fully automated. Learn when human judgment adds value and how to design approval workflows that don't become bottlenecks.",
+    "category": "Best Practices",
+    "author": {
+      "name": "Marcus Chen",
+      "role": "Principal Solutions Architect",
+      "photo": "/authors/marcus-chen.jpg"
+    },
+    "publishedDate": "2024-10-08",
+    "readTime": "10 min",
+    "featured": false,
+    "image": "/blog/human-in-loop-hero.jpg",
+    "tags": ["Workflow Design", "Governance", "Best Practices"],
+    "content": "Full blog post content here..."
+  },
+  {
+    "id": "logistics-automation-guide",
+    "slug": "logistics-automation-guide-2024",
+    "title": "The 2024 Guide to Logistics Automation: From Customs to Last Mile",
+    "excerpt": "A comprehensive playbook for automating freight, warehousing, and delivery operations. Real-world examples from 50+ logistics companies.",
+    "category": "Industry Guides",
+    "author": {
+      "name": "Elena Rodriguez",
+      "role": "Industry Principal, Logistics",
+      "photo": "/authors/elena-rodriguez.jpg"
+    },
+    "publishedDate": "2024-10-01",
+    "readTime": "15 min",
+    "featured": true,
+    "image": "/blog/logistics-guide-hero.jpg",
+    "tags": ["Logistics", "Industry Guide", "Case Studies"],
+    "content": "Full blog post content here..."
+  },
+  {
+    "id": "healthcare-ai-compliance",
+    "slug": "healthcare-ai-compliance-hipaa",
+    "title": "AI in Healthcare: Navigating HIPAA Compliance and Patient Privacy",
+    "excerpt": "Healthcare AI must balance innovation with regulatory compliance. Here's how to deploy automation while meeting HIPAA, state privacy laws, and clinical standards.",
+    "category": "Compliance",
+    "author": {
+      "name": "Dr. James Patterson",
+      "role": "Healthcare Compliance Advisor",
+      "photo": "/authors/james-patterson.jpg"
+    },
+    "publishedDate": "2024-09-24",
+    "readTime": "11 min",
+    "featured": false,
+    "image": "/blog/healthcare-compliance-hero.jpg",
+    "tags": ["Healthcare", "HIPAA", "Compliance", "Security"],
+    "content": "Full blog post content here..."
+  },
+  {
+    "id": "workflow-observability",
+    "slug": "workflow-observability-monitoring",
+    "title": "Workflow Observability: Monitoring AI Automations in Production",
+    "excerpt": "Production automation requires more than uptime monitoring. Learn how to instrument workflows for visibility, debug failures fast, and measure business impact.",
+    "category": "Engineering",
+    "author": {
+      "name": "Priya Sharma",
+      "role": "Staff Engineer",
+      "photo": "/authors/priya-sharma.jpg"
+    },
+    "publishedDate": "2024-09-17",
+    "readTime": "14 min",
+    "featured": false,
+    "image": "/blog/observability-hero.jpg",
+    "tags": ["Observability", "Monitoring", "DevOps", "Engineering"],
+    "content": "Full blog post content here..."
+  },
+  {
+    "id": "document-processing-accuracy",
+    "slug": "document-processing-accuracy-techniques",
+    "title": "Achieving 99%+ Accuracy in Document Processing AI",
+    "excerpt": "High accuracy document extraction isn't magic—it's systematic engineering. The techniques, testing strategies, and edge case handling that get you to production-grade.",
+    "category": "Technical Deep Dive",
+    "author": {
+      "name": "Kevin Wu",
+      "role": "ML Engineer",
+      "photo": "/authors/kevin-wu.jpg"
+    },
+    "publishedDate": "2024-09-10",
+    "readTime": "13 min",
+    "featured": false,
+    "image": "/blog/document-accuracy-hero.jpg",
+    "tags": ["Machine Learning", "Document Processing", "AI", "Technical"],
+    "content": "Full blog post content here..."
+  },
+  {
+    "id": "change-management-automation",
+    "slug": "change-management-automation-rollout",
+    "title": "Change Management for Automation: Getting Your Team Onboard",
+    "excerpt": "The best automation fails if your team won't use it. Proven strategies for stakeholder buy-in, training programs, and measuring adoption success.",
+    "category": "Best Practices",
+    "author": {
+      "name": "Lisa Chen",
+      "role": "Director of Customer Success",
+      "photo": "/authors/lisa-chen.jpg"
+    },
+    "publishedDate": "2024-09-03",
+    "readTime": "9 min",
+    "featured": false,
+    "image": "/blog/change-management-hero.jpg",
+    "tags": ["Change Management", "Training", "Adoption"],
+    "content": "Full blog post content here..."
+  },
+  {
+    "id": "financial-services-automation",
+    "slug": "financial-services-automation-compliance",
+    "title": "Financial Services Automation: Balancing Speed and Compliance",
+    "excerpt": "Banks and fintechs face unique regulatory constraints. How to automate lending, onboarding, and risk assessment while maintaining audit trails and fair lending compliance.",
+    "category": "Industry Guides",
+    "author": {
+      "name": "Michael Osei",
+      "role": "Industry Principal, Financial Services",
+      "photo": "/authors/michael-osei.jpg"
+    },
+    "publishedDate": "2024-08-27",
+    "readTime": "12 min",
+    "featured": false,
+    "image": "/blog/financial-services-hero.jpg",
+    "tags": ["Financial Services", "Compliance", "Industry Guide"],
+    "content": "Full blog post content here..."
+  }
+]

@@ -1,0 +1,168 @@
+{
+  "hero": {
+    "title": "Build the Future of AI-Powered Automation",
+    "subtitle": "Join a team that's transforming how enterprises operate. We're building the automation platform that operations teams actually love—combining cutting-edge AI with enterprise-grade reliability.",
+    "whoThrivesHere": [
+      "**Problem solvers** who thrive on turning complex operational challenges into elegant solutions",
+      "**Builders** who take ownership from design through deployment and beyond",
+      "**Learners** who stay curious about AI, automation, and emerging technologies",
+      "**Collaborators** who believe the best products come from diverse perspectives",
+      "**Impact-driven professionals** who want their work to measurably improve how businesses operate"
+    ]
+  },
+  "benefits": [
+    {
+      "category": "Health & Wellness",
+      "items": [
+        {
+          "title": "Premium Health Coverage",
+          "description": "100% coverage for employees, 75% for dependents. Medical, dental, vision, and mental health support."
+        },
+        {
+          "title": "Wellness Stipend",
+          "description": "$100/month for gym memberships, fitness classes, meditation apps, or wellness activities of your choice."
+        },
+        {
+          "title": "Mental Health Support",
+          "description": "Access to licensed therapists through Modern Health, plus 10 dedicated mental health days annually."
+        }
+      ]
+    },
+    {
+      "category": "Time Off & Flexibility",
+      "items": [
+        {
+          "title": "4-Day Work Week",
+          "description": "We operate Tuesday-Friday, giving everyone a genuine 3-day weekend to recharge."
+        },
+        {
+          "title": "Unlimited PTO",
+          "description": "Minimum 20 days encouraged annually. We trust you to manage your time and take breaks when needed."
+        },
+        {
+          "title": "Flexible Schedule",
+          "description": "Core collaboration hours 10am-3pm PT. Outside that, work when you're most productive."
+        },
+        {
+          "title": "Remote-First Culture",
+          "description": "Work from anywhere in the US. Office access available in SF, NYC, and Austin for those who want it."
+        }
+      ]
+    },
+    {
+      "category": "Growth & Learning",
+      "items": [
+        {
+          "title": "Learning Budget",
+          "description": "$3,000/year for courses, conferences, books, or certifications. Plus dedicated time to use it."
+        },
+        {
+          "title": "Conference Attendance",
+          "description": "Attend 2 conferences annually. We cover tickets, travel, and accommodation."
+        },
+        {
+          "title": "Internal Growth Paths",
+          "description": "Clear IC and management tracks with transparent leveling framework and promotion criteria."
+        }
+      ]
+    },
+    {
+      "category": "Compensation & Equity",
+      "items": [
+        {
+          "title": "Competitive Salary",
+          "description": "Market-rate compensation benchmarked to SF/NYC, regardless of location. Transparent salary bands."
+        },
+        {
+          "title": "Meaningful Equity",
+          "description": "Early-stage equity grants with 4-year vesting and 1-year cliff. 10-year exercise window."
+        },
+        {
+          "title": "Annual Bonuses",
+          "description": "Performance-based bonuses tied to individual impact and company milestones."
+        }
+      ]
+    },
+    {
+      "category": "Family & Life",
+      "items": [
+        {
+          "title": "Parental Leave",
+          "description": "16 weeks fully paid for primary caregivers, 8 weeks for secondary. Gradual return-to-work program."
+        },
+        {
+          "title": "Family Planning Support",
+          "description": "$20,000 lifetime benefit for fertility treatments, adoption, or surrogacy."
+        },
+        {
+          "title": "Home Office Setup",
+          "description": "$2,000 budget for desk, chair, monitor, and equipment. Annual $500 refresh stipend."
+        }
+      ]
+    },
+    {
+      "category": "Team & Culture",
+      "items": [
+        {
+          "title": "Team Offsites",
+          "description": "Quarterly in-person gatherings in different cities. Mix of work sessions and team building."
+        },
+        {
+          "title": "Peer Recognition",
+          "description": "Monthly $500 spot bonuses nominated by peers for exceptional contributions."
+        },
+        {
+          "title": "Stock in Success",
+          "description": "Profit-sharing program once we hit $10M ARR. Everyone shares in the upside."
+        }
+      ]
+    }
+  ],
+  "workEnvironment": {
+    "title": "How We Work",
+    "description": "We're building for the long term—sustainable pace, thoughtful decisions, and respect for work-life balance.",
+    "principles": [
+      "**Async-first communication**: Default to written updates; meetings are for collaboration, not information sharing",
+      "**Ship early, iterate often**: Perfect is the enemy of shipped. We value feedback loops over lengthy planning",
+      "**Radical transparency**: Everyone has context on company metrics, roadmap, and strategic decisions",
+      "**Blameless culture**: We focus on systems, not individuals. Mistakes are learning opportunities",
+      "**Customer obsession**: Every role involves regular customer exposure—research, support, or feedback sessions"
+    ]
+  },
+  "applicationProcess": {
+    "title": "Our Hiring Process",
+    "description": "We move quickly and respect your time. Typical process takes 7-10 days from application to offer.",
+    "steps": [
+      {
+        "stage": "Application Review",
+        "duration": "1-2 days",
+        "description": "We review every application personally. You'll hear back either way within 48 hours."
+      },
+      {
+        "stage": "Recruiter Screen",
+        "duration": "30 minutes",
+        "description": "Quick chat about your background, what you're looking for, and what we're building."
+      },
+      {
+        "stage": "Hiring Manager Interview",
+        "duration": "60 minutes",
+        "description": "Deep dive into your experience, problem-solving approach, and fit with the role."
+      },
+      {
+        "stage": "Technical/Portfolio Review",
+        "duration": "90 minutes",
+        "description": "For engineers: pair programming session. For designers: portfolio walkthrough. For other roles: case study discussion."
+      },
+      {
+        "stage": "Team Interviews",
+        "duration": "2-3 hours",
+        "description": "Meet 4-5 team members across functions. Focused on collaboration, values alignment, and mutual fit."
+      },
+      {
+        "stage": "Offer & References",
+        "duration": "1-2 days",
+        "description": "We make offers quickly. Reference checks happen in parallel to speed things up."
+      }
+    ]
+  }
+}

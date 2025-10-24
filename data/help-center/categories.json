@@ -1,0 +1,92 @@
+[
+  {
+    "id": "getting-started",
+    "name": "Getting Started",
+    "slug": "getting-started",
+    "icon": "rocket",
+    "description": "Everything you need to know to get up and running with Artifically",
+    "articleCount": 8,
+    "popularArticles": [
+      "quick-start-guide",
+      "first-automation",
+      "inviting-team-members",
+      "understanding-workflows",
+      "dashboard-overview"
+    ]
+  },
+  {
+    "id": "features",
+    "name": "Features & Functionality",
+    "slug": "features",
+    "icon": "grid",
+    "description": "Deep dives into Artifically's core features and how to use them effectively",
+    "articleCount": 15,
+    "popularArticles": [
+      "workflow-builder",
+      "approval-workflows",
+      "scheduling-automation",
+      "error-handling",
+      "notifications-alerts"
+    ]
+  },
+  {
+    "id": "integrations",
+    "name": "Integrations",
+    "slug": "integrations",
+    "icon": "plug",
+    "description": "Connect Artifically with your existing tools and systems",
+    "articleCount": 12,
+    "popularArticles": [
+      "salesforce-integration",
+      "slack-notifications",
+      "webhook-setup",
+      "api-authentication",
+      "sso-configuration"
+    ]
+  },
+  {
+    "id": "billing",
+    "name": "Billing & Account",
+    "slug": "billing",
+    "icon": "credit-card",
+    "description": "Manage your subscription, billing, and account settings",
+    "articleCount": 7,
+    "popularArticles": [
+      "pricing-plans",
+      "upgrade-downgrade",
+      "payment-methods",
+      "usage-billing",
+      "cancel-account"
+    ]
+  },
+  {
+    "id": "troubleshooting",
+    "name": "Troubleshooting & FAQs",
+    "slug": "troubleshooting",
+    "icon": "wrench",
+    "description": "Solutions to common issues and frequently asked questions",
+    "articleCount": 20,
+    "popularArticles": [
+      "workflow-not-running",
+      "integration-errors",
+      "authentication-issues",
+      "performance-slow",
+      "data-sync-problems"
+    ]
+  },
+  {
+    "id": "api-docs",
+    "name": "API Documentation",
+    "slug": "api-docs",
+    "icon": "code",
+    "description": "Technical documentation for developers building with Artifically's API",
+    "articleCount": 18,
+    "popularArticles": [
+      "api-quickstart",
+      "authentication-guide",
+      "rate-limits",
+      "webhooks-reference",
+      "error-codes"
+    ]
+  }
+]
