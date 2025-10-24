@@ -37,6 +37,11 @@ export default function HeroParticleSystem({
   const clockRef = useRef(0);
   const cleanupFnsRef = useRef<Array<() => void>>([]);
 
+  // Log particle system initialization
+  useEffect(() => {
+    console.log("[HeroParticleSystem] Initializing with", count, "particles, animation:", enableAnimation);
+  }, []);
+
   // Sophisticated color palette with iridescent quality
   const colors = useMemo(
     () => ({
@@ -119,12 +124,22 @@ export default function HeroParticleSystem({
 
   // Create points mesh
   useEffect(() => {
-    if (!groupRef.current) return;
+    if (!groupRef.current) {
+      console.warn("[HeroParticleSystem] groupRef.current is null, cannot add particles");
+      return;
+    }
 
     const points = new THREE.Points(geometry, material);
     groupRef.current.add(points);
     particlesRef.current = points;
     velocitiesRef.current = new Float32Array(particleData.velocities);
+
+    console.log("[HeroParticleSystem] Particles created and added to scene", {
+      particleCount: count,
+      geometry: geometry,
+      material: material,
+      pointsObject: points,
+    });
 
     // Store cleanup function
     const cleanup = () => {
@@ -135,6 +150,7 @@ export default function HeroParticleSystem({
     cleanupFnsRef.current.push(cleanup);
 
     return () => {
+      console.log("[HeroParticleSystem] Cleaning up particles");
       cleanup();
       cleanupFnsRef.current = cleanupFnsRef.current.filter((fn) => fn !== cleanup);
     };

@@ -44,6 +44,21 @@ export default function HeroScene({
   const { scene, camera, gl } = useThree();
   const prefersReducedMotion = useReducedMotion();
 
+  // Log HeroScene initialization
+  useEffect(() => {
+    console.log("[HeroScene] Component mounted", {
+      variant,
+      particleCount,
+      enablePostProcessing,
+      prefersReducedMotion,
+      camera: camera.position,
+      gl: gl.domElement,
+    });
+    return () => {
+      console.log("[HeroScene] Component unmounted");
+    };
+  }, []);
+
   // Mouse tracking state with lerp smoothing
   const mouseStateRef = useRef<MouseState>({
     position: new THREE.Vector2(0, 0),

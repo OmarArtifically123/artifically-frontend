@@ -5,6 +5,7 @@ import dynamic from "next/dynamic";
 import { Canvas } from "@react-three/fiber";
 import { PerformanceMonitor, Preload } from "@react-three/drei";
 import { useReducedMotion } from "framer-motion";
+import { ErrorBoundary } from "react-error-boundary";
 import useDocumentVisibility from "../../hooks/useDocumentVisibility";
 import useInViewState from "../../hooks/useInViewState";
 import HeroGradientOverlay from "./HeroGradientOverlay";
@@ -18,6 +19,29 @@ const HeroScene = dynamic(() => import("./HeroScene"), {
 interface HeroBackgroundV2Props {
   variant?: "default" | "minimal";
   className?: string;
+}
+
+/**
+ * Check if WebGL is available in the browser
+ */
+function checkWebGLSupport(): boolean {
+  if (typeof window === "undefined") return false;
+
+  try {
+    const canvas = document.createElement("canvas");
+    const gl = canvas.getContext("webgl") || canvas.getContext("experimental-webgl");
+    return !!gl;
+  } catch (e) {
+    return false;
+  }
+}
+
+/**
+ * Error fallback component for Canvas failures
+ */
+function CanvasErrorFallback({ error }: { error: Error }) {
+  console.error("[HeroBackground] Canvas failed to render:", error);
+  return null; // Gracefully degrade to just the gradient overlay
 }
 
 /**
@@ -110,14 +134,32 @@ export default function HeroBackgroundV2({
   const isDocumentVisible = useDocumentVisibility();
   const [showCanvas, setShowCanvas] = useState(false);
   const [quality, setQuality] = useState(1);
+  const [webGLSupported, setWebGLSupported] = useState(true);
   const staticContainerRef = useRef<HTMLDivElement>(null);
+  const hasLoggedMount = useRef(false);
+
+  // Check WebGL support on mount
+  useEffect(() => {
+    const hasWebGL = checkWebGLSupport();
+    setWebGLSupported(hasWebGL);
+
+    if (!hasWebGL) {
+      console.warn("[HeroBackground] WebGL not supported, falling back to gradient only");
+    } else {
+      console.log("[HeroBackground] WebGL supported, initializing Canvas");
+    }
+  }, []);
 
   // Only show canvas when in viewport and document is visible
   useEffect(() => {
-    if (isInViewport && isDocumentVisible) {
+    if (isInViewport && isDocumentVisible && webGLSupported) {
+      if (!hasLoggedMount.current) {
+        console.log("[HeroBackground] Canvas conditions met - isInViewport:", isInViewport, "isDocumentVisible:", isDocumentVisible, "webGLSupported:", webGLSupported);
+        hasLoggedMount.current = true;
+      }
       setShowCanvas(true);
     }
-  }, [isInViewport, isDocumentVisible]);
+  }, [isInViewport, isDocumentVisible, webGLSupported]);
 
   // Fallback for reduced motion or low-end devices
   if (prefersReducedMotion) {
@@ -162,39 +204,50 @@ export default function HeroBackgroundV2({
       {/* Aurora-style CSS gradient mesh overlay */}
       <HeroGradientOverlay quality={quality} />
 
-      {/* WebGL canvas - only render when in viewport */}
+      {/* WebGL canvas - only render when in viewport and WebGL is supported */}
       {showCanvas && (
-        <Suspense fallback={null}>
-          <Canvas
-            dpr={[1, 2]}
-            gl={{
-              antialias: true,
-              alpha: true,
-              powerPreference: "high-performance",
-              precision: "highp",
-              stencil: false,
-              depth: true,
-            }}
-            camera={{
-              position: [0, 0, 100],
-              far: 10000,
-              near: 0.1,
-              fov: 75,
-            }}
-            style={{
-              position: "absolute",
-              top: 0,
-              left: 0,
-              width: "100%",
-              height: "100%",
-            }}
-          >
-            <HeroBackgroundInner
-              variant={variant}
-              onPerformanceDegrade={setQuality}
-            />
-          </Canvas>
-        </Suspense>
+        <ErrorBoundary
+          FallbackComponent={CanvasErrorFallback}
+          onError={(error, errorInfo) => {
+            console.error("[HeroBackground] ErrorBoundary caught error:", error, errorInfo);
+          }}
+        >
+          <Suspense fallback={null}>
+            <Canvas
+              onCreated={(state) => {
+                console.log("[HeroBackground] Canvas created successfully", state);
+              }}
+              dpr={[1, 2]}
+              gl={{
+                antialias: true,
+                alpha: true,
+                powerPreference: "high-performance",
+                precision: "highp",
+                stencil: false,
+                depth: true,
+              }}
+              camera={{
+                position: [0, 0, 100],
+                far: 10000,
+                near: 0.1,
+                fov: 75,
+              }}
+              style={{
+                position: "absolute",
+                top: 0,
+                left: 0,
+                width: "100%",
+                height: "100%",
+                zIndex: 2, // Above gradient overlay (zIndex: 1)
+              }}
+            >
+              <HeroBackgroundInner
+                variant={variant}
+                onPerformanceDegrade={setQuality}
+              />
+            </Canvas>
+          </Suspense>
+        </ErrorBoundary>
       )}
     </div>
   );
