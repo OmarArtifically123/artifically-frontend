@@ -110,6 +110,7 @@ export default function HeroBackgroundV2({
   const isDocumentVisible = useDocumentVisibility();
   const [showCanvas, setShowCanvas] = useState(false);
   const [quality, setQuality] = useState(1);
+  const staticContainerRef = useRef<HTMLDivElement>(null);
 
   // Only show canvas when in viewport and document is visible
   useEffect(() => {
@@ -122,7 +123,7 @@ export default function HeroBackgroundV2({
   if (prefersReducedMotion) {
     return (
       <div
-        ref={containerRef}
+        ref={staticContainerRef}
         className={`hero-background hero-background--static ${className}`}
         aria-hidden="true"
         style={{
