@@ -145,7 +145,7 @@ export default function HeroBackgroundV2({
 
   return (
     <div
-      ref={containerRef}
+      ref={containerRef as React.RefObject<HTMLDivElement>}
       className={`hero-background hero-background--v2 ${className}`}
       aria-hidden="true"
       style={{
