@@ -24,106 +24,126 @@ export default function HeroGradientOverlay({ quality = 1, theme = "dark" }: Her
   const containerRef = useRef<HTMLDivElement>(null);
   const animationRef = useRef<number>();
 
-  // Theme-aware gradient definitions
+  // Theme-aware gradient definitions - DRAMATICALLY DIFFERENT
   const gradients = useMemo(() => {
     if (theme === "light") {
+      // LIGHT THEME: Vibrant, energetic, airy with bright rainbow colors
       return [
         {
-          position: "30% 20%",
-          colors: ["#0ea5e9", "#f8f9ff"], // Electric blue to light bg
-          blur: 120,
-          opacity: 0.4,
-        },
-        {
-          position: "70% 80%",
-          colors: ["#7c3aed", "#f8f9ff"], // Violet to light bg
-          blur: 100,
-          opacity: 0.3,
-        },
-        {
-          position: "50% 50%",
-          colors: ["#06b6d4", "#f8f9ff"], // Cyan to light bg
-          blur: 90,
-          opacity: 0.25,
-        },
-        {
-          position: "15% 70%",
-          colors: ["#f59e0b", "#f8f9ff"], // Gold to light bg
-          blur: 110,
-          opacity: 0.2,
-        },
-        {
-          position: "85% 30%",
-          colors: ["#ec4899", "#f8f9ff"], // Rose to light bg
-          blur: 100,
-          opacity: 0.15,
-        },
-      ];
-    } else if (theme === "contrast") {
-      return [
-        {
-          position: "30% 20%",
-          colors: ["#00d4ff", "#000000"], // Cyan to black
-          blur: 120,
-          opacity: 0.8,
-        },
-        {
-          position: "70% 80%",
-          colors: ["#00ffe0", "#000000"], // Teal to black
-          blur: 100,
+          position: "25% 15%",
+          colors: ["#1f7eff", "#ffffff"], // Vibrant blue to white
+          blur: 140,
           opacity: 0.6,
         },
         {
-          position: "50% 50%",
-          colors: ["#ff00ff", "#000000"], // Magenta to black
-          blur: 90,
+          position: "75% 85%",
+          colors: ["#ec4899", "#ffffff"], // Hot pink to white
+          blur: 130,
           opacity: 0.5,
         },
         {
-          position: "15% 70%",
-          colors: ["#ffff00", "#000000"], // Yellow to black
+          position: "50% 40%",
+          colors: ["#7c3aed", "#ffffff"], // Royal purple to white
+          blur: 120,
+          opacity: 0.45,
+        },
+        {
+          position: "15% 65%",
+          colors: ["#f59e0b", "#ffffff"], // Warm amber to white
           blur: 110,
           opacity: 0.4,
         },
         {
-          position: "85% 30%",
-          colors: ["#00eaff", "#000000"], // Electric cyan to black
-          blur: 100,
+          position: "85% 25%",
+          colors: ["#0ea5e9", "#ffffff"], // Sky blue to white
+          blur: 125,
+          opacity: 0.35,
+        },
+        {
+          position: "40% 75%",
+          colors: ["#10b981", "#ffffff"], // Emerald to white
+          blur: 115,
           opacity: 0.3,
         },
       ];
-    } else {
-      // Dark theme (default)
+    } else if (theme === "contrast") {
+      // CONTRAST THEME: Electric, neon, cyberpunk with sharp colors and no blur
       return [
         {
-          position: "30% 20%",
-          colors: ["#0ea5e9", "#0a1628"], // Electric blue to deep blue
-          blur: 120,
-          opacity: 0.6,
+          position: "20% 20%",
+          colors: ["#00eaff", "#000000"], // Electric cyan to black
+          blur: 0, // NO BLUR for sharp contrast
+          opacity: 0.9,
         },
         {
-          position: "70% 80%",
-          colors: ["#7c3aed", "#0a1628"], // Violet to deep blue
-          blur: 100,
-          opacity: 0.4,
+          position: "80% 80%",
+          colors: ["#ff00ff", "#000000"], // Neon magenta to black
+          blur: 0,
+          opacity: 0.8,
         },
         {
           position: "50% 50%",
-          colors: ["#06b6d4", "#0a1628"], // Cyan to deep blue
-          blur: 90,
-          opacity: 0.3,
+          colors: ["#ffff00", "#000000"], // Electric yellow to black
+          blur: 0,
+          opacity: 0.7,
         },
         {
-          position: "15% 70%",
-          colors: ["#f59e0b", "#0a1628"], // Gold to deep blue
-          blur: 110,
-          opacity: 0.25,
+          position: "10% 90%",
+          colors: ["#00ffe0", "#000000"], // Neon teal to black
+          blur: 0,
+          opacity: 0.6,
         },
         {
-          position: "85% 30%",
-          colors: ["#f43f5e", "#0a1628"], // Rose to deep blue
-          blur: 100,
-          opacity: 0.2,
+          position: "90% 10%",
+          colors: ["#00d4ff", "#000000"], // Bright cyan to black
+          blur: 0,
+          opacity: 0.5,
+        },
+        {
+          position: "35% 65%",
+          colors: ["#ff00aa", "#000000"], // Hot magenta to black
+          blur: 0,
+          opacity: 0.4,
+        },
+      ];
+    } else {
+      // DARK THEME: Deep, moody, mysterious with deep space colors
+      return [
+        {
+          position: "28% 18%",
+          colors: ["#3b82f6", "#0a0a1a"], // Deep blue to near-black
+          blur: 150,
+          opacity: 0.7,
+        },
+        {
+          position: "72% 82%",
+          colors: ["#8b5cf6", "#0a0a1a"], // Deep purple to near-black
+          blur: 140,
+          opacity: 0.6,
+        },
+        {
+          position: "48% 52%",
+          colors: ["#0ea5e9", "#0a0a1a"], // Sky blue to near-black
+          blur: 130,
+          opacity: 0.5,
+        },
+        {
+          position: "12% 68%",
+          colors: ["#7c3aed", "#0a0a1a"], // Violet to near-black
+          blur: 145,
+          opacity: 0.45,
+        },
+        {
+          position: "88% 32%",
+          colors: ["#06b6d4", "#0a0a1a"], // Cyan to near-black
+          blur: 135,
+          opacity: 0.4,
+        },
+        {
+          position: "60% 25%",
+          colors: ["#4f46e5", "#0a0a1a"], // Indigo to near-black
+          blur: 125,
+          opacity: 0.35,
         },
       ];
     }

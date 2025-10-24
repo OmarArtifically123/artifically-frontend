@@ -26,7 +26,7 @@ const solutionsMenuId = "mega-menu-solutions";
 export default function Header({ user, onSignIn, onSignUp, onSignOut }) {
   const navigate = useViewTransitionNavigate();
   const pathname = usePathname() ?? "/";
-  const { darkMode } = useTheme();
+  const { theme, darkMode, isLight, isDark, isContrast } = useTheme();
   const [scrolled, setScrolled] = useState(false);
   const [predictedNav, setPredictedNav] = useState(null);
   const predictionTimerRef = useRef(null);
@@ -1005,15 +1005,17 @@ export default function Header({ user, onSignIn, onSignUp, onSignOut }) {
           }}
         >
           <LogoWordmark
-            variant={darkMode ? "dark" : "light"}
+            variant={isContrast ? "contrast" : (isDark ? "dark" : "light")}
             style={{
               height: "48px",
               width: "auto",
               display: "block",
-              filter: darkMode
+              filter: isContrast
+                ? "drop-shadow(0 0 20px color-mix(in oklch, var(--brand-primary) 80%, transparent))"
+                : isDark
                 ? "drop-shadow(0 0 16px color-mix(in oklch, var(--brand-glow) 55%, transparent))"
                 : "drop-shadow(0 0 10px color-mix(in oklch, var(--brand-primary) 45%, transparent))",
-              transition: "filter var(--transition-normal)",
+              transition: "filter 0.3s ease, opacity 0.3s ease",
             }}
           />
         </Link>

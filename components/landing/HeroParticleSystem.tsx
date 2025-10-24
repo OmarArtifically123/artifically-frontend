@@ -44,35 +44,37 @@ export default function HeroParticleSystem({
     console.log("[HeroParticleSystem] Initializing with", count, "particles, animation:", enableAnimation);
   }, []);
 
-  // Theme-aware color palettes
+  // Theme-aware color palettes - DRAMATICALLY DIFFERENT
   const colors = useMemo(() => {
     if (theme === "light") {
+      // LIGHT: Vibrant rainbow colors with bright, energetic feel
       return {
-        deepBlue: new THREE.Color("#e0f2fe"),
-        electricBlue: new THREE.Color("#0ea5e9"),
-        cyan: new THREE.Color("#06b6d4"),
-        violet: new THREE.Color("#7c3aed"),
-        gold: new THREE.Color("#f59e0b"),
-        rose: new THREE.Color("#ec4899"),
+        primary: new THREE.Color("#1f7eff"), // Vibrant blue
+        secondary: new THREE.Color("#ec4899"), // Hot pink
+        tertiary: new THREE.Color("#f59e0b"), // Warm amber
+        accent1: new THREE.Color("#7c3aed"), // Royal purple
+        accent2: new THREE.Color("#10b981"), // Emerald green
+        accent3: new THREE.Color("#0ea5e9"), // Sky blue
       };
     } else if (theme === "contrast") {
+      // CONTRAST: Electric neon colors with maximum saturation
       return {
-        deepBlue: new THREE.Color("#00d4ff"),
-        electricBlue: new THREE.Color("#00eaff"),
-        cyan: new THREE.Color("#00ffe0"),
-        violet: new THREE.Color("#ff00ff"),
-        gold: new THREE.Color("#ffff00"),
-        rose: new THREE.Color("#ff00ff"),
+        primary: new THREE.Color("#00eaff"), // Electric cyan
+        secondary: new THREE.Color("#ff00ff"), // Neon magenta
+        tertiary: new THREE.Color("#ffff00"), // Electric yellow
+        accent1: new THREE.Color("#00ffe0"), // Neon teal
+        accent2: new THREE.Color("#ff00aa"), // Hot pink
+        accent3: new THREE.Color("#00d4ff"), // Bright cyan
       };
     } else {
-      // Dark theme (default)
+      // DARK: Deep mysterious space colors with subtle glow
       return {
-        deepBlue: new THREE.Color("#0a1628"),
-        electricBlue: new THREE.Color("#0ea5e9"),
-        cyan: new THREE.Color("#06b6d4"),
-        violet: new THREE.Color("#7c3aed"),
-        gold: new THREE.Color("#f59e0b"),
-        rose: new THREE.Color("#f43f5e"),
+        primary: new THREE.Color("#3b82f6"), // Deep blue
+        secondary: new THREE.Color("#8b5cf6"), // Deep purple
+        tertiary: new THREE.Color("#0ea5e9"), // Sky blue
+        accent1: new THREE.Color("#7c3aed"), // Violet
+        accent2: new THREE.Color("#06b6d4"), // Cyan
+        accent3: new THREE.Color("#4f46e5"), // Indigo
       };
     }
   }, [theme]);
@@ -103,8 +105,8 @@ export default function HeroParticleSystem({
       positions[i * 3 + 2] = z;
 
       // Color: distribute across palette
-      const colorIndex = Math.floor(random() * 4);
-      const colorMap = [colors.electricBlue, colors.cyan, colors.violet, colors.gold];
+      const colorIndex = Math.floor(random() * 6);
+      const colorMap = [colors.primary, colors.secondary, colors.tertiary, colors.accent1, colors.accent2, colors.accent3];
       const color = colorMap[colorIndex];
       colors_[i * 3] = color.r;
       colors_[i * 3 + 1] = color.g;
@@ -132,17 +134,18 @@ export default function HeroParticleSystem({
     return geom;
   }, [particleData]);
 
-  // Create sophisticated material with custom shader
+  // Create sophisticated material with theme-aware blending
   const material = useMemo(() => {
     return new THREE.PointsMaterial({
-      size: 2,
+      size: theme === "contrast" ? 3 : theme === "light" ? 2.5 : 2,
       sizeAttenuation: true,
       transparent: true,
       vertexColors: true,
       depthWrite: false,
-      blending: THREE.AdditiveBlending,
+      blending: theme === "contrast" ? THREE.AdditiveBlending : THREE.AdditiveBlending,
+      opacity: theme === "contrast" ? 0.95 : theme === "light" ? 0.85 : 0.8,
     });
-  }, []);
+  }, [theme]);
 
   // Create points mesh
   useEffect(() => {
