@@ -1,0 +1,410 @@
+/**
+ * Mobile-First Responsive Utilities
+ *
+ * This file contains utility classes for common responsive patterns
+ * following WCAG 2.1 Level AAA standards and mobile-first best practices.
+ */
+
+@layer utilities {
+  /* ============================================
+     TOUCH TARGET UTILITIES (WCAG 2.1 Level AAA)
+     ============================================ */
+
+  /**
+   * Minimum touch target size: 48x48px
+   * Use for all interactive elements on mobile
+   */
+  .touch-target {
+    min-width: 48px;
+    min-height: 48px;
+    @apply flex items-center justify-center;
+  }
+
+  .touch-target-comfortable {
+    min-width: 52px;
+    min-height: 52px;
+    @apply flex items-center justify-center;
+  }
+
+  .touch-target-spacious {
+    min-width: 56px;
+    min-height: 56px;
+    @apply flex items-center justify-center;
+  }
+
+  /**
+   * Interactive element spacing
+   * Ensures 16px minimum spacing between touch targets
+   */
+  .touch-spacing {
+    @apply space-y-4;
+  }
+
+  .touch-spacing > * + * {
+    margin-top: 1rem; /* 16px */
+  }
+
+  .touch-spacing-comfortable > * + * {
+    margin-top: 1.25rem; /* 20px */
+  }
+
+  /* ============================================
+     RESPONSIVE CONTAINER UTILITIES
+     ============================================ */
+
+  /**
+   * Mobile-first container with responsive padding
+   * Mobile: 16px, Tablet: 24px, Desktop: 48px
+   */
+  .container-responsive {
+    @apply w-full mx-auto;
+    @apply px-4 sm:px-6 md:px-8 lg:px-12 xl:px-16;
+    max-width: 1440px;
+  }
+
+  .container-narrow {
+    @apply w-full mx-auto;
+    @apply px-4 sm:px-6 md:px-8 lg:px-12;
+    max-width: 1024px;
+  }
+
+  .container-wide {
+    @apply w-full mx-auto;
+    @apply px-4 sm:px-6 md:px-8 lg:px-12 xl:px-20 2xl:px-24;
+    max-width: 1920px;
+  }
+
+  /**
+   * Section spacing - vertical rhythm
+   */
+  .section-spacing {
+    @apply py-8 sm:py-12 md:py-16 lg:py-20 xl:py-24;
+  }
+
+  .section-spacing-compact {
+    @apply py-6 sm:py-8 md:py-12 lg:py-16;
+  }
+
+  .section-spacing-spacious {
+    @apply py-12 sm:py-16 md:py-20 lg:py-28 xl:py-32;
+  }
+
+  /* ============================================
+     RESPONSIVE GRID UTILITIES
+     ============================================ */
+
+  /**
+   * Mobile-first responsive grid
+   * Mobile: 1 column, Tablet: 2 columns, Desktop: 3-4 columns
+   */
+  .grid-responsive {
+    @apply grid gap-4 sm:gap-6 lg:gap-8;
+    @apply grid-cols-1 sm:grid-cols-2 lg:grid-cols-3;
+  }
+
+  .grid-responsive-2 {
+    @apply grid gap-4 sm:gap-6 lg:gap-8;
+    @apply grid-cols-1 md:grid-cols-2;
+  }
+
+  .grid-responsive-4 {
+    @apply grid gap-4 sm:gap-6 lg:gap-8;
+    @apply grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4;
+  }
+
+  /**
+   * Auto-fit grid with minimum card size
+   */
+  .grid-auto-fit {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(min(280px, 100%), 1fr));
+    @apply gap-4 sm:gap-6 lg:gap-8;
+  }
+
+  .grid-auto-fill {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(min(280px, 100%), 1fr));
+    @apply gap-4 sm:gap-6 lg:gap-8;
+  }
+
+  /* ============================================
+     RESPONSIVE STACK UTILITIES
+     ============================================ */
+
+  /**
+   * Stack vertically on mobile, horizontal on desktop
+   */
+  .stack-responsive {
+    @apply flex flex-col gap-4 sm:gap-6;
+  }
+
+  .stack-to-row {
+    @apply flex flex-col lg:flex-row gap-4 sm:gap-6 lg:gap-8;
+  }
+
+  .stack-to-row-reverse {
+    @apply flex flex-col lg:flex-row-reverse gap-4 sm:gap-6 lg:gap-8;
+  }
+
+  /* ============================================
+     BUTTON RESPONSIVE UTILITIES
+     ============================================ */
+
+  /**
+   * Full-width on mobile, auto on desktop
+   */
+  .button-responsive {
+    @apply w-full sm:w-auto;
+    @apply min-h-touch px-6;
+  }
+
+  /**
+   * Button groups with proper spacing
+   */
+  .button-group {
+    @apply flex flex-col sm:flex-row gap-3 sm:gap-4;
+  }
+
+  .button-group-vertical {
+    @apply flex flex-col gap-3;
+  }
+
+  .button-group > * {
+    @apply w-full sm:w-auto;
+  }
+
+  /* ============================================
+     TYPOGRAPHY RESPONSIVE UTILITIES
+     ============================================ */
+
+  /**
+   * Responsive headings with optimal line height
+   */
+  .heading-responsive {
+    @apply leading-mobile-tight sm:leading-mobile-snug lg:leading-desktop-snug;
+  }
+
+  .body-responsive {
+    @apply leading-mobile-relaxed lg:leading-desktop-normal;
+  }
+
+  /**
+   * Prevent text orphans (single word on last line)
+   */
+  .no-orphans {
+    text-wrap: pretty;
+  }
+
+  /**
+   * Optimal reading width (45-75 characters per line)
+   */
+  .reading-width {
+    max-width: 65ch;
+  }
+
+  /* ============================================
+     IMAGE RESPONSIVE UTILITIES
+     ============================================ */
+
+  /**
+   * Responsive aspect ratios
+   */
+  .aspect-responsive-square {
+    @apply aspect-square;
+  }
+
+  .aspect-responsive-video {
+    @apply aspect-video;
+  }
+
+  .aspect-responsive-portrait {
+    @apply aspect-[3/4] lg:aspect-[4/5];
+  }
+
+  .aspect-responsive-landscape {
+    @apply aspect-[4/3] lg:aspect-[16/9];
+  }
+
+  /**
+   * Responsive image container
+   */
+  .img-responsive {
+    @apply w-full h-auto;
+    @apply rounded-lg sm:rounded-xl lg:rounded-2xl;
+  }
+
+  /* ============================================
+     MOBILE-SPECIFIC UTILITIES
+     ============================================ */
+
+  /**
+   * Hide on mobile, show on desktop
+   */
+  .hide-mobile {
+    @apply hidden md:block;
+  }
+
+  /**
+   * Show on mobile, hide on desktop
+   */
+  .show-mobile {
+    @apply block md:hidden;
+  }
+
+  /**
+   * Mobile-optimized scrolling
+   */
+  .scroll-mobile {
+    -webkit-overflow-scrolling: touch;
+    overscroll-behavior: contain;
+  }
+
+  /* ============================================
+     SAFE AREA UTILITIES (Notches, Punch Holes)
+     ============================================ */
+
+  /**
+   * Respect device safe areas (iPhone notch, etc.)
+   */
+  .safe-top {
+    padding-top: env(safe-area-inset-top);
+  }
+
+  .safe-bottom {
+    padding-bottom: env(safe-area-inset-bottom);
+  }
+
+  .safe-left {
+    padding-left: env(safe-area-inset-left);
+  }
+
+  .safe-right {
+    padding-right: env(safe-area-inset-right);
+  }
+
+  .safe-all {
+    padding-top: env(safe-area-inset-top);
+    padding-right: env(safe-area-inset-right);
+    padding-bottom: env(safe-area-inset-bottom);
+    padding-left: env(safe-area-inset-left);
+  }
+
+  /* ============================================
+     FOCUS VISIBLE UTILITIES
+     ============================================ */
+
+  /**
+   * Accessible focus indicators
+   */
+  .focus-visible-outline {
+    @apply focus-visible:outline-2 focus-visible:outline-offset-2;
+    @apply focus-visible:outline-blue-500;
+  }
+
+  .focus-visible-ring {
+    @apply focus-visible:ring-2 focus-visible:ring-offset-2;
+    @apply focus-visible:ring-blue-500;
+  }
+
+  /* ============================================
+     MOBILE FORM UTILITIES
+     ============================================ */
+
+  /**
+   * Mobile-optimized form inputs
+   * Prevents iOS zoom when input font-size < 16px
+   */
+  .input-mobile {
+    @apply min-h-touch w-full;
+    @apply px-4 py-3;
+    @apply text-base; /* 16px minimum to prevent iOS zoom */
+    @apply rounded-lg sm:rounded-xl;
+    @apply border-2 border-gray-300;
+    @apply transition-colors duration-150;
+  }
+
+  .input-mobile:focus {
+    @apply border-blue-500 outline-none ring-2 ring-blue-500/20;
+  }
+
+  /**
+   * Form field with label
+   */
+  .field-mobile {
+    @apply flex flex-col gap-2;
+  }
+
+  .field-mobile label {
+    @apply text-sm font-medium;
+  }
+
+  /* ============================================
+     CARD RESPONSIVE UTILITIES
+     ============================================ */
+
+  /**
+   * Responsive card with proper spacing and touch targets
+   */
+  .card-responsive {
+    @apply rounded-xl sm:rounded-2xl;
+    @apply p-4 sm:p-6 lg:p-8;
+    @apply bg-white shadow-sm;
+    @apply transition-shadow duration-200;
+  }
+
+  .card-responsive:hover {
+    @apply shadow-md;
+  }
+
+  /* ============================================
+     MOBILE PERFORMANCE UTILITIES
+     ============================================ */
+
+  /**
+   * Hardware acceleration for smooth animations
+   */
+  .gpu-accelerated {
+    transform: translateZ(0);
+    backface-visibility: hidden;
+    perspective: 1000px;
+  }
+
+  /**
+   * Reduce motion for users who prefer it
+   */
+  @media (prefers-reduced-motion: reduce) {
+    .respect-motion-preference {
+      animation: none !important;
+      transition: none !important;
+    }
+  }
+}
+
+/* ============================================
+   CUSTOM MOBILE-FIRST BREAKPOINT UTILITIES
+   ============================================ */
+
+/**
+ * Touch-enabled device styles
+ * Applies to devices without hover (touch devices)
+ */
+@media (hover: none) and (pointer: coarse) {
+  .touch-device\:touch-styles {
+    /* Increase button sizes on touch devices */
+    min-height: 52px;
+  }
+
+  /* Remove hover effects on touch devices */
+  .touch-device\:no-hover:hover {
+    transform: none;
+  }
+}
+
+/**
+ * High-resolution displays (Retina, 4K)
+ */
+@media (-webkit-min-device-pixel-ratio: 2), (min-resolution: 192dpi) {
+  .retina\:high-res {
+    /* Adjust for high-res displays */
+  }
+}

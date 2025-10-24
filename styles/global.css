@@ -6,6 +6,9 @@
 @tailwind components;
 @tailwind utilities;
 
+/* Mobile-First Responsive Utilities */
+@import url("./responsive.css");
+
 :root {
   --responsive-body-line-height-mobile: 1.6;
   --responsive-body-line-height-desktop: 1.5;

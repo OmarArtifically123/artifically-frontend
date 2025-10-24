@@ -89,6 +89,14 @@
     background: var(--ads-color-semantic-brand-primary, #1f7eff);
     color: var(--ads-color-semantic-brand-onPrimary, #ffffff);
     box-shadow: var(--ads-shadows-xs, 0 1px 2px rgba(15, 23, 42, 0.08));
+    /* Touch target accessibility (WCAG 2.1 Level AAA) */
+    min-height: 48px;
+    min-width: fit-content;
+    /* Prevent iOS zoom on focus */
+    font-size: 1rem; /* 16px minimum */
+    /* Touch optimization */
+    touch-action: manipulation;
+    -webkit-tap-highlight-color: transparent;
   }
 
   .ads-button[data-variant='secondary'] {
@@ -119,12 +127,35 @@
 
   .ads-button[data-size='sm'] {
     padding: var(--ads-spacing-scale-1, 0.25rem) var(--ads-spacing-scale-3, 0.75rem);
-    font-size: var(--ads-typography-sizes-sm, 0.875rem);
+    /* Keep minimum 16px font size to prevent iOS zoom */
+    font-size: 1rem;
+    /* Still maintain 48px minimum height */
+    min-height: 48px;
+  }
+
+  .ads-button[data-size='md'] {
+    /* Default medium size (already set in base) */
+    min-height: 52px;
   }
 
   .ads-button[data-size='lg'] {
     padding: var(--ads-spacing-scale-3, 0.75rem) var(--ads-spacing-scale-5, 1.25rem);
-    font-size: var(--ads-typography-sizes-lg, 1.125rem);
+    font-size: 1.125rem;
+    /* Larger comfortable touch target */
+    min-height: 56px;
+  }
+
+  /* Responsive button sizing */
+  @media (min-width: 768px) {
+    .ads-button[data-size='lg'] {
+      font-size: 1.125rem;
+    }
+  }
+
+  @media (min-width: 1024px) {
+    .ads-button[data-size='lg'] {
+      font-size: 1.25rem;
+    }
   }
 
   .ads-button[data-disabled='true'] {
@@ -196,12 +227,25 @@
     padding: var(--ads-spacing-scale-2, 0.5rem) var(--ads-spacing-scale-3, 0.75rem);
     font-size: var(--ads-typography-sizes-md, 1rem);
     color: inherit;
+    /* Mobile-first touch optimization (WCAG 2.1 Level AAA) */
+    min-height: 48px;
+    line-height: 1.5;
+    /* Touch optimization */
+    touch-action: manipulation;
   }
 
   .ads-field:focus {
     outline: none;
     border-color: var(--ads-color-semantic-brand-primary, #1f7eff);
     box-shadow: 0 0 0 3px color-mix(in srgb, var(--ads-color-semantic-brand-primary, #1f7eff) 30%, transparent);
+  }
+
+  /* Responsive input sizing */
+  @media (min-width: 768px) {
+    .ads-field {
+      min-height: 52px;
+      padding: var(--ads-spacing-scale-3, 0.75rem) var(--ads-spacing-scale-4, 1rem);
+    }
   }
 
   .ads-autocomplete__list {

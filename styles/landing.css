@@ -262,11 +262,16 @@
   display: inline-flex;
   align-items: center;
   justify-content: center;
+  /* Minimum 16px font to prevent iOS zoom */
   font-size: 16px;
   font-weight: 600;
-  height: 56px;
+  /* Use min-height for flexibility */
+  min-height: 56px;
   border-radius: 16px;
   cursor: pointer;
+  /* Touch optimization */
+  touch-action: manipulation;
+  -webkit-tap-highlight-color: transparent;
   transition: transform 200ms ease-out, box-shadow 200ms ease-out;
   position: relative;
   overflow: hidden;
