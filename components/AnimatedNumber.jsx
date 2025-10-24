@@ -1,6 +1,6 @@
 "use client";
 
-import { useSpring, animated } from "react-spring";
+import { useSpring, animated } from "@react-spring/web";
 
 const AnimatedNumber = ({ value, precision = 0, prefix = "", suffix = "" }) => {
   const props = useSpring({
