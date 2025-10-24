@@ -118,9 +118,8 @@ export default function HeroBackgroundV2({
     }
   }, [isInViewport, isDocumentVisible]);
 
-  // Fallback for reduced motion or low-end devices (also temporarily disabling WebGL due to zustand version conflict)
-  const useStaticBackground = true; // TODO: Fix zustand version conflict with @react-three/fiber
-  if (prefersReducedMotion || useStaticBackground) {
+  // Fallback for reduced motion or low-end devices
+  if (prefersReducedMotion) {
     return (
       <div
         ref={containerRef}

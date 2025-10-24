@@ -20,7 +20,8 @@
       "Bash(taskkill //F //PID 100)",
       "Bash(npm install:*)",
       "Bash(awk:*)",
-      "Bash(for pid in 10900 18628 5304 8004 8776)"
+      "Bash(for pid in 10900 18628 5304 8004 8776)",
+      "Bash(taskkill //F //PID 16472)"
     ],
     "deny": [],
     "ask": []
