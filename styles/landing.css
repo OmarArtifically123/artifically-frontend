@@ -412,14 +412,10 @@
   height: 580px;
   border-radius: 32px;
   padding: 32px;
-  background: linear-gradient(135deg,
-    rgba(15, 23, 42, 0.8) 0%,
-    rgba(30, 41, 59, 0.7) 50%,
-    rgba(15, 23, 42, 0.8) 100%
-  );
-  border: 1px solid rgba(14, 165, 233, 0.3);
-  backdrop-filter: blur(32px);
-  box-shadow: 0 24px 80px rgba(14, 165, 233, 0.2), inset 0 1px 0 rgba(255, 255, 255, 0.1);
+  background: var(--glass-bg);
+  border: 1px solid var(--border-default);
+  backdrop-filter: var(--glass-blur);
+  box-shadow: var(--shadow-lg);
   display: flex;
   flex-direction: column;
   gap: 28px;
@@ -435,8 +431,8 @@
   font-weight: 700;
   font-size: 11px;
   text-transform: uppercase;
-  color: rgba(255, 255, 255, 0.6);
-  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+  color: var(--text-tertiary);
+  border-bottom: 1px solid var(--border-subtle);
   padding-bottom: 16px;
 }
 
@@ -445,9 +441,9 @@
   position: relative;
   padding: 20px;
   padding-bottom: calc(20px + var(--preview-card-tooltip-height, 120px));
-  background: #1a1f35;
+  background: var(--bg-secondary);
   border-radius: 20px;
-  border: 1px solid rgba(255, 255, 255, 0.1);
+  border: 1px solid var(--border-default);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -591,11 +587,11 @@
   flex-direction: column;
   justify-content: center;
   border-radius: 16px;
-  background: rgba(15, 23, 42, 0.92);
-  border: 1px solid rgba(148, 163, 184, 0.3);
-  box-shadow: 0 12px 32px rgba(8, 14, 32, 0.35);
-  color: white;
-  backdrop-filter: blur(16px);
+  background: var(--bg-elevated);
+  border: 1px solid var(--border-strong);
+  box-shadow: var(--shadow-md);
+  color: var(--text-primary);
+  backdrop-filter: var(--glass-blur);
 }
 
 .preview-card__tooltip-title {
@@ -603,17 +599,18 @@
   font-weight: 600;
   font-size: 0.95rem;
   margin-bottom: 6px;
+  color: var(--text-primary);
 }
 
 .preview-card__tooltip p {
   font-size: 0.85rem;
   line-height: 1.5;
-  color: rgba(255, 255, 255, 0.75);
+  color: var(--text-secondary);
 }
 
 .preview-card__annotation {
   font-size: 1rem;
-  color: rgba(255, 255, 255, 0.75);
+  color: var(--text-secondary);
 }
 
 .hero-quote {
@@ -623,19 +620,19 @@
 
 .hero-quote__author {
   font-size: 0.9rem;
-  color: rgba(255, 255, 255, 0.6);
+  color: var(--text-tertiary);
 }
 
 .preview-floating {
   position: absolute;
   padding: 12px 20px;
-  background: rgba(0, 0, 0, 0.7);
-  backdrop-filter: blur(12px);
-  border: 1px solid rgba(255, 255, 255, 0.2);
+  background: var(--glass-bg);
+  backdrop-filter: var(--glass-blur);
+  border: 1px solid var(--border-default);
   border-radius: 12px;
-  color: white;
+  color: var(--text-primary);
   font-size: 13px;
-  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.4);
+  box-shadow: var(--shadow-md);
   display: inline-flex;
   align-items: center;
   gap: 8px;
