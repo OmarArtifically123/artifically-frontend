@@ -160,13 +160,25 @@ export default function HeroParticleSystem({
   useFrame((state, delta) => {
     if (!particlesRef.current || !enableAnimation) return;
 
+    // Skip rendering if WebGL context is lost
+    const renderer = state.gl;
+    if (!renderer || !renderer.getContext()) {
+      return;
+    }
+
     clockRef.current += delta;
+
+    // Safety checks for geometry attributes
+    if (!geometry.attributes.position || !geometry.attributes.size) {
+      console.warn("[HeroParticleSystem] Geometry attributes missing, skipping frame");
+      return;
+    }
 
     const positions = geometry.attributes.position.array as Float32Array;
     const sizes = geometry.attributes.size.array as Float32Array;
     const velocities = velocitiesRef.current;
 
-    if (!velocities) return;
+    if (!velocities || !positions || !sizes) return;
 
     // Update particles with curl noise
     for (let i = 0; i < count; i++) {
@@ -230,8 +242,13 @@ export default function HeroParticleSystem({
       sizes[i] = 0.8 + Math.sin(clockRef.current * 2 + i * 0.1) * 0.5;
     }
 
-    geometry.attributes.position.needsUpdate = true;
-    geometry.attributes.size.needsUpdate = true;
+    // Update attributes safely - wrap in try-catch to handle context loss
+    try {
+      geometry.attributes.position.needsUpdate = true;
+      geometry.attributes.size.needsUpdate = true;
+    } catch (error) {
+      console.warn("[HeroParticleSystem] Failed to update geometry attributes:", error);
+    }
   });
 
   // Cleanup on unmount

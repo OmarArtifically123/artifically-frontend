@@ -43,6 +43,7 @@ export default function HeroScene({
   const sceneRef = useRef<THREE.Scene>(null);
   const { scene, camera, gl } = useThree();
   const prefersReducedMotion = useReducedMotion();
+  const [contextLost, setContextLost] = useState(false);
 
   // Log HeroScene initialization
   useEffect(() => {
@@ -58,6 +59,30 @@ export default function HeroScene({
       console.log("[HeroScene] Component unmounted");
     };
   }, []);
+
+  // Handle WebGL context loss and restore
+  useEffect(() => {
+    const canvas = gl.domElement;
+
+    const handleContextLost = (event: Event) => {
+      event.preventDefault();
+      console.warn("[HeroScene] WebGL context lost, disabling post-processing");
+      setContextLost(true);
+    };
+
+    const handleContextRestored = () => {
+      console.log("[HeroScene] WebGL context restored, re-enabling post-processing");
+      setContextLost(false);
+    };
+
+    canvas.addEventListener("webglcontextlost", handleContextLost);
+    canvas.addEventListener("webglcontextrestored", handleContextRestored);
+
+    return () => {
+      canvas.removeEventListener("webglcontextlost", handleContextLost);
+      canvas.removeEventListener("webglcontextrestored", handleContextRestored);
+    };
+  }, [gl]);
 
   // Mouse tracking state with lerp smoothing
   const mouseStateRef = useRef<MouseState>({
@@ -161,8 +186,8 @@ export default function HeroScene({
         enableAnimation={!prefersReducedMotion}
       />
 
-      {/* Post-processing effects for desktop */}
-      {enablePostProcessing && !prefersReducedMotion && (
+      {/* Post-processing effects for desktop - disabled when context is lost */}
+      {enablePostProcessing && !prefersReducedMotion && !contextLost && (
         <EffectComposer>
           <Bloom
             luminanceThreshold={0.2}
