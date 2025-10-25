@@ -449,11 +449,11 @@
     color: var(--text-primary);
   }
 
-  /* Hero sections */
+  /* Hero sections - TRANSPARENT to show background */
   .page-hero,
   .hero-section,
   [class*="hero"] {
-    background-color: var(--bg-primary);
+    background-color: transparent;
     color: var(--text-primary);
   }
 

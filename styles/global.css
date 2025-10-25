@@ -79,12 +79,9 @@ button {
 
 main,
 section,
-header,
 footer,
 article {
   padding-inline: 1rem;
-  max-width: 100%;
-  overflow-x: hidden;
 }
 
 section,
@@ -5260,12 +5257,11 @@ body.solutions-mega-open {
 .hero[data-hero-version="reimagined"] .hero-background {
   position: fixed;
   inset: 0;
-  width: 100vw;
-  height: max(100dvh, 1500px);
   z-index: -1;
   pointer-events: none;
   opacity: 0.9;
   filter: saturate(120%);
+  overflow: hidden;
 }
 
 .hero[data-hero-version="reimagined"] .hero-content {

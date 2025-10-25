@@ -27,26 +27,50 @@ import {
 
 import useDocumentVisibility from "../../hooks/useDocumentVisibility";
 import { getNetworkInformation, prefersLowPower } from "../../utils/networkPreferences";
+import { useTheme } from "../../context/ThemeContext";
 
 const STATIC_GRADIENT_IMAGE_SET =
   "image-set(\n    url('/images/hero-background.avif') type('image/avif') 1x,\n    url('/images/hero-background.webp') type('image/webp') 1x,\n    url('/images/hero-background.jpg') type('image/jpeg') 1x\n  )";
 
-// Premium iridescent color palette - from cool intelligence to warm interaction
-const CORE_COLORS = {
-  deepBlue: "#0a1628",      // Deep intelligence base
-  electricBlue: "#0ea5e9",  // Primary AI color
-  cyan: "#06b6d4",          // Data streams
-  violet: "#7c3aed",        // Learning & thought
-  gold: "#f59e0b",          // Warmth & interaction
-  rose: "#f43f5e",          // Energy
+// Theme-aware color palettes
+const THEME_COLORS = {
+  dark: {
+    deepBlue: "#0a1628",
+    electricBlue: "#0ea5e9",
+    cyan: "#06b6d4",
+    violet: "#7c3aed",
+    gold: "#f59e0b",
+    rose: "#f43f5e",
+  },
+  light: {
+    deepBlue: "#e0f2fe",      // Light sky blue
+    electricBlue: "#0284c7",  // Bright ocean blue
+    cyan: "#0891b2",          // Teal
+    violet: "#8b5cf6",        // Bright purple
+    gold: "#f59e0b",          // Warm gold
+    rose: "#ec4899",          // Pink
+  },
+  contrast: {
+    deepBlue: "#000000",      // Pure black
+    electricBlue: "#00d4ff",  // Electric cyan
+    cyan: "#00ffe0",          // Bright cyan
+    violet: "#ff00ff",        // Magenta
+    gold: "#ffff00",          // Yellow
+    rose: "#ff0000",          // Red
+  },
 };
 
-// Multiple layers of particles for depth
-const PARTICLE_LAYERS = [
-  { count: 0.3, speed: 0.04, size: 0.6, color: CORE_COLORS.deepBlue, z: -50 },
-  { count: 0.4, speed: 0.08, size: 0.8, color: CORE_COLORS.electricBlue, z: 0 },
-  { count: 0.3, speed: 0.12, size: 1.0, color: CORE_COLORS.cyan, z: 50 },
-];
+// Legacy export for compatibility
+const CORE_COLORS = THEME_COLORS.dark;
+
+// Generate particle layers based on theme colors
+function getParticleLayers(colors) {
+  return [
+    { count: 0.3, speed: 0.04, size: 0.6, color: colors.deepBlue, z: -50 },
+    { count: 0.4, speed: 0.08, size: 0.8, color: colors.electricBlue, z: 0 },
+    { count: 0.3, speed: 0.12, size: 1.0, color: colors.cyan, z: 50 },
+  ];
+}
 
 const BASE_CONNECTION_DISTANCE = 200;
 const MAX_MOUSE_ACCELERATION = 0.8;
@@ -192,7 +216,7 @@ function clampDevicePixelRatio() {
   return Math.min(ratio, 2);
 }
 
-function createAdvancedGradientMaterial() {
+function createAdvancedGradientMaterial(colors) {
   return new ShaderMaterial({
     side: DoubleSide,
     transparent: true,
@@ -200,10 +224,10 @@ function createAdvancedGradientMaterial() {
     uniforms: {
       uTime: { value: 0 },
       uInteractionEnergy: { value: 0 },
-      uColorBase: { value: new Color(CORE_COLORS.deepBlue) },
-      uColorAccent1: { value: new Color(CORE_COLORS.electricBlue) },
-      uColorAccent2: { value: new Color(CORE_COLORS.violet) },
-      uColorInteraction: { value: new Color(CORE_COLORS.gold) },
+      uColorBase: { value: new Color(colors.deepBlue) },
+      uColorAccent1: { value: new Color(colors.electricBlue) },
+      uColorAccent2: { value: new Color(colors.violet) },
+      uColorInteraction: { value: new Color(colors.gold) },
     },
     vertexShader: `
       varying vec2 vUv;
@@ -278,6 +302,11 @@ function createAdvancedGradientMaterial() {
 }
 
 export default function HeroBackground({ variant = "particles" }) {
+  const { theme } = useTheme();
+
+  // Select theme colors based on current theme
+  const themeColors = theme === 'light' ? THEME_COLORS.light : theme === 'contrast' ? THEME_COLORS.contrast : THEME_COLORS.dark;
+
   const containerRef = useRef(null);
   const canvasRef = useRef(null);
   const rendererRef = useRef(null);
@@ -506,7 +535,7 @@ export default function HeroBackground({ variant = "particles" }) {
     );
     camera.position.set(0, 0, 10);
 
-    const gradientMaterial = createAdvancedGradientMaterial();
+    const gradientMaterial = createAdvancedGradientMaterial(themeColors);
     const gradientGeometry = new PlaneGeometry(1, 1, 1, 1);
     const gradientMesh = new Mesh(gradientGeometry, gradientMaterial);
     gradientMesh.position.set(container.clientWidth / 2, container.clientHeight / 2, -50);
@@ -524,6 +553,7 @@ export default function HeroBackground({ variant = "particles" }) {
     const qualityTier = deviceProfile.formFactor;
     const baseParticleCount = getParticleCount(container.clientWidth, qualityTier);
 
+    const PARTICLE_LAYERS = getParticleLayers(themeColors);
     PARTICLE_LAYERS.forEach((layerConfig) => {
       const count = Math.floor(baseParticleCount * layerConfig.count);
       const particleMaterial = new MeshBasicMaterial({
@@ -834,6 +864,8 @@ export default function HeroBackground({ variant = "particles" }) {
     prefersLowPowerMode,
     webglSupported,
     isInViewport,
+    theme,
+    themeColors,
   ]);
 
   useEffect(() => {

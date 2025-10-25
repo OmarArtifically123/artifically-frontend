@@ -9,17 +9,23 @@
   box-sizing: border-box;
 }
 
-html,
-body {
+html {
   padding: 0;
   margin: 0;
   font-family: var(--font-body);
   background-color: var(--bg-primary);
   color: var(--text-primary);
+  overflow-x: hidden;
+  overflow-y: scroll;
+  width: 100%;
 }
 
 body {
+  padding: 0;
+  margin: 0;
   min-height: 100%;
+  overflow-x: hidden;
+  width: 100%;
 }
 
 *:focus-visible {
@@ -62,9 +68,9 @@ body {
 .marketing-rsc-shell {
   display: block;
   position: relative;
-  min-height: max(100dvh, 720px);
-  width: 100vw;
-  margin-inline: calc(50% - 50vw);
+  min-height: 100dvh;
+  width: 100%;
+  max-width: 100%;
   view-transition-name: hero-shell-placeholder;
 }
 
@@ -78,23 +84,24 @@ body {
   display: flex;
   align-items: center;
   justify-content: center;
-  min-height: max(100dvh, 720px);
-  width: 100vw;
-  margin-inline: calc(50% - 50vw);
+  min-height: 100dvh;
+  width: 100%;
+  max-width: 100%;
   padding: clamp(5rem, 10vw, 8rem) 0;
-  overflow: visible;
+  overflow-x: clip;
+  overflow-y: visible;
   isolation: isolate;
 }
 
 @supports (width: 100dvw) {
   .page-hero {
-    width: 100dvw;
-    margin-inline: calc(50% - 50dvw);
+    width: 100%;
+    max-width: 100%;
   }
 
   .marketing-rsc-shell {
-    width: 100dvw;
-    margin-inline: calc(50% - 50dvw);
+    width: 100%;
+    max-width: 100%;
   }
 }
 
@@ -120,21 +127,7 @@ body {
   filter: saturate(1.1);
 }
 
-.page-hero::before {
-  content: "";
-  position: absolute;
-  inset: 0;
-  background:
-    radial-gradient(circle at 15% 20%, color-mix(in oklch, var(--brand-energy, #38bdf8) 65%, transparent) 0%, transparent 52%),
-    radial-gradient(circle at 85% 25%, color-mix(in oklch, var(--brand-glow, #ec4899) 65%, transparent) 0%, transparent 55%),
-    linear-gradient(
-      160deg,
-      color-mix(in oklch, var(--brand-depth, #0a0a0f) 80%, black) 0%,
-      color-mix(in oklch, var(--brand-muted, #1e293b) 25%, black) 100%
-    );
-  opacity: 0.92;
-  z-index: -2;
-}
+/* Removed - handled in landing.css with theme support */
 
 .page-hero::after {
   content: "";
