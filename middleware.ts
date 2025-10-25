@@ -28,6 +28,19 @@ export const config = {
 };
 
 export default function middleware(request: Parameters<typeof localizationMiddleware>[0]) {
+  const acceptHeader = request.headers.get('accept') ?? '';
+
+  const isRscRequest =
+    request.nextUrl.searchParams.has('_rsc') ||
+    request.headers.get('rsc') === '1' ||
+    request.headers.has('next-router-prefetch') ||
+    request.headers.has('next-router-state-tree') ||
+    acceptHeader.includes('text/x-component');
+
+  if (isRscRequest) {
+    return NextResponse.next();
+  }
+
   const strippedPath = stripDefaultLocalePrefix(request.nextUrl.pathname);
   if (strippedPath !== null) {
     const url = request.nextUrl.clone();
