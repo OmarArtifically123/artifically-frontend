@@ -1,6 +1,6 @@
 "use client";
 
-import { useId } from "react";
+import { useId, useMemo } from "react";
 import { Icon } from "@/components/icons";
 import type { BillingCadence, Plan } from "@/components/pricing/types";
 
@@ -8,150 +8,282 @@ type Props = {
   plan: Plan;
   billing: BillingCadence;
   dir?: "ltr" | "rtl";
-  emphasize?: boolean;
 };
 
-export default function PlanCard({ plan, billing, dir = undefined, emphasize = false }: Props) {
+export default function PlanCard({ plan, billing, dir }: Props) {
   const headingId = useId();
   const badgeId = useId();
-  const priceMonthly = plan.priceMonthly ?? undefined;
-  const priceAnnual = plan.priceAnnual ?? undefined;
-  const showPrice = !!(priceMonthly || priceAnnual);
-  const perMonthAnnual = priceAnnual ? Math.round(priceAnnual / 12) : undefined;
+  const isEnterprise = plan.priceMonthly == null && plan.priceAnnual == null;
+  const annualTotal = plan.priceAnnual != null ? Math.round(plan.priceAnnual) : null;
+  const monthlyPrice = plan.priceMonthly != null ? Math.round(plan.priceMonthly) : null;
+  const annualPerMonth = annualTotal != null ? Math.round(annualTotal / 12) : null;
 
-  const isEnterprise = !priceMonthly && !priceAnnual;
+  const featureItems = useMemo(() => {
+    const trimmed = plan.capabilities.slice(0, 3);
+    if (!plan.support) {
+      return trimmed.slice(0, 4);
+    }
+    return [...trimmed, { label: `Support: ${plan.support}` }];
+  }, [plan.capabilities, plan.support]);
 
   return (
-    <article className={`plan-card${plan.mostPopular ? " is-popular" : ""}${emphasize ? " is-emphasized" : ""}`} dir={dir} aria-labelledby={headingId}>
-      {plan.mostPopular && (
-        <div id={badgeId} className="plan-badge" aria-label="Most popular">
-          <span aria-hidden="true">Most Popular</span>
-        </div>
-      )}
-
-      <header className="plan-header">
-        <div className="plan-title">
-          <h3 id={headingId} className="plan-name">
-            {plan.name}
-            {plan.mostPopular && (
-              <>
-                <span className="sr-only"> — Most Popular</span>
-                <span className="popular-chip" aria-hidden>Most Popular</span>
-              </>
-            )}
-          </h3>
-          <p className="plan-who">{plan.whoFor}</p>
-          <p className="plan-tagline">{plan.tagline}</p>
-        </div>
-
-        {showPrice && (
-          <div className="plan-price" aria-live="polite">
-            {billing === "monthly" && priceMonthly != null && (
-              <>
-                <div className="price-row" aria-label="Price per month, billed monthly">
-                  <span className="currency" aria-hidden>$</span>
-                  <span className="amount">{priceMonthly.toLocaleString()}</span>
-                  <span className="period">/month</span>
-                </div>
-              </>
-            )}
-            {billing === "annual" && priceAnnual != null && (
-              <>
-                <div className="price-row" aria-label="Total per year, billed annually">
-                  <span className="currency" aria-hidden>$</span>
-                  <span className="amount">{priceAnnual.toLocaleString()}</span>
-                  <span className="period">/year</span>
-                </div>
-                <div className="price-note">
-                  <span>
-                    Equivalent to ${perMonthAnnual?.toLocaleString()} / month
-                  </span>
-                </div>
-              </>
-            )}
-          </div>
+    <article
+      className={`plan-card${plan.mostPopular ? " plan-card--popular" : ""}`}
+      aria-labelledby={`${headingId}${plan.mostPopular ? ` ${badgeId}` : ""}`}
+      dir={dir}
+    >
+      <header className="plan-card__header">
+        {plan.mostPopular && (
+          <span id={badgeId} className="plan-card__badge">
+            Most popular
+          </span>
         )}
+        <h3 id={headingId} className="plan-card__name">
+          {plan.name}
+          {plan.mostPopular && <span className="sr-only"> - Most popular</span>}
+        </h3>
+        <p className="plan-card__who">{plan.whoFor}</p>
+        {plan.tagline && <p className="plan-card__tagline">{plan.tagline}</p>}
       </header>
 
-      <div className="plan-meta">
-        <div className="meta-item">
-          <Icon name="zap" size={18} aria-hidden className="meta-icon" />
-          <div>
-            <div className="meta-label">Deployment</div>
-            <div className="meta-value">{plan.deployment}</div>
+      <div className="plan-card__price" aria-live="polite">
+        {isEnterprise ? (
+          <div className="price-custom">
+            <span className="price-custom__label">Custom pricing</span>
+            <span className="price-custom__desc">Tailored contract based on volume and compliance scope.</span>
           </div>
-        </div>
-        <div className="meta-item">
-          <Icon name="headphones" size={18} aria-hidden className="meta-icon" />
-          <div>
-            <div className="meta-label">Support</div>
-            <div className="meta-value">{plan.support}</div>
+        ) : billing === "monthly" && monthlyPrice != null ? (
+          <div className="price-stack">
+            <div className="price-line" aria-label="Price per month, billed monthly">
+              <span className="price-line__currency" aria-hidden>
+                $
+              </span>
+              <span className="price-line__amount">{monthlyPrice.toLocaleString()}</span>
+              <span className="price-line__period">/month</span>
+            </div>
           </div>
-        </div>
+        ) : annualTotal != null ? (
+          <div className="price-stack">
+            <div className="price-line" aria-label="Total per year, billed annually">
+              <span className="price-line__currency" aria-hidden>
+                $
+              </span>
+              <span className="price-line__amount">{annualTotal.toLocaleString()}</span>
+              <span className="price-line__period">/year</span>
+            </div>
+            {annualPerMonth != null && (
+              <div className="price-note" aria-label="Monthly equivalent when billed annually">
+                Equivalent to ${annualPerMonth.toLocaleString()} per month
+              </div>
+            )}
+          </div>
+        ) : null}
       </div>
 
-      <ul className="plan-capabilities" aria-label="Key capabilities">
-        {plan.capabilities.map((cap) => (
-          <li className="capability" key={cap.label}>
-            <Icon name="check" size={18} aria-hidden className="cap-icon" />
-            <div>
-              <div className="cap-label">{cap.label}</div>
-              {cap.description && <div className="cap-desc">{cap.description}</div>}
-            </div>
+      <ul className="plan-card__features" aria-label="Key inclusions">
+        {featureItems.map((capability) => (
+          <li key={capability.label} className="plan-card__feature">
+            <Icon name="check" size={18} aria-hidden className="plan-card__feature-icon" />
+            <span>{capability.label}</span>
           </li>
         ))}
       </ul>
 
-      {plan.limits && (
-        <p className="plan-limits" aria-label="Usage scale">{plan.limits}</p>
-      )}
+      {plan.limits && <p className="plan-card__limits">{plan.limits}</p>}
 
-      <div className="plan-cta">
-        <a href={plan.ctaTo ?? "#"} className={`cta ${isEnterprise ? "cta-secondary" : ""}`}>
+      <dl className="plan-card__essentials">
+        <div>
+          <dt>Go live speed</dt>
+          <dd>{plan.deployment}</dd>
+        </div>
+      </dl>
+
+      <div className="plan-card__cta">
+        <a
+          href={plan.ctaTo ?? "#"}
+          className={`plan-card__button${isEnterprise ? " plan-card__button--outline" : ""}`}
+          aria-label={`${plan.name} plan - ${plan.ctaLabel}`}
+        >
           {plan.ctaLabel}
         </a>
       </div>
 
       <style jsx>{`
-        .sr-only { position: absolute; width:1px; height:1px; padding:0; margin:-1px; overflow:hidden; clip:rect(0,0,0,0); white-space:nowrap; border:0; }
-        .plan-card { display:flex; flex-direction:column; justify-content:stretch; border:1px solid var(--border-default); background: var(--bg-card); border-radius: 16px; padding: 1.25rem; gap: 1rem; min-height: 100%; }
-        .plan-card.is-popular { outline: 3px solid var(--accent-primary); outline-offset: 2px; }
-        .plan-card.is-emphasized { border-color: var(--accent-primary); box-shadow: 0 0 0 3px color-mix(in srgb, var(--accent-primary) 35%, transparent); }
-        .plan-badge { position: absolute; clip-path: inset(0); height:1px; width:1px; overflow:hidden; }
+        .sr-only {
+          position: absolute;
+          width: 1px;
+          height: 1px;
+          padding: 0;
+          margin: -1px;
+          overflow: hidden;
+          clip: rect(0, 0, 0, 0);
+          white-space: nowrap;
+          border: 0;
+        }
+        .plan-card {
+          display: flex;
+          flex-direction: column;
+          gap: 1.25rem;
+          border: 1px solid var(--border-default);
+          background: var(--bg-card);
+          border-radius: 18px;
+          padding: 1.5rem;
+          min-height: 100%;
+        }
+        .plan-card--popular {
+          border-color: var(--accent-primary);
+          box-shadow: 0 0 0 3px color-mix(in srgb, var(--accent-primary) 30%, transparent);
+        }
+        .plan-card__header {
+          display: flex;
+          flex-direction: column;
+          gap: 0.5rem;
+        }
+        .plan-card__badge {
+          align-self: flex-start;
+          font-size: 0.75rem;
+          font-weight: 800;
+          text-transform: uppercase;
+          letter-spacing: 0.08em;
+          border: 2px solid var(--accent-primary);
+          background: var(--accent-primary);
+          color: var(--text-inverse);
+          border-radius: 999px;
+          padding: 0.2rem 0.65rem;
+        }
+        .plan-card__name {
+          margin: 0;
+          font-size: 1.5rem;
+        }
+        .plan-card__who {
+          margin: 0;
+          color: var(--text-secondary);
+        }
+        .plan-card__tagline {
+          margin: 0;
+          font-weight: 600;
+        }
 
-        .plan-header { display:flex; flex-direction:column; gap:0.5rem; }
-        .plan-name { margin:0; font-size:1.25rem; display:flex; align-items:center; gap:0.5rem; flex-wrap: wrap; }
-        .popular-chip { display:inline-flex; align-items:center; font-size: 0.75rem; font-weight: 900; color: var(--text-inverse); background: var(--text-primary); border: 2px solid var(--text-primary); border-radius: 999px; padding: 0.1rem 0.5rem; }
-        .plan-who { margin:0; color: var(--text-secondary); font-size: 0.95rem; }
-        .plan-tagline { margin:0; color: var(--text-primary); font-weight:600; }
+        .plan-card__price {
+          display: flex;
+          flex-direction: column;
+          gap: 0.5rem;
+        }
+        .price-stack {
+          display: flex;
+          flex-direction: column;
+          gap: 0.5rem;
+        }
+        .price-line {
+          display: flex;
+          align-items: baseline;
+          gap: 0.25rem;
+        }
+        .price-line__currency {
+          font-size: 1.5rem;
+          font-weight: 700;
+        }
+        .price-line__amount {
+          font-size: 2.5rem;
+          font-weight: 800;
+          letter-spacing: -0.02em;
+        }
+        .price-line__period {
+          font-size: 1rem;
+          font-weight: 600;
+          color: var(--text-secondary);
+        }
+        .price-note {
+          font-size: 0.95rem;
+          color: var(--text-secondary);
+        }
+        .price-custom {
+          display: flex;
+          flex-direction: column;
+          gap: 0.25rem;
+        }
+        .price-custom__label {
+          font-size: 1.5rem;
+          font-weight: 800;
+        }
+        .price-custom__desc {
+          color: var(--text-secondary);
+          font-size: 0.95rem;
+        }
 
-        .plan-price { margin-block-start: 0.5rem; }
-        .price-row { display:flex; align-items: baseline; gap:0.25rem; color: var(--text-primary); }
-        .currency { font-size: 1.25rem; font-weight: 700; }
-        .amount { font-size: 2.25rem; font-weight: 800; letter-spacing: -0.02em; }
-        .period { color: var(--text-secondary); font-weight: 600; }
-        .price-note { color: var(--text-secondary); font-size: 0.875rem; }
+        .plan-card__features {
+          list-style: none;
+          margin: 0;
+          padding: 0;
+          display: flex;
+          flex-direction: column;
+          gap: 0.6rem;
+        }
+        .plan-card__feature {
+          display: flex;
+          gap: 0.5rem;
+          align-items: flex-start;
+        }
+        .plan-card__feature-icon {
+          color: var(--accent-success);
+          margin-top: 0.2rem;
+        }
 
-        .plan-meta { display:grid; grid-template-columns: repeat(2, minmax(0,1fr)); gap: 0.75rem; }
-        .meta-item { display:flex; gap:0.5rem; align-items: center; border:1px solid var(--border-subtle); border-radius: 10px; padding: 0.5rem 0.75rem; background: var(--bg-secondary); }
-        .meta-icon { color: var(--accent-primary); }
-        .meta-label { font-size: 0.75rem; color: var(--text-secondary); }
-        .meta-value { font-size: 0.95rem; font-weight:600; color: var(--text-primary); }
+        .plan-card__limits {
+          margin: 0;
+          color: var(--text-secondary);
+          font-size: 0.95rem;
+        }
 
-        .plan-capabilities { list-style: none; margin:0; padding:0; display:flex; flex-direction:column; gap: 0.5rem; }
-        .capability { display:flex; gap:0.5rem; align-items:flex-start; }
-        .cap-icon { color: var(--accent-success); margin-top: 0.2rem; }
-        .cap-label { font-weight: 600; }
-        .cap-desc { color: var(--text-secondary); }
+        .plan-card__essentials {
+          display: grid;
+          gap: 0.75rem;
+          margin: 0;
+          padding: 0;
+        }
+        .plan-card__essentials dt {
+          font-size: 0.75rem;
+          text-transform: uppercase;
+          letter-spacing: 0.08em;
+          color: var(--text-secondary);
+        }
+        .plan-card__essentials dd {
+          margin: 0;
+          font-weight: 600;
+        }
 
-        .plan-limits { margin: 0.25rem 0 0; color: var(--text-secondary); font-size: 0.95rem; }
-
-        .plan-cta { margin-top: auto; }
-        .cta { display:inline-flex; justify-content:center; align-items:center; gap:0.5rem; padding: 0.75rem 1rem; border-radius: 12px; border:2px solid var(--accent-primary); background: var(--accent-primary); color: var(--text-inverse); font-weight:800; text-decoration:none; }
-        .cta:hover { background: var(--accent-primary-hover); border-color: var(--accent-primary-hover); }
-        .cta:focus-visible { outline: 3px solid var(--border-focus); outline-offset: 2px; }
-        .cta-secondary { background: transparent; color: var(--text-primary); border-color: var(--text-primary); }
-        .cta-secondary:hover { background: var(--interactive-hover); }
+        .plan-card__cta {
+          margin-top: auto;
+        }
+        .plan-card__button {
+          display: inline-flex;
+          align-items: center;
+          justify-content: center;
+          gap: 0.5rem;
+          padding: 0.75rem 1rem;
+          border-radius: 12px;
+          border: 2px solid var(--accent-primary);
+          background: var(--accent-primary);
+          color: var(--text-inverse);
+          font-weight: 800;
+          text-decoration: none;
+        }
+        .plan-card__button:hover {
+          background: var(--accent-primary-hover);
+          border-color: var(--accent-primary-hover);
+        }
+        .plan-card__button:focus-visible {
+          outline: 3px solid var(--border-focus);
+          outline-offset: 2px;
+        }
+        .plan-card__button--outline {
+          background: transparent;
+          color: var(--text-primary);
+          border-color: var(--text-primary);
+        }
+        .plan-card__button--outline:hover {
+          background: var(--interactive-hover);
+        }
       `}</style>
     </article>
   );

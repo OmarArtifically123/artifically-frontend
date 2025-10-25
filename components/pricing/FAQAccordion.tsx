@@ -4,46 +4,60 @@ import { useId, useState } from "react";
 
 type Item = { q: string; a: string };
 
-const DEFAULTS: Item[] = [
-  { q: "Do you offer pilots?", a: "Yes. We run structured pilots that mirror production. You keep what we build. Pilot cost is credited to rollout if you continue." },
-  { q: "How secure is the platform?", a: "All data is encrypted in transit and at rest. Access is strictly scoped. Enterprise can isolate data and deploy privately. We pass security reviews and help with audit questions." },
-  { q: "What happens after the trial?", a: "We downgrade gracefully. Your automations remain accessible. You can reactivate any time—no surprise lockouts." },
-  { q: "Can we switch plans?", a: "Yes. Upgrades apply instantly. Downgrades take effect at term end. Annual captures a 20% discount." },
-  { q: "Do you support Arabic?", a: "Yes. Arabic and English are first‑class across UI, RTL layout, and support." },
-  { q: "How fast can we go live?", a: "Starter: under 10 minutes. Professional: live this week with a success architect. Enterprise: white‑glove onboarding with security alignment." },
-];
+const DEFAULT_ITEMS: Item[] = [
+  {
+    q: "Do you run structured pilots?",
+    a: "Yes. Pilots mirror production, include success criteria, and the fee credits to rollout if you continue.",
+  },
+  {
+    q: "How fast can we go live?",
+    a: "Starter launches in minutes. Professional is live this week with a success architect. Enterprise includes guided rollout with security alignment.",
+  },
+  {
+    q: "How secure is Artifically?",
+    a: "We support isolation options, security reviews, and custom SLAs for enterprise. Our team helps you clear procurement and audit questions.",
+  },
+  {
+    q: "What happens after the free trial?",
+    a: "We do not lock you out. Workflows stay available, and you can upgrade when you are ready with zero hidden fees.",
+  },
+] as const;
 
-export default function FAQAccordion({ items = DEFAULTS }: { items?: Item[] }) {
-  const [open, setOpen] = useState<number | null>(0);
-  const base = useId();
+export default function FAQAccordion({ items = DEFAULT_ITEMS }: { items?: Item[] }) {
+  const [openIndex, setOpenIndex] = useState<number | null>(0);
+  const baseId = useId();
+
   return (
-    <section aria-labelledby={`${base}-title`} className="faq">
-      <h2 id={`${base}-title`}>Questions, answered clearly</h2>
-      <ul className="faq-list">
-        {items.map((it, idx) => {
-          const idBtn = `${base}-btn-${idx}`;
-          const idPanel = `${base}-panel-${idx}`;
-          const isOpen = open === idx;
+    <div role="region" aria-labelledby={`${baseId}-title`} className="faq">
+      <h2 id={`${baseId}-title`}>Answers to common questions</h2>
+      <ul className="faq__list">
+        {items.map((item, index) => {
+          const buttonId = `${baseId}-button-${index}`;
+          const panelId = `${baseId}-panel-${index}`;
+          const isOpen = openIndex === index;
           return (
-            <li key={idBtn} className="faq-item">
+            <li key={buttonId} className="faq__item">
               <button
-                id={idBtn}
+                type="button"
+                id={buttonId}
+                className="faq__question"
                 aria-expanded={isOpen}
-                aria-controls={idPanel}
-                className="faq-q"
-                onClick={() => setOpen(isOpen ? null : idx)}
+                aria-controls={panelId}
+                onClick={() => setOpenIndex(isOpen ? null : index)}
               >
-                <span>{it.q}</span>
-                <span className="faq-icon" aria-hidden>{isOpen ? "−" : "+"}</span>
+                <span>{item.q}</span>
+                <span className="faq__icon" aria-hidden>
+                  {isOpen ? "-" : "+"}
+                </span>
               </button>
               <div
-                id={idPanel}
+                id={panelId}
                 role="region"
-                aria-labelledby={idBtn}
+                aria-labelledby={buttonId}
                 hidden={!isOpen}
-                className="faq-a"
+                className="faq__answer"
               >
-                <p>{it.a}</p>
+                <p>{item.a}</p>
               </div>
             </li>
           );
@@ -51,17 +65,61 @@ export default function FAQAccordion({ items = DEFAULTS }: { items?: Item[] }) {
       </ul>
 
       <style jsx>{`
-        .faq { display:flex; flex-direction: column; gap: 1rem; }
-        .faq h2 { margin:0; font-size: clamp(1.25rem, 1.6vw, 1.75rem); }
-        .faq-list { list-style:none; margin:0; padding:0; display:flex; flex-direction: column; gap: 0.5rem; }
-        .faq-item { border:1px solid var(--border-default); border-radius: 12px; background: var(--bg-card); }
-        .faq-q { inline-size:100%; text-align:start; background: transparent; border:0; font-weight:800; padding: 0.875rem 1rem; color: var(--text-primary); display:flex; justify-content: space-between; align-items:center; }
-        .faq-q:focus-visible { outline: 3px solid var(--border-focus); outline-offset: 2px; }
-        .faq-a { padding: 0 1rem 0.875rem; }
-        .faq-a p { margin:0; color: var(--text-secondary); }
-        .faq-icon { font-size: 1.25rem; }
+        .faq {
+          display: flex;
+          flex-direction: column;
+          gap: 1rem;
+        }
+        .faq h2 {
+          margin: 0;
+          font-size: clamp(1.3rem, 2vw, 1.75rem);
+        }
+        .faq__list {
+          list-style: none;
+          margin: 0;
+          padding: 0;
+          display: flex;
+          flex-direction: column;
+          gap: 0.75rem;
+        }
+        .faq__item {
+          border: 1px solid var(--border-default);
+          border-radius: 14px;
+          background: var(--bg-card);
+        }
+        .faq__question {
+          display: flex;
+          align-items: center;
+          justify-content: space-between;
+          gap: 1rem;
+          width: 100%;
+          padding: 0.9rem 1rem;
+          background: transparent;
+          border: 0;
+          font-weight: 700;
+          color: var(--text-primary);
+          text-align: start;
+        }
+        .faq__question:hover {
+          background: var(--bg-secondary);
+        }
+        .faq__question:focus-visible {
+          outline: 3px solid var(--border-focus);
+          outline-offset: 2px;
+        }
+        .faq__icon {
+          font-size: 1.5rem;
+          font-weight: 800;
+          line-height: 1;
+        }
+        .faq__answer {
+          padding: 0 1rem 1rem;
+        }
+        .faq__answer p {
+          margin: 0;
+          color: var(--text-secondary);
+        }
       `}</style>
-    </section>
+    </div>
   );
 }
-

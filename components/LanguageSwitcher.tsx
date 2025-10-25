@@ -4,16 +4,22 @@ import { useLocale } from 'next-intl';
 import { useRouter, usePathname } from 'next/navigation';
 import { Icon } from './icons';
 
+const DEFAULT_LOCALE = 'en';
+const localePrefixPattern = /^\/(en|ar)(?=\/|$)/;
+
 export default function LanguageSwitcher() {
   const locale = useLocale();
   const router = useRouter();
   const pathname = usePathname();
 
   const switchLocale = (newLocale: string) => {
-    // Remove current locale from pathname
-    const pathnameWithoutLocale = pathname.replace(`/${locale}`, '');
-    // Navigate to new locale
-    router.push(`/${newLocale}${pathnameWithoutLocale}`);
+    const basePath = pathname.replace(localePrefixPattern, '') || '/';
+    const targetPath =
+      newLocale === DEFAULT_LOCALE
+        ? basePath
+        : `/${newLocale}${basePath === '/' ? '' : basePath}`;
+
+    router.push(targetPath);
   };
 
   return (

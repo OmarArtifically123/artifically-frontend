@@ -1,43 +1,79 @@
 import { Icon, type IconName } from "@/components/icons";
 
-export default function TrustStrip() {
-  const items: ReadonlyArray<{ icon: IconName; title: string; desc: string }> = [
-    { icon: "headphones", title: "24/7 Support", desc: "Real humans. Dedicated success architect on Professional+." },
-    { icon: "barChart", title: "Uptime & SLAs", desc: "We publish status, aim for 99.95%+, and sign SLAs." },
-    { icon: "shield", title: "Security", desc: "SOC 2 mindset, data encryption, isolation options." },
-    { icon: "database", title: "Private Deployment", desc: "Enterprise data residency and private deployments available." },
-    { icon: "globe", title: "Arabic + English", desc: "Multilingual UI & support. RTL-ready interfaces." },
-    { icon: "handshake", title: "Partner Onboarding", desc: "You get a deployment partner, not a chatbot link." },
-  ] as const;
+const ITEMS: ReadonlyArray<{ icon: IconName; title: string; desc: string }> = [
+  { icon: "headphones", title: "24/7 human support", desc: "Real engineers on-call. No chatbot loops." },
+  { icon: "globe", title: "Arabic + English", desc: "RTL-ready UI, bilingual playbooks, regional teams." },
+  { icon: "shield", title: "Security-first", desc: "SOC 2 mindset, isolation options, procurement ready." },
+  { icon: "activity", title: "Uptime & SLAs", desc: "We publish status, sign SLAs, and review incidents transparently." },
+] as const;
 
+export default function TrustStrip() {
   return (
-    <section className="trust" aria-labelledby="trust-title">
-      <h2 id="trust-title">Built for operations you can depend on</h2>
-      <ul className="trust-grid" role="list">
-        {items.map((it) => (
-          <li key={it.title} className="trust-card">
-            <div className="trust-icon" aria-hidden>
-              <Icon name={it.icon} size={20} />
-            </div>
-            <div className="trust-text">
-              <strong className="trust-title">{it.title}</strong>
-              <span className="trust-desc">{it.desc}</span>
-            </div>
-          </li>
-        ))}
-      </ul>
+    <ul className="trust-row" role="list" aria-label="Operational reassurances">
+      {ITEMS.map((item) => (
+        <li key={item.title} className="trust-row__item">
+          <span className="trust-row__icon" aria-hidden>
+            <Icon name={item.icon} size={18} />
+          </span>
+          <span className="trust-row__text">
+            <strong>{item.title}</strong>
+            <span>{item.desc}</span>
+          </span>
+        </li>
+      ))}
 
       <style jsx>{`
-        .trust { display:flex; flex-direction: column; gap: 1rem; }
-        .trust h2{ margin:0; font-size: clamp(1.25rem, 1.6vw, 1.75rem); }
-        .trust-grid { list-style:none; margin:0; padding:0; display:grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 0.75rem; }
-        @media (max-width: 900px) { .trust-grid { grid-template-columns: 1fr; } }
-        .trust-card { display:flex; align-items: start; gap: 0.75rem; border:1px solid var(--border-default); background: var(--bg-card); border-radius: 12px; padding: 0.75rem; }
-        .trust-icon { inline-size: 2rem; block-size: 2rem; display:grid; place-items:center; border:2px solid var(--border-strong); border-radius: 999px; color: var(--accent-primary); background: var(--bg-secondary); }
-        .trust-text { display:flex; flex-direction: column; gap: 0.25rem; }
-        .trust-title { font-weight: 800; }
-        .trust-desc { color: var(--text-secondary); }
+        .trust-row {
+          list-style: none;
+          margin: 0;
+          padding: 0;
+          display: grid;
+          grid-template-columns: repeat(4, minmax(0, 1fr));
+          gap: 1rem;
+        }
+        @media (max-width: 900px) {
+          .trust-row {
+            grid-template-columns: repeat(2, minmax(0, 1fr));
+          }
+        }
+        @media (max-width: 640px) {
+          .trust-row {
+            grid-template-columns: 1fr;
+          }
+        }
+        .trust-row__item {
+          display: flex;
+          align-items: flex-start;
+          gap: 0.75rem;
+          border: 1px solid var(--border-default);
+          border-radius: 14px;
+          padding: 0.85rem;
+          background: var(--bg-card);
+        }
+        .trust-row__icon {
+          display: inline-flex;
+          align-items: center;
+          justify-content: center;
+          width: 2.4rem;
+          height: 2.4rem;
+          border-radius: 999px;
+          border: 2px solid var(--border-strong);
+          color: var(--accent-primary);
+          background: var(--bg-secondary);
+        }
+        .trust-row__text {
+          display: flex;
+          flex-direction: column;
+          gap: 0.25rem;
+          font-size: 0.95rem;
+        }
+        .trust-row__text strong {
+          font-weight: 800;
+        }
+        .trust-row__text span {
+          color: var(--text-secondary);
+        }
       `}</style>
-    </section>
+    </ul>
   );
 }
