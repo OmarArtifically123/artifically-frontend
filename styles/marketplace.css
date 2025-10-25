@@ -1114,8 +1114,8 @@ body.demo-experience-open {
   width: 90vw;
   max-width: 1200px;
   height: 85vh;
-  background: #0f1729;
-  border: 1px solid rgba(255, 255, 255, 0.2);
+  background: var(--modal-bg, #0f1729);
+  border: 1px solid var(--modal-border, rgba(255, 255, 255, 0.2));
   border-radius: 32px;
   box-shadow: 0 32px 120px rgba(0, 0, 0, 0.8);
   overflow: hidden;
@@ -1126,6 +1126,21 @@ body.demo-experience-open {
   display: flex;
   flex-direction: column;
   pointer-events: auto;
+}
+
+[data-theme="light"] .automation-modal__container {
+  --modal-bg: #ffffff;
+  --modal-border: rgba(15, 23, 42, 0.2);
+}
+
+[data-theme="dark"] .automation-modal__container {
+  --modal-bg: #0f1729;
+  --modal-border: rgba(255, 255, 255, 0.2);
+}
+
+[data-theme="contrast"] .automation-modal__container {
+  --modal-bg: #000000;
+  --modal-border: #00eaff;
 }
 
 .automation-modal[data-state="open"] .automation-modal__container {

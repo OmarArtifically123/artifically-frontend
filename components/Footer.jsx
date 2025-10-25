@@ -386,10 +386,28 @@ export default function Footer() {
 
       <style jsx>{`
         .enterprise-footer {
-          background: #070a1a;
-          border-top: 1px solid rgba(255, 255, 255, 0.1);
+          background: var(--footer-bg, #070a1a);
+          border-top: 1px solid var(--footer-border, rgba(255, 255, 255, 0.1));
           padding: 80px 40px 32px;
-          color: rgba(255, 255, 255, 0.9);
+          color: var(--footer-text, rgba(255, 255, 255, 0.9));
+        }
+
+        :global([data-theme="light"]) .enterprise-footer {
+          --footer-bg: #f8fafc;
+          --footer-border: rgba(15, 23, 42, 0.15);
+          --footer-text: rgba(15, 23, 42, 0.9);
+        }
+
+        :global([data-theme="dark"]) .enterprise-footer {
+          --footer-bg: #070a1a;
+          --footer-border: rgba(255, 255, 255, 0.1);
+          --footer-text: rgba(255, 255, 255, 0.9);
+        }
+
+        :global([data-theme="contrast"]) .enterprise-footer {
+          --footer-bg: #000000;
+          --footer-border: #00eaff;
+          --footer-text: #ffffff;
         }
 
         .footer-inner {
@@ -417,8 +435,20 @@ export default function Footer() {
         .footer-heading {
           font-size: 16px;
           font-weight: 700;
-          color: #ffffff;
+          color: var(--footer-heading, #ffffff);
           margin-bottom: 20px;
+        }
+
+        :global([data-theme="light"]) .footer-heading {
+          --footer-heading: #0f172a;
+        }
+
+        :global([data-theme="dark"]) .footer-heading {
+          --footer-heading: #ffffff;
+        }
+
+        :global([data-theme="contrast"]) .footer-heading {
+          --footer-heading: #ffffff;
         }
 
         .footer-links {
@@ -431,9 +461,21 @@ export default function Footer() {
           display: block;
           padding: 10px 0;
           font-size: 14px;
-          color: rgba(255, 255, 255, 0.7);
+          color: var(--footer-link, rgba(255, 255, 255, 0.7));
           text-decoration: none;
           transition: color 200ms ease, transform 200ms ease, text-decoration-color 200ms ease;
+        }
+
+        :global([data-theme="light"]) .footer-link {
+          --footer-link: rgba(15, 23, 42, 0.7);
+        }
+
+        :global([data-theme="dark"]) .footer-link {
+          --footer-link: rgba(255, 255, 255, 0.7);
+        }
+
+        :global([data-theme="contrast"]) .footer-link {
+          --footer-link: rgba(255, 255, 255, 0.9);
         }
 
         .footer-link-text {
@@ -447,28 +489,76 @@ export default function Footer() {
         }
 
         .footer-link-divider {
-          color: rgba(255, 255, 255, 0.35);
+          color: var(--footer-divider, rgba(255, 255, 255, 0.35));
           font-weight: 500;
           margin: 0 4px;
         }
 
+        :global([data-theme="light"]) .footer-link-divider {
+          --footer-divider: rgba(15, 23, 42, 0.35);
+        }
+
+        :global([data-theme="dark"]) .footer-link-divider {
+          --footer-divider: rgba(255, 255, 255, 0.35);
+        }
+
+        :global([data-theme="contrast"]) .footer-link-divider {
+          --footer-divider: #00eaff;
+        }
+
         .footer-link-description {
           font-weight: 400;
-          color: rgba(255, 255, 255, 0.7);
+          color: var(--footer-link-desc, rgba(255, 255, 255, 0.7));
+        }
+
+        :global([data-theme="light"]) .footer-link-description {
+          --footer-link-desc: rgba(15, 23, 42, 0.6);
+        }
+
+        :global([data-theme="dark"]) .footer-link-description {
+          --footer-link-desc: rgba(255, 255, 255, 0.7);
+        }
+
+        :global([data-theme="contrast"]) .footer-link-description {
+          --footer-link-desc: rgba(255, 255, 255, 0.8);
         }
 
         .footer-link:hover {
-          color: #ffffff;
+          color: var(--footer-link-hover, #ffffff);
           transform: translateX(4px);
           text-decoration: underline;
           text-decoration-color: rgba(139, 92, 246, 0.6);
         }
 
+        :global([data-theme="light"]) .footer-link:hover {
+          --footer-link-hover: #0f172a;
+        }
+
+        :global([data-theme="dark"]) .footer-link:hover {
+          --footer-link-hover: #ffffff;
+        }
+
+        :global([data-theme="contrast"]) .footer-link:hover {
+          --footer-link-hover: #00eaff;
+        }
+
         .newsletter-description {
           font-size: 14px;
-          color: rgba(255, 255, 255, 0.7);
+          color: var(--footer-newsletter-desc, rgba(255, 255, 255, 0.7));
           line-height: 1.5;
           margin: 0 0 20px;
+        }
+
+        :global([data-theme="light"]) .newsletter-description {
+          --footer-newsletter-desc: rgba(15, 23, 42, 0.7);
+        }
+
+        :global([data-theme="dark"]) .newsletter-description {
+          --footer-newsletter-desc: rgba(255, 255, 255, 0.7);
+        }
+
+        :global([data-theme="contrast"]) .newsletter-description {
+          --footer-newsletter-desc: rgba(255, 255, 255, 0.9);
         }
 
         .newsletter-form {

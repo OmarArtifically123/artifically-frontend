@@ -28,6 +28,7 @@ body {
   font-size: 1rem;
   line-height: var(--responsive-body-line-height-mobile);
   overflow-x: hidden;
+  overflow-y: visible;
   width: 100%;
   margin: 0;
   padding: 0;
@@ -2224,12 +2225,27 @@ main :where(section, div)[id] {
   justify-content: space-between;
   height: 64px;
   padding: 0 16px;
-  background: rgba(8, 12, 24, 0.8);
-  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+  background: var(--header-bg, rgba(8, 12, 24, 0.8));
+  border-bottom: 1px solid var(--header-border, rgba(255, 255, 255, 0.1));
   backdrop-filter: blur(12px);
   -webkit-backdrop-filter: blur(12px);
   transition: background 200ms ease, border-color 200ms ease;
   view-transition-name: site-header;
+}
+
+[data-theme="light"] .site-header {
+  --header-bg: rgba(248, 250, 252, 0.85);
+  --header-border: rgba(15, 23, 42, 0.12);
+}
+
+[data-theme="dark"] .site-header {
+  --header-bg: rgba(8, 12, 24, 0.8);
+  --header-border: rgba(255, 255, 255, 0.1);
+}
+
+[data-theme="contrast"] .site-header {
+  --header-bg: rgba(0, 0, 0, 0.95);
+  --header-border: #00eaff;
 }
 
 @media (min-width: 1024px) {
@@ -2257,12 +2273,8 @@ main :where(section, div)[id] {
 }
 
 .brand--interactive {
-  transition: transform 250ms ease-out;
-}
-
-.brand--interactive:hover,
-.brand--interactive:focus-visible {
-  transform: scale(1.02);
+  /* Professional brand mark - no hover animation for enterprise credibility */
+  cursor: pointer;
 }
 
 .nav {
@@ -3749,7 +3761,6 @@ body.solutions-mega-open {
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .brand--interactive,
   .nav-trigger,
   .header-actions__search {
     transition: none;
