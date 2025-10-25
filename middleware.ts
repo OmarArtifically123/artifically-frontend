@@ -1,11 +1,22 @@
+import { NextResponse } from 'next/server';
 import createMiddleware from 'next-intl/middleware';
 
-export default createMiddleware({
+const defaultLocale = 'en';
+const locales = ['en', 'ar'] as const;
+const stripDefaultLocalePrefix = (pathname: string) => {
+  if (!pathname.startsWith(`/${defaultLocale}`)) {
+    return null;
+  }
+  const withoutLocale = pathname.slice(defaultLocale.length + 1);
+  return withoutLocale ? `/${withoutLocale}` : '/';
+};
+
+const localizationMiddleware = createMiddleware({
   // List of all supported locales
-  locales: ['en', 'ar'],
+  locales: [...locales],
 
   // Default locale if no match
-  defaultLocale: 'en',
+  defaultLocale,
 
   // Default locale stays unprefixed; other locales use prefix
   localePrefix: 'as-needed'
@@ -15,3 +26,14 @@ export const config = {
   // Match all pathnames except API routes, static files
   matcher: ['/((?!api|_next|_vercel|.*\\..*).*)']
 };
+
+export default function middleware(request: Parameters<typeof localizationMiddleware>[0]) {
+  const strippedPath = stripDefaultLocalePrefix(request.nextUrl.pathname);
+  if (strippedPath !== null) {
+    const url = request.nextUrl.clone();
+    url.pathname = strippedPath;
+    return NextResponse.redirect(url, 308);
+  }
+
+  return localizationMiddleware(request);
+}
