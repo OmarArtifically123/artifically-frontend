@@ -94,24 +94,14 @@
 }
 
 .marketplace-results__scroller {
-  max-height: clamp(420px, 70vh, 760px);
-  overflow-y: auto;
+  max-height: none;
+  overflow-y: visible;
   position: relative;
   border-radius: var(--rounded-2xl);
-  background: rgba(15, 23, 42, 0.35);
-  border: 1px solid color-mix(in oklch, var(--brand-primary) 18%, transparent);
+  background: var(--bg-secondary);
+  border: 1px solid var(--border-default);
   padding: var(--space-sm);
   scrollbar-width: thin;
-}
-
-[data-theme="light"] .marketplace-results__scroller {
-  background: rgba(241, 245, 249, 0.85);
-  border-color: rgba(148, 163, 184, 0.35);
-}
-
-[data-theme="contrast"] .marketplace-results__scroller {
-  background: rgba(0, 0, 0, 0.92);
-  border-color: rgba(255, 255, 255, 0.4);
 }
 
 .marketplace-results__scroller::-webkit-scrollbar {
@@ -543,12 +533,12 @@ body.demo-experience-open {
   inset: 0;
   z-index: 1600;
   padding: clamp(1.5rem, 3vw, 2.5rem);
-  background: rgba(15, 23, 42, 0.78);
+  background: var(--bg-overlay);
   backdrop-filter: blur(22px);
   display: flex;
   justify-content: center;
   align-items: center;
-  overflow-y: auto;
+  overflow: hidden;
 }
 
 @container automation-card (max-width: 520px) {
@@ -592,9 +582,7 @@ body.demo-experience-open {
   }
 }
 
-[data-theme="light"] .demo-experience {
-  background: rgba(15, 23, 42, 0.38);
-}
+/* Theme handled by var(--bg-overlay) */
 
 .demo-experience__shell {
   width: min(1180px, 100%);
