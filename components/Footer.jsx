@@ -349,8 +349,12 @@ export default function Footer() {
 
           <div className="footer-bottom">
             <div className="footer-bottom-left">
-              <Link href="/" aria-label="Go to homepage · Artifically" className="footer-brand">
-                <BrandMark style={{ width: 24, height: 24, color: "var(--footer-text)" }} />
+              <Link href="/" aria-label="Artifically home" className="footer-brand">
+                <BrandMark
+                  interactive={false}
+                  className="ai-brand--footer"
+                  style={{ width: 24, height: 24 }}
+                />
               </Link>
               <p className="footer-copyright">
                 © 2025 Artifically. All rights reserved.

@@ -1,7 +1,7 @@
-import { Icon } from "@/components/icons";
+import { Icon, type IconName } from "@/components/icons";
 
 export default function TrustStrip() {
-  const items = [
+  const items: ReadonlyArray<{ icon: IconName; title: string; desc: string }> = [
     { icon: "headphones", title: "24/7 Support", desc: "Real humans. Dedicated success architect on Professional+." },
     { icon: "barChart", title: "Uptime & SLAs", desc: "We publish status, aim for 99.95%+, and sign SLAs." },
     { icon: "shield", title: "Security", desc: "SOC 2 mindset, data encryption, isolation options." },
@@ -17,7 +17,7 @@ export default function TrustStrip() {
         {items.map((it) => (
           <li key={it.title} className="trust-card">
             <div className="trust-icon" aria-hidden>
-              <Icon name={it.icon as any} size={20} />
+              <Icon name={it.icon} size={20} />
             </div>
             <div className="trust-text">
               <strong className="trust-title">{it.title}</strong>

@@ -23,7 +23,7 @@ export default function HeaderLogo({ onClick }: { onClick?: (event: MouseEvent<H
   return (
     <Link
       href="/"
-      aria-label="Go to homepage · Artifically"
+      aria-label="Artifically home"
       className="brand brand--interactive ai-brand-link"
       data-prefetch-route="/"
       onClick={onClick}
@@ -37,3 +37,4 @@ export default function HeaderLogo({ onClick }: { onClick?: (event: MouseEvent<H
     </Link>
   );
 }
+

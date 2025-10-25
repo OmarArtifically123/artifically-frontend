@@ -15,7 +15,10 @@ export default function PricingPage() {
   // Direction awareness for RTL
   const [dir, setDir] = useState<"ltr" | "rtl">("ltr");
   useEffect(() => {
-    if (typeof document !== "undefined") setDir((document?.dir as any) || "ltr");
+    if (typeof document !== "undefined") {
+      const d = document?.dir;
+      setDir(d === "rtl" ? "rtl" : "ltr");
+    }
   }, []);
 
   const [billing, setBilling] = useState<BillingCadence>("annual");
