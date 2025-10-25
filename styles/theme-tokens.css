@@ -85,6 +85,12 @@
     --brand-energy: oklch(0.70 0.26 330);
     --brand-depth: #0a0a0f;
     --brand-muted: #1a1a24;
+
+    /* Logo tokens (theme-aware) */
+    --logo-mark: var(--text-primary);
+    --logo-word: var(--text-primary);
+    --logo-accent: var(--brand-primary);
+    --logo-node-opacity: 0;
   }
 
   /* ============================================================
@@ -166,6 +172,12 @@
     --brand-energy: #ec4899;
     --brand-depth: #f8f9ff;
     --brand-muted: #e2e8f0;
+
+    /* Logo tokens (theme-aware) */
+    --logo-mark: var(--text-primary);
+    --logo-word: var(--text-primary);
+    --logo-accent: var(--accent-primary);
+    --logo-node-opacity: 0;
   }
 
   /* ============================================================
@@ -248,6 +260,12 @@
     --brand-energy: #ff00ff;
     --brand-depth: #000000;
     --brand-muted: #000000;
+
+    /* Logo tokens (contrast) */
+    --logo-mark: #ffffff;
+    --logo-word: #ffffff;
+    --logo-accent: #00eaff;
+    --logo-node-opacity: 0;
   }
 
   /* ============================================================

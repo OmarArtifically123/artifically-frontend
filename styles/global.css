@@ -2277,6 +2277,43 @@ main :where(section, div)[id] {
   cursor: pointer;
 }
 
+/* Brand logo infrastructure */
+.ai-brand {
+  display: block;
+  color: var(--logo-mark, currentColor);
+  /* Avoid blurring at non-integer zoom */
+  shape-rendering: geometricPrecision;
+  text-rendering: optimizeLegibility;
+}
+
+.ai-brand-link {
+  -webkit-tap-highlight-color: transparent;
+}
+
+.ai-brand-link:focus-visible {
+  outline: 2px solid var(--border-focus, color-mix(in srgb, var(--accent-primary) 60%, #ffffff 30%));
+  outline-offset: 3px;
+  border-radius: 10px;
+}
+
+/* Subtle, tasteful hover/tap feedback for header only */
+@media (prefers-reduced-motion: no-preference) {
+  .ai-brand-link:hover .ai-brand,
+  .ai-brand-link:active .ai-brand {
+    transform: scale(1.02);
+    transition: transform 180ms ease;
+  }
+  .ai-brand-link:active .ai-brand {
+    transform: scale(0.99);
+  }
+}
+
+/* High-contrast: disable motion and glow */
+[data-theme="contrast"] .ai-brand-link:hover .ai-brand,
+[data-theme="contrast"] .ai-brand-link:active .ai-brand {
+  transform: none !important;
+}
+
 .nav {
   flex: 1 1 auto;
   display: flex;

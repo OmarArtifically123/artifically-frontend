@@ -5,7 +5,7 @@ import { useEffect, useId, useMemo, useRef, useState } from "react";
 import { useInView } from "react-intersection-observer";
 
 import { Icon } from "./icons";
-import LogoWordmark from "./ui/LogoWordmark";
+import { BrandMark } from "./brand/BrandLogo";
 
 const productLinks = [
   { label: "Marketplace", description: "Browse automations", href: "/marketplace" },
@@ -349,7 +349,9 @@ export default function Footer() {
 
           <div className="footer-bottom">
             <div className="footer-bottom-left">
-              <LogoWordmark variant="dark" style={{ width: "120px", height: "auto" }} />
+              <Link href="/" aria-label="Go to homepage · Artifically" className="footer-brand">
+                <BrandMark style={{ width: 24, height: 24, color: "var(--footer-text)" }} />
+              </Link>
               <p className="footer-copyright">
                 © 2025 Artifically. All rights reserved.
               </p>
@@ -868,6 +870,13 @@ export default function Footer() {
           .footer-stat-divider {
             display: none;
           }
+        }
+
+        /* Footer brand mark focus treatment (no hover animations) */
+        .footer-brand:focus-visible {
+          outline: 2px solid var(--border-focus, var(--accent-primary));
+          outline-offset: 3px;
+          border-radius: 8px;
         }
       `}</style>
     </footer>

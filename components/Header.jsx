@@ -10,7 +10,7 @@ import useMicroInteractions from "../hooks/useMicroInteractions";
 import { space } from "../styles/spacing";
 import MagneticButton from "./animation/MagneticButton";
 import { StaggeredContainer, StaggeredItem } from "./animation/StaggeredList";
-import LogoWordmark from "./ui/LogoWordmark";
+import HeaderLogo from "./brand/HeaderLogo";
 import motionCatalog from "../design/motion/catalog";
 import useViewTransitionNavigate from "../hooks/useViewTransitionNavigate";
 import { Icon } from "./icons";
@@ -985,40 +985,20 @@ export default function Header({ user, onSignIn, onSignUp, onSignOut }) {
             gap: space("md"),
           }}
         >
-        <Link
-          href="/"
-          className="brand brand--interactive"
-          data-prefetch-route="/"
-          onClick={(event) => handleLinkNavigation(event, "/")}
+        <div
           style={{
             display: "flex",
             alignItems: "center",
-            gap: space("2xs", 1.5),
-            width: "180px",
-            maxWidth: "180px",
+            width: "auto",
             position: "relative",
             zIndex: 1,
             padding: `${space("2xs", 1.2)} ${space("xs")}`,
             borderRadius: "0.75rem",
             transformOrigin: "center",
-            transition: "transform 250ms ease-out",
           }}
         >
-          <LogoWordmark
-            variant={isContrast ? "contrast" : (isDark ? "dark" : "light")}
-            style={{
-              height: "48px",
-              width: "auto",
-              display: "block",
-              filter: isContrast
-                ? "drop-shadow(0 0 20px color-mix(in oklch, var(--brand-primary) 80%, transparent))"
-                : isDark
-                ? "drop-shadow(0 0 16px color-mix(in oklch, var(--brand-glow) 55%, transparent))"
-                : "drop-shadow(0 0 10px color-mix(in oklch, var(--brand-primary) 45%, transparent))",
-              transition: "filter 0.3s ease, opacity 0.3s ease",
-            }}
-          />
-        </Link>
+          <HeaderLogo onClick={(event) => handleLinkNavigation(event, "/")} />
+        </div>
 
         <nav className="nav" aria-label="Main navigation">
           <StaggeredContainer
