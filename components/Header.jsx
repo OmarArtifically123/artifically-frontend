@@ -1026,7 +1026,7 @@ export default function Header({ user, onSignIn, onSignUp, onSignOut }) {
                         className={["nav-trigger", isActive ? "nav-trigger--active" : ""]
                           .filter(Boolean)
                           .join(" ")}
-                        aria-haspopup="dialog"
+                        aria-haspopup="true"
                         aria-expanded={isMenuOpen ? "true" : "false"}
                         aria-controls={resourcesMenuId}
                         onClick={() => {
@@ -1073,7 +1073,7 @@ export default function Header({ user, onSignIn, onSignUp, onSignOut }) {
                           className={["nav-trigger", isActive ? "nav-trigger--active" : ""]
                             .filter(Boolean)
                             .join(" ")}
-                          aria-haspopup="dialog"
+                          aria-haspopup="true"
                           aria-expanded={isMenuOpen ? "true" : "false"}
                           aria-controls={automationsMenuId}
                           onClick={() => {
@@ -1117,7 +1117,7 @@ export default function Header({ user, onSignIn, onSignUp, onSignOut }) {
                           className={["nav-trigger", isActive ? "nav-trigger--active" : ""]
                             .filter(Boolean)
                             .join(" ")}
-                          aria-haspopup="dialog"
+                          aria-haspopup="true"
                           aria-expanded={isMenuOpen ? "true" : "false"}
                           aria-controls={solutionsMenuId}
                           onClick={() => {
@@ -1235,6 +1235,7 @@ export default function Header({ user, onSignIn, onSignUp, onSignOut }) {
             aria-haspopup="true"
             onClick={handleMobileMenuToggle}
             ref={mobileMenuTriggerRef}
+            style={{ minWidth: '48px', minHeight: '48px', padding: '12px' }}
           >
             <span className="mobile-menu-toggle__line" />
             <span className="mobile-menu-toggle__line" />

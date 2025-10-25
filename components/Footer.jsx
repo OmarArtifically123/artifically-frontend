@@ -336,7 +336,8 @@ export default function Footer() {
                     target="_blank"
                     rel="noopener noreferrer"
                     className="footer-social-link"
-                    aria-label={label}
+                    aria-label={`Follow us on ${label} (opens in new window)`}
+                    style={{ minWidth: '48px', minHeight: '48px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}
                   >
                     <Icon name={icon} size={18} strokeWidth={1.6} />
                   </a>

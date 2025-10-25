@@ -6,8 +6,8 @@ import useInViewState from "@/hooks/useInViewState";
 
 const CUSTOMER_RESULTS = [
   {
-    company: "Atlas Finance",
-    description: "Global financial services firm, 5,000+ employees",
+    company: "Leading Financial Services Firm",
+    description: "Global financial institution, 5,000+ employees, Fortune 500",
     roi: 5.1,
     timeToRoi: "8 weeks",
     hoursPerWeek: 38,
@@ -15,13 +15,13 @@ const CUSTOMER_RESULTS = [
     primaryUseCase: "Financial Close Automation",
     metrics: [
       { label: "Cost Reduction", value: "61%", color: "#0ea5e9" },
-      { label: "Cycle Time", value: "35%", color: "#10b981" },
+      { label: "Cycle Time Improvement", value: "35%", color: "#10b981" },
       { label: "Accuracy Improvement", value: "99.98%", color: "#f59e0b" },
     ],
   },
   {
-    company: "Nova Retail",
-    description: "Multi-channel retailer with 200+ locations",
+    company: "Top 50 Global Retailer",
+    description: "Multi-channel retail operation, 200+ locations, $2B+ revenue",
     roi: 4.4,
     timeToRoi: "6 weeks",
     hoursPerWeek: 52,
@@ -29,20 +29,20 @@ const CUSTOMER_RESULTS = [
     primaryUseCase: "Supply Chain Optimization",
     metrics: [
       { label: "Inventory Accuracy", value: "94.2%", color: "#8b5cf6" },
-      { label: "Order Processing Time", value: "71%", color: "#06b6d4" },
-      { label: "Demand Forecasting", value: "87%", color: "#f59e0b" },
+      { label: "Order Processing Time", value: "71% faster", color: "#06b6d4" },
+      { label: "Demand Forecasting", value: "87% accuracy", color: "#f59e0b" },
     ],
   },
   {
-    company: "Helios Health",
-    description: "Healthcare provider network, 50+ facilities",
+    company: "Fortune 500 Healthcare Provider",
+    description: "Healthcare provider network, 50+ facilities, HIPAA-compliant operations",
     roi: 6.2,
     timeToRoi: "10 weeks",
     hoursPerWeek: 44,
     automations: 156,
     primaryUseCase: "Patient Care Coordination",
     metrics: [
-      { label: "Patient Outcomes", value: "23%", color: "#10b981" },
+      { label: "Patient Outcomes", value: "23% improvement", color: "#10b981" },
       { label: "Admin Time Reduction", value: "68%", color: "#0ea5e9" },
       { label: "HIPAA Compliance", value: "100%", color: "#f59e0b" },
     ],

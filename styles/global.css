@@ -1404,14 +1404,31 @@ samp {
     }
   }
 
+/* Accessibility: Focus Indicators (WCAG 2.4.7) */
 *:focus-visible {
-  outline: 2px solid #a78bfa;
+  outline: 3px solid var(--brand-primary);
   outline-offset: 2px;
-  border-radius: 4px;
+  transition: outline-offset 0.1s ease;
 }
 
 *:focus:not(:focus-visible) {
   outline: none;
+}
+
+/* High contrast mode support */
+@media (prefers-contrast: high) {
+  *:focus-visible {
+    outline-width: 4px;
+    outline-color: currentColor;
+  }
+}
+
+/* Skip link specific styles */
+.skip-link:focus {
+  position: absolute;
+  left: 1rem !important;
+  top: 1rem;
+  z-index: 999999;
 }
 
 /* Kinetic typography utilities */
@@ -2279,84 +2296,100 @@ main :where(section, div)[id] {
 
 /* Brand logo infrastructure */
 :root {
-  --brand-logo-word: #0f1b33;
-  --brand-logo-shield: #101f3f;
-  --brand-logo-outline: #041028;
-  --brand-logo-core: #f7fbff;
-  --brand-logo-arrow: #009fb7;
-  --brand-logo-node: #1d8df0;
-  --brand-logo-orbit-primary: #00b3c7;
-  --brand-logo-orbit-primary-active: #33d4e8;
-  --brand-logo-orbit-secondary: #1d8df0;
-  --brand-logo-orbit-secondary-active: #4aa6ff;
-  --brand-logo-halo: rgba(29, 141, 240, 0.26);
-  --brand-logo-halo-active: rgba(51, 212, 232, 0.38);
-  --brand-logo-focus-ring: #2563eb;
-  --brand-logo-outline-width: 1.5;
-  --brand-logo-orbit-width: 3.4;
-  --brand-logo-orbit-secondary-width: 2.6;
+  --brand-logo-word: #051225;
+  --brand-logo-loop: #071637;
+  --brand-logo-loop-active: #0b214f;
+  --brand-logo-loop-highlight: #0f9ad8;
+  --brand-logo-loop-highlight-active: #36c3ff;
+  --brand-logo-bridge: #103366;
+  --brand-logo-bridge-active: #1c4f9c;
+  --brand-logo-core: #ffffff;
+  --brand-logo-node-intake: #0f8be0;
+  --brand-logo-node-orchestrate: #0fb5a6;
+  --brand-logo-node-handoff: #1b63f0;
+  --brand-logo-node-resolve: #128b5a;
+  --brand-logo-node-active: #33d4e8;
+  --brand-logo-halo: rgba(15, 154, 216, 0.18);
+  --brand-logo-halo-active: rgba(54, 195, 255, 0.34);
+  --brand-logo-focus-ring: #0e7ce3;
+  --brand-logo-flow-width: 3.8;
+  --brand-logo-bridge-width: 2.8;
   --brand-logo-word-stroke: 2.8;
 }
 
 [data-theme="dark"] {
-  --brand-logo-word: #f2f6ff;
-  --brand-logo-shield: #1f2f54;
-  --brand-logo-outline: #5fade0;
-  --brand-logo-core: #e3f4ff;
-  --brand-logo-arrow: #33d4e8;
-  --brand-logo-node: #6ec8ff;
-  --brand-logo-orbit-primary: #2dd8e8;
-  --brand-logo-orbit-primary-active: #7af2ff;
-  --brand-logo-orbit-secondary: #5fade0;
-  --brand-logo-orbit-secondary-active: #a3d8ff;
-  --brand-logo-halo: rgba(45, 216, 232, 0.22);
-  --brand-logo-halo-active: rgba(110, 200, 255, 0.38);
-  --brand-logo-focus-ring: #7af2ff;
-  --brand-logo-outline-width: 1.3;
+  --brand-logo-word: #f4f7ff;
+  --brand-logo-loop: #d6e4ff;
+  --brand-logo-loop-active: #e6f1ff;
+  --brand-logo-loop-highlight: #68d5ff;
+  --brand-logo-loop-highlight-active: #8ae8ff;
+  --brand-logo-bridge: #9ab6ff;
+  --brand-logo-bridge-active: #b5c9ff;
+  --brand-logo-core: #061329;
+  --brand-logo-node-intake: #7dc6ff;
+  --brand-logo-node-orchestrate: #6fe6d4;
+  --brand-logo-node-handoff: #9ab7ff;
+  --brand-logo-node-resolve: #7ef5b7;
+  --brand-logo-node-active: #a4f2ff;
+  --brand-logo-halo: rgba(120, 210, 255, 0.16);
+  --brand-logo-halo-active: rgba(168, 242, 255, 0.28);
+  --brand-logo-focus-ring: #8ae8ff;
+  --brand-logo-flow-width: 3.4;
+  --brand-logo-bridge-width: 2.6;
   --brand-logo-word-stroke: 2.6;
 }
 
 [data-theme="contrast"] {
   --brand-logo-word: #ffffff;
-  --brand-logo-shield: #020614;
-  --brand-logo-outline: #00eaff;
+  --brand-logo-loop: #000000;
+  --brand-logo-loop-active: #000000;
+  --brand-logo-loop-highlight: #00eaff;
+  --brand-logo-loop-highlight-active: #00eaff;
+  --brand-logo-bridge: #ffffff;
+  --brand-logo-bridge-active: #ffffff;
   --brand-logo-core: #ffffff;
-  --brand-logo-arrow: #00eaff;
-  --brand-logo-node: #00eaff;
-  --brand-logo-orbit-primary: #00eaff;
-  --brand-logo-orbit-primary-active: #67f1ff;
-  --brand-logo-orbit-secondary: #ffffff;
-  --brand-logo-orbit-secondary-active: #ffffff;
-  --brand-logo-halo: rgba(0, 234, 255, 0);
+  --brand-logo-node-intake: #00eaff;
+  --brand-logo-node-orchestrate: #ffffff;
+  --brand-logo-node-handoff: #00eaff;
+  --brand-logo-node-resolve: #ffffff;
+  --brand-logo-node-active: #00eaff;
+  --brand-logo-halo: rgba(0, 0, 0, 0);
   --brand-logo-halo-active: rgba(0, 234, 255, 0.22);
   --brand-logo-focus-ring: #00eaff;
-  --brand-logo-outline-width: 1.8;
+  --brand-logo-flow-width: 3.6;
+  --brand-logo-bridge-width: 2.4;
   --brand-logo-word-stroke: 3.1;
 }
 
 .ai-brand {
   --logo-word: var(--brand-logo-word);
-  --logo-shield: var(--brand-logo-shield);
-  --logo-outline: var(--brand-logo-outline);
-  --logo-core: var(--brand-logo-core);
-  --logo-arrow: var(--brand-logo-arrow);
-  --logo-node: var(--brand-logo-node);
-  --logo-orbit-primary: var(--brand-logo-orbit-primary);
-  --logo-orbit-primary-strong: var(--brand-logo-orbit-primary-active);
-  --logo-orbit-secondary: var(--brand-logo-orbit-secondary);
-  --logo-orbit-secondary-strong: var(--brand-logo-orbit-secondary-active);
+  --logo-loop-fill: var(--brand-logo-loop);
+  --logo-loop-active-fill: var(--brand-logo-loop-active);
+  --logo-flow-color: var(--brand-logo-loop-highlight);
+  --logo-flow-color-active: var(--brand-logo-loop-highlight-active);
+  --logo-bridge-color: var(--brand-logo-bridge);
+  --logo-bridge-color-active: var(--brand-logo-bridge-active);
+  --logo-core-base: var(--brand-logo-core);
+  --logo-core-fill: var(--logo-core-base);
+  --logo-node-intake-base: var(--brand-logo-node-intake);
+  --logo-node-intake-fill: var(--logo-node-intake-base);
+  --logo-node-orchestrate-base: var(--brand-logo-node-orchestrate);
+  --logo-node-orchestrate-fill: var(--logo-node-orchestrate-base);
+  --logo-node-handoff-base: var(--brand-logo-node-handoff);
+  --logo-node-handoff-fill: var(--logo-node-handoff-base);
+  --logo-node-resolve-base: var(--brand-logo-node-resolve);
+  --logo-node-resolve-fill: var(--logo-node-resolve-base);
+  --logo-node-energized-fill: var(--brand-logo-node-active);
   --logo-halo-color: var(--brand-logo-halo);
   --logo-halo-color-active: var(--brand-logo-halo-active);
-  --logo-focus-ring: var(--brand-logo-focus-ring);
-  --logo-outline-width: var(--brand-logo-outline-width, 1.4);
-  --logo-orbit-width: var(--brand-logo-orbit-width, 3.4);
-  --logo-orbit-secondary-width: var(--brand-logo-orbit-secondary-width, 2.6);
-  --logo-word-stroke: var(--brand-logo-word-stroke, 2.6);
-  --logo-orbit-primary-opacity: 1;
-  --logo-orbit-secondary-opacity: 0.82;
   --logo-halo-opacity: 0;
   --logo-halo-opacity-active: 0.42;
   --logo-halo-opacity-press: 0.5;
+  --logo-focus-ring: var(--brand-logo-focus-ring);
+  --logo-flow-width: var(--brand-logo-flow-width, 3.6);
+  --logo-bridge-width: var(--brand-logo-bridge-width, 2.6);
+  --logo-word-stroke: var(--brand-logo-word-stroke, 2.8);
+  --logo-node-scale-hover: 1.05;
   display: inline-block;
   color: var(--logo-word);
   shape-rendering: geometricPrecision;
@@ -2393,45 +2426,51 @@ main :where(section, div)[id] {
   display: block;
 }
 
-.ai-brand__shield {
-  fill: var(--logo-shield);
-  stroke: var(--logo-outline);
-  stroke-width: var(--logo-outline-width);
-  transition: fill 220ms ease, stroke 220ms ease;
-}
-
-.ai-brand__orbit--primary {
-  stroke: var(--logo-orbit-primary);
-  stroke-width: var(--logo-orbit-width);
-  opacity: var(--logo-orbit-primary-opacity);
-  transition: stroke 200ms ease, opacity 200ms ease;
-}
-
-.ai-brand__orbit--secondary {
-  stroke: var(--logo-orbit-secondary);
-  stroke-width: var(--logo-orbit-secondary-width);
-  opacity: var(--logo-orbit-secondary-opacity);
-  transition: stroke 200ms ease, opacity 200ms ease;
-}
-
-.ai-brand__core {
-  fill: var(--logo-core);
+.ai-brand__loop {
+  fill: var(--logo-loop-fill);
   transition: fill 220ms ease;
 }
 
-.ai-brand__arrow {
-  fill: var(--logo-arrow);
-  transition: fill 200ms ease;
+.ai-brand__flow {
+  stroke: var(--logo-flow-color);
+  stroke-width: var(--logo-flow-width);
+  opacity: 0.88;
+  transition: stroke 220ms ease, opacity 220ms ease;
+}
+
+.ai-brand__bridge {
+  stroke: var(--logo-bridge-color);
+  stroke-width: var(--logo-bridge-width);
+  opacity: 0.82;
+  transition: stroke 220ms ease, opacity 220ms ease;
+}
+
+.ai-brand__core {
+  fill: var(--logo-core-fill);
+  stroke: var(--logo-bridge-color);
+  stroke-width: 1.1;
+  transition: fill 220ms ease, stroke 220ms ease;
 }
 
 .ai-brand__node {
-  fill: var(--logo-node);
-  transition: fill 200ms ease, transform 200ms ease;
+  transition: transform 200ms ease, fill 220ms ease;
   transform-origin: center;
 }
 
-.ai-brand__node--top {
-  opacity: 0.85;
+.ai-brand__node--intake {
+  fill: var(--logo-node-intake-fill);
+}
+
+.ai-brand__node--orchestrate {
+  fill: var(--logo-node-orchestrate-fill);
+}
+
+.ai-brand__node--handoff {
+  fill: var(--logo-node-handoff-fill);
+}
+
+.ai-brand__node--resolve {
+  fill: var(--logo-node-resolve-fill);
 }
 
 .ai-brand__halo {
@@ -2451,15 +2490,21 @@ main :where(section, div)[id] {
 @media (prefers-reduced-motion: no-preference) {
   .ai-brand-link:hover .ai-brand--interactive,
   .ai-brand-link:focus-visible .ai-brand--interactive {
-    --logo-orbit-primary: var(--logo-orbit-primary-strong);
-    --logo-orbit-secondary: var(--logo-orbit-secondary-strong);
+    --logo-loop-fill: var(--logo-loop-active-fill);
+    --logo-flow-color: var(--logo-flow-color-active);
+    --logo-bridge-color: var(--logo-bridge-color-active);
+    --logo-core-fill: color-mix(in srgb, var(--logo-core-base) 68%, #ffffff 32%);
+    --logo-node-intake-fill: color-mix(in srgb, var(--logo-node-intake-base) 78%, var(--logo-node-energized-fill) 22%);
+    --logo-node-orchestrate-fill: color-mix(in srgb, var(--logo-node-orchestrate-base) 78%, var(--logo-node-energized-fill) 22%);
+    --logo-node-handoff-fill: color-mix(in srgb, var(--logo-node-handoff-base) 78%, var(--logo-node-energized-fill) 22%);
+    --logo-node-resolve-fill: color-mix(in srgb, var(--logo-node-resolve-base) 78%, var(--logo-node-energized-fill) 22%);
     --logo-halo-opacity: var(--logo-halo-opacity-active);
     --logo-halo-color: var(--logo-halo-color-active);
   }
 
   .ai-brand-link:hover .ai-brand--interactive .ai-brand__node,
   .ai-brand-link:focus-visible .ai-brand--interactive .ai-brand__node {
-    transform: scale(1.05);
+    transform: scale(var(--logo-node-scale-hover));
   }
 
   .ai-brand-link:active .ai-brand--interactive {
@@ -2473,9 +2518,9 @@ main :where(section, div)[id] {
 
 @media (prefers-reduced-motion: reduce) {
   .ai-brand,
-  .ai-brand__shield,
-  .ai-brand__orbit--primary,
-  .ai-brand__orbit--secondary,
+  .ai-brand__loop,
+  .ai-brand__flow,
+  .ai-brand__bridge,
   .ai-brand__core,
   .ai-brand__node,
   .ai-brand__halo,
@@ -2495,16 +2540,23 @@ main :where(section, div)[id] {
 
 .ai-brand.ai-brand--footer {
   --logo-word: var(--footer-text, var(--logo-word));
-  --logo-shield: color-mix(in srgb, var(--footer-text, var(--logo-word)) 18%, #000000 82%);
-  --logo-outline: var(--footer-text, var(--logo-word));
-  --logo-core: color-mix(in srgb, var(--footer-text, var(--logo-word)) 12%, #ffffff 88%);
-  --logo-orbit-primary: color-mix(in srgb, var(--footer-text, var(--logo-word)) 55%, transparent);
-  --logo-orbit-primary-strong: var(--logo-orbit-primary);
-  --logo-orbit-secondary: color-mix(in srgb, var(--footer-text, var(--logo-word)) 35%, transparent);
-  --logo-orbit-secondary-strong: var(--logo-orbit-secondary);
-  --logo-node: var(--footer-text, var(--logo-word));
-  --logo-arrow: var(--footer-text, var(--logo-word));
-  --logo-orbit-secondary-opacity: 0.7;
+  --logo-loop-fill: color-mix(in srgb, var(--footer-text, var(--logo-word)) 82%, #000000 18%);
+  --logo-loop-active-fill: var(--logo-loop-fill);
+  --logo-flow-color: color-mix(in srgb, var(--footer-text, var(--logo-word)) 58%, transparent);
+  --logo-flow-color-active: var(--logo-flow-color);
+  --logo-bridge-color: color-mix(in srgb, var(--footer-text, var(--logo-word)) 68%, #000000 32%);
+  --logo-bridge-color-active: var(--logo-bridge-color);
+  --logo-core-base: color-mix(in srgb, var(--footer-text, var(--logo-word)) 22%, transparent);
+  --logo-core-fill: var(--logo-core-base);
+  --logo-node-intake-base: var(--footer-text, var(--logo-word));
+  --logo-node-intake-fill: var(--logo-node-intake-base);
+  --logo-node-orchestrate-base: var(--footer-text, var(--logo-word));
+  --logo-node-orchestrate-fill: var(--logo-node-orchestrate-base);
+  --logo-node-handoff-base: var(--footer-text, var(--logo-word));
+  --logo-node-handoff-fill: var(--logo-node-handoff-base);
+  --logo-node-resolve-base: var(--footer-text, var(--logo-word));
+  --logo-node-resolve-fill: var(--logo-node-resolve-base);
+  --logo-node-scale-hover: 1;
   --logo-halo-opacity-active: 0;
   --logo-halo-opacity-press: 0;
 }

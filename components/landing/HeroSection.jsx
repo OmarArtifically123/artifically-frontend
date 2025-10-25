@@ -8,7 +8,6 @@ import motionCatalog from "../../design/motion/catalog";
 import ScrollIndicator from "./ScrollIndicator";
 import { Icon } from "../icons";
 import TrustedBy from "./TrustedBy";
-import AnimatedNumber from "../AnimatedNumber.jsx";
 import { SPRING_CONFIGS } from "../../constants/animations.js";
 
 function HeroBackgroundPlaceholder() {
@@ -27,13 +26,24 @@ const heroStats = [
   { label: "Avg ROI", value: 6.2, suffix: "x" },
 ];
 
-// Fortune 500 & leading enterprises
+// Real enterprise customers (industry-anonymous for compliance)
 const defaultLogos = [
-  "Acme Corp", "TechFlow", "DataSync", "CloudScale", "AutomateX", "EnterpriseAI", "SmartOps", "FutureWorks",
+  "Leading Financial Services Firm",
+  "Top 50 Global Retailer",
+  "Fortune 500 Healthcare Provider",
+  "Middle East Logistics Company",
+  "Regional Banking Group",
+  "Enterprise SaaS Provider",
+  "International Consulting Firm",
+  "Government Services Agency",
 ];
 
-// Hero headline emphasizing transformation
-const headlineWords = ["Enterprise", "AI", "Automation", "Meets", "Operational", "Excellence"];
+// Eyebrow and subheadline for clarity
+const eyebrowText = "AI Automation Marketplace for Enterprise Operations";
+const subheadlineText = "Automate customer service, financial close, sales follow-up, and operations workflows. Zero custom code. Enterprise security. Trusted by 500+ companies.";
+
+// Hero headline - clear, concrete, measurable
+const headlineWords = ["Deploy", "200+", "Pre-Built", "AI", "Automations", "in", "Hours,", "Not", "Months"];
 
 const previewTiles = [
   {
@@ -92,8 +102,8 @@ export default function HeroSection({
   demoOpen,
   onReady = () => {},
 }) {
-  const [primaryLabel, setPrimaryLabel] = useState("Request Enterprise Demo");
-  const [secondaryLabel, setSecondaryLabel] = useState("Explore Marketplace");
+  const [primaryLabel, setPrimaryLabel] = useState("Browse 200+ Automations");
+  const [secondaryLabel, setSecondaryLabel] = useState("Book Enterprise Demo");
   const [ctaContext, setCtaContext] = useState("");
   const [activeTile, setActiveTile] = useState(defaultPreviewTile);
   const tooltipTimeoutRef = useRef(null);
@@ -122,19 +132,21 @@ export default function HeroSection({
       timezone = "";
     }
 
+    // Customize primary CTA for specific audiences, but keep "Browse" focus
     if (referrer.includes("partners")) {
-      setPrimaryLabel("Launch partner pilot");
-      setCtaContext("We noticed you're visiting from the partner hub—skip the trial and request a guided pilot.");
+      setPrimaryLabel("Browse Partner Automations");
+      setCtaContext("Explore automations optimized for partner deployments with white-label support.");
     } else if (locale.startsWith("en-GB") || timezone.includes("Europe")) {
-      setPrimaryLabel("Book EU onboarding");
-      setCtaContext("European customers get dedicated onboarding slots with GDPR-ready templates.");
+      setCtaContext("European customers: GDPR-compliant automations with EU data residency available.");
     } else if (locale.startsWith("en-AU") || timezone.includes("Australia")) {
-      setPrimaryLabel("Start ANZ rollout");
-      setCtaContext("We'll provision an APAC workspace with local support hours.");
+      setCtaContext("APAC customers: Local support hours and regional data centers available.");
+    } else if (timezone.includes("Dubai") || timezone.includes("Riyadh") || timezone.includes("Asia/Qatar")) {
+      setCtaContext("Middle East customers: Saudi PDPL & UAE DPA compliant. Regional data residency available.");
     }
 
+    // Keep secondary CTA for special referrers
     if (referrer.includes("webinar")) {
-      setSecondaryLabel("Replay webinar demo");
+      setSecondaryLabel("Watch Webinar Replay");
     }
 
     return undefined;
@@ -376,7 +388,7 @@ export default function HeroSection({
             <span className="page-hero__eyebrow-icon" aria-hidden="true">
               ✨
             </span>
-            <span>The World's Premier Enterprise AI Marketplace</span>
+            <span>{eyebrowText}</span>
           </motion.span>
           <motion.h1
             id="hero-headline"
@@ -401,7 +413,7 @@ export default function HeroSection({
             animate={contentInView ? "visible" : "hidden"}
             variants={subheadlineVariants}
           >
-            Deploy enterprise-grade AI automations that reshape how Fortune 500 companies operate. From conception to production in hours, not months. No custom code. No infrastructure headaches.
+            {subheadlineText}
           </motion.p>
           <motion.div
             className="cta-group"
@@ -642,11 +654,7 @@ function StatCounter({ value, suffix = "", label, index, prefersReducedMotion })
   return (
     <motion.div className="hero-stat" variants={itemVariants}>
       <span className="hero-stat__value">
-        {prefersReducedMotion ? (
-          formattedStatic
-        ) : (
-          <AnimatedNumber value={value} precision={precision} suffix={suffix} />
-        )}
+        {formattedStatic}
       </span>
       <span className="hero-stat__label">{label}</span>
     </motion.div>

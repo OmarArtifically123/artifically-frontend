@@ -1,0 +1,51 @@
+/* RTL-specific styles using CSS logical properties */
+
+[dir="rtl"] {
+  /* Typography adjustments for Arabic */
+  line-height: 1.8;
+  letter-spacing: 0;
+}
+
+/* Convert physical properties to logical properties */
+[dir="rtl"] .text-left {
+  text-align: start;
+}
+
+[dir="rtl"] .text-right {
+  text-align: end;
+}
+
+/* Flexbox direction */
+[dir="rtl"] .flex-row {
+  flex-direction: row-reverse;
+}
+
+/* Grid adjustments */
+[dir="rtl"] .justify-start {
+  justify-content: flex-end;
+}
+
+[dir="rtl"] .justify-end {
+  justify-content: flex-start;
+}
+
+/* Animation direction adjustments */
+[dir="rtl"] .slide-in-right {
+  animation-name: slide-in-left;
+}
+
+[dir="rtl"] .slide-in-left {
+  animation-name: slide-in-right;
+}
+
+/* Icon flipping where needed */
+[dir="rtl"] .icon-arrow-right {
+  transform: scaleX(-1);
+}
+
+/* Form field adjustments */
+[dir="rtl"] input[type="text"],
+[dir="rtl"] input[type="email"],
+[dir="rtl"] textarea {
+  text-align: right;
+}

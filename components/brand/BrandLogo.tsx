@@ -34,112 +34,111 @@ export interface BrandLogoProps {
 const cx = (...values: Array<string | null | undefined | false>) => values.filter(Boolean).join(" ");
 
 const MARK_VIEWBOX = "0 0 64 64";
-const FULL_VIEWBOX = "0 0 324 64";
-const COMPACT_VIEWBOX = "0 0 288 56";
-const VERTICAL_VIEWBOX = "0 0 240 148";
+const FULL_VIEWBOX = "0 0 400 64";
+const COMPACT_VIEWBOX = "0 0 336 56";
+const VERTICAL_VIEWBOX = "0 0 264 176";
 
 const MarkGlyph = () => (
   <g className="ai-brand__glyph">
     <path
-      className="ai-brand__shield"
-      d="M32 3.5C24.4 9.3 18.4 17.4 14.4 26.7C11.3 33.8 12.3 41.3 17.5 47.2C22.8 53.1 27.8 56.5 32 58.4C36.2 56.5 41.2 53.1 46.5 47.2C51.7 41.3 52.7 33.8 49.6 26.7C45.6 17.4 39.6 9.3 32 3.5Z"
+      className="ai-brand__halo"
+      d="M32 4C18.1929 4 6 16.1929 6 30C6 43.8071 18.1929 56 32 56C45.8071 56 58 43.8071 58 30C58 16.1929 45.8071 4 32 4Z"
+      fill="none"
     />
     <path
-      className="ai-brand__orbit ai-brand__orbit--primary"
-      d="M20.2 36.4C25.5 26.1 28.8 22.7 32 22.7C35.2 22.7 38.5 26.1 43.8 36.4C40.4 43.7 35.5 48.1 32 49.4C28.5 48.1 23.6 43.7 20.2 36.4Z"
+      className="ai-brand__loop"
+      fillRule="evenodd"
+      d="M19 16C10.5741 16 6 24.6809 6 32C6 39.3191 10.5741 48 19 48C24.7538 48 30.5401 44.0555 33.8492 38.4372C37.1583 44.0555 42.9446 48 48.6983 48C57.1259 48 62 39.3191 62 32C62 24.6809 57.1259 16 48.6983 16C42.9446 16 37.1583 19.9445 33.8492 25.5628C30.5401 19.9445 24.7538 16 19 16ZM19 22C24.5975 22 29.3862 27.5459 31.6206 32C29.3862 36.4541 24.5975 42 19 42C13.6269 42 10 36.6513 10 32C10 27.3487 13.6269 22 19 22ZM48.6983 22C43.1008 22 38.3121 27.5459 36.0777 32C38.3121 36.4541 43.1008 42 48.6983 42C54.0714 42 58 36.6513 58 32C58 27.3487 54.0714 22 48.6983 22Z"
+    />
+    <path
+      className="ai-brand__flow"
+      d="M12 32C12 22.6 17.8 18 23.5 18C29.6 18 34.4 22.6 36.7 27.6C39.5 33.8 44.8 38 50.5 38C55.2 38 58 34 58 29.6"
       fill="none"
       strokeLinecap="round"
-      strokeLinejoin="round"
     />
     <path
-      className="ai-brand__orbit ai-brand__orbit--secondary"
-      d="M22.8 44.6C27.9 49.1 36.1 49.1 41.2 44.6"
+      className="ai-brand__bridge"
+      d="M24 46C28.1 52 35.9 52 40 46"
       fill="none"
       strokeLinecap="round"
-      strokeLinejoin="round"
     />
-    <circle className="ai-brand__core" cx={32} cy={36} r={5.6} />
-    <path
-      className="ai-brand__arrow"
-      d="M32 10.6L38.7 19.7C39.2 20.4 38.7 21.4 37.8 21.4H26.2C25.3 21.4 24.8 20.4 25.3 19.7L32 10.6Z"
-    />
-    <circle className="ai-brand__node ai-brand__node--left" cx={20.6} cy={42.8} r={2.4} />
-    <circle className="ai-brand__node ai-brand__node--right" cx={43.4} cy={42.8} r={2.4} />
-    <circle className="ai-brand__node ai-brand__node--top" cx={32} cy={18.4} r={1.8} />
-    <circle className="ai-brand__halo" cx={32} cy={34} r={20.6} fill="none" />
+    <circle className="ai-brand__core" cx={32} cy={32} r={3.6} />
+    <circle className="ai-brand__node ai-brand__node--intake" cx={18.2} cy={32} r={3.3} />
+    <circle className="ai-brand__node ai-brand__node--orchestrate" cx={32} cy={22} r={2.6} />
+    <circle className="ai-brand__node ai-brand__node--handoff" cx={45.8} cy={32} r={3.3} />
+    <circle className="ai-brand__node ai-brand__node--resolve" cx={32} cy={42} r={2.6} />
   </g>
 );
 
 const WordmarkGlyph = () => (
-  <g className="ai-brand__wordmark" strokeLinecap="round" strokeLinejoin="round">
+  <g className="ai-brand__wordmark" fill="none" strokeLinecap="round" strokeLinejoin="round">
     <g transform="translate(0 0)">
-      <path d="M2 26L10 2L18 26" />
-      <path d="M6.2 16.3Q10 12.1 13.8 16.3" />
+      <path d="M2 30L11 2L20 30" />
+      <path d="M6.8 19H15.2" />
     </g>
-    <g transform="translate(25 0)">
-      <path d="M0 26V2" />
-      <path d="M0 4H10C16 4 18 8 18 12C18 16.8 14.8 20 10 20H0" />
-      <path d="M10 20L18 26" />
+    <g transform="translate(26 0)">
+      <path d="M2 30V2H12.6C18.2 2 22 6.4 22 11.4C22 16.6 18 21 12.6 21H2" />
+      <path d="M12.6 21L22 30" />
     </g>
-    <g transform="translate(50 0)">
-      <path d="M0 2H20" />
-      <path d="M10 2V26" />
+    <g transform="translate(54 0)">
+      <path d="M0 2H22" />
+      <path d="M11 2V30" />
     </g>
-    <g transform="translate(75 0)">
-      <path d="M0 2H8" />
-      <path d="M4 2V26" />
-      <path d="M0 26H8" />
+    <g transform="translate(82 0)">
+      <path d="M2 2H8" />
+      <path d="M5 2V30" />
+      <path d="M2 30H8" />
     </g>
-    <g transform="translate(88 0)">
-      <path d="M0 2V26" />
-      <path d="M0 2H18" />
-      <path d="M0 14H14" />
+    <g transform="translate(96 0)">
+      <path d="M2 2V30" />
+      <path d="M2 2H20" />
+      <path d="M2 16H16" />
     </g>
-    <g transform="translate(111 0)">
-      <path d="M0 2H8" />
-      <path d="M4 2V26" />
-      <path d="M0 26H8" />
+    <g transform="translate(122 0)">
+      <path d="M2 2H8" />
+      <path d="M5 2V30" />
+      <path d="M2 30H8" />
     </g>
-    <g transform="translate(124 0)">
-      <path d="M18 6C16 4 12 2 8 2C3 2 0 7 0 14C0 21 3 26 8 26C12 26 16 24 18 22" />
+    <g transform="translate(136 0)">
+      <path d="M20 6C18 3 14 2 10 2C4 2 2 8.3 2 16C2 23.7 4 30 10 30C14 30 18 28 20 25" />
     </g>
-    <g transform="translate(149 0)">
-      <path d="M2 26L10 2L18 26" />
-      <path d="M6.2 16.3Q10 12.1 13.8 16.3" />
+    <g transform="translate(162 0)">
+      <path d="M2 30L11 2L20 30" />
+      <path d="M6.8 19H15.2" />
     </g>
-    <g transform="translate(174 0)">
-      <path d="M0 2V26" />
-      <path d="M0 26H14" />
-    </g>
-    <g transform="translate(193 0)">
-      <path d="M0 2V26" />
-      <path d="M0 26H14" />
+    <g transform="translate(188 0)">
+      <path d="M2 2V30" />
+      <path d="M2 30H20" />
     </g>
     <g transform="translate(212 0)">
-      <path d="M0 2L10 14L20 2" />
-      <path d="M10 14V26" />
+      <path d="M2 2V30" />
+      <path d="M2 30H20" />
+    </g>
+    <g transform="translate(236 0)">
+      <path d="M0 2L11 16L22 2" />
+      <path d="M11 16V30" />
     </g>
   </g>
 );
 
 const markLabel = {
-  title: "Artifically automation mark",
-  desc: "Symbol of a continuous, always-on operations hub with guided automation flows",
+  title: "Artifically infinity automation mark",
+  desc: "Infinity loop symbol with orchestrated nodes representing continuous, always-on automation",
 };
 
 const fullLabel = {
-  title: "Artifically logo",
-  desc: "Artifically full logo lockup with automation mark and engineered wordmark",
+  title: "Artifically full logo lockup",
+  desc: "Artifically infinity mark paired with the custom wordmark for primary brand usage",
 };
 
 const compactLabel = {
   title: "Artifically compact logo",
-  desc: "Compact horizontal lockup of Artifically mark and wordmark",
+  desc: "Compact horizontal lockup balancing the infinity automation mark with the Artifically wordmark",
 };
 
 const verticalLabel = {
   title: "Artifically vertical logo",
-  desc: "Stacked Artifically mark above the wordmark for vertical layouts",
+  desc: "Stacked configuration of the infinity automation mark above the Artifically wordmark",
 };
 
 const withBaseClass = (
@@ -217,12 +216,12 @@ export const BrandLogoFull = forwardRef<SVGSVGElement, BrandLogoProps>(
           <g transform="translate(0 0)">
             <MarkGlyph />
           </g>
-          <g transform="translate(84 16)">
+          <g transform="translate(96 16)">
             <WordmarkGlyph />
           </g>
         </g>
         <g className="ai-brand__lockup ai-brand__lockup--rtl">
-          <g transform="translate(260 0)">
+          <g transform="translate(336 0)">
             <MarkGlyph />
           </g>
           <g transform="translate(0 16)">
@@ -268,15 +267,15 @@ export const BrandLogoCompact = forwardRef<SVGSVGElement, BrandLogoProps>(
           <g transform="translate(0 0)">
             <MarkGlyph />
           </g>
-          <g transform="translate(78 14) scale(0.87)">
+          <g transform="translate(84 14) scale(0.88)">
             <WordmarkGlyph />
           </g>
         </g>
         <g className="ai-brand__lockup ai-brand__lockup--rtl">
-          <g transform="translate(224 0)">
+          <g transform="translate(272 0)">
             <MarkGlyph />
           </g>
-          <g transform="translate(0 14) scale(0.87)">
+          <g transform="translate(0 14) scale(0.88)">
             <WordmarkGlyph />
           </g>
         </g>
@@ -315,10 +314,10 @@ export const BrandLogoVertical = forwardRef<SVGSVGElement, BrandLogoProps>(
       >
         <title id={titleId}>{title}</title>
         <desc id={descId}>{desc}</desc>
-        <g transform="translate(88 0)">
+        <g transform="translate(100 0)">
           <MarkGlyph />
         </g>
-        <g transform="translate(4 96)">
+        <g transform="translate(6 122) scale(0.95)">
           <WordmarkGlyph />
         </g>
       </svg>

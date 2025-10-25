@@ -3,6 +3,7 @@ import type { Metadata, Viewport } from "next";
 import { Analytics } from "@vercel/analytics/react";
 import AppShell from "@/components/AppShell";
 import PageTransition from "@/components/PageTransition";
+import SkipLink from "@/components/SkipLink";
 import { ThemeProvider } from "@/context/ThemeContext";
 import { CONTRAST_DEFAULT, THEME_DARK } from "@/context/themeConstants";
 import inter from "@/lib/fonts/inter";
@@ -118,6 +119,7 @@ export default function RootLayout({
         data-theme={DEFAULT_THEME}
         data-contrast={DEFAULT_CONTRAST}
       >
+        <SkipLink />
         <ThemeProvider>
           <AppShell>
             <PageTransition>{children}</PageTransition>

@@ -15,7 +15,7 @@ export default function AppShellMain({ children }: AppShellMainProps) {
 
   return (
     <main
-      id="main"
+      id="main-content"
       role="main"
       className="app-shell"
       data-route-ready={hydrated ? "true" : "false"}
