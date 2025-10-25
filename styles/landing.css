@@ -17,9 +17,9 @@
   z-index: 10;
   display: flex;
   align-items: center;
-  min-height: max(100dvh, 720px);
-  width: 100vw;
-  margin-inline: calc(50% - 50vw);
+  min-height: 100dvh;
+  width: 100%;
+  max-width: 100%;
   padding-block: 2rem;
   overflow: visible;
   isolation: isolate;
@@ -28,22 +28,22 @@
 
 @supports (width: 100dvw) {
   .page-hero {
-    width: 100dvw;
-    margin-inline: calc(50% - 50dvw);
+    width: 100%;
+    max-width: 100%;
   }
 
   .marketing-rsc-shell {
-    width: 100dvw;
-    margin-inline: calc(50% - 50dvw);
+    width: 100%;
+    max-width: 100%;
   }
 }
 
 .marketing-rsc-shell {
   display: block;
-  min-height: max(100dvh, 720px);
+  min-height: 100dvh;
   position: relative;
-  width: 100vw;
-  margin-inline: calc(50% - 50vw);
+  width: 100%;
+  max-width: 100%;
   view-transition-name: hero-shell-placeholder;
 }
 
@@ -92,12 +92,10 @@
   z-index: -2;
 }
 
-/* Light theme hero overlay - lighter colors, no black mixing */
+/* Light theme hero overlay - NO OVERLAY, fully transparent */
 [data-theme="light"] .page-hero::before {
-  background: radial-gradient(circle at 15% 20%, color-mix(in oklch, var(--brand-energy) 35%, transparent) 0%, transparent 52%),
-    radial-gradient(circle at 85% 25%, color-mix(in oklch, var(--brand-glow) 35%, transparent) 0%, transparent 55%),
-    linear-gradient(160deg, color-mix(in oklch, var(--brand-depth) 25%, white) 0%, color-mix(in oklch, var(--brand-muted) 15%, white) 100%);
-  opacity: 0.45;
+  background: transparent;
+  opacity: 0;
 }
 
 /* Contrast theme hero overlay - high contrast, clearer gradients */

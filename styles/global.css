@@ -19,14 +19,18 @@
 
 html {
   font-size: 14px;
-  overflow-y: scroll;
   overflow-x: hidden;
+  overflow-y: scroll;
+  width: 100%;
 }
 
 body {
   font-size: 1rem;
   line-height: var(--responsive-body-line-height-mobile);
   overflow-x: hidden;
+  width: 100%;
+  margin: 0;
+  padding: 0;
 }
 
 h1,
@@ -79,6 +83,8 @@ header,
 footer,
 article {
   padding-inline: 1rem;
+  max-width: 100%;
+  overflow-x: hidden;
 }
 
 section,
@@ -3151,8 +3157,8 @@ main :where(section, div)[id] {
   .resources-mega__panel {
     top: 0;
     left: 0;
-    width: 100vw;
-    max-width: none;
+    width: 100%;
+    max-width: 100%;
     height: 100vh;
     border-radius: 0;
     padding: 32px 24px 56px;
@@ -3607,8 +3613,8 @@ body.solutions-mega-open {
   .automations-mega__panel {
     top: 0;
     left: 0;
-    width: 100vw;
-    max-width: none;
+    width: 100%;
+    max-width: 100%;
     height: 100vh;
     border-radius: 0;
     padding: 32px 24px 56px;
@@ -3913,8 +3919,6 @@ body.solutions-mega-open {
   content: "";
   position: fixed;
   inset: 0;
-  width: 100vw;
-  height: 100dvh;
   background:
     radial-gradient(circle at 12% 18%, rgba(93, 47, 254, 0.32), transparent 58%),
     radial-gradient(circle at 78% 12%, rgba(62, 249, 197, 0.18), transparent 60%),
@@ -3986,11 +3990,10 @@ body.solutions-mega-open {
 .hero-bg-fixed {
   position: fixed;
   inset: 0;
-  width: 100vw;
-  height: 100dvh;
   z-index: -1;
   pointer-events: none;
   transform: translateZ(0);
+  overflow: hidden;
 }
 
 .hero-gradient {
@@ -8533,8 +8536,8 @@ body.solutions-mega-open {
   .solutions-mega__panel {
     top: 0;
     left: 0;
-    width: 100vw;
-    max-width: none;
+    width: 100%;
+    max-width: 100%;
     height: 100vh;
     border-radius: 0;
     padding: 32px 24px 56px;
