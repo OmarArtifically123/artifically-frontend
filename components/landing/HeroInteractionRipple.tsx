@@ -264,14 +264,15 @@ export default function HeroInteractionRipple({
 
   // Cleanup
   useEffect(() => {
+    const rippleMeshes = rippleMeshesRef.current;
     return () => {
-      rippleMeshesRef.current.forEach((mesh) => {
+      rippleMeshes.forEach((mesh) => {
         if (mesh.geometry) mesh.geometry.dispose();
         if (mesh.material instanceof THREE.Material) {
           mesh.material.dispose();
         }
       });
-      rippleMeshesRef.current.clear();
+      rippleMeshes.clear();
       ripplesRef.current = [];
     };
   }, []);

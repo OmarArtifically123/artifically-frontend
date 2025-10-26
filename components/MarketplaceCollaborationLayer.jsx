@@ -152,7 +152,7 @@ export default function MarketplaceCollaborationLayer({
   useEffect(() => {
     if (!focus) return;
     shareDiscovery(`Spotlight on ${focus}. Should we shortlist it?`);
-  }, [focus]);
+  }, [focus, shareDiscovery]);
 
   return (
     <div className="marketplace-collaboration" aria-hidden="true">

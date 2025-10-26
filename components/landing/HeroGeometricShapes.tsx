@@ -118,7 +118,8 @@ export default function HeroGeometricShapes({
 
   // Initialize shapes
   useEffect(() => {
-    if (!groupRef.current) return;
+    const group = groupRef.current;
+    if (!group) return;
 
     const shapes: Array<{
       mesh: THREE.Mesh;
@@ -149,8 +150,8 @@ export default function HeroGeometricShapes({
       wireframe.scale.setScalar(config.scale);
 
       // Add to group
-      groupRef.current?.add(mesh);
-      groupRef.current?.add(wireframe);
+      group.add(mesh);
+      group.add(wireframe);
 
       shapes.push({ mesh, wireframe, config });
     });
@@ -160,8 +161,8 @@ export default function HeroGeometricShapes({
     // Cleanup
     return () => {
       shapes.forEach(({ mesh, wireframe, config }) => {
-        groupRef.current?.remove(mesh);
-        groupRef.current?.remove(wireframe);
+        group.remove(mesh);
+        group.remove(wireframe);
         config.geometry.dispose();
         if (mesh.material instanceof THREE.Material) {
           mesh.material.dispose();

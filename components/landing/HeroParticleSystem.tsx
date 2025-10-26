@@ -102,8 +102,8 @@ export default function HeroParticleSystem({
   const SIZE_MEDIUM = theme === "contrast" ? 2.0 : 1.2;
   const SIZE_LARGE = theme === "contrast" ? 3.5 : 2.0;
 
-  // Create 3 depth layers
-  const DEPTH_LAYERS = [-200, 0, 200];
+  // Create 3 depth layers - wrapped in useMemo to avoid recreating on every render
+  const DEPTH_LAYERS = useMemo(() => [-200, 0, 200], []);
   const particlesPerLayer = Math.floor(count / 3);
 
   // Initialize particle layers
@@ -202,9 +202,10 @@ export default function HeroParticleSystem({
     console.log(`[HeroParticleSystem] Created ${layers.length} layers with ${particlesPerLayer} particles each`);
 
     // Cleanup
+    const group = groupRef.current;
     return () => {
       layers.forEach((layer) => {
-        groupRef.current?.remove(layer.points);
+        group?.remove(layer.points);
         layer.points.geometry.dispose();
         if (layer.points.material instanceof THREE.Material) {
           layer.points.material.dispose();
@@ -394,7 +395,7 @@ export default function HeroParticleSystem({
   // Expose particle positions for connections and trails
   useEffect(() => {
     const interval = setInterval(() => {
-      if (layersRef.current.length > 0) {
+      if (layersRef.current.length > 0 && groupRef.current) {
         // Export positions for use by other components
         const allPositions = new Float32Array(count * 3);
         let offset = 0;
@@ -405,7 +406,9 @@ export default function HeroParticleSystem({
         });
 
         // Store in ref for other components to access
-        (groupRef.current as any)?.userData && ((groupRef.current as any).userData.particlePositions = allPositions);
+        if (groupRef.current.userData) {
+          (groupRef.current.userData as Record<string, unknown>).particlePositions = allPositions;
+        }
       }
     }, 100); // Update 10 times per second
 

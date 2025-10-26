@@ -72,7 +72,8 @@ export default function HeroDataStreams({
 
   // Initialize columns
   useEffect(() => {
-    if (!groupRef.current) return;
+    const group = groupRef.current;
+    if (!group) return;
 
     const columns: Array<{ mesh: THREE.Mesh; config: DataColumn }> = [];
 
@@ -91,7 +92,7 @@ export default function HeroDataStreams({
       
       mesh.position.copy(config.position);
       
-      groupRef.current.add(mesh);
+      group.add(mesh);
       columns.push({ mesh, config });
     });
 
@@ -100,7 +101,7 @@ export default function HeroDataStreams({
     // Cleanup
     return () => {
       columns.forEach(({ mesh, config }) => {
-        groupRef.current?.remove(mesh);
+        group.remove(mesh);
         if (mesh.geometry) mesh.geometry.dispose();
         if (mesh.material instanceof THREE.Material) {
           mesh.material.dispose();
@@ -178,7 +179,8 @@ export function HeroCanvasDataStreams({
 
   // Initialize canvas-based columns
   useEffect(() => {
-    if (!groupRef.current) return;
+    const group = groupRef.current;
+    if (!group) return;
 
     const columns: Array<{
       texture: THREE.CanvasTexture;
@@ -224,7 +226,7 @@ export function HeroCanvasDataStreams({
         50 + Math.random() * 100
       );
 
-      groupRef.current.add(mesh);
+      group.add(mesh);
 
       columns.push({
         texture,
@@ -241,7 +243,7 @@ export function HeroCanvasDataStreams({
     // Cleanup
     return () => {
       columns.forEach(({ mesh, texture }) => {
-        groupRef.current?.remove(mesh);
+        group.remove(mesh);
         if (mesh.geometry) mesh.geometry.dispose();
         if (mesh.material instanceof THREE.Material) {
           mesh.material.dispose();

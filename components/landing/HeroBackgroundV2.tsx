@@ -48,8 +48,9 @@ function detectDeviceTier(): "high" | "medium" | "low" {
   // Check hardware concurrency (CPU cores)
   const cores = navigator.hardwareConcurrency || 4;
   
-  // Check device memory (if available)
-  const memory = (navigator as any).deviceMemory || 4;
+  // Check device memory (if available) - deviceMemory is non-standard but supported
+  const navigatorWithMemory = navigator as Navigator & { deviceMemory?: number };
+  const memory = navigatorWithMemory.deviceMemory || 4;
   
   // Check if mobile device
   const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(

@@ -861,6 +861,7 @@ export default function HeroBackground({ variant = "particles" }) {
     prefersReducedMotion,
     variant,
     deviceProfile.isLowEndMobile,
+    deviceProfile.formFactor,
     prefersLowPowerMode,
     webglSupported,
     isInViewport,
