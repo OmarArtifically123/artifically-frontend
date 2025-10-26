@@ -9,6 +9,7 @@ import ScrollIndicator from "./ScrollIndicator";
 import { Icon } from "../icons";
 import TrustedBy from "./TrustedBy";
 import { SPRING_CONFIGS } from "../../constants/animations.js";
+import { useTheme } from "../../context/ThemeContext";
 
 function HeroBackgroundPlaceholder() {
   return <div className="hero-background hero-background--placeholder" aria-hidden="true" />;
@@ -102,6 +103,7 @@ export default function HeroSection({
   demoOpen,
   onReady = () => {},
 }) {
+  const { theme } = useTheme();
   const [primaryLabel, setPrimaryLabel] = useState("Browse 200+ Automations");
   const [secondaryLabel, setSecondaryLabel] = useState("Book Enterprise Demo");
   const [ctaContext, setCtaContext] = useState("");
@@ -376,7 +378,7 @@ export default function HeroSection({
       tabIndex={-1}
       style={prefersReducedMotion ? undefined : { y }}
     >
-      {heroInView ? <HeroBackground variant="default" /> : <HeroBackgroundPlaceholder />}
+      {heroInView ? <HeroBackground variant="default" debug={false} /> : <HeroBackgroundPlaceholder />}
       <div className="page-hero__inner">
         <motion.div ref={contentRef} className="page-hero__content">
           <motion.span

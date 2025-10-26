@@ -16,7 +16,6 @@ html {
   background-color: var(--bg-primary);
   color: var(--text-primary);
   overflow-x: hidden;
-  overflow-y: auto;
   width: 100%;
   min-height: 100%;
 }

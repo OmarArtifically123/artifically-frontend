@@ -20,6 +20,7 @@ export default function AppShellMain({ children }: AppShellMainProps) {
       className="app-shell"
       data-route-ready={hydrated ? "true" : "false"}
       tabIndex={-1}
+      style={{ overflow: "visible" }}
     >
       {children}
     </main>

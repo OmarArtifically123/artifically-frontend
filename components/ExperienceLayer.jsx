@@ -277,7 +277,7 @@ export default function ExperienceLayer({ children, enableExperience = false }) 
         pointerFine={pointerFine}
         reducedMotion={reducedMotion}
       />
-      <div ref={containerRef} className="experience-shell" data-theme-key={theme.themeKey}>
+      <div ref={containerRef} className="experience-shell" data-theme-key={theme.themeKey} style={{ overflow: "visible" }}>
         <div className="experience-backdrop" aria-hidden="true" data-experience-animate="backdrop" />
         <div className="experience-content" data-experience-animate="static">
           {children}

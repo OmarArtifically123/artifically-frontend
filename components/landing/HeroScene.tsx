@@ -1,13 +1,17 @@
 "use client";
 
-import React, { useMemo, useRef, useEffect, useState, useCallback } from "react";
+import React, { useRef, useEffect, useState, useCallback, useMemo } from "react";
 import { useFrame, useThree } from "@react-three/fiber";
 import * as THREE from "three";
-import { useGLTF, useTexture, OrbitControls, PerspectiveCamera } from "@react-three/drei";
-import { EffectComposer, Bloom, ChromaticAberration } from "@react-three/postprocessing";
+import { EffectComposer, Bloom, DepthOfField, Vignette } from "@react-three/postprocessing";
 import { useReducedMotion } from "framer-motion";
 import HeroParticleSystem from "./HeroParticleSystem";
-import { createNoiseShader, createFlowFieldShader } from "./HeroShaders";
+import HeroGeometricShapes from "./HeroGeometricShapes";
+import HeroNeuralConnections from "./HeroNeuralConnections";
+import HeroParticleTrails from "./HeroParticleTrails";
+import { HeroAdvancedGrid } from "./HeroBackgroundGrid";
+import HeroDataStreams from "./HeroDataStreams";
+import HeroInteractionRipple from "./HeroInteractionRipple";
 
 interface HeroSceneProps {
   variant?: "default" | "minimal";
@@ -23,20 +27,25 @@ interface MouseState {
   velocity: THREE.Vector2;
 }
 
+type QualityTier = "ultra" | "high" | "medium" | "low";
+
 /**
- * HeroScene - Advanced 3D scene with procedural generation
- *
- * Features:
- * - GPU-accelerated particle systems with physics
- * - Flow field generation using curl noise
- * - Procedural mesh morphing
- * - Post-processing effects (bloom, chromatic aberration)
- * - Mouse-driven vortex interactions
- * - Adaptive rendering quality
+ * HeroScene - ENHANCED Advanced 3D scene with all effects
+ * 
+ * NEW FEATURES:
+ * - All 7 new components integrated
+ * - Bloom post-processing (intensity 2.5)
+ * - Depth of field (focus center, blur edges)
+ * - Vignette effect
+ * - 4-tier performance system (Ultra/High/Medium/Low)
+ * - Smooth camera parallax following mouse
+ * - Auto-rotate on idle (3 seconds)
+ * - Scroll-based zoom pulse
+ * - God rays effect (via bloom)
  */
 export default function HeroScene({
   variant = "default",
-  particleCount = 300,
+  particleCount = 500,
   enablePostProcessing = true,
   dpr = 1,
   theme = "dark",
@@ -46,21 +55,27 @@ export default function HeroScene({
   const { scene, camera, gl } = useThree();
   const prefersReducedMotion = useReducedMotion();
   const [contextLost, setContextLost] = useState(false);
+  const [qualityTier, setQualityTier] = useState<QualityTier>("high");
+  const [fps, setFps] = useState(60);
+  const fpsHistory = useRef<number[]>([]);
+  const lastFrameTime = useRef(performance.now());
+  const idleTimer = useRef(0);
+  const particlePositionsRef = useRef<Float32Array | null>(null);
 
   // Log HeroScene initialization
   useEffect(() => {
-    console.log("[HeroScene] Component mounted", {
+    console.log("[ENHANCED HeroScene] Component mounted", {
       variant,
       particleCount,
       enablePostProcessing,
       prefersReducedMotion,
-      camera: camera.position,
-      gl: gl.domElement,
+      theme,
+      qualityTier,
     });
     return () => {
       console.log("[HeroScene] Component unmounted");
     };
-  }, []);
+  }, [variant, particleCount, enablePostProcessing, prefersReducedMotion, theme, qualityTier]);
 
   // Handle WebGL context loss and restore
   useEffect(() => {
@@ -88,8 +103,8 @@ export default function HeroScene({
 
   // Mouse tracking state with lerp smoothing
   const mouseStateRef = useRef<MouseState>({
-    position: new THREE.Vector2(0, 0),
-    target: new THREE.Vector2(0, 0),
+    position: new THREE.Vector2(0.5, 0.5),
+    target: new THREE.Vector2(0.5, 0.5),
     velocity: new THREE.Vector2(0, 0),
   });
 
@@ -101,6 +116,7 @@ export default function HeroScene({
       const y = 1 - (event.clientY - rect.top) / rect.height;
 
       mouseStateRef.current.target.set(x, y);
+      idleTimer.current = 0; // Reset idle timer on movement
     };
 
     const handleTouchMove = (event: TouchEvent) => {
@@ -111,6 +127,7 @@ export default function HeroScene({
       const y = 1 - (touch.clientY - rect.top) / rect.height;
 
       mouseStateRef.current.target.set(x, y);
+      idleTimer.current = 0;
     };
 
     gl.domElement.addEventListener("mousemove", handleMouseMove, { passive: true });
@@ -122,8 +139,40 @@ export default function HeroScene({
     };
   }, [gl]);
 
+  // FPS monitoring and performance tier adjustment
+  useFrame((state, delta) => {
+    // Calculate FPS
+    const now = performance.now();
+    const frameTime = now - lastFrameTime.current;
+    lastFrameTime.current = now;
+    
+    const currentFps = 1000 / frameTime;
+    fpsHistory.current.push(currentFps);
+    
+    if (fpsHistory.current.length > 60) {
+      fpsHistory.current.shift();
+    }
+
+    // Update FPS average every 60 frames
+    if (fpsHistory.current.length === 60) {
+      const avgFps = fpsHistory.current.reduce((a, b) => a + b, 0) / 60;
+      setFps(avgFps);
+
+      // Adjust quality tier based on FPS
+      if (avgFps < 30) {
+        setQualityTier("low");
+      } else if (avgFps < 45) {
+        setQualityTier("medium");
+      } else if (avgFps < 55) {
+        setQualityTier("high");
+      } else {
+        setQualityTier("ultra");
+      }
+    }
+  });
+
   // Lerp-based smooth mouse position tracking
-  useFrame(() => {
+  useFrame((state, delta) => {
     const mouseState = mouseStateRef.current;
 
     // Smooth lerp to target position (0.1 = 10% of distance per frame)
@@ -135,29 +184,69 @@ export default function HeroScene({
       .sub(mouseState.position)
       .multiplyScalar(0.05);
 
-    // Update group rotation based on mouse position
+    // Update idle timer
+    idleTimer.current += delta;
+
+    // Update group rotation based on mouse position or auto-rotate
     if (groupRef.current && !prefersReducedMotion) {
-      groupRef.current.rotation.x = mouseState.position.y * 0.3 - 0.15;
-      groupRef.current.rotation.y = mouseState.position.x * 0.3 - 0.15;
+      if (idleTimer.current > 3) {
+        // Auto-rotate when idle
+        groupRef.current.rotation.x = Math.sin(state.clock.elapsedTime * 0.1) * 0.1;
+        groupRef.current.rotation.y = Math.cos(state.clock.elapsedTime * 0.1) * 0.1;
+      } else {
+        // Mouse parallax
+        groupRef.current.rotation.x = (mouseState.position.y - 0.5) * 0.3;
+        groupRef.current.rotation.y = (mouseState.position.x - 0.5) * 0.3;
+      }
     }
   });
 
+  // Camera parallax
+  useFrame((state) => {
+    if (!camera || prefersReducedMotion) return;
+
+    const mouseState = mouseStateRef.current;
+    
+    // Subtle camera movement
+    const targetX = (mouseState.position.x - 0.5) * 20;
+    const targetY = (mouseState.position.y - 0.5) * 20;
+
+    camera.position.x += (targetX - camera.position.x) * 0.05;
+    camera.position.y += (targetY - camera.position.y) * 0.05;
+  });
+
+  // Scroll-based zoom pulse
+  useEffect(() => {
+    const handleScroll = () => {
+      if (!camera || prefersReducedMotion) return;
+
+      const scrollY = window.scrollY;
+      const zoomFactor = 1 + Math.min(scrollY / 1000, 0.1);
+      
+      if (camera instanceof THREE.PerspectiveCamera) {
+        camera.zoom = zoomFactor;
+        camera.updateProjectionMatrix();
+      }
+    };
+
+    window.addEventListener("scroll", handleScroll, { passive: true });
+    return () => window.removeEventListener("scroll", handleScroll);
+  }, [camera, prefersReducedMotion]);
+
   // Background gradient setup
   useEffect(() => {
-    scene.background = new THREE.Color("#0a1628");
-    scene.fog = new THREE.Fog("#0a1628", 800, 2000);
-  }, [scene]);
+    const bgColor = theme === "light" ? "#f0f9ff" : theme === "contrast" ? "#000000" : "#0a1628";
+    scene.background = new THREE.Color(bgColor);
+    
+    const fogColor = theme === "light" ? "#ffffff" : theme === "contrast" ? "#000000" : "#0a1628";
+    scene.fog = new THREE.Fog(fogColor, 800, 2000);
+  }, [scene, theme]);
 
   // Ambient lighting for overall illumination
   const ambientLight = useMemo(() => {
-    const light = new THREE.AmbientLight("#ffffff", 0.4);
-    return light;
-  }, []);
-
-  const chromaticAberrationOffset = useMemo(
-    () => new THREE.Vector2(0.001, 0.001),
-    []
-  );
+    const intensity = theme === "light" ? 0.7 : theme === "contrast" ? 0.3 : 0.4;
+    return new THREE.AmbientLight("#ffffff", intensity);
+  }, [theme]);
 
   useEffect(() => {
     scene.add(ambientLight);
@@ -168,40 +257,183 @@ export default function HeroScene({
 
   // Additional point lights for dynamic lighting
   useEffect(() => {
-    const light1 = new THREE.PointLight("#0ea5e9", 1, 1000);
+    const light1Color = theme === "light" ? "#1f7eff" : theme === "contrast" ? "#00eaff" : "#0ea5e9";
+    const light2Color = theme === "light" ? "#ec4899" : theme === "contrast" ? "#ff00ff" : "#7c3aed";
+
+    const light1 = new THREE.PointLight(light1Color, 1, 1000);
     light1.position.set(200, 200, 300);
-    const light2 = new THREE.PointLight("#7c3aed", 0.8, 1000);
+    
+    const light2 = new THREE.PointLight(light2Color, 0.8, 1000);
     light2.position.set(-200, -200, 200);
 
     scene.add(light1, light2);
+    
     return () => {
       scene.remove(light1, light2);
     };
-  }, [scene]);
+  }, [scene, theme]);
+
+  // Quality tier settings
+  const qualitySettings = useMemo(() => {
+    switch (qualityTier) {
+      case "ultra":
+        return {
+          particles: 500,
+          connections: true,
+          trails: true,
+          geometric: true,
+          grid: true,
+          streams: true,
+          postProcessing: true,
+          bloomIntensity: 2.5,
+          dof: true,
+        };
+      case "high":
+        return {
+          particles: 300,
+          connections: true,
+          trails: false,
+          geometric: true,
+          grid: true,
+          streams: false,
+          postProcessing: true,
+          bloomIntensity: 1.5,
+          dof: false,
+        };
+      case "medium":
+        return {
+          particles: 150,
+          connections: true,
+          trails: false,
+          geometric: true,
+          grid: false,
+          streams: false,
+          postProcessing: false,
+          bloomIntensity: 1.0,
+          dof: false,
+        };
+      default: // low
+        return {
+          particles: 50,
+          connections: false,
+          trails: false,
+          geometric: false,
+          grid: false,
+          streams: false,
+          postProcessing: false,
+          bloomIntensity: 0.5,
+          dof: false,
+        };
+    }
+  }, [qualityTier]);
+
+  // Get geometric shapes positions for collision detection
+  const geometricShapes = useMemo(() => [
+    { position: new THREE.Vector3(-250, 100, -100), radius: 80 },
+    { position: new THREE.Vector3(200, -80, 50), radius: 60 },
+    { position: new THREE.Vector3(50, 180, -50), radius: 50 },
+  ], []);
 
   return (
     <group ref={groupRef}>
-      {/* Advanced Particle System */}
+      {/* Background Grid */}
+      {qualitySettings.grid && (
+        <HeroAdvancedGrid
+          theme={theme}
+          enableAnimation={!prefersReducedMotion}
+          quality={qualityTier === "ultra" ? 1 : 0.5}
+        />
+      )}
+
+      {/* Data Streams */}
+      {qualitySettings.streams && (
+        <HeroDataStreams
+          theme={theme}
+          columnCount={10}
+          enableAnimation={!prefersReducedMotion}
+          quality={qualityTier === "ultra" ? 1 : 0.7}
+        />
+      )}
+
+      {/* Advanced Particle System with 3 layers */}
       <HeroParticleSystem
-        count={particleCount}
+        count={qualitySettings.particles}
         mouseState={mouseStateRef}
         enableAnimation={!prefersReducedMotion}
         theme={theme}
+        geometricShapes={geometricShapes}
       />
 
-      {/* Post-processing effects for desktop - disabled when context is lost */}
-      {enablePostProcessing && !prefersReducedMotion && !contextLost && (
+      {/* Neural Connections between particles */}
+      {qualitySettings.connections && particlePositionsRef.current && (
+        <HeroNeuralConnections
+          particlePositions={particlePositionsRef.current}
+          particleCount={qualitySettings.particles}
+          theme={theme}
+          maxConnections={200}
+          connectionDistance={150}
+          enableAnimation={!prefersReducedMotion}
+          quality={qualityTier === "ultra" ? 1 : 0.7}
+        />
+      )}
+
+      {/* Particle Trails */}
+      {qualitySettings.trails && particlePositionsRef.current && (
+        <HeroParticleTrails
+          particlePositions={particlePositionsRef.current}
+          particleCount={qualitySettings.particles}
+          theme={theme}
+          trailLength={8}
+          enableAnimation={!prefersReducedMotion}
+          quality={qualityTier === "ultra" ? 1 : 0.7}
+        />
+      )}
+
+      {/* Holographic Geometric Shapes */}
+      {qualitySettings.geometric && (
+        <HeroGeometricShapes
+          theme={theme}
+          mouseState={mouseStateRef}
+          enableAnimation={!prefersReducedMotion}
+          quality={qualityTier === "ultra" ? 1 : 0.5}
+        />
+      )}
+
+      {/* Interaction Ripples */}
+      <HeroInteractionRipple
+        theme={theme}
+        enableInteraction={!prefersReducedMotion}
+        particlePositions={particlePositionsRef.current || undefined}
+        particleCount={qualitySettings.particles}
+      />
+
+      {/* Post-processing effects - disabled when context is lost */}
+      {enablePostProcessing && qualitySettings.postProcessing && !prefersReducedMotion && !contextLost && (
         <EffectComposer>
+          {/* Bloom for glowing effects and god rays */}
           <Bloom
             luminanceThreshold={0.2}
             luminanceSmoothing={0.9}
             height={300}
-            intensity={1.2}
+            intensity={qualitySettings.bloomIntensity}
+            radius={0.8}
           />
-          <ChromaticAberration
-            offset={chromaticAberrationOffset}
-            radialModulation={false}
-            modulationOffset={0.15}
+          
+          {/* Depth of Field - focus center, blur edges */}
+          {qualitySettings.dof && (
+            <DepthOfField
+              focusDistance={0.05}
+              focalLength={0.1}
+              bokehScale={2}
+              height={480}
+            />
+          )}
+          
+          {/* Vignette for darker edges */}
+          <Vignette
+            offset={0.3}
+            darkness={theme === "contrast" ? 0.8 : 0.5}
+            eskil={false}
           />
         </EffectComposer>
       )}
