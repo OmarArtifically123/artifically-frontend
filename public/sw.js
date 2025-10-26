@@ -26,19 +26,28 @@ self.addEventListener("install", (event) => {
 
 self.addEventListener("activate", (event) => {
   event.waitUntil(
-    caches
-      .keys()
-      .then((keys) =>
-        Promise.all(
+    (async () => {
+      try {
+        const keys = await caches.keys();
+        await Promise.all(
           keys
             .filter((key) => key.startsWith("artifically-") && key !== STATIC_CACHE && key !== ASSET_CACHE)
             .map((key) => caches.delete(key)),
-        ),
-      )
-      .catch((error) => {
+        );
+      } catch (error) {
         console.warn("Failed to clean up old caches", error);
-      })
-      .finally(() => self.clients.claim()),
+      }
+
+      if (self.registration && "navigationPreload" in self.registration) {
+        try {
+          await self.registration.navigationPreload.disable();
+        } catch (error) {
+          console.warn("Failed to disable navigation preload", error);
+        }
+      }
+
+      await self.clients.claim();
+    })(),
   );
 });
 
