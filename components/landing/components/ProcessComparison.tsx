@@ -1,7 +1,8 @@
 "use client";
 
 import { motion } from "framer-motion";
-import { X, Check } from "lucide-react";
+import { Check } from "./lucide-icons-fallback";
+import { X } from "lucide-react";
 
 interface ComparisonItem {
   label: string;

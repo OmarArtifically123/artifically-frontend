@@ -1,7 +1,8 @@
 "use client";
 
 import { motion, AnimatePresence } from "framer-motion";
-import { X, Check, ExternalLink } from "lucide-react";
+import { Check, ExternalLink } from "./lucide-icons-fallback";
+import { X } from "lucide-react";
 
 interface Integration {
   id: string;

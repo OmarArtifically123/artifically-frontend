@@ -2,7 +2,8 @@
 
 import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { Shield, Lock, Eye, Server, Key, AlertTriangle } from "lucide-react";
+import { Eye, Server, Key } from "./lucide-icons-fallback";
+import { Shield, Lock, AlertTriangle } from "lucide-react";
 
 interface SecurityLayer {
   id: string;

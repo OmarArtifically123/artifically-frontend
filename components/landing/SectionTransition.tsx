@@ -40,7 +40,7 @@ export default function SectionTransition({
       transition: {
         duration: prefersReducedMotion ? 0.2 : duration,
         delay: prefersReducedMotion ? 0 : delay,
-        ease: [0.25, 0.1, 0.25, 1],
+        ease: [0.25, 0.1, 0.25, 1] as [number, number, number, number],
       },
     },
   };

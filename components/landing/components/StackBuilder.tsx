@@ -2,7 +2,8 @@
 
 import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { Plus, X, Download, Share2 } from "lucide-react";
+import { Plus, Download, Share2 } from "./lucide-icons-fallback";
+import { X } from "lucide-react";
 
 interface StackItem {
   id: string;

@@ -2,7 +2,6 @@
 
 import { useEffect, useState } from "react";
 import { motion } from "framer-motion";
-import { Clock } from "lucide-react";
 
 interface AuditEvent {
   id: string;
@@ -116,7 +115,7 @@ export default function AuditTrailDemo() {
 
               {/* Timestamp */}
               <div className="flex items-center gap-2 text-xs text-slate-500">
-                <Clock className="w-3 h-3" />
+                <span className="text-slate-500">⏰</span>
                 <span>{event.timestamp.toLocaleTimeString()}</span>
               </div>
             </div>

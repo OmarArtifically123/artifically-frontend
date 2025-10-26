@@ -2,7 +2,8 @@
 
 import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
-import { TrendingUp, Clock, DollarSign, Zap } from "lucide-react";
+import { TrendingUp, Clock, DollarSign } from "./lucide-icons-fallback";
+import { Zap } from "lucide-react";
 
 interface ImpactCalculatorProps {
   isActive: boolean;

@@ -1,7 +1,8 @@
 "use client";
 
 import { motion } from "framer-motion";
-import { Shield, AlertTriangle, CheckCircle } from "lucide-react";
+import { CheckCircle2 } from "./lucide-icons-fallback";
+import { Shield, AlertTriangle } from "lucide-react";
 
 interface TestResult {
   category: string;
@@ -119,7 +120,7 @@ export default function PenetrationTestResults({ isActive }: PenetrationTestResu
               </div>
 
               <div className="flex items-center gap-2">
-                <CheckCircle className="w-5 h-5 text-green-400" />
+                <CheckCircle2 className="w-5 h-5 text-green-400" />
                 <span className="text-sm font-semibold text-green-400">
                   {result.passed}/{result.tested} passed
                 </span>

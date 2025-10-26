@@ -155,23 +155,20 @@ export default function HeroSection({
   }, []);
 
   const prefersReducedMotion = useReducedMotion();
-  const [heroRef, heroInView] = useInViewState({
+  const heroRef = useRef(null);
+  const heroInView = useInViewState(heroRef, {
     threshold: 0.2,
     rootMargin: "0px 0px -20% 0px",
-    once: true,
-    initialInView: initialHeroInView,
   });
-  const [contentRef, contentInView] = useInViewState({
+  const contentRef = useRef(null);
+  const contentInView = useInViewState(contentRef, {
     threshold: 0.4,
     rootMargin: "-80px",
-    once: true,
-    initialInView: initialHeroInView,
   });
-  const [previewRef, previewInView] = useInViewState({
+  const previewRef = useRef(null);
+  const previewInView = useInViewState(previewRef, {
     threshold: 0.3,
     rootMargin: "-64px",
-    once: true,
-    initialInView: initialHeroInView,
   });
 
   const { scrollY } = useScroll();
@@ -579,7 +576,8 @@ export default function HeroSection({
 }
 
 function HeroStats({ stats, prefersReducedMotion, initialInView }) {
-  const [statsRef, statsInView] = useInViewState({ threshold: 0.4, once: true, initialInView });
+  const statsRef = useRef(null);
+  const statsInView = useInViewState(statsRef, { threshold: 0.4 });
 
   const containerVariants = useMemo(() => {
     const hidden = { opacity: 0 };

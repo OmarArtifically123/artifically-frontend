@@ -1,7 +1,7 @@
 "use client";
 
 import { motion } from "framer-motion";
-import { Check, ExternalLink } from "lucide-react";
+import { Check, ExternalLink } from "./lucide-icons-fallback";
 
 interface Certification {
   id: string;

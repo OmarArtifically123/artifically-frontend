@@ -199,8 +199,8 @@ class AnalyticsTracker {
    */
   private sendToProviders(event: Record<string, unknown>): void {
     // Google Analytics 4
-    if (typeof window !== "undefined" && (window as Record<string, unknown>).gtag) {
-      ((window as Record<string, unknown>).gtag as (...args: unknown[]) => void)("event", event.action, {
+    if (typeof window !== "undefined" && (window as unknown as Record<string, unknown>).gtag) {
+      ((window as unknown as Record<string, unknown>).gtag as (...args: unknown[]) => void)("event", event.action, {
         event_category: event.category,
         event_label: event.label,
         value: event.value,

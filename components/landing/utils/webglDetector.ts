@@ -33,7 +33,7 @@ export function detectWebGLCapabilities(): WebGLCapabilities {
   const canvas = document.createElement("canvas");
   
   // Try WebGL 2 first
-  let gl = canvas.getContext("webgl2") as WebGL2RenderingContext | null;
+  let gl = canvas.getContext("webgl2") as WebGLRenderingContext | WebGL2RenderingContext | null;
   
   if (gl) {
     result.supported = true;

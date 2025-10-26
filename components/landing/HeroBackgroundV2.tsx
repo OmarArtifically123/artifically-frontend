@@ -254,11 +254,10 @@ export default function HeroBackgroundV2({
   // Ensure theme is properly typed
   const theme = (rawTheme === "light" || rawTheme === "contrast" ? rawTheme : "dark") as "dark" | "light" | "contrast";
   const prefersReducedMotion = useReducedMotion();
-  const [containerRef, isInViewport] = useInViewState({
+  const containerRef = useRef<HTMLDivElement>(null);
+  const isInViewport = useInViewState(containerRef, {
     threshold: 0.1,
     rootMargin: "100px",
-    once: false,
-    initialInView: true,
   });
   const isDocumentVisible = useDocumentVisibility();
   const [showCanvas, setShowCanvas] = useState(false);

@@ -33,7 +33,7 @@ export interface RendererConfig {
   physicallyCorrectLights?: boolean;
   toneMapping?: THREE.ToneMapping;
   toneMappingExposure?: number;
-  outputEncoding?: THREE.TextureEncoding;
+  outputColorSpace?: string;
   shadowMapEnabled?: boolean;
   shadowMapType?: THREE.ShadowMapType;
 }
@@ -230,7 +230,7 @@ export interface TextureConfig {
   wrapT?: THREE.Wrapping;
   minFilter?: THREE.TextureFilter;
   magFilter?: THREE.TextureFilter;
-  encoding?: THREE.TextureEncoding;
+  colorSpace?: string;
   anisotropy?: number;
 }
 

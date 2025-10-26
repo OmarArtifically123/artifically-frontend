@@ -7,7 +7,7 @@ import Problem3DCube from "./components/Problem3DCube";
 import ParticleMorph from "./components/ParticleMorph";
 import RealTimeMetrics from "./components/RealTimeMetrics";
 import InteractiveRoleSelector from "./components/InteractiveRoleSelector";
-import type { UserRole } from "@/types/landing";
+import type { UserRole, Metric } from "@/types/landing";
 import styles from "./ValuePropositionMatrix.module.css";
 
 const ROLES: UserRole[] = [
@@ -18,9 +18,9 @@ const ROLES: UserRole[] = [
     description: "Automated reconciliation, variance alerts, audit trails",
     color: "#10b981",
     metrics: [
-      { label: "Automation Rate", value: "87%", unit: "%", color: "#10b981", icon: "⚡" },
-      { label: "Time Saved", value: "142 hrs/wk", unit: "", color: "#06b6d4", icon: "⏱️" },
-      { label: "Accuracy", value: "99.97%", unit: "%", color: "#8b5cf6", icon: "🎯" },
+      { id: "finance-auto", label: "Automation Rate", value: "87%", unit: "%", color: "#10b981", icon: "⚡" },
+      { id: "finance-time", label: "Time Saved", value: "142 hrs/wk", unit: "", color: "#06b6d4", icon: "⏱️" },
+      { id: "finance-accuracy", label: "Accuracy", value: "99.97%", unit: "%", color: "#8b5cf6", icon: "🎯" },
     ],
   },
   {
@@ -30,9 +30,9 @@ const ROLES: UserRole[] = [
     description: "AI-powered resolution, deflection, sentiment analysis",
     color: "#f59e0b",
     metrics: [
-      { label: "Resolution Rate", value: "64%", unit: "%", color: "#f59e0b", icon: "✅" },
-      { label: "Time Saved", value: "89 hrs/wk", unit: "", color: "#06b6d4", icon: "⏱️" },
-      { label: "CSAT Score", value: "94.2%", unit: "%", color: "#10b981", icon: "😊" },
+      { id: "support-res", label: "Resolution Rate", value: "64%", unit: "%", color: "#f59e0b", icon: "✅" },
+      { id: "support-time", label: "Time Saved", value: "89 hrs/wk", unit: "", color: "#06b6d4", icon: "⏱️" },
+      { id: "support-csat", label: "CSAT Score", value: "94.2%", unit: "%", color: "#10b981", icon: "😊" },
     ],
   },
   {
@@ -42,9 +42,9 @@ const ROLES: UserRole[] = [
     description: "Intelligent routing, predictive maintenance, optimization",
     color: "#8b5cf6",
     metrics: [
-      { label: "Efficiency Gain", value: "76%", unit: "%", color: "#8b5cf6", icon: "📈" },
-      { label: "Time Saved", value: "156 hrs/wk", unit: "", color: "#06b6d4", icon: "⏱️" },
-      { label: "Cost Reduction", value: "98.4%", unit: "%", color: "#10b981", icon: "💰" },
+      { id: "ops-eff", label: "Efficiency Gain", value: "76%", unit: "%", color: "#8b5cf6", icon: "📈" },
+      { id: "ops-time", label: "Time Saved", value: "156 hrs/wk", unit: "", color: "#06b6d4", icon: "⏱️" },
+      { id: "ops-cost", label: "Cost Reduction", value: "98.4%", unit: "%", color: "#10b981", icon: "💰" },
     ],
   },
   {
@@ -54,9 +54,9 @@ const ROLES: UserRole[] = [
     description: "Campaign orchestration, lead scoring, conversion optimization",
     color: "#ec4899",
     metrics: [
-      { label: "Campaign Velocity", value: "19%", unit: "% ↑", color: "#ec4899", icon: "🚀" },
-      { label: "Conversion Rate", value: "31%", unit: "% ↑", color: "#10b981", icon: "📊" },
-      { label: "ROI", value: "5.2x", unit: "", color: "#f59e0b", icon: "💎" },
+      { id: "sales-velocity", label: "Campaign Velocity", value: "19%", unit: "% ↑", color: "#ec4899", icon: "🚀" },
+      { id: "sales-conversion", label: "Conversion Rate", value: "31%", unit: "% ↑", color: "#10b981", icon: "📊" },
+      { id: "sales-roi", label: "ROI", value: "5.2x", unit: "", color: "#f59e0b", icon: "💎" },
     ],
   },
 ];
@@ -242,9 +242,9 @@ export default function ValuePropositionMatrix() {
           <RealTimeMetrics
             metrics={currentRole.metrics.map((m) => ({
               label: m.label,
-              value: parseFloat(m.value),
-              unit: m.unit,
-              color: m.color,
+              value: typeof m.value === "string" ? parseFloat(m.value.replace(/[^0-9.-]/g, "")) || 0 : (m.value as number),
+              unit: m.unit || "",
+              color: m.color || "#06b6d4",
             }))}
             isActive={isInView}
           />
