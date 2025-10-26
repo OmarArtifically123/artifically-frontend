@@ -147,28 +147,127 @@ export default {
         "touch-spacious": "56px",
       },
       colors: {
+        /* Brand Colors - Theme-aware */
         brand: {
           primary: "var(--brand-primary)",
+          'primary-hover': "var(--brand-primary-hover)",
+          'primary-active': "var(--brand-primary-active)",
+          secondary: "var(--brand-secondary)",
+          accent: "var(--brand-accent)",
           glow: "var(--brand-glow)",
           energy: "var(--brand-energy)",
           muted: "var(--brand-muted)",
+          depth: "var(--brand-depth)",
         },
+
+        /* Background Colors */
+        bg: {
+          primary: "var(--bg-primary)",
+          secondary: "var(--bg-secondary)",
+          tertiary: "var(--bg-tertiary)",
+          elevated: "var(--bg-elevated)",
+          card: "var(--bg-card)",
+          overlay: "var(--bg-overlay)",
+          inverse: "var(--bg-inverse)",
+        },
+
+        /* Surface Colors (alias for bg) */
         surface: {
           base: "var(--bg-primary)",
+          raised: "var(--surface-raised)",
           elevated: "var(--bg-card)",
         },
+
+        /* Text Colors */
+        text: {
+          primary: "var(--text-primary)",
+          secondary: "var(--text-secondary)",
+          tertiary: "var(--text-tertiary)",
+          muted: "var(--text-muted)",
+          inverse: "var(--text-inverse)",
+          link: "var(--text-link)",
+          'link-hover': "var(--text-link-hover)",
+          'on-brand': "var(--text-on-brand)",
+          disabled: "var(--text-disabled)",
+        },
+
+        /* Border Colors */
+        border: {
+          default: "var(--border-default)",
+          strong: "var(--border-strong)",
+          subtle: "var(--border-subtle)",
+          focus: "var(--border-focus)",
+          inverse: "var(--border-inverse)",
+        },
+
+        /* Interactive States */
+        interactive: {
+          hover: "var(--interactive-hover)",
+          active: "var(--interactive-active)",
+          focus: "var(--interactive-focus)",
+          disabled: "var(--interactive-disabled)",
+          'disabled-text': "var(--interactive-disabled-text)",
+        },
+
+        /* Status Colors */
+        status: {
+          success: "var(--status-success)",
+          'success-bg': "var(--status-success-bg)",
+          'success-border': "var(--status-success-border)",
+          warning: "var(--status-warning)",
+          'warning-bg': "var(--status-warning-bg)",
+          'warning-border': "var(--status-warning-border)",
+          error: "var(--status-error)",
+          'error-bg': "var(--status-error-bg)",
+          'error-border': "var(--status-error-border)",
+          info: "var(--status-info)",
+          'info-bg': "var(--status-info-bg)",
+          'info-border': "var(--status-info-border)",
+        },
+
+        /* Legacy aliases for backward compatibility */
         accent: {
-          soft: "var(--accent-soft)",
-          hot: "var(--accent-hot)",
+          soft: "var(--brand-secondary)",
+          hot: "var(--brand-accent)",
         },
       },
       boxShadow: {
+        xs: "var(--shadow-xs)",
+        sm: "var(--shadow-sm)",
+        md: "var(--shadow-md)",
+        lg: "var(--shadow-lg)",
+        xl: "var(--shadow-xl)",
+        '2xl': "var(--shadow-2xl)",
+        inner: "var(--shadow-inner)",
         glow: "var(--shadow-glow)",
+        'glow-strong': "var(--shadow-glow-strong)",
         ambient: "var(--shadow-ambient)",
       },
       borderRadius: {
-        xl: "1.25rem",
-        "2xl": "1.75rem",
+        xs: "var(--radius-xs)",
+        sm: "var(--radius-sm)",
+        md: "var(--radius-md)",
+        lg: "var(--radius-lg)",
+        xl: "var(--radius-xl)",
+        '2xl': "var(--radius-2xl)",
+        full: "var(--radius-full)",
+      },
+      zIndex: {
+        base: "var(--z-base)",
+        dropdown: "var(--z-dropdown)",
+        sticky: "var(--z-sticky)",
+        fixed: "var(--z-fixed)",
+        'modal-backdrop': "var(--z-modal-backdrop)",
+        modal: "var(--z-modal)",
+        popover: "var(--z-popover)",
+        tooltip: "var(--z-tooltip)",
+        notification: "var(--z-notification)",
+      },
+      backgroundImage: {
+        'gradient-primary': "var(--gradient-primary)",
+        'gradient-accent': "var(--gradient-accent)",
+        'gradient-hero': "var(--gradient-hero)",
+        'gradient-mesh': "var(--gradient-mesh)",
       },
       transitionDuration: {
         instant: "120ms",

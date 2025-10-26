@@ -1,0 +1,545 @@
+/**
+ * ============================================================================
+ * HIGH CONTRAST MODE OVERRIDES
+ * ============================================================================
+ * Component-specific overrides for contrast mode (data-theme="contrast")
+ *
+ * Purpose:
+ * This file contains aggressive overrides to ensure high contrast mode
+ * works perfectly across ALL components, removing visual complexity that
+ * reduces contrast or creates accessibility barriers.
+ *
+ * Applied To: [data-theme="contrast"] and .theme-contrast
+ *
+ * Design Principles:
+ * - Remove ALL gradients → solid colors only
+ * - Remove ALL shadows → they reduce contrast
+ * - Remove ALL transparency → fully opaque or 0
+ * - Remove ALL blur effects → backdrop-filter: none
+ * - Thick borders → minimum 2px
+ * - Underline ALL links → make them obvious
+ * - Enhanced focus states → 3px solid outlines
+ * - No animations → reduce motion for accessibility
+ *
+ * WCAG AAA Compliance:
+ * - Contrast ratio: 21:1 (pure black/white)
+ * - Focus indicators: 3px minimum
+ * - Text decoration: Always underlined links
+ * - Border thickness: 2px minimum for UI elements
+ * ============================================================================
+ */
+
+@layer high-contrast {
+
+  /* ==========================================================================
+     GLOBAL OVERRIDES - Apply to ALL elements in contrast mode
+     ========================================================================== */
+
+  .theme-contrast *,
+  [data-theme='contrast'] * {
+    /* Remove all shadows (they reduce contrast) */
+    box-shadow: none !important;
+    text-shadow: none !important;
+
+    /* Remove all backdrop filters (blur reduces clarity) */
+    backdrop-filter: none !important;
+    -webkit-backdrop-filter: none !important;
+
+    /* Disable gradients - force solid backgrounds */
+    background-image: none !important;
+
+    /* Force full opacity (no transparency) */
+    opacity: 1 !important;
+
+    /* Disable all transitions and animations (accessibility) */
+    transition: none !important;
+    animation: none !important;
+  }
+
+  /* ==========================================================================
+     LINK STYLES - Always underlined, always visible
+     ========================================================================== */
+
+  .theme-contrast a,
+  [data-theme='contrast'] a {
+    text-decoration: underline !important;
+    text-decoration-thickness: 2px !important;
+    text-underline-offset: 3px !important;
+    color: var(--text-link) !important;
+  }
+
+  .theme-contrast a:hover,
+  [data-theme='contrast'] a:hover {
+    text-decoration-thickness: 3px !important;
+    color: var(--text-link-hover) !important;
+  }
+
+  /* ==========================================================================
+     FOCUS STATES - Enhanced visibility for keyboard navigation
+     ========================================================================== */
+
+  .theme-contrast *:focus,
+  .theme-contrast *:focus-visible,
+  [data-theme='contrast'] *:focus,
+  [data-theme='contrast'] *:focus-visible {
+    outline: 3px solid var(--focus-outline-color) !important;
+    outline-offset: var(--focus-ring-offset) !important;
+  }
+
+  /* Remove default focus-visible outline to use our custom one */
+  .theme-contrast *:focus-visible,
+  [data-theme='contrast'] *:focus-visible {
+    outline: 3px solid var(--border-focus) !important;
+    outline-offset: 3px !important;
+  }
+
+  /* ==========================================================================
+     INTERACTIVE ELEMENTS - Thick borders, solid colors
+     ========================================================================== */
+
+  /* Buttons */
+  .theme-contrast button,
+  [data-theme='contrast'] button {
+    border: 2px solid var(--border-default) !important;
+    background-color: var(--interactive-hover) !important;
+    background-image: none !important;
+  }
+
+  .theme-contrast button:hover,
+  [data-theme='contrast'] button:hover {
+    background-color: var(--interactive-active) !important;
+    border-color: var(--border-default) !important;
+  }
+
+  /* Inputs, Textareas, Selects */
+  .theme-contrast input,
+  .theme-contrast textarea,
+  .theme-contrast select,
+  [data-theme='contrast'] input,
+  [data-theme='contrast'] textarea,
+  [data-theme='contrast'] select {
+    border: 2px solid var(--border-default) !important;
+    background-color: var(--bg-primary) !important;
+    background-image: none !important;
+  }
+
+  .theme-contrast input:focus,
+  .theme-contrast textarea:focus,
+  .theme-contrast select:focus,
+  [data-theme='contrast'] input:focus,
+  [data-theme='contrast'] textarea:focus,
+  [data-theme='contrast'] select:focus {
+    border-color: var(--border-focus) !important;
+    outline: 3px solid var(--border-focus) !important;
+    outline-offset: 0 !important;
+  }
+
+  /* ==========================================================================
+     CARDS & CONTAINERS - Solid borders, no shadows
+     ========================================================================== */
+
+  .theme-contrast .card,
+  .theme-contrast [class*="card"],
+  .theme-contrast article,
+  .theme-contrast section,
+  [data-theme='contrast'] .card,
+  [data-theme='contrast'] [class*="card"],
+  [data-theme='contrast'] article,
+  [data-theme='contrast'] section {
+    border: 2px solid var(--border-default) !important;
+    background-image: none !important;
+    box-shadow: none !important;
+  }
+
+  /* ==========================================================================
+     HERO SECTIONS - Remove gradients and meshes
+     ========================================================================== */
+
+  .theme-contrast .hero,
+  .theme-contrast .hero-section,
+  .theme-contrast [class*="hero"],
+  .theme-contrast .gradient-mesh,
+  .theme-contrast .gradient-bg,
+  [data-theme='contrast'] .hero,
+  [data-theme='contrast'] .hero-section,
+  [data-theme='contrast'] [class*="hero"],
+  [data-theme='contrast'] .gradient-mesh,
+  [data-theme='contrast'] .gradient-bg {
+    background: var(--bg-primary) !important;
+    background-image: none !important;
+  }
+
+  /* ==========================================================================
+     NAVIGATION - High contrast headers and navbars
+     ========================================================================== */
+
+  .theme-contrast nav,
+  .theme-contrast header,
+  .theme-contrast [class*="nav"],
+  .theme-contrast [class*="header"],
+  [data-theme='contrast'] nav,
+  [data-theme='contrast'] header,
+  [data-theme='contrast'] [class*="nav"],
+  [data-theme='contrast'] [class*="header"] {
+    border-bottom: 2px solid var(--border-default) !important;
+    background: var(--bg-primary) !important;
+    background-image: none !important;
+  }
+
+  /* ==========================================================================
+     MODALS & OVERLAYS - Solid backgrounds
+     ========================================================================== */
+
+  .theme-contrast .modal,
+  .theme-contrast .overlay,
+  .theme-contrast .backdrop,
+  .theme-contrast [class*="modal"],
+  .theme-contrast [class*="overlay"],
+  [data-theme='contrast'] .modal,
+  [data-theme='contrast'] .overlay,
+  [data-theme='contrast'] .backdrop,
+  [data-theme='contrast'] [class*="modal"],
+  [data-theme='contrast'] [class*="overlay"] {
+    background: var(--bg-overlay) !important;
+    background-image: none !important;
+    backdrop-filter: none !important;
+  }
+
+  /* Modal content */
+  .theme-contrast .modal-content,
+  .theme-contrast [class*="modal-content"],
+  [data-theme='contrast'] .modal-content,
+  [data-theme='contrast'] [class*="modal-content"] {
+    border: 3px solid var(--border-default) !important;
+  }
+
+  /* ==========================================================================
+     DROPDOWNS & POPOVERS - Thick borders
+     ========================================================================== */
+
+  .theme-contrast .dropdown,
+  .theme-contrast .popover,
+  .theme-contrast [class*="dropdown"],
+  .theme-contrast [class*="popover"],
+  [data-theme='contrast'] .dropdown,
+  [data-theme='contrast'] .popover,
+  [data-theme='contrast'] [class*="dropdown"],
+  [data-theme='contrast'] [class*="popover"] {
+    border: 2px solid var(--border-default) !important;
+    background: var(--bg-elevated) !important;
+    background-image: none !important;
+    box-shadow: none !important;
+  }
+
+  /* ==========================================================================
+     TABLES - Clear borders
+     ========================================================================== */
+
+  .theme-contrast table,
+  .theme-contrast th,
+  .theme-contrast td,
+  [data-theme='contrast'] table,
+  [data-theme='contrast'] th,
+  [data-theme='contrast'] td {
+    border: 2px solid var(--border-default) !important;
+  }
+
+  .theme-contrast th,
+  [data-theme='contrast'] th {
+    background: var(--interactive-hover) !important;
+    font-weight: bold !important;
+  }
+
+  .theme-contrast tr:hover,
+  [data-theme='contrast'] tr:hover {
+    background: var(--interactive-hover) !important;
+  }
+
+  /* ==========================================================================
+     IMAGES & ICONS - Ensure visibility
+     ========================================================================== */
+
+  .theme-contrast img,
+  [data-theme='contrast'] img {
+    border: 1px solid var(--border-subtle) !important;
+  }
+
+  /* SVG icons should use text color */
+  .theme-contrast svg,
+  [data-theme='contrast'] svg {
+    color: var(--text-primary) !important;
+    fill: currentColor !important;
+  }
+
+  /* ==========================================================================
+     BADGES & LABELS - Solid colors, thick borders
+     ========================================================================== */
+
+  .theme-contrast .badge,
+  .theme-contrast .label,
+  .theme-contrast .tag,
+  [data-theme='contrast'] .badge,
+  [data-theme='contrast'] .label,
+  [data-theme='contrast'] .tag {
+    border: 2px solid var(--border-default) !important;
+    background: var(--bg-primary) !important;
+    background-image: none !important;
+  }
+
+  /* ==========================================================================
+     STATUS INDICATORS - Maximum contrast colors
+     ========================================================================== */
+
+  .theme-contrast .success,
+  .theme-contrast [class*="success"],
+  [data-theme='contrast'] .success,
+  [data-theme='contrast'] [class*="success"] {
+    color: var(--status-success) !important;
+    border-color: var(--status-success) !important;
+  }
+
+  .theme-contrast .warning,
+  .theme-contrast [class*="warning"],
+  [data-theme='contrast'] .warning,
+  [data-theme='contrast'] [class*="warning"] {
+    color: var(--status-warning) !important;
+    border-color: var(--status-warning) !important;
+  }
+
+  .theme-contrast .error,
+  .theme-contrast [class*="error"],
+  .theme-contrast [class*="danger"],
+  [data-theme='contrast'] .error,
+  [data-theme='contrast'] [class*="error"],
+  [data-theme='contrast'] [class*="danger"] {
+    color: var(--status-error) !important;
+    border-color: var(--status-error) !important;
+  }
+
+  .theme-contrast .info,
+  .theme-contrast [class*="info"],
+  [data-theme='contrast'] .info,
+  [data-theme='contrast'] [class*="info"] {
+    color: var(--status-info) !important;
+    border-color: var(--status-info) !important;
+  }
+
+  /* ==========================================================================
+     LOADING STATES - Remove spinners with blur/opacity
+     ========================================================================== */
+
+  .theme-contrast .spinner,
+  .theme-contrast .loading,
+  .theme-contrast [class*="spinner"],
+  .theme-contrast [class*="loading"],
+  [data-theme='contrast'] .spinner,
+  [data-theme='contrast'] .loading,
+  [data-theme='contrast'] [class*="spinner"],
+  [data-theme='contrast'] [class*="loading"] {
+    border: 3px solid var(--border-default) !important;
+    border-top-color: var(--brand-primary) !important;
+  }
+
+  /* ==========================================================================
+     PROGRESS BARS - Solid colors
+     ========================================================================== */
+
+  .theme-contrast .progress,
+  .theme-contrast [class*="progress"],
+  [data-theme='contrast'] .progress,
+  [data-theme='contrast'] [class*="progress"] {
+    border: 2px solid var(--border-default) !important;
+    background: var(--bg-primary) !important;
+  }
+
+  .theme-contrast .progress-bar,
+  .theme-contrast [class*="progress-bar"],
+  [data-theme='contrast'] .progress-bar,
+  [data-theme='contrast'] [class*="progress-bar"] {
+    background: var(--brand-primary) !important;
+    background-image: none !important;
+  }
+
+  /* ==========================================================================
+     TOOLTIPS - High contrast, thick borders
+     ========================================================================== */
+
+  .theme-contrast .tooltip,
+  .theme-contrast [class*="tooltip"],
+  [data-theme='contrast'] .tooltip,
+  [data-theme='contrast'] [class*="tooltip"] {
+    border: 2px solid var(--border-default) !important;
+    background: var(--bg-elevated) !important;
+    background-image: none !important;
+    box-shadow: none !important;
+  }
+
+  /* ==========================================================================
+     CODE BLOCKS - Clear borders, solid backgrounds
+     ========================================================================== */
+
+  .theme-contrast code,
+  .theme-contrast pre,
+  [data-theme='contrast'] code,
+  [data-theme='contrast'] pre {
+    border: 2px solid var(--border-default) !important;
+    background: var(--bg-secondary) !important;
+    background-image: none !important;
+  }
+
+  /* ==========================================================================
+     SCROLLBARS - High contrast (for browsers that support it)
+     ========================================================================== */
+
+  .theme-contrast *::-webkit-scrollbar,
+  [data-theme='contrast'] *::-webkit-scrollbar {
+    width: 16px;
+    height: 16px;
+  }
+
+  .theme-contrast *::-webkit-scrollbar-track,
+  [data-theme='contrast'] *::-webkit-scrollbar-track {
+    background: var(--bg-primary);
+    border: 1px solid var(--border-default);
+  }
+
+  .theme-contrast *::-webkit-scrollbar-thumb,
+  [data-theme='contrast'] *::-webkit-scrollbar-thumb {
+    background: var(--border-default);
+    border: 2px solid var(--border-default);
+  }
+
+  .theme-contrast *::-webkit-scrollbar-thumb:hover,
+  [data-theme='contrast'] *::-webkit-scrollbar-thumb:hover {
+    background: var(--border-strong);
+  }
+
+  /* ==========================================================================
+     SELECTION - High contrast text selection
+     ========================================================================== */
+
+  .theme-contrast *::selection,
+  [data-theme='contrast'] *::selection {
+    background: var(--brand-primary) !important;
+    color: var(--text-on-brand) !important;
+  }
+
+  .theme-contrast *::-moz-selection,
+  [data-theme='contrast'] *::-moz-selection {
+    background: var(--brand-primary) !important;
+    color: var(--text-on-brand) !important;
+  }
+
+  /* ==========================================================================
+     UTILITY OVERRIDES - Remove common decorative effects
+     ========================================================================== */
+
+  /* Remove all Tailwind gradient utilities */
+  .theme-contrast [class*="bg-gradient"],
+  [data-theme='contrast'] [class*="bg-gradient"] {
+    background-image: none !important;
+  }
+
+  /* Remove all Tailwind shadow utilities */
+  .theme-contrast [class*="shadow"],
+  [data-theme='contrast'] [class*="shadow"] {
+    box-shadow: none !important;
+  }
+
+  /* Remove all backdrop blur utilities */
+  .theme-contrast [class*="backdrop-blur"],
+  .theme-contrast [class*="backdrop-filter"],
+  [data-theme='contrast'] [class*="backdrop-blur"],
+  [data-theme='contrast'] [class*="backdrop-filter"] {
+    backdrop-filter: none !important;
+    -webkit-backdrop-filter: none !important;
+  }
+
+  /* Remove opacity utilities (force full opacity) */
+  .theme-contrast [class*="opacity-"],
+  [data-theme='contrast'] [class*="opacity-"] {
+    opacity: 1 !important;
+  }
+
+  /* ==========================================================================
+     SPECIFIC COMPONENT OVERRIDES - Known problem areas
+     ========================================================================== */
+
+  /* Footer gradients */
+  .theme-contrast .footer-gradient,
+  .theme-contrast footer,
+  [data-theme='contrast'] .footer-gradient,
+  [data-theme='contrast'] footer {
+    background: var(--bg-primary) !important;
+    background-image: none !important;
+    border-top: 2px solid var(--border-default) !important;
+  }
+
+  /* Header with glass effect */
+  .theme-contrast .header-glass,
+  .theme-contrast .nav-glass,
+  [data-theme='contrast'] .header-glass,
+  [data-theme='contrast'] .nav-glass {
+    background: var(--bg-primary) !important;
+    backdrop-filter: none !important;
+  }
+
+  /* CTA buttons with gradients */
+  .theme-contrast .cta-button,
+  .theme-contrast .btn-gradient,
+  .theme-contrast [class*="btn-gradient"],
+  [data-theme='contrast'] .cta-button,
+  [data-theme='contrast'] .btn-gradient,
+  [data-theme='contrast'] [class*="btn-gradient"] {
+    background: var(--brand-primary) !important;
+    background-image: none !important;
+    border: 2px solid var(--brand-primary) !important;
+  }
+
+  /* Pricing cards with gradient borders */
+  .theme-contrast .pricing-card,
+  .theme-contrast [class*="pricing"],
+  [data-theme='contrast'] .pricing-card,
+  [data-theme='contrast'] [class*="pricing"] {
+    border: 3px solid var(--border-default) !important;
+    background: var(--bg-card) !important;
+    background-image: none !important;
+  }
+
+  /* Feature cards with glow effects */
+  .theme-contrast .feature-card,
+  .theme-contrast [class*="feature"],
+  [data-theme='contrast'] .feature-card,
+  [data-theme='contrast'] [class*="feature"] {
+    border: 2px solid var(--border-default) !important;
+    box-shadow: none !important;
+  }
+
+  /* Testimonial cards with subtle backgrounds */
+  .theme-contrast .testimonial,
+  .theme-contrast [class*="testimonial"],
+  [data-theme='contrast'] .testimonial,
+  [data-theme='contrast'] [class*="testimonial"] {
+    border: 2px solid var(--border-default) !important;
+    background: var(--bg-card) !important;
+  }
+
+  /* ==========================================================================
+     PRINT STYLES - Ensure contrast mode prints correctly
+     ========================================================================== */
+
+  @media print {
+    .theme-contrast,
+    [data-theme='contrast'] {
+      background: white !important;
+      color: black !important;
+    }
+
+    .theme-contrast *,
+    [data-theme='contrast'] * {
+      background-image: none !important;
+      box-shadow: none !important;
+      text-shadow: none !important;
+    }
+  }
+}

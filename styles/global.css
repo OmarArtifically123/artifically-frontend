@@ -1,16 +1,23 @@
 /* Enhanced Global CSS - Production Grade */
 /* =================================================================
    IMPORT ORDER (Critical for CSS Cascade):
-   1. Design Tokens (Single Source of Truth)
-   2. Legacy Design System Tokens (ADS)
-   3. Tailwind Base Styles
-   4. Tailwind Components
-   5. Tailwind Utilities
+   1. Unified Design Tokens (Single Source of Truth)
+   2. High Contrast Overrides (Accessibility)
+   3. Legacy Design System Tokens (ADS - to be deprecated)
+   4. Tailwind Base Styles
+   5. Tailwind Components
+   6. Tailwind Utilities
+   7. Responsive Utilities
    ================================================================= */
 
+/* Unified Theme System */
 @import url("./design-tokens.css");
+@import url("./high-contrast-overrides.css");
+
+/* Legacy Design System (will be migrated to design-tokens.css) */
 @import url("../design-system/tokens/tokens.css") layer(tokens);
 
+/* Tailwind Layers */
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
