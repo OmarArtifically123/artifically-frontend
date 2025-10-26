@@ -1,0 +1,497 @@
+/**
+ * ============================================================================
+ * DESIGN TOKENS - SINGLE SOURCE OF TRUTH
+ * ============================================================================
+ * Unified theme system for the AI Automation Marketplace
+ * Supports: Light Mode, Dark Mode, and High-Contrast Mode (WCAG AAA)
+ *
+ * Architecture:
+ * - Semantic color tokens (not implementation-specific)
+ * - Theme-aware with data-theme attribute
+ * - Accessibility-first with WCAG AAA compliance in contrast mode
+ * - Performance-optimized with CSS custom properties
+ *
+ * Usage:
+ * Use semantic tokens in components: var(--text-primary), var(--bg-primary)
+ * Never use hardcoded colors: #ffffff, rgb(), etc.
+ * ============================================================================
+ */
+
+@layer design-tokens {
+  /* ========================================================================
+     BRAND COLORS - Theme Independent
+     These are the core brand colors that adapt per theme
+     ======================================================================== */
+
+  :root {
+    /* Brand Identity Colors (theme-aware via overrides below) */
+    --brand-primary-h: 264;
+    --brand-primary-s: 32%;
+    --brand-primary-l: 65%;
+    --brand-secondary-h: 192;
+    --brand-secondary-s: 28%;
+    --brand-secondary-l: 75%;
+    --brand-accent-h: 330;
+    --brand-accent-s: 26%;
+    --brand-accent-l: 70%;
+  }
+
+  /* ========================================================================
+     DARK MODE (DEFAULT)
+     ======================================================================== */
+
+  :root,
+  [data-theme='dark'],
+  .theme-dark {
+    /* ===== Backgrounds ===== */
+    --bg-primary: #050510;
+    --bg-secondary: #0f172a;
+    --bg-tertiary: #1a1f3a;
+    --bg-elevated: #1e293b;
+    --bg-card: #0f172a;
+    --bg-overlay: rgba(5, 5, 16, 0.92);
+    --bg-inverse: #f8f9ff;
+
+    /* ===== Surface & Glass Effects ===== */
+    --surface-base: #050510;
+    --surface-raised: #0f172a;
+    --surface-overlay: rgba(0, 0, 0, 0.8);
+    --glass-bg: rgba(15, 23, 42, 0.35);
+    --glass-border: rgba(148, 163, 184, 0.18);
+    --glass-blur: blur(24px);
+
+    /* ===== Text Colors ===== */
+    --text-primary: #ffffff;
+    --text-secondary: #e2e8f0;
+    --text-tertiary: #cbd5e1;
+    --text-muted: #94a3b8;
+    --text-inverse: #0f172a;
+    --text-link: #7dd3fc;
+    --text-link-hover: #bae6fd;
+    --text-on-brand: #ffffff;
+
+    /* ===== Borders ===== */
+    --border-default: rgba(148, 163, 184, 0.18);
+    --border-strong: rgba(148, 163, 184, 0.35);
+    --border-subtle: rgba(148, 163, 184, 0.1);
+    --border-focus: rgba(122, 181, 255, 0.5);
+    --border-inverse: rgba(15, 23, 42, 0.35);
+
+    /* ===== Brand Colors (adapted for dark mode) ===== */
+    --brand-primary: oklch(0.65 0.32 264);
+    --brand-secondary: oklch(0.75 0.28 192);
+    --brand-accent: oklch(0.70 0.26 330);
+    --brand-glow: oklch(0.75 0.28 192);
+    --brand-energy: oklch(0.70 0.26 330);
+    --brand-depth: #0a0a0f;
+    --brand-muted: #1a1a24;
+
+    /* ===== Interactive States ===== */
+    --interactive-hover: rgba(148, 163, 184, 0.12);
+    --interactive-active: rgba(148, 163, 184, 0.20);
+    --interactive-focus: rgba(122, 181, 255, 0.3);
+    --interactive-disabled: rgba(148, 163, 184, 0.08);
+    --interactive-disabled-text: rgba(148, 163, 184, 0.4);
+
+    /* ===== Status Colors ===== */
+    --status-success: oklch(0.72 0.24 145);
+    --status-success-bg: rgba(16, 185, 129, 0.12);
+    --status-success-border: rgba(16, 185, 129, 0.3);
+    --status-warning: oklch(0.75 0.22 85);
+    --status-warning-bg: rgba(245, 158, 11, 0.12);
+    --status-warning-border: rgba(245, 158, 11, 0.3);
+    --status-error: oklch(0.62 0.28 25);
+    --status-error-bg: rgba(239, 68, 68, 0.12);
+    --status-error-border: rgba(239, 68, 68, 0.3);
+    --status-info: oklch(0.78 0.2 240);
+    --status-info-bg: rgba(77, 157, 255, 0.12);
+    --status-info-border: rgba(77, 157, 255, 0.3);
+
+    /* ===== Shadows ===== */
+    --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.3);
+    --shadow-md: 0 4px 8px rgba(0, 0, 0, 0.4);
+    --shadow-lg: 0 8px 16px rgba(0, 0, 0, 0.45);
+    --shadow-xl: 0 16px 32px rgba(0, 0, 0, 0.5);
+    --shadow-2xl: 0 24px 48px rgba(0, 0, 0, 0.6);
+    --shadow-glow: 0 0 40px oklch(0.65 0.32 264 / 0.35);
+    --shadow-glow-strong: 0 0 60px oklch(0.65 0.32 264 / 0.5);
+    --shadow-ambient: 0 12px 30px rgba(5, 5, 16, 0.4);
+
+    /* ===== Gradients ===== */
+    --gradient-primary: linear-gradient(135deg, oklch(0.65 0.32 264) 0%, oklch(0.75 0.28 192) 100%);
+    --gradient-accent: linear-gradient(135deg, #0ea5e9 0%, #7c3aed 50%, #ec4899 100%);
+    --gradient-hero: linear-gradient(130deg,
+      oklch(0.6 0.32 264) 0%,
+      oklch(0.65 0.32 264) 40%,
+      oklch(0.75 0.28 192) 70%,
+      oklch(0.72 0.26 330) 100%
+    );
+
+    /* ===== Logo Colors ===== */
+    --logo-mark: var(--text-primary);
+    --logo-word: var(--text-primary);
+    --logo-accent: var(--brand-primary);
+    --logo-node-opacity: 0;
+
+    /* ===== Focus States ===== */
+    --focus-ring: 0 0 0 3px rgba(122, 181, 255, 0.4);
+    --focus-ring-offset: 2px;
+    --focus-outline-color: rgba(122, 181, 255, 0.7);
+    --focus-outline-width: 2px;
+
+    /* ===== Z-Index Scale ===== */
+    --z-dropdown: 1000;
+    --z-sticky: 1020;
+    --z-fixed: 1030;
+    --z-modal-backdrop: 1040;
+    --z-modal: 1050;
+    --z-popover: 1060;
+    --z-tooltip: 1070;
+  }
+
+  /* ========================================================================
+     LIGHT MODE
+     Clean, accessible light theme with WCAG AAA compliance
+     ======================================================================== */
+
+  [data-theme='light'],
+  .theme-light {
+    /* ===== Backgrounds ===== */
+    --bg-primary: #ffffff;
+    --bg-secondary: #f8fafc;
+    --bg-tertiary: #f1f5f9;
+    --bg-elevated: #ffffff;
+    --bg-card: #ffffff;
+    --bg-overlay: rgba(255, 255, 255, 0.95);
+    --bg-inverse: #0f172a;
+
+    /* ===== Surface & Glass Effects ===== */
+    --surface-base: #ffffff;
+    --surface-raised: #f8fafc;
+    --surface-overlay: rgba(0, 0, 0, 0.5);
+    --glass-bg: rgba(255, 255, 255, 0.45);
+    --glass-border: rgba(15, 23, 42, 0.1);
+    --glass-blur: blur(24px);
+
+    /* ===== Text Colors ===== */
+    --text-primary: #000000;
+    --text-secondary: #0f172a;
+    --text-tertiary: #1e293b;
+    --text-muted: #475569;
+    --text-inverse: #ffffff;
+    --text-link: #0c4a9e;
+    --text-link-hover: #083573;
+    --text-on-brand: #ffffff;
+
+    /* ===== Borders ===== */
+    --border-default: #e2e8f0;
+    --border-strong: #cbd5e1;
+    --border-subtle: #f1f5f9;
+    --border-focus: rgba(22, 95, 215, 0.4);
+    --border-inverse: rgba(148, 163, 184, 0.25);
+
+    /* ===== Brand Colors (adapted for light mode) ===== */
+    --brand-primary: #1f7eff;
+    --brand-secondary: #7a73ff;
+    --brand-accent: #ec4899;
+    --brand-glow: #7dd3fc;
+    --brand-energy: #ec4899;
+    --brand-depth: #f8f9ff;
+    --brand-muted: #e2e8f0;
+
+    /* ===== Interactive States ===== */
+    --interactive-hover: rgba(15, 23, 42, 0.05);
+    --interactive-active: rgba(15, 23, 42, 0.10);
+    --interactive-focus: rgba(22, 95, 215, 0.2);
+    --interactive-disabled: rgba(15, 23, 42, 0.03);
+    --interactive-disabled-text: rgba(15, 23, 42, 0.35);
+
+    /* ===== Status Colors ===== */
+    --status-success: #10b981;
+    --status-success-bg: #ecfdf5;
+    --status-success-border: #6ee7b7;
+    --status-warning: #f59e0b;
+    --status-warning-bg: #fffbea;
+    --status-warning-border: #fcd34d;
+    --status-error: #ef4444;
+    --status-error-bg: #fef2f2;
+    --status-error-border: #fca5a5;
+    --status-info: #4d9dff;
+    --status-info-bg: #eef5ff;
+    --status-info-border: #93c5fd;
+
+    /* ===== Shadows ===== */
+    --shadow-sm: 0 1px 2px rgba(15, 23, 42, 0.06);
+    --shadow-md: 0 4px 8px rgba(15, 23, 42, 0.10);
+    --shadow-lg: 0 8px 16px rgba(15, 23, 42, 0.12);
+    --shadow-xl: 0 16px 32px rgba(15, 23, 42, 0.15);
+    --shadow-2xl: 0 24px 48px rgba(15, 23, 42, 0.18);
+    --shadow-glow: 0 0 40px rgba(31, 126, 255, 0.25);
+    --shadow-glow-strong: 0 0 60px rgba(31, 126, 255, 0.35);
+    --shadow-ambient: 0 12px 30px rgba(15, 23, 42, 0.14);
+
+    /* ===== Gradients ===== */
+    --gradient-primary: linear-gradient(135deg, #1f7eff 0%, #7a73ff 100%);
+    --gradient-accent: linear-gradient(135deg, #0ea5e9 0%, #7c3aed 50%, #ec4899 100%);
+    --gradient-hero: linear-gradient(130deg, #1f7eff 0%, #7a73ff 50%, #ec4899 100%);
+
+    /* ===== Logo Colors ===== */
+    --logo-mark: var(--text-primary);
+    --logo-word: var(--text-primary);
+    --logo-accent: var(--brand-primary);
+    --logo-node-opacity: 0;
+
+    /* ===== Focus States ===== */
+    --focus-ring: 0 0 0 3px rgba(22, 95, 215, 0.3);
+    --focus-ring-offset: 2px;
+    --focus-outline-color: rgba(22, 95, 215, 0.6);
+    --focus-outline-width: 2px;
+  }
+
+  /* ========================================================================
+     CONTRAST MODE (HIGH CONTRAST - WCAG AAA)
+     Pure black & white with maximum contrast for accessibility
+     No gradients, no shadows, no subtle effects
+     ======================================================================== */
+
+  [data-theme='contrast'],
+  .theme-contrast {
+    /* ===== Backgrounds ===== */
+    --bg-primary: #000000;
+    --bg-secondary: #000000;
+    --bg-tertiary: #000000;
+    --bg-elevated: #000000;
+    --bg-card: #000000;
+    --bg-overlay: #000000;
+    --bg-inverse: #ffffff;
+
+    /* ===== Surface & Glass Effects (DISABLED) ===== */
+    --surface-base: #000000;
+    --surface-raised: #000000;
+    --surface-overlay: #000000;
+    --glass-bg: transparent;
+    --glass-border: #ffffff;
+    --glass-blur: none;
+
+    /* ===== Text Colors ===== */
+    --text-primary: #ffffff;
+    --text-secondary: #ffffff;
+    --text-tertiary: #ffffff;
+    --text-muted: #ffffff;
+    --text-inverse: #000000;
+    --text-link: #00eaff;
+    --text-link-hover: #5ffbff;
+    --text-on-brand: #000000;
+
+    /* ===== Borders ===== */
+    --border-default: #ffffff;
+    --border-strong: #ffffff;
+    --border-subtle: #8a8a8a;
+    --border-focus: #00eaff;
+    --border-inverse: #000000;
+
+    /* ===== Brand Colors (high contrast versions) ===== */
+    --brand-primary: #00d4ff;
+    --brand-secondary: #00ffe0;
+    --brand-accent: #ff00ff;
+    --brand-glow: #00ffe0;
+    --brand-energy: #ff00ff;
+    --brand-depth: #000000;
+    --brand-muted: #000000;
+
+    /* ===== Interactive States ===== */
+    --interactive-hover: #1a1a1a;
+    --interactive-active: #2a2a2a;
+    --interactive-focus: #00eaff;
+    --interactive-disabled: #0a0a0a;
+    --interactive-disabled-text: #666666;
+
+    /* ===== Status Colors ===== */
+    --status-success: #00ff00;
+    --status-success-bg: #003300;
+    --status-success-border: #00ff00;
+    --status-warning: #ffff00;
+    --status-warning-bg: #333300;
+    --status-warning-border: #ffff00;
+    --status-error: #ff0000;
+    --status-error-bg: #330000;
+    --status-error-border: #ff0000;
+    --status-info: #00d4ff;
+    --status-info-bg: #003344;
+    --status-info-border: #00d4ff;
+
+    /* ===== Shadows (DISABLED) ===== */
+    --shadow-sm: none;
+    --shadow-md: none;
+    --shadow-lg: none;
+    --shadow-xl: none;
+    --shadow-2xl: none;
+    --shadow-glow: none;
+    --shadow-glow-strong: none;
+    --shadow-ambient: none;
+
+    /* ===== Gradients (DISABLED - Solid colors only) ===== */
+    --gradient-primary: #00d4ff;
+    --gradient-accent: #00ffe0;
+    --gradient-hero: #00d4ff;
+
+    /* ===== Logo Colors ===== */
+    --logo-mark: #ffffff;
+    --logo-word: #ffffff;
+    --logo-accent: #00eaff;
+    --logo-node-opacity: 0;
+
+    /* ===== Focus States (Enhanced for contrast) ===== */
+    --focus-ring: 0 0 0 4px #00eaff;
+    --focus-ring-offset: 3px;
+    --focus-outline-color: #00eaff;
+    --focus-outline-width: 3px;
+  }
+
+  /* ========================================================================
+     CONTRAST MODE - GLOBAL OVERRIDES
+     Force high contrast everywhere, disable visual complexity
+     ======================================================================== */
+
+  .theme-contrast *,
+  [data-theme='contrast'] * {
+    /* Remove all shadows */
+    box-shadow: none !important;
+    text-shadow: none !important;
+
+    /* Remove all backdrop filters */
+    backdrop-filter: none !important;
+    -webkit-backdrop-filter: none !important;
+
+    /* Disable gradients - force solid backgrounds */
+    background-image: none !important;
+  }
+
+  /* Force underlined links in contrast mode */
+  .theme-contrast a,
+  [data-theme='contrast'] a {
+    text-decoration: underline;
+    text-decoration-thickness: 2px;
+    text-underline-offset: 3px;
+  }
+
+  /* Enhanced focus indicators for contrast mode */
+  .theme-contrast *:focus,
+  [data-theme='contrast'] *:focus {
+    outline: 3px solid var(--focus-outline-color) !important;
+    outline-offset: var(--focus-ring-offset) !important;
+  }
+
+  /* Disable transitions in contrast mode (accessibility) */
+  .theme-contrast *,
+  [data-theme='contrast'] * {
+    transition: none !important;
+    animation: none !important;
+  }
+
+  /* Force borders to be visible in contrast mode */
+  .theme-contrast button,
+  .theme-contrast input,
+  .theme-contrast select,
+  .theme-contrast textarea,
+  [data-theme='contrast'] button,
+  [data-theme='contrast'] input,
+  [data-theme='contrast'] select,
+  [data-theme='contrast'] textarea {
+    border: 2px solid var(--border-default) !important;
+  }
+
+  /* ========================================================================
+     SMOOTH THEME TRANSITIONS
+     Apply smooth transitions for light/dark mode (not contrast)
+     ======================================================================== */
+
+  :root:not(.theme-contrast) *,
+  [data-theme='light'] *,
+  [data-theme='dark'] * {
+    transition-property: background-color, color, border-color, box-shadow, opacity;
+    transition-duration: 0.3s;
+    transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
+  }
+
+  /* ========================================================================
+     FORCED COLORS MODE (Windows High Contrast)
+     Respect OS-level high contrast settings
+     ======================================================================== */
+
+  @media (forced-colors: active) {
+    :root {
+      --bg-primary: Canvas;
+      --text-primary: CanvasText;
+      --text-link: LinkText;
+      --border-default: CanvasText;
+      --border-focus: Highlight;
+      --brand-primary: Highlight;
+    }
+
+    * {
+      forced-color-adjust: auto;
+    }
+
+    *:focus {
+      outline: 2px solid Highlight !important;
+      outline-offset: 2px !important;
+    }
+  }
+
+  /* ========================================================================
+     REDUCED MOTION
+     Respect user preference for reduced motion
+     ======================================================================== */
+
+  @media (prefers-reduced-motion: reduce) {
+    *,
+    *::before,
+    *::after {
+      animation-duration: 0.01ms !important;
+      animation-iteration-count: 1 !important;
+      transition-duration: 0.01ms !important;
+      scroll-behavior: auto !important;
+    }
+  }
+
+  /* ========================================================================
+     GLOBAL APPLICATION
+     Apply theme to core HTML elements
+     ======================================================================== */
+
+  html,
+  body {
+    background-color: var(--bg-primary);
+    color: var(--text-primary);
+  }
+
+  /* Headings */
+  h1, h2, h3, h4, h5, h6 {
+    color: var(--text-primary);
+  }
+
+  /* Paragraphs */
+  p {
+    color: var(--text-secondary);
+  }
+
+  /* Links */
+  a {
+    color: var(--text-link);
+  }
+
+  a:hover {
+    color: var(--text-link-hover);
+  }
+
+  /* Sections and containers */
+  main,
+  section,
+  article,
+  aside,
+  nav {
+    background-color: transparent;
+    color: var(--text-primary);
+  }
+}

@@ -1026,9 +1026,10 @@ export default function Header({ user, onSignIn, onSignUp, onSignOut }) {
                         className={["nav-trigger", isActive ? "nav-trigger--active" : ""]
                           .filter(Boolean)
                           .join(" ")}
-                        aria-haspopup="true"
+                        aria-haspopup="menu"
                         aria-expanded={isMenuOpen ? "true" : "false"}
                         aria-controls={resourcesMenuId}
+                        aria-label={`${item.label} menu`}
                         onClick={() => {
                           if (isMenuOpen) {
                             closeResourcesMenu({ focusTrigger: false });
@@ -1073,9 +1074,10 @@ export default function Header({ user, onSignIn, onSignUp, onSignOut }) {
                           className={["nav-trigger", isActive ? "nav-trigger--active" : ""]
                             .filter(Boolean)
                             .join(" ")}
-                          aria-haspopup="true"
+                          aria-haspopup="menu"
                           aria-expanded={isMenuOpen ? "true" : "false"}
                           aria-controls={automationsMenuId}
+                          aria-label={`${item.label} menu`}
                           onClick={() => {
                             closeSolutionsMenu();
                             if (automationsMenuState === "open" || automationsMenuState === "opening") {
@@ -1117,9 +1119,10 @@ export default function Header({ user, onSignIn, onSignUp, onSignOut }) {
                           className={["nav-trigger", isActive ? "nav-trigger--active" : ""]
                             .filter(Boolean)
                             .join(" ")}
-                          aria-haspopup="true"
+                          aria-haspopup="menu"
                           aria-expanded={isMenuOpen ? "true" : "false"}
                           aria-controls={solutionsMenuId}
+                          aria-label={`${item.label} menu`}
                           onClick={() => {
                             closeAutomationsMenu();
                             if (solutionsMenuState === "open" || solutionsMenuState === "opening") {
@@ -1289,6 +1292,7 @@ export default function Header({ user, onSignIn, onSignUp, onSignOut }) {
             title="Open command palette (⌘K or Ctrl+K)"
             aria-keyshortcuts="Control+K Meta+K"
             ref={commandPaletteTriggerRef}
+            style={{ minWidth: '48px', minHeight: '48px', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '12px' }}
           >
             <Icon name="search" size={18} aria-hidden="true" />
             <span className="sr-only" id="command-palette-shortcut-hint">

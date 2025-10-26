@@ -1,7 +1,15 @@
 /* Enhanced Global CSS - Production Grade */
+/* =================================================================
+   IMPORT ORDER (Critical for CSS Cascade):
+   1. Design Tokens (Single Source of Truth)
+   2. Legacy Design System Tokens (ADS)
+   3. Tailwind Base Styles
+   4. Tailwind Components
+   5. Tailwind Utilities
+   ================================================================= */
 
+@import url("./design-tokens.css");
 @import url("../design-system/tokens/tokens.css") layer(tokens);
-@import url("./theme-tokens.css");
 
 @tailwind base;
 @tailwind components;
@@ -379,16 +387,21 @@ textarea:focus {
   --font-size-xl: var(--text-2xl);
   --font-size-2xl: var(--text-3xl);
   --font-size-3xl: var(--text-4xl);
-  --text-primary: var(--color-text-primary, #f4f6ff);
-  --text-secondary: var(--color-text-secondary, rgba(214, 222, 255, 0.8));
-  --text-muted: var(--color-text-muted, rgba(184, 196, 235, 0.7));
+  /* =================================================================
+     DEPRECATED: Duplicate theme variables (now in design-tokens.css)
+     These are kept for backward compatibility but will use tokens
+     from design-tokens.css via CSS cascade
+     ================================================================= */
+  /* --text-primary: var(--color-text-primary, #f4f6ff); */
+  /* --text-secondary: var(--color-text-secondary, rgba(214, 222, 255, 0.8)); */
+  /* --text-muted: var(--color-text-muted, rgba(184, 196, 235, 0.7)); */
 
-  /* Background */
+  /* Background - Legacy gradient variables (kept for specific use cases) */
   --bg-from: #0c2340;
   --bg-to: #182b57;
-  --bg-primary: var(--surface-background-primary, #050510);
-  --bg-secondary: var(--surface-background-secondary, color-mix(in srgb, var(--brand-depth) 80%, black));
-  --bg-tertiary: var(--surface-background-tertiary, color-mix(in srgb, var(--brand-muted) 75%, black));
+  /* --bg-primary: var(--surface-background-primary, #050510); */
+  /* --bg-secondary: var(--surface-background-secondary, color-mix(in srgb, var(--brand-depth) 80%, black)); */
+  /* --bg-tertiary: var(--surface-background-tertiary, color-mix(in srgb, var(--brand-muted) 75%, black)); */
   --bg-muted: color-mix(in srgb, var(--brand-depth) 65%, transparent);
   --bg-card: color-mix(in srgb, var(--brand-muted) 68%, transparent);
   --bg-card-hover: color-mix(in srgb, var(--brand-muted) 85%, transparent);
@@ -506,9 +519,13 @@ textarea:focus {
 
 
 [data-theme="light"] {
-  --text-primary: #11152e;
-  --text-secondary: rgba(25, 33, 76, 0.84);
-  --text-muted: rgba(55, 66, 118, 0.7);
+  /* =================================================================
+     DEPRECATED: Duplicate theme variables (now in design-tokens.css)
+     Using tokens from design-tokens.css instead
+     ================================================================= */
+  /* --text-primary: #11152e; */
+  /* --text-secondary: rgba(25, 33, 76, 0.84); */
+  /* --text-muted: rgba(55, 66, 118, 0.7); */
   --overlay-backdrop-strong: rgba(4, 7, 15, 0.82);
   --badge-overlay-surface: color-mix(in srgb, white 82%, var(--brand-emerald) 18%);
   --badge-overlay-foreground: #064e3b;
@@ -527,9 +544,9 @@ textarea:focus {
   );
   --accent: color-mix(in oklch, var(--brand-glow) 65%, white);
   --accent-hot: color-mix(in oklch, var(--brand-energy) 75%, white 20%);
-  --bg-primary: color-mix(in oklch, white 96%, var(--brand-primary) 4%);
-  --bg-secondary: color-mix(in oklch, white 92%, var(--brand-primary) 8%);
-  --bg-tertiary: color-mix(in oklch, white 88%, var(--brand-primary) 12%);
+  /* --bg-primary: color-mix(in oklch, white 96%, var(--brand-primary) 4%); */
+  /* --bg-secondary: color-mix(in oklch, white 92%, var(--brand-primary) 8%); */
+  /* --bg-tertiary: color-mix(in oklch, white 88%, var(--brand-primary) 12%); */
   --bg-card: color-mix(in oklch, white 94%, var(--brand-primary) 6% / 0.92);
   --bg-card-hover: color-mix(in oklch, white 90%, var(--brand-primary) 10% / 0.96);
   --bg-glass: color-mix(in oklch, white 88%, var(--brand-primary) 12% / 0.7);
@@ -558,9 +575,13 @@ textarea:focus {
 }
 
 [data-theme="dark"] {
-  --text-primary: #f4f6ff;
-  --text-secondary: rgba(214, 222, 255, 0.8);
-  --text-muted: rgba(184, 196, 235, 0.7);
+  /* =================================================================
+     DEPRECATED: Duplicate theme variables (now in design-tokens.css)
+     Using tokens from design-tokens.css instead
+     ================================================================= */
+  /* --text-primary: #f4f6ff; */
+  /* --text-secondary: rgba(214, 222, 255, 0.8); */
+  /* --text-muted: rgba(184, 196, 235, 0.7); */
   --section-header-gradient: linear-gradient(
     135deg,
     color-mix(in oklch, white 92%, var(--brand-primary) 8%) 0%,
@@ -572,9 +593,13 @@ textarea:focus {
   --brand-primary: var(--theme-contrast-accent);
   --brand-glow: color-mix(in oklch, var(--theme-contrast-accent) 75%, white 20%);
   --brand-energy: color-mix(in oklch, var(--theme-contrast-accent) 80%, var(--theme-contrast-text-secondary) 20%);
-  --text-primary: var(--theme-contrast-text);
-  --text-secondary: color-mix(in srgb, var(--theme-contrast-text-secondary) 80%, var(--theme-contrast-text) 20%);
-  --text-muted: color-mix(in srgb, var(--theme-contrast-text-secondary) 45%, var(--theme-contrast-text) 55% / 0.7);
+  /* =================================================================
+     DEPRECATED: Duplicate theme variables (now in design-tokens.css)
+     High contrast mode is now fully managed in design-tokens.css
+     ================================================================= */
+  /* --text-primary: var(--theme-contrast-text); */
+  /* --text-secondary: color-mix(in srgb, var(--theme-contrast-text-secondary) 80%, var(--theme-contrast-text) 20%); */
+  /* --text-muted: color-mix(in srgb, var(--theme-contrast-text-secondary) 45%, var(--theme-contrast-text) 55% / 0.7); */
   --primary: var(--theme-contrast-accent);
   --primary-hover: color-mix(in srgb, var(--theme-contrast-accent) 85%, black 15%);
   --primary-light: color-mix(in srgb, var(--theme-contrast-accent) 65%, white 35%);

@@ -1,94 +1,102 @@
 "use client";
 
 import Link from "next/link";
-import { useEffect, useId, useMemo, useRef, useState } from "react";
+import { useEffect, useId, useRef, useState } from "react";
 import { useInView } from "react-intersection-observer";
-
-import { Icon } from "./icons";
 import { BrandMark } from "./brand/BrandLogo";
 
-const productLinks = [
-  { label: "Marketplace", description: "Browse automations", href: "/marketplace" },
-  {
-    label: "AI Receptionist",
-    description: "Smart call handling",
-    href: "/marketplace?category=receptionist",
-  },
-  {
-    label: "Lead Scoring",
-    description: "Qualify prospects",
-    href: "/marketplace?category=sales",
-  },
-  {
-    label: "Analytics Engine",
-    description: "Business insights",
-    href: "/marketplace?category=analytics",
-  },
-  {
-    label: "Custom Solutions",
-    description: "Enterprise integrations",
-    href: "/contact",
-  },
-  {
-    label: "Workflow Library",
-    description: "Pre-built templates",
-    href: "/marketplace?category=workflows",
-  },
-  {
-    label: "Integrations",
-    description: "Connect your stack",
-    href: "/integrations",
-  },
-  {
-    label: "View All Products →",
-    description: "",
-    href: "/products",
-  },
-];
+// Icon components - using lucide-react pattern
+import {
+  Twitter,
+  Linkedin,
+  Github,
+  Youtube,
+  Shield,
+  Globe,
+  FileText,
+  CheckCircle2,
+  TrendingUp,
+  Sparkles,
+} from "lucide-react";
 
-const resourceLinks = [
-  { label: "Documentation", description: "Complete guides", href: "/docs" },
-  { label: "API Reference", description: "Developer docs", href: "/api" },
-  { label: "Help Center", description: "24/7 support", href: "/help" },
-  { label: "Community Forum", description: "Peer discussions", href: "/community" },
-  { label: "Blog", description: "Latest insights", href: "/blog" },
-  { label: "Case Studies", description: "Success stories", href: "/case-studies" },
-  { label: "Webinars", description: "Live sessions", href: "/webinars" },
-  { label: "Changelog", description: "Product updates", href: "/changelog" },
-  { label: "Status Page", description: "System uptime", href: "/status" },
+const productLinks = [
+  { label: "Marketplace", href: "/marketplace" },
+  { label: "Pricing", href: "/pricing" },
+  { label: "Enterprise", href: "/enterprise" },
+  { label: "Automations", href: "/marketplace?category=automations" },
+  { label: "Integrations", href: "/integrations" },
 ];
 
 const companyLinks = [
-  { label: "About Us", description: "Our mission", href: "/about" },
-  { label: "Careers", description: "Join the team", href: "/careers" },
-  { label: "Partners", description: "Integration partners", href: "/partners" },
-  { label: "Press", description: "Media resources", href: "/press" },
-  { label: "Contact", description: "Get in touch", href: "/contact" },
-  { label: "Brand Assets", description: "Logos and guidelines", href: "/brand" },
+  { label: "About Us", href: "/about" },
+  { label: "Careers", href: "/careers" },
+  { label: "Blog", href: "/blog" },
+  { label: "Press Kit", href: "/press" },
+  { label: "Contact", href: "/contact" },
 ];
 
-const supportLinks = [
-  { label: "Help Center", description: "24/7 support", href: "/help" },
-  { label: "Contact Support", description: "Get in touch", href: "/support" },
-  { label: "Security", description: "SOC 2, GDPR", href: "/security" },
-  { label: "Privacy Policy", description: "Data protection", href: "/privacy" },
-  { label: "Terms of Service", description: "Legal terms", href: "/terms" },
-  { label: "Cookie Policy", description: "Cookie usage", href: "/cookies" },
-  { label: "Compliance", description: "Certifications", href: "/compliance" },
+const resourceLinks = [
+  { label: "Documentation", href: "/docs" },
+  { label: "API Reference", href: "/api" },
+  { label: "Help Center", href: "/help" },
+  { label: "Status", href: "/status" },
+  { label: "Changelog", href: "/changelog" },
+];
+
+const legalLinks = [
+  { label: "Terms of Service", href: "/terms" },
+  { label: "Privacy Policy", href: "/privacy" },
+  { label: "Security", href: "/security" },
+  { label: "Compliance", href: "/compliance" },
+  { label: "DPA", href: "/dpa" },
+];
+
+const regionalLinks = [
+  { label: "Middle East", href: "/middle-east" },
+  { label: "North America", href: "/north-america" },
+  { label: "Europe", href: "/europe" },
 ];
 
 const socialLinks = [
-  { label: "Twitter/X", href: "https://twitter.com/artifically", icon: "twitter" },
-  { label: "LinkedIn", href: "https://linkedin.com/company/artifically", icon: "linkedin" },
-  { label: "GitHub", href: "https://github.com/artifically", icon: "github" },
-  { label: "Discord", href: "https://discord.gg/artifically", icon: "discord" },
-  { label: "YouTube", href: "https://youtube.com/@artifically", icon: "youtube" },
+  {
+    label: "X (Twitter)",
+    href: "https://twitter.com/artifically",
+    icon: Twitter,
+    ariaLabel: "Follow Artifically on X (opens in new window)",
+  },
+  {
+    label: "LinkedIn",
+    href: "https://linkedin.com/company/artifically",
+    icon: Linkedin,
+    ariaLabel: "Follow Artifically on LinkedIn (opens in new window)",
+  },
+  {
+    label: "GitHub",
+    href: "https://github.com/artifically",
+    icon: Github,
+    ariaLabel: "View Artifically on GitHub (opens in new window)",
+  },
+  {
+    label: "YouTube",
+    href: "https://youtube.com/@artifically",
+    icon: Youtube,
+    ariaLabel: "Subscribe to Artifically on YouTube (opens in new window)",
+  },
+];
+
+const trustBadges = [
+  { id: "soc2", label: "SOC 2 Type II", icon: Shield },
+  { id: "iso", label: "ISO 27001", icon: CheckCircle2 },
+  { id: "gdpr", label: "GDPR", icon: FileText },
+  { id: "hipaa", label: "HIPAA Ready", icon: Shield },
+  { id: "saudi", label: "Saudi PDPL", icon: Globe },
+  { id: "uae", label: "UAE DPA", icon: Globe },
 ];
 
 const footerStats = [
-  "12.4K Automations Deployed",
-  "3.2K Companies Served",
-  "99.9% Uptime",
+  { value: "12.4K", label: "Automations Deployed", icon: TrendingUp },
+  { value: "3.2K", label: "Companies Served", icon: Sparkles },
+  { value: "99.9%", label: "Uptime", icon: CheckCircle2 },
 ];
 
 export default function Footer() {
@@ -161,7 +169,7 @@ export default function Footer() {
     };
   }, []);
 
-  const inputClassName = `newsletter-input${
+  const inputClassName = `footer-newsletter-input${
     emailError ? " has-error" : ""
   }${formStatus === "success" ? " has-success" : ""}`;
   const summaryId = `${emailId}-errors`;
@@ -170,450 +178,863 @@ export default function Footer() {
   const messageStateClass =
     formStatus === "loading" || formStatus === "success" ? ` ${formStatus}` : "";
 
-  const { ref, inView } = useInView({ threshold: 0.5, triggerOnce: true });
+  const { ref, inView } = useInView({ threshold: 0.1, triggerOnce: true });
 
   return (
     <footer
       ref={ref}
-      className="enterprise-footer"
+      className="footer-world-class"
       role="contentinfo"
       data-animate="true"
       aria-busy={!inView}
     >
       {inView ? (
-        <div className="footer-inner">
-          <div className="footer-grid">
-            <nav className="footer-column" aria-label="Products">
-              <h4 className="footer-heading">Products</h4>
-              <ul className="footer-links">
-                {productLinks.map(({ label, description, href }) => (
-                  <li key={label}>
-                    <Link href={href} className="footer-link">
-                      <span className="footer-link-text">
-                        <span className="footer-link-title">{label}</span>
-                        {description ? (
-                          <>
-                            <span className="footer-link-divider">-</span>
-                            <span className="footer-link-description">{description}</span>
-                          </>
-                        ) : null}
-                      </span>
-                    </Link>
-                  </li>
-                ))}
-              </ul>
-            </nav>
+        <>
+          {/* Animated gradient background overlay */}
+          <div className="footer-gradient-mesh" aria-hidden="true">
+            <div className="footer-gradient-orb footer-gradient-orb-1"></div>
+            <div className="footer-gradient-orb footer-gradient-orb-2"></div>
+            <div className="footer-gradient-orb footer-gradient-orb-3"></div>
+          </div>
 
-            <nav className="footer-column" aria-label="Resources">
-              <h4 className="footer-heading">Resources</h4>
-              <ul className="footer-links">
-                {resourceLinks.map(({ label, description, href }) => (
-                  <li key={label}>
-                    <Link href={href} className="footer-link">
-                      <span className="footer-link-text">
-                        <span className="footer-link-title">{label}</span>
-                        <span className="footer-link-divider">-</span>
-                        <span className="footer-link-description">{description}</span>
-                      </span>
-                    </Link>
-                  </li>
-                ))}
-              </ul>
-            </nav>
+          {/* Edge-lit top border */}
+          <div className="footer-edge-lit" aria-hidden="true"></div>
 
-            <nav className="footer-column" aria-label="Company">
-              <h4 className="footer-heading">Company</h4>
-              <ul className="footer-links">
-                {companyLinks.map(({ label, description, href }) => (
-                  <li key={label}>
-                    <Link href={href} className="footer-link">
-                      <span className="footer-link-text">
-                        <span className="footer-link-title">{label}</span>
-                        <span className="footer-link-divider">-</span>
-                        <span className="footer-link-description">{description}</span>
-                      </span>
-                    </Link>
-                  </li>
-                ))}
-              </ul>
-            </nav>
-
-            <nav className="footer-column" aria-label="Support and legal">
-              <h4 className="footer-heading">Support &amp; Legal</h4>
-              <ul className="footer-links">
-                {supportLinks.map(({ label, description, href }) => (
-                  <li key={label}>
-                    <Link href={href} className="footer-link">
-                      <span className="footer-link-text">
-                        <span className="footer-link-title">{label}</span>
-                        <span className="footer-link-divider">-</span>
-                        <span className="footer-link-description">{description}</span>
-                      </span>
-                    </Link>
-                  </li>
-                ))}
-              </ul>
-            </nav>
-
-            <div className="footer-column newsletter-column">
-              <h4 className="footer-heading">Stay ahead of automation trends</h4>
-              <p className="newsletter-description">
-                Join 10,000+ operators getting curated updates.
-              </p>
-              <form className="newsletter-form" onSubmit={handleNewsletterSubmit} noValidate>
-                {emailError && (
-                  <div
-                    id={summaryId}
-                    ref={errorSummaryRef}
-                    tabIndex={-1}
-                    role="alert"
-                    aria-live="assertive"
-                    className="newsletter-error-summary"
-                  >
-                    <strong>We couldn't add your email yet.</strong>
-                    <ul>
-                      <li>
-                        <button type="button" onClick={() => emailInputRef.current?.focus()}>
-                          Work email: {emailError}
-                        </button>
-                      </li>
-                    </ul>
-                  </div>
-                )}
-                <label className="sr-only" htmlFor={emailId}>
-                  Work email
-                </label>
-                <div className="newsletter-field-row">
-                  <input
-                    id={emailId}
-                    type="email"
-                    value={email}
-                    onChange={(event) => {
-                      setEmail(event.target.value);
-                      if (emailError) {
-                        setEmailError("");
-                      }
-                    }}
-                    placeholder="Enter work email"
-                    className={inputClassName}
-                    aria-invalid={emailError ? "true" : "false"}
-                    aria-describedby={[emailError ? summaryId : null, emailError ? errorId : null, messageId]
-                      .filter(Boolean)
-                      .join(" ") || undefined}
-                    disabled={formStatus === "loading"}
-                    required
-                    ref={emailInputRef}
+          <div className="footer-container">
+            {/* Top section: Brand + Newsletter */}
+            <div className="footer-top-section">
+              <div className="footer-brand-area">
+                <Link href="/" aria-label="Artifically home" className="footer-brand-link">
+                  <BrandMark
+                    interactive={false}
+                    className="footer-brand-mark"
+                    style={{ width: 48, height: 48 }}
                   />
-                  <button
-                    type="submit"
-                    className="newsletter-button"
-                    disabled={formStatus === "loading"}
-                  >
-                    {formStatus === "loading" ? "Joining…" : "Join newsletter"}
-                  </button>
+                </Link>
+                <h2 className="footer-brand-tagline">
+                  Enterprise AI Automation Infrastructure
+                </h2>
+                <p className="footer-brand-description">
+                  Deploy production-ready AI automations in hours, not months. Trusted by 3,200+ companies across North America, Europe, and the Middle East.
+                </p>
+
+                {/* Trust Stats */}
+                <div className="footer-stats-grid" aria-label="Platform performance metrics">
+                  {footerStats.map(({ value, label, icon: Icon }) => (
+                    <div key={label} className="footer-stat-card">
+                      <Icon className="footer-stat-icon" size={20} strokeWidth={2} aria-hidden="true" />
+                      <div className="footer-stat-content">
+                        <div className="footer-stat-value">{value}</div>
+                        <div className="footer-stat-label">{label}</div>
+                      </div>
+                    </div>
+                  ))}
                 </div>
-                {emailError && (
-                  <p id={errorId} role="alert" aria-live="assertive" className="newsletter-inline-error">
-                    <Icon name="alert" size={16} aria-hidden="true" />
-                    {emailError}
-                  </p>
-                )}
-              </form>
-              <div
-                id={messageId}
-                className={`newsletter-message${messageStateClass}`}
-                role="status"
-                aria-live="polite"
-              >
-                {formMessage || "We send product intelligence twice a month."}
               </div>
 
-              <div className="footer-social">
-                {socialLinks.map(({ label, href, icon }) => (
-                  <a
-                    key={label}
-                    href={href}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="footer-social-link"
-                    aria-label={`Follow us on ${label} (opens in new window)`}
-                    style={{ minWidth: '48px', minHeight: '48px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}
-                  >
-                    <Icon name={icon} size={18} strokeWidth={1.6} />
-                  </a>
+              <div className="footer-newsletter-area">
+                <h3 className="footer-newsletter-heading">Stay Ahead of AI Automation</h3>
+                <p className="footer-newsletter-description">
+                  Join 10,000+ operators receiving curated insights on AI automation trends, case studies, and product updates.
+                </p>
+
+                <form className="footer-newsletter-form" onSubmit={handleNewsletterSubmit} noValidate>
+                  {emailError && (
+                    <div
+                      id={summaryId}
+                      ref={errorSummaryRef}
+                      tabIndex={-1}
+                      role="alert"
+                      aria-live="assertive"
+                      className="footer-newsletter-error-summary"
+                    >
+                      <strong>We couldn't add your email yet.</strong>
+                      <ul>
+                        <li>
+                          <button type="button" onClick={() => emailInputRef.current?.focus()}>
+                            Work email: {emailError}
+                          </button>
+                        </li>
+                      </ul>
+                    </div>
+                  )}
+
+                  <label className="sr-only" htmlFor={emailId}>
+                    Work email
+                  </label>
+
+                  <div className="footer-newsletter-field-row">
+                    <input
+                      id={emailId}
+                      type="email"
+                      value={email}
+                      onChange={(event) => {
+                        setEmail(event.target.value);
+                        if (emailError) {
+                          setEmailError("");
+                        }
+                      }}
+                      placeholder="Enter your work email"
+                      className={inputClassName}
+                      aria-invalid={emailError ? "true" : "false"}
+                      aria-describedby={[emailError ? summaryId : null, emailError ? errorId : null, messageId]
+                        .filter(Boolean)
+                        .join(" ") || undefined}
+                      disabled={formStatus === "loading"}
+                      required
+                      ref={emailInputRef}
+                    />
+                    <button
+                      type="submit"
+                      className="footer-newsletter-button"
+                      disabled={formStatus === "loading"}
+                    >
+                      {formStatus === "loading" ? "Joining…" : "Join Newsletter"}
+                    </button>
+                  </div>
+
+                  {emailError && (
+                    <p id={errorId} role="alert" aria-live="assertive" className="footer-newsletter-inline-error">
+                      {emailError}
+                    </p>
+                  )}
+                </form>
+
+                <div
+                  id={messageId}
+                  className={`footer-newsletter-message${messageStateClass}`}
+                  role="status"
+                  aria-live="polite"
+                >
+                  {formMessage || "We send curated insights twice a month. Unsubscribe anytime."}
+                </div>
+
+                {/* Social Links */}
+                <div className="footer-social-links">
+                  {socialLinks.map(({ label, href, icon: Icon, ariaLabel }) => (
+                    <a
+                      key={label}
+                      href={href}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="footer-social-link"
+                      aria-label={ariaLabel}
+                    >
+                      <Icon size={20} strokeWidth={1.8} aria-hidden="true" />
+                    </a>
+                  ))}
+                </div>
+              </div>
+            </div>
+
+            {/* Navigation Grid */}
+            <div className="footer-nav-grid">
+              <nav className="footer-nav-column" aria-label="Product">
+                <h4 className="footer-nav-heading">Product</h4>
+                <ul className="footer-nav-list">
+                  {productLinks.map(({ label, href }) => (
+                    <li key={label}>
+                      <Link href={href} className="footer-nav-link">
+                        {label}
+                      </Link>
+                    </li>
+                  ))}
+                </ul>
+              </nav>
+
+              <nav className="footer-nav-column" aria-label="Company">
+                <h4 className="footer-nav-heading">Company</h4>
+                <ul className="footer-nav-list">
+                  {companyLinks.map(({ label, href }) => (
+                    <li key={label}>
+                      <Link href={href} className="footer-nav-link">
+                        {label}
+                      </Link>
+                    </li>
+                  ))}
+                </ul>
+              </nav>
+
+              <nav className="footer-nav-column" aria-label="Resources">
+                <h4 className="footer-nav-heading">Resources</h4>
+                <ul className="footer-nav-list">
+                  {resourceLinks.map(({ label, href }) => (
+                    <li key={label}>
+                      <Link href={href} className="footer-nav-link">
+                        {label}
+                      </Link>
+                    </li>
+                  ))}
+                </ul>
+              </nav>
+
+              <nav className="footer-nav-column" aria-label="Legal">
+                <h4 className="footer-nav-heading">Legal</h4>
+                <ul className="footer-nav-list">
+                  {legalLinks.map(({ label, href }) => (
+                    <li key={label}>
+                      <Link href={href} className="footer-nav-link">
+                        {label}
+                      </Link>
+                    </li>
+                  ))}
+                </ul>
+              </nav>
+
+              <nav className="footer-nav-column" aria-label="Regions">
+                <h4 className="footer-nav-heading">Regions</h4>
+                <ul className="footer-nav-list">
+                  {regionalLinks.map(({ label, href }) => (
+                    <li key={label}>
+                      <Link href={href} className="footer-nav-link">
+                        {label}
+                      </Link>
+                    </li>
+                  ))}
+                </ul>
+              </nav>
+            </div>
+
+            {/* Trust Badges */}
+            <div className="footer-trust-section">
+              <h3 className="footer-trust-heading">Enterprise-Grade Security & Compliance</h3>
+              <div className="footer-trust-badges">
+                {trustBadges.map(({ id, label, icon: Icon }) => (
+                  <div key={id} className="footer-trust-badge">
+                    <Icon className="footer-trust-badge-icon" size={18} strokeWidth={2} aria-hidden="true" />
+                    <span className="footer-trust-badge-label">{label}</span>
+                  </div>
                 ))}
               </div>
             </div>
-          </div>
 
-          <div className="footer-divider" aria-hidden="true" />
-
-          <div className="footer-bottom">
-            <div className="footer-bottom-left">
-              <Link href="/" aria-label="Artifically home" className="footer-brand">
-                <BrandMark
-                  interactive={false}
-                  className="ai-brand--footer"
-                  style={{ width: 24, height: 24 }}
-                />
-              </Link>
-              <p className="footer-copyright">
-                © 2025 Artifically. All rights reserved.
-              </p>
-            </div>
-
-            <div className="footer-bottom-right">
-              <div className="footer-certifications">
-                <div className="footer-badge">
-                  <div className="footer-badge-icon">SOC 2</div>
-                  <span>SOC 2 Certified</span>
-                </div>
-                <div className="footer-badge">
-                  <div className="footer-badge-icon">GDPR</div>
-                  <span>GDPR Compliant</span>
-                </div>
+            {/* Bottom Bar */}
+            <div className="footer-bottom-bar">
+              <div className="footer-bottom-left">
+                <p className="footer-copyright">
+                  © {new Date().getFullYear()} Artifically. All rights reserved.
+                </p>
               </div>
-
-              <div className="footer-stats" aria-label="Platform performance stats">
-                {footerStats.map((stat, index) => (
-                  <span key={stat} className="footer-stat">
-                    {stat}
-                    {index < footerStats.length - 1 ? (
-                      <span aria-hidden="true" className="footer-stat-divider" />
-                    ) : null}
-                  </span>
-                ))}
+              <div className="footer-bottom-right">
+                <Link href="/status" className="footer-status-link">
+                  <span className="footer-status-indicator" aria-hidden="true"></span>
+                  <span>All Systems Operational</span>
+                </Link>
               </div>
             </div>
           </div>
-        </div>
+        </>
       ) : (
         <FooterSkeleton />
       )}
 
       <style jsx>{`
-        .enterprise-footer {
-          background: var(--footer-bg, #070a1a);
-          border-top: 1px solid var(--footer-border, rgba(255, 255, 255, 0.1));
-          padding: 80px 40px 32px;
-          color: var(--footer-text, rgba(255, 255, 255, 0.9));
+        /* ============================================================
+           WORLD-CLASS FOOTER - UNIQUE VISUAL IDENTITY
+           ============================================================ */
+
+        .footer-world-class {
+          position: relative;
+          background: var(--footer-bg-base, #0a0a0f);
+          color: var(--footer-text, rgba(255, 255, 255, 0.95));
+          padding: 120px 0 0;
+          overflow: hidden;
+          border-top: 1px solid var(--footer-edge, rgba(139, 92, 246, 0.2));
         }
 
-        :global([data-theme="light"]) .enterprise-footer {
-          --footer-bg: #f8fafc;
-          --footer-border: rgba(15, 23, 42, 0.15);
-          --footer-text: rgba(15, 23, 42, 0.9);
+        /* ============================================================
+           ANIMATED GRADIENT MESH BACKGROUND (Linear-style)
+           ============================================================ */
+
+        .footer-gradient-mesh {
+          position: absolute;
+          inset: 0;
+          overflow: hidden;
+          z-index: 0;
+          opacity: var(--footer-mesh-opacity, 0.4);
+          pointer-events: none;
         }
 
-        :global([data-theme="dark"]) .enterprise-footer {
-          --footer-bg: #070a1a;
-          --footer-border: rgba(255, 255, 255, 0.1);
-          --footer-text: rgba(255, 255, 255, 0.9);
+        .footer-gradient-orb {
+          position: absolute;
+          border-radius: 50%;
+          filter: blur(120px);
+          opacity: 0.6;
+          will-change: transform;
         }
 
-        :global([data-theme="contrast"]) .enterprise-footer {
-          --footer-bg: #000000;
-          --footer-border: #00eaff;
-          --footer-text: #ffffff;
+        .footer-gradient-orb-1 {
+          width: 600px;
+          height: 600px;
+          background: radial-gradient(circle, oklch(0.65 0.32 264 / 0.5), transparent 70%);
+          top: -300px;
+          left: -200px;
+          animation: float-orb-1 20s ease-in-out infinite;
         }
 
-        .footer-inner {
-          margin: 0 auto;
+        .footer-gradient-orb-2 {
+          width: 500px;
+          height: 500px;
+          background: radial-gradient(circle, oklch(0.75 0.28 192 / 0.4), transparent 70%);
+          bottom: -200px;
+          right: 10%;
+          animation: float-orb-2 25s ease-in-out infinite;
+        }
+
+        .footer-gradient-orb-3 {
+          width: 400px;
+          height: 400px;
+          background: radial-gradient(circle, oklch(0.70 0.26 330 / 0.3), transparent 70%);
+          top: 40%;
+          right: -150px;
+          animation: float-orb-3 30s ease-in-out infinite;
+        }
+
+        @keyframes float-orb-1 {
+          0%, 100% { transform: translate(0, 0) scale(1); }
+          33% { transform: translate(50px, -30px) scale(1.1); }
+          66% { transform: translate(-30px, 40px) scale(0.9); }
+        }
+
+        @keyframes float-orb-2 {
+          0%, 100% { transform: translate(0, 0) scale(1); }
+          33% { transform: translate(-40px, 50px) scale(0.95); }
+          66% { transform: translate(60px, -20px) scale(1.05); }
+        }
+
+        @keyframes float-orb-3 {
+          0%, 100% { transform: translate(0, 0) scale(1); }
+          50% { transform: translate(-50px, 30px) scale(1.1); }
+        }
+
+        /* ============================================================
+           EDGE-LIT TOP BORDER (Vercel-style)
+           ============================================================ */
+
+        .footer-edge-lit {
+          position: absolute;
+          top: 0;
+          left: 0;
+          right: 0;
+          height: 1px;
+          background: linear-gradient(
+            90deg,
+            transparent 0%,
+            oklch(0.65 0.32 264 / 0.6) 20%,
+            oklch(0.75 0.28 192 / 0.8) 50%,
+            oklch(0.65 0.32 264 / 0.6) 80%,
+            transparent 100%
+          );
+          animation: edge-glow 8s ease-in-out infinite;
+          z-index: 1;
+        }
+
+        @keyframes edge-glow {
+          0%, 100% { opacity: 0.5; }
+          50% { opacity: 1; }
+        }
+
+        /* ============================================================
+           CONTAINER & LAYOUT
+           ============================================================ */
+
+        .footer-container {
+          position: relative;
+          z-index: 1;
           max-width: 1400px;
+          margin: 0 auto;
+          padding: 0 40px 40px;
+        }
+
+        /* ============================================================
+           TOP SECTION - BRAND + NEWSLETTER
+           ============================================================ */
+
+        .footer-top-section {
+          display: grid;
+          grid-template-columns: 1.2fr 1fr;
+          gap: 80px;
+          margin-bottom: 80px;
+          padding-bottom: 80px;
+          border-bottom: 1px solid var(--footer-divider, rgba(255, 255, 255, 0.08));
+        }
+
+        /* Brand Area */
+        .footer-brand-area {
           display: flex;
           flex-direction: column;
+          gap: 24px;
         }
 
-        .footer-grid {
+        .footer-brand-link {
+          display: inline-flex;
+          align-items: center;
+          justify-content: center;
+          width: 56px;
+          height: 56px;
+          border-radius: 16px;
+          background: var(--footer-brand-bg, rgba(139, 92, 246, 0.08));
+          border: 1px solid var(--footer-brand-border, rgba(139, 92, 246, 0.2));
+          transition: all 300ms cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        .footer-brand-link:hover {
+          background: rgba(139, 92, 246, 0.15);
+          border-color: rgba(139, 92, 246, 0.4);
+          transform: translateY(-2px);
+          box-shadow: 0 8px 24px rgba(139, 92, 246, 0.2);
+        }
+
+        .footer-brand-link:focus-visible {
+          outline: 3px solid var(--accent-primary);
+          outline-offset: 4px;
+          border-radius: 16px;
+        }
+
+        .footer-brand-tagline {
+          font-size: 20px;
+          font-weight: 600;
+          line-height: 1.4;
+          color: var(--footer-heading, #ffffff);
+          margin: 0;
+          letter-spacing: -0.02em;
+        }
+
+        .footer-brand-description {
+          font-size: 15px;
+          line-height: 1.6;
+          color: var(--footer-description, rgba(255, 255, 255, 0.7));
+          margin: 0;
+          max-width: 540px;
+        }
+
+        /* Stats Grid */
+        .footer-stats-grid {
           display: grid;
-          grid-template-columns: 1fr 1fr 1fr 1fr 1.2fr;
-          gap: 60px;
+          grid-template-columns: repeat(3, 1fr);
+          gap: 16px;
+          margin-top: 8px;
         }
 
-        .footer-column {
+        .footer-stat-card {
+          display: flex;
+          align-items: center;
+          gap: 12px;
+          padding: 16px;
+          background: var(--footer-stat-bg, rgba(255, 255, 255, 0.03));
+          border: 1px solid var(--footer-stat-border, rgba(255, 255, 255, 0.08));
+          border-radius: 12px;
+          transition: all 300ms cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        .footer-stat-card:hover {
+          background: rgba(255, 255, 255, 0.05);
+          border-color: rgba(139, 92, 246, 0.3);
+          transform: translateY(-2px);
+        }
+
+        .footer-stat-icon {
+          color: var(--accent-primary);
+          flex-shrink: 0;
+        }
+
+        .footer-stat-content {
+          display: flex;
+          flex-direction: column;
+          gap: 2px;
           min-width: 0;
         }
 
-        .newsletter-column {
+        .footer-stat-value {
+          font-size: 18px;
+          font-weight: 700;
+          color: var(--footer-stat-value, #ffffff);
+          line-height: 1.2;
+          letter-spacing: -0.02em;
+        }
+
+        .footer-stat-label {
+          font-size: 12px;
+          color: var(--footer-stat-label, rgba(255, 255, 255, 0.6));
+          line-height: 1.3;
+        }
+
+        /* Newsletter Area */
+        .footer-newsletter-area {
           display: flex;
           flex-direction: column;
+          gap: 20px;
         }
 
-        .footer-heading {
-          font-size: 16px;
+        .footer-newsletter-heading {
+          font-size: 24px;
           font-weight: 700;
+          line-height: 1.3;
           color: var(--footer-heading, #ffffff);
-          margin-bottom: 20px;
-        }
-
-        :global([data-theme="light"]) .footer-heading {
-          --footer-heading: #0f172a;
-        }
-
-        :global([data-theme="dark"]) .footer-heading {
-          --footer-heading: #ffffff;
-        }
-
-        :global([data-theme="contrast"]) .footer-heading {
-          --footer-heading: #ffffff;
-        }
-
-        .footer-links {
-          list-style: none;
           margin: 0;
-          padding: 0;
+          letter-spacing: -0.03em;
         }
 
-        .footer-link {
-          display: block;
-          padding: 10px 0;
+        .footer-newsletter-description {
           font-size: 14px;
-          color: var(--footer-link, rgba(255, 255, 255, 0.7));
-          text-decoration: none;
-          transition: color 200ms ease, transform 200ms ease, text-decoration-color 200ms ease;
+          line-height: 1.6;
+          color: var(--footer-description, rgba(255, 255, 255, 0.7));
+          margin: 0;
         }
 
-        :global([data-theme="light"]) .footer-link {
-          --footer-link: rgba(15, 23, 42, 0.7);
+        .footer-newsletter-form {
+          display: flex;
+          flex-direction: column;
+          gap: 12px;
         }
 
-        :global([data-theme="dark"]) .footer-link {
-          --footer-link: rgba(255, 255, 255, 0.7);
+        .footer-newsletter-field-row {
+          display: flex;
+          gap: 12px;
         }
 
-        :global([data-theme="contrast"]) .footer-link {
-          --footer-link: rgba(255, 255, 255, 0.9);
+        .footer-newsletter-input {
+          flex: 1;
+          height: 52px;
+          padding: 0 20px;
+          background: var(--footer-input-bg, rgba(255, 255, 255, 0.05));
+          border: 1.5px solid var(--footer-input-border, rgba(255, 255, 255, 0.15));
+          border-radius: 12px;
+          font-size: 15px;
+          color: var(--footer-input-text, #ffffff);
+          transition: all 200ms cubic-bezier(0.4, 0, 0.2, 1);
         }
 
-        .footer-link-text {
-          display: inline-flex;
-          align-items: center;
-          gap: 6px;
+        .footer-newsletter-input::placeholder {
+          color: rgba(255, 255, 255, 0.4);
         }
 
-        .footer-link-title {
+        .footer-newsletter-input:hover {
+          border-color: rgba(255, 255, 255, 0.25);
+        }
+
+        .footer-newsletter-input:focus {
+          outline: none;
+          border-color: var(--accent-primary);
+          box-shadow: 0 0 0 3px rgba(139, 92, 246, 0.15);
+          background: rgba(255, 255, 255, 0.08);
+        }
+
+        .footer-newsletter-input.has-error {
+          border-color: var(--accent-error);
+          box-shadow: 0 0 0 3px rgba(239, 68, 68, 0.15);
+        }
+
+        .footer-newsletter-input.has-success {
+          border-color: var(--accent-success);
+        }
+
+        .footer-newsletter-button {
+          height: 52px;
+          padding: 0 32px;
+          background: linear-gradient(135deg, oklch(0.65 0.32 264), oklch(0.70 0.32 264));
+          border: none;
+          border-radius: 12px;
+          font-size: 15px;
+          font-weight: 600;
+          color: #ffffff;
+          cursor: pointer;
+          white-space: nowrap;
+          transition: all 300ms cubic-bezier(0.4, 0, 0.2, 1);
+          box-shadow: 0 4px 12px rgba(139, 92, 246, 0.3);
+        }
+
+        .footer-newsletter-button:hover:enabled {
+          transform: translateY(-2px);
+          box-shadow: 0 8px 20px rgba(139, 92, 246, 0.4);
+        }
+
+        .footer-newsletter-button:active:enabled {
+          transform: translateY(0);
+        }
+
+        .footer-newsletter-button:disabled {
+          opacity: 0.6;
+          cursor: not-allowed;
+        }
+
+        .footer-newsletter-button:focus-visible {
+          outline: 3px solid var(--accent-primary);
+          outline-offset: 3px;
+        }
+
+        .footer-newsletter-error-summary {
+          padding: 16px;
+          background: rgba(239, 68, 68, 0.1);
+          border: 1px solid rgba(239, 68, 68, 0.3);
+          border-radius: 10px;
+          color: #fca5a5;
+        }
+
+        .footer-newsletter-error-summary strong {
+          display: block;
+          margin-bottom: 8px;
           font-weight: 600;
         }
 
-        .footer-link-divider {
-          color: var(--footer-divider, rgba(255, 255, 255, 0.35));
-          font-weight: 500;
-          margin: 0 4px;
-        }
-
-        :global([data-theme="light"]) .footer-link-divider {
-          --footer-divider: rgba(15, 23, 42, 0.35);
-        }
-
-        :global([data-theme="dark"]) .footer-link-divider {
-          --footer-divider: rgba(255, 255, 255, 0.35);
-        }
-
-        :global([data-theme="contrast"]) .footer-link-divider {
-          --footer-divider: #00eaff;
-        }
-
-        .footer-link-description {
-          font-weight: 400;
-          color: var(--footer-link-desc, rgba(255, 255, 255, 0.7));
-        }
-
-        :global([data-theme="light"]) .footer-link-description {
-          --footer-link-desc: rgba(15, 23, 42, 0.6);
-        }
-
-        :global([data-theme="dark"]) .footer-link-description {
-          --footer-link-desc: rgba(255, 255, 255, 0.7);
-        }
-
-        :global([data-theme="contrast"]) .footer-link-description {
-          --footer-link-desc: rgba(255, 255, 255, 0.8);
-        }
-
-        .footer-link:hover {
-          color: var(--footer-link-hover, #ffffff);
-          transform: translateX(4px);
-          text-decoration: underline;
-          text-decoration-color: rgba(139, 92, 246, 0.6);
-        }
-
-        :global([data-theme="light"]) .footer-link:hover {
-          --footer-link-hover: #0f172a;
-        }
-
-        :global([data-theme="dark"]) .footer-link:hover {
-          --footer-link-hover: #ffffff;
-        }
-
-        :global([data-theme="contrast"]) .footer-link:hover {
-          --footer-link-hover: #00eaff;
-        }
-
-        .newsletter-description {
-          font-size: 14px;
-          color: var(--footer-newsletter-desc, rgba(255, 255, 255, 0.7));
-          line-height: 1.5;
-          margin: 0 0 20px;
-        }
-
-        :global([data-theme="light"]) .newsletter-description {
-          --footer-newsletter-desc: rgba(15, 23, 42, 0.7);
-        }
-
-        :global([data-theme="dark"]) .newsletter-description {
-          --footer-newsletter-desc: rgba(255, 255, 255, 0.7);
-        }
-
-        :global([data-theme="contrast"]) .newsletter-description {
-          --footer-newsletter-desc: rgba(255, 255, 255, 0.9);
-        }
-
-        .newsletter-form {
-          display: grid;
-          gap: 8px;
-        }
-
-        .newsletter-field-row {
-          display: flex;
-          gap: 8px;
-          width: 100%;
-        }
-
-        .newsletter-field-row .newsletter-button {
-          white-space: nowrap;
-        }
-
-        .newsletter-error-summary {
-          display: grid;
-          gap: 6px;
-          padding: 12px;
-          border-radius: 10px;
-          border: 1px solid rgba(248, 113, 113, 0.6);
-          background: rgba(127, 29, 29, 0.35);
-          color: #fecaca;
-        }
-
-        .newsletter-error-summary ul {
+        .footer-newsletter-error-summary ul {
           margin: 0;
-          padding-left: 18px;
-          display: grid;
-          gap: 4px;
+          padding-left: 20px;
         }
 
-        .newsletter-error-summary button {
+        .footer-newsletter-error-summary button {
           background: none;
           border: none;
-          color: #dbeafe;
+          color: #bae6fd;
           text-decoration: underline;
           cursor: pointer;
           padding: 0;
           font: inherit;
         }
 
-        .newsletter-error-summary button:hover,
-        .newsletter-error-summary button:focus {
-          color: #93c5fd;
+        .footer-newsletter-inline-error {
+          font-size: 13px;
+          color: #fca5a5;
         }
+
+        .footer-newsletter-message {
+          font-size: 13px;
+          color: var(--footer-message, rgba(255, 255, 255, 0.5));
+          min-height: 18px;
+        }
+
+        .footer-newsletter-message.success {
+          color: var(--accent-success);
+        }
+
+        .footer-newsletter-message.loading {
+          color: var(--accent-primary);
+        }
+
+        /* Social Links */
+        .footer-social-links {
+          display: flex;
+          gap: 12px;
+          margin-top: 8px;
+        }
+
+        .footer-social-link {
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          min-width: 48px;
+          min-height: 48px;
+          width: 48px;
+          height: 48px;
+          border-radius: 12px;
+          background: var(--footer-social-bg, rgba(255, 255, 255, 0.05));
+          border: 1px solid var(--footer-social-border, rgba(255, 255, 255, 0.1));
+          color: var(--footer-social-icon, rgba(255, 255, 255, 0.7));
+          transition: all 300ms cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        .footer-social-link:hover {
+          background: rgba(139, 92, 246, 0.15);
+          border-color: rgba(139, 92, 246, 0.4);
+          color: #ffffff;
+          transform: translateY(-3px);
+          box-shadow: 0 8px 16px rgba(139, 92, 246, 0.2);
+        }
+
+        .footer-social-link:focus-visible {
+          outline: 3px solid var(--accent-primary);
+          outline-offset: 3px;
+        }
+
+        /* ============================================================
+           NAVIGATION GRID
+           ============================================================ */
+
+        .footer-nav-grid {
+          display: grid;
+          grid-template-columns: repeat(5, 1fr);
+          gap: 48px;
+          margin-bottom: 80px;
+        }
+
+        .footer-nav-column {
+          display: flex;
+          flex-direction: column;
+          gap: 20px;
+          min-width: 0;
+        }
+
+        .footer-nav-heading {
+          font-size: 13px;
+          font-weight: 600;
+          text-transform: uppercase;
+          letter-spacing: 0.08em;
+          color: var(--footer-nav-heading, rgba(255, 255, 255, 0.5));
+          margin: 0;
+        }
+
+        .footer-nav-list {
+          list-style: none;
+          margin: 0;
+          padding: 0;
+          display: flex;
+          flex-direction: column;
+          gap: 12px;
+        }
+
+        .footer-nav-link {
+          display: inline-block;
+          font-size: 15px;
+          font-weight: 500;
+          color: var(--footer-nav-link, rgba(255, 255, 255, 0.8));
+          text-decoration: none;
+          transition: all 200ms cubic-bezier(0.4, 0, 0.2, 1);
+          position: relative;
+          padding-left: 0;
+        }
+
+        .footer-nav-link::before {
+          content: '';
+          position: absolute;
+          left: -16px;
+          top: 50%;
+          transform: translateY(-50%);
+          width: 8px;
+          height: 1.5px;
+          background: var(--accent-primary);
+          opacity: 0;
+          transition: all 200ms cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        .footer-nav-link:hover {
+          color: #ffffff;
+          padding-left: 16px;
+        }
+
+        .footer-nav-link:hover::before {
+          opacity: 1;
+        }
+
+        .footer-nav-link:focus-visible {
+          outline: 3px solid var(--accent-primary);
+          outline-offset: 3px;
+          border-radius: 4px;
+        }
+
+        /* ============================================================
+           TRUST SECTION
+           ============================================================ */
+
+        .footer-trust-section {
+          margin-bottom: 60px;
+          padding: 40px;
+          background: var(--footer-trust-bg, rgba(255, 255, 255, 0.02));
+          border: 1px solid var(--footer-trust-border, rgba(255, 255, 255, 0.08));
+          border-radius: 20px;
+        }
+
+        .footer-trust-heading {
+          font-size: 14px;
+          font-weight: 600;
+          text-transform: uppercase;
+          letter-spacing: 0.06em;
+          color: var(--footer-trust-heading, rgba(255, 255, 255, 0.6));
+          margin: 0 0 24px;
+        }
+
+        .footer-trust-badges {
+          display: grid;
+          grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+          gap: 16px;
+        }
+
+        .footer-trust-badge {
+          display: flex;
+          align-items: center;
+          gap: 10px;
+          padding: 14px 18px;
+          background: var(--footer-badge-bg, rgba(255, 255, 255, 0.03));
+          border: 1px solid var(--footer-badge-border, rgba(255, 255, 255, 0.1));
+          border-radius: 10px;
+          transition: all 200ms cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        .footer-trust-badge:hover {
+          background: rgba(255, 255, 255, 0.05);
+          border-color: rgba(139, 92, 246, 0.3);
+        }
+
+        .footer-trust-badge-icon {
+          color: var(--accent-primary);
+          flex-shrink: 0;
+        }
+
+        .footer-trust-badge-label {
+          font-size: 13px;
+          font-weight: 600;
+          color: var(--footer-badge-label, rgba(255, 255, 255, 0.8));
+          white-space: nowrap;
+        }
+
+        /* ============================================================
+           BOTTOM BAR
+           ============================================================ */
+
+        .footer-bottom-bar {
+          display: flex;
+          justify-content: space-between;
+          align-items: center;
+          padding-top: 32px;
+          border-top: 1px solid var(--footer-divider, rgba(255, 255, 255, 0.08));
+          gap: 24px;
+          flex-wrap: wrap;
+        }
+
+        .footer-copyright {
+          font-size: 14px;
+          color: var(--footer-copyright, rgba(255, 255, 255, 0.5));
+          margin: 0;
+        }
+
+        .footer-status-link {
+          display: flex;
+          align-items: center;
+          gap: 8px;
+          font-size: 14px;
+          font-weight: 500;
+          color: var(--footer-status, rgba(255, 255, 255, 0.7));
+          text-decoration: none;
+          transition: color 200ms cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        .footer-status-link:hover {
+          color: var(--accent-success);
+        }
+
+        .footer-status-link:focus-visible {
+          outline: 3px solid var(--accent-primary);
+          outline-offset: 3px;
+          border-radius: 4px;
+        }
+
+        .footer-status-indicator {
+          display: block;
+          width: 8px;
+          height: 8px;
+          border-radius: 50%;
+          background: var(--accent-success);
+          box-shadow: 0 0 8px var(--accent-success);
+          animation: pulse-status 2s ease-in-out infinite;
+        }
+
+        @keyframes pulse-status {
+          0%, 100% { opacity: 1; }
+          50% { opacity: 0.5; }
+        }
+
+        /* ============================================================
+           SCREEN READER ONLY
+           ============================================================ */
 
         .sr-only {
           position: absolute;
@@ -627,261 +1048,200 @@ export default function Footer() {
           border: 0;
         }
 
-        .newsletter-input {
-          flex: 1;
-          padding: 14px 16px;
-          background: rgba(255, 255, 255, 0.08);
-          border: 1px solid rgba(255, 255, 255, 0.2);
-          border-radius: 10px;
-          font-size: 14px;
-          color: #ffffff;
+        /* ============================================================
+           LIGHT THEME
+           ============================================================ */
+
+        :global([data-theme="light"]) .footer-world-class {
+          --footer-bg-base: #ffffff;
+          --footer-text: rgba(15, 23, 42, 0.95);
+          --footer-edge: rgba(31, 126, 255, 0.2);
+          --footer-mesh-opacity: 0.15;
+          --footer-heading: #0f172a;
+          --footer-description: rgba(15, 23, 42, 0.7);
+          --footer-divider: rgba(15, 23, 42, 0.1);
+          --footer-brand-bg: rgba(31, 126, 255, 0.08);
+          --footer-brand-border: rgba(31, 126, 255, 0.2);
+          --footer-stat-bg: rgba(15, 23, 42, 0.03);
+          --footer-stat-border: rgba(15, 23, 42, 0.1);
+          --footer-stat-value: #0f172a;
+          --footer-stat-label: rgba(15, 23, 42, 0.6);
+          --footer-input-bg: rgba(15, 23, 42, 0.03);
+          --footer-input-border: rgba(15, 23, 42, 0.2);
+          --footer-input-text: #0f172a;
+          --footer-social-bg: rgba(15, 23, 42, 0.05);
+          --footer-social-border: rgba(15, 23, 42, 0.1);
+          --footer-social-icon: rgba(15, 23, 42, 0.7);
+          --footer-nav-heading: rgba(15, 23, 42, 0.5);
+          --footer-nav-link: rgba(15, 23, 42, 0.8);
+          --footer-trust-bg: rgba(15, 23, 42, 0.02);
+          --footer-trust-border: rgba(15, 23, 42, 0.1);
+          --footer-trust-heading: rgba(15, 23, 42, 0.6);
+          --footer-badge-bg: rgba(15, 23, 42, 0.03);
+          --footer-badge-border: rgba(15, 23, 42, 0.15);
+          --footer-badge-label: rgba(15, 23, 42, 0.9);
+          --footer-copyright: rgba(15, 23, 42, 0.5);
+          --footer-status: rgba(15, 23, 42, 0.7);
+          --footer-message: rgba(15, 23, 42, 0.5);
         }
 
-        .newsletter-inline-error {
-          display: flex;
-          align-items: center;
-          gap: 6px;
-          margin: 6px 0 0;
-          font-size: 13px;
-          color: #fecaca;
-        }
-          
-        .newsletter-input.has-error {
-          border-color: rgba(248, 113, 113, 0.85);
+        /* ============================================================
+           CONTRAST THEME
+           ============================================================ */
+
+        :global([data-theme="contrast"]) .footer-world-class {
+          --footer-bg-base: #000000;
+          --footer-text: #ffffff;
+          --footer-edge: #00eaff;
+          --footer-mesh-opacity: 0;
+          --footer-heading: #ffffff;
+          --footer-description: #ffffff;
+          --footer-divider: #ffffff;
+          --footer-brand-bg: transparent;
+          --footer-brand-border: #00eaff;
+          --footer-stat-bg: transparent;
+          --footer-stat-border: #ffffff;
+          --footer-stat-value: #ffffff;
+          --footer-stat-label: #ffffff;
+          --footer-input-bg: #000000;
+          --footer-input-border: #ffffff;
+          --footer-input-text: #ffffff;
+          --footer-social-bg: transparent;
+          --footer-social-border: #ffffff;
+          --footer-social-icon: #ffffff;
+          --footer-nav-heading: #ffffff;
+          --footer-nav-link: #ffffff;
+          --footer-trust-bg: transparent;
+          --footer-trust-border: #ffffff;
+          --footer-trust-heading: #ffffff;
+          --footer-badge-bg: transparent;
+          --footer-badge-border: #ffffff;
+          --footer-badge-label: #ffffff;
+          --footer-copyright: #ffffff;
+          --footer-status: #ffffff;
+          --footer-message: #ffffff;
+          border-top: 2px solid #00eaff;
         }
 
-        .newsletter-input.has-success {
-          border-color: rgba(139, 92, 246, 0.85);
-        }
-
-        .newsletter-input::placeholder {
-          color: rgba(255, 255, 255, 0.4);
-        }
-
-        .newsletter-input:focus {
-          border-color: #a78bfa;
-          outline: none;
-          box-shadow: 0 0 0 3px rgba(139, 92, 246, 0.15);
-        }
-
-        .newsletter-button {
-          padding: 14px 24px;
-          background: #a78bfa;
-          border: none;
-          border-radius: 10px;
-          font-size: 14px;
-          font-weight: 600;
-          color: #ffffff;
-          cursor: pointer;
-          white-space: nowrap;
-          transition: transform 200ms ease, background 200ms ease;
-        }
-
-        .newsletter-button:hover:enabled {
-          background: #8b5cf6;
-          transform: translateY(-1px);
-        }
-
-        .newsletter-button:disabled {
-          opacity: 0.7;
-          cursor: not-allowed;
-        }
-
-        .newsletter-message {
-          margin-top: 14px;
-          font-size: 13px;
-          color: rgba(255, 255, 255, 0.6);
-          min-height: 18px;
-        }
-
-        .newsletter-message.success {
-          color: rgba(139, 92, 246, 0.85);
-        }
-
-        .newsletter-message.error {
-          color: rgba(244, 114, 182, 0.85);
-        }
-
-        .footer-social {
-          margin-top: 32px;
-          display: flex;
-          gap: 12px;
-        }
-
-        .footer-social-link {
-          width: 40px;
-          height: 40px;
-          border-radius: 50%;
-          display: flex;
-          align-items: center;
-          justify-content: center;
-          background: rgba(255, 255, 255, 0.08);
-          border: 1px solid rgba(255, 255, 255, 0.15);
-          color: rgba(255, 255, 255, 0.7);
-          transition: transform 200ms ease, background 200ms ease, border-color 200ms ease, color 200ms ease;
-        }
-
-        .footer-social-link:hover {
-          background: rgba(139, 92, 246, 0.2);
-          border-color: #a78bfa;
-          transform: translateY(-2px);
-          color: #ffffff;
-        }
-
-        .footer-divider {
-          margin: 60px 0 32px;
-          border-top: 1px solid rgba(255, 255, 255, 0.1);
-        }
-
-        .footer-bottom {
-          display: flex;
-          justify-content: space-between;
-          align-items: center;
-          gap: 32px;
-          flex-wrap: wrap;
-        }
-
-        .footer-bottom-left {
-          display: flex;
-          align-items: center;
-          gap: 16px;
-        }
-
-        .footer-bottom-right {
-          display: flex;
-          align-items: center;
-          gap: 32px;
-          flex-wrap: wrap;
-        }
-
-        .footer-certifications {
-          display: flex;
-          align-items: center;
-          gap: 24px;
-          flex-wrap: wrap;
-        }
-
-        .footer-badge {
-          display: flex;
-          align-items: center;
-          gap: 12px;
-          font-size: 12px;
-          color: rgba(255, 255, 255, 0.6);
-        }
-
-        .footer-badge-icon {
-          width: 32px;
-          height: 32px;
-          border-radius: 50%;
-          display: grid;
-          place-items: center;
-          background: rgba(255, 255, 255, 0.08);
-          border: 1px solid rgba(255, 255, 255, 0.18);
-          font-size: 11px;
-          letter-spacing: 0.04em;
-          font-weight: 600;
-          color: rgba(255, 255, 255, 0.7);
-        }
-
-        .footer-stats {
-          display: flex;
-          gap: 24px;
-          align-items: center;
-          font-size: 12px;
-          color: rgba(255, 255, 255, 0.6);
-          flex-wrap: wrap;
-        }
-
-        .footer-stat {
-          position: relative;
-          padding-right: 24px;
-          display: inline-flex;
-          align-items: center;
-        }
-
-        .footer-stat:last-of-type {
-          padding-right: 0;
-        }
-
-        .footer-stat-divider {
-          position: absolute;
-          right: 0;
-          top: 50%;
-          width: 1px;
-          height: 18px;
-          background: rgba(255, 255, 255, 0.12);
-          transform: translateY(-50%);
-        }
-
-        .footer-stat:last-of-type .footer-stat-divider {
+        :global([data-theme="contrast"]) .footer-gradient-mesh {
           display: none;
         }
 
-        @media (max-width: 960px) {
-          .footer-grid {
-            grid-template-columns: 1fr 1fr;
-            gap: 40px;
-          }
-
-          .footer-bottom {
-            flex-direction: column;
-            align-items: flex-start;
-          }
-
-          .footer-bottom-right {
-            width: 100%;
-            justify-content: space-between;
-          }
+        :global([data-theme="contrast"]) .footer-edge-lit {
+          display: none;
         }
 
-        @media (max-width: 640px) {
-          .enterprise-footer {
-            padding: 64px 24px 32px;
-          }
+        :global([data-theme="contrast"]) .footer-stat-card,
+        :global([data-theme="contrast"]) .footer-trust-badge,
+        :global([data-theme="contrast"]) .footer-social-link,
+        :global([data-theme="contrast"]) .footer-trust-section {
+          border-width: 2px;
+        }
 
-          .footer-grid {
+        /* ============================================================
+           RESPONSIVE DESIGN
+           ============================================================ */
+
+        /* Tablet: 640px - 1024px */
+        @media (max-width: 1024px) {
+          .footer-top-section {
             grid-template-columns: 1fr;
+            gap: 60px;
+            margin-bottom: 60px;
+            padding-bottom: 60px;
+          }
+
+          .footer-nav-grid {
+            grid-template-columns: repeat(2, 1fr);
             gap: 40px;
+            margin-bottom: 60px;
           }
 
-          .newsletter-form {
-            flex-direction: column;
-          }
-
-          .newsletter-button {
-            width: 100%;
-          }
-
-          .footer-bottom {
-            align-items: stretch;
-            gap: 20px;
-          }
-
-          .footer-bottom-right {
-            flex-direction: column;
-            align-items: flex-start;
-            gap: 20px;
-          }
-
-          .footer-certifications,
-          .footer-stats {
-            width: 100%;
-          }
-
-          .footer-stat {
-            padding-right: 0;
-          }
-
-          .footer-stat-divider {
-            display: none;
+          .footer-stats-grid {
+            grid-template-columns: 1fr;
           }
         }
 
-        /* Footer brand mark focus treatment (no hover animations) */
-        .footer-brand:focus-visible {
-          outline: 2px solid var(--border-focus, var(--accent-primary));
-          outline-offset: 3px;
-          border-radius: 8px;
+        /* Mobile: < 640px */
+        @media (max-width: 640px) {
+          .footer-container {
+            padding: 0 24px 32px;
+          }
+
+          .footer-world-class {
+            padding: 80px 0 0;
+          }
+
+          .footer-top-section {
+            gap: 48px;
+            margin-bottom: 48px;
+            padding-bottom: 48px;
+          }
+
+          .footer-brand-tagline {
+            font-size: 18px;
+          }
+
+          .footer-newsletter-heading {
+            font-size: 20px;
+          }
+
+          .footer-newsletter-field-row {
+            flex-direction: column;
+          }
+
+          .footer-newsletter-button {
+            width: 100%;
+          }
+
+          .footer-nav-grid {
+            grid-template-columns: 1fr;
+            gap: 32px;
+            margin-bottom: 48px;
+          }
+
+          .footer-trust-section {
+            padding: 24px;
+            margin-bottom: 40px;
+          }
+
+          .footer-trust-badges {
+            grid-template-columns: 1fr;
+          }
+
+          .footer-bottom-bar {
+            flex-direction: column;
+            align-items: flex-start;
+            gap: 16px;
+          }
+
+          .footer-stats-grid {
+            grid-template-columns: 1fr;
+          }
+
+          .footer-social-links {
+            flex-wrap: wrap;
+          }
+        }
+
+        /* ============================================================
+           REDUCED MOTION
+           ============================================================ */
+
+        @media (prefers-reduced-motion: reduce) {
+          .footer-gradient-orb,
+          .footer-edge-lit,
+          .footer-status-indicator {
+            animation: none !important;
+          }
+
+          .footer-stat-card,
+          .footer-social-link,
+          .footer-nav-link,
+          .footer-newsletter-button,
+          .footer-brand-link {
+            transition: none !important;
+          }
         }
       `}</style>
     </footer>
@@ -889,60 +1249,59 @@ export default function Footer() {
 }
 
 function FooterSkeleton() {
-  const columnSkeletons = useMemo(() => Array.from({ length: 4 }), []);
-  const linkSkeletons = useMemo(() => Array.from({ length: 4 }), []);
-
   const blockStyle = {
-    background: "linear-gradient(135deg, rgba(148,163,184,0.18), rgba(148,163,184,0.08))",
-    borderRadius: "0.75rem",
+    background: "linear-gradient(135deg, rgba(148,163,184,0.12), rgba(148,163,184,0.06))",
+    borderRadius: "12px",
   };
 
   return (
-    <div className="footer-inner" aria-hidden="true">
-      <div className="footer-grid">
-        {columnSkeletons.map((_, index) => (
-          <div key={`footer-skeleton-${index}`} className="footer-column" style={{ display: "grid", gap: "0.85rem" }}>
-            <div style={{ ...blockStyle, height: "1.3rem", width: "65%" }} />
-            {linkSkeletons.map((__, rowIndex) => (
-              <div
-                key={`footer-skeleton-${index}-${rowIndex}`}
-                style={{
-                  ...blockStyle,
-                  height: "0.85rem",
-                  width: `${85 - rowIndex * 12}%`,
-                  opacity: 0.7,
-                }}
-              />
+    <div className="footer-container" aria-hidden="true" style={{ paddingTop: 0 }}>
+      <div className="footer-top-section">
+        <div className="footer-brand-area">
+          <div style={{ ...blockStyle, width: 56, height: 56, marginBottom: 16 }} />
+          <div style={{ ...blockStyle, height: 24, width: "70%", marginBottom: 12 }} />
+          <div style={{ ...blockStyle, height: 60, width: "90%", marginBottom: 16 }} />
+          <div style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: 16 }}>
+            {[1, 2, 3].map((i) => (
+              <div key={i} style={{ ...blockStyle, height: 72 }} />
+            ))}
+          </div>
+        </div>
+        <div className="footer-newsletter-area">
+          <div style={{ ...blockStyle, height: 28, width: "80%", marginBottom: 12 }} />
+          <div style={{ ...blockStyle, height: 42, width: "100%", marginBottom: 12 }} />
+          <div style={{ ...blockStyle, height: 52, width: "100%", marginBottom: 12 }} />
+          <div style={{ display: "flex", gap: 12, marginTop: 8 }}>
+            {[1, 2, 3, 4].map((i) => (
+              <div key={i} style={{ ...blockStyle, width: 48, height: 48 }} />
+            ))}
+          </div>
+        </div>
+      </div>
+
+      <div className="footer-nav-grid">
+        {[1, 2, 3, 4, 5].map((col) => (
+          <div key={col} style={{ display: "flex", flexDirection: "column", gap: 12 }}>
+            <div style={{ ...blockStyle, height: 16, width: "60%" }} />
+            {[1, 2, 3, 4, 5].map((row) => (
+              <div key={row} style={{ ...blockStyle, height: 14, width: `${85 - row * 8}%`, opacity: 0.7 }} />
             ))}
           </div>
         ))}
-        <div className="footer-column newsletter-column" style={{ display: "grid", gap: "0.85rem" }}>
-          <div style={{ ...blockStyle, height: "1.3rem", width: "70%" }} />
-          <div style={{ ...blockStyle, height: "0.9rem", width: "90%", opacity: 0.7 }} />
-          <div style={{ ...blockStyle, height: "3rem", width: "100%", opacity: 0.6 }} />
-          <div style={{ ...blockStyle, height: "2.75rem", width: "100%", opacity: 0.6 }} />
+      </div>
+
+      <div style={{ ...blockStyle, height: 140, marginBottom: 60, padding: 40 }}>
+        <div style={{ ...blockStyle, height: 16, width: "40%", marginBottom: 24 }} />
+        <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(140px, 1fr))", gap: 16 }}>
+          {[1, 2, 3, 4, 5, 6].map((i) => (
+            <div key={i} style={{ ...blockStyle, height: 46 }} />
+          ))}
         </div>
       </div>
-      <div className="footer-divider" aria-hidden="true" />
-      <div className="footer-bottom">
-        <div className="footer-bottom-left" style={{ gap: "1.2rem" }}>
-          <div style={{ ...blockStyle, height: "1.75rem", width: "7.5rem" }} />
-          <div style={{ ...blockStyle, height: "0.9rem", width: "11rem", opacity: 0.6 }} />
-        </div>
-        <div className="footer-bottom-right" style={{ gap: "1.2rem" }}>
-          <div className="footer-certifications" style={{ gap: "1.2rem" }}>
-            <div style={{ ...blockStyle, height: "2.5rem", width: "6.5rem", opacity: 0.6 }} />
-            <div style={{ ...blockStyle, height: "2.5rem", width: "6.5rem", opacity: 0.6 }} />
-          </div>
-          <div className="footer-stats" style={{ gap: "1.1rem" }}>
-            {Array.from({ length: 3 }).map((_, statIndex) => (
-              <div
-                key={`footer-stat-skeleton-${statIndex}`}
-                style={{ ...blockStyle, height: "0.85rem", width: "7.5rem", opacity: 0.6 }}
-              />
-            ))}
-          </div>
-        </div>
+
+      <div style={{ display: "flex", justifyContent: "space-between", paddingTop: 32, borderTop: "1px solid rgba(255,255,255,0.08)" }}>
+        <div style={{ ...blockStyle, height: 18, width: 200 }} />
+        <div style={{ ...blockStyle, height: 18, width: 160 }} />
       </div>
     </div>
   );

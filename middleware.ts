@@ -1,13 +1,25 @@
-import { NextResponse, type NextRequest } from "next/server";
+import createMiddleware from 'next-intl/middleware';
+import { locales, defaultLocale } from './i18n/config';
+
+export default createMiddleware({
+  // A list of all locales that are supported
+  locales,
+
+  // Used when no locale matches
+  defaultLocale,
+
+  // Always show locale in URL
+  localePrefix: 'always',
+
+  // Locale detection based on Accept-Language header
+  localeDetection: true,
+});
 
 export const config = {
-  // Match all pathnames except API routes and static assets
-  matcher: ["/((?!api|_next|_vercel|.*\\..*).*)"],
+  // Match all pathnames except for
+  // - API routes
+  // - _next (Next.js internals)
+  // - _vercel (Vercel internals)
+  // - Static files (with file extensions)
+  matcher: ['/((?!api|_next|_vercel|.*\\..*).*)'],
 };
-
-export default function middleware(_request: NextRequest) {
-  // Localisation middleware was redirecting to non-existent locale-prefixed routes,
-  // which caused every navigation to resolve to a 404. Until full locale-aware routes
-  // are implemented, allow requests to continue untouched so the existing pages render.
-  return NextResponse.next();
-}

@@ -91,7 +91,7 @@ export default function ThemeSwitcher() {
   };
 
   if (!mounted) {
-    return <div style={{ width: '40px', height: '40px' }} />;
+    return <div style={{ width: '48px', height: '48px' }} />;
   }
 
   const currentTheme = themes.find((t) => t.value === themePreference) || themes[1];
@@ -108,9 +108,9 @@ export default function ThemeSwitcher() {
           display: 'flex',
           alignItems: 'center',
           justifyContent: 'center',
-          width: '40px',
-          height: '40px',
-          padding: 0,
+          minWidth: '48px',
+          minHeight: '48px',
+          padding: '12px',
           backgroundColor: 'transparent',
           color: 'var(--text-primary)',
           border: '1px solid var(--border-default)',
@@ -154,7 +154,8 @@ export default function ThemeSwitcher() {
                 alignItems: 'center',
                 gap: '12px',
                 width: '100%',
-                padding: '10px 12px',
+                minHeight: '48px',
+                padding: '12px',
                 backgroundColor: themePreference === theme.value ? 'var(--accent-primary)' : 'transparent',
                 color: themePreference === theme.value ? 'var(--text-inverse)' : 'var(--text-primary)',
                 border: 'none',

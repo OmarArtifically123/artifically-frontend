@@ -54,6 +54,29 @@ export default function FeaturesShowcaseSection() {
     [active],
   );
 
+  const handleKeyDown = (e, currentIndex) => {
+    let newIndex = currentIndex;
+
+    if (e.key === 'ArrowRight' || e.key === 'ArrowDown') {
+      e.preventDefault();
+      newIndex = (currentIndex + 1) % featureTabs.length;
+    } else if (e.key === 'ArrowLeft' || e.key === 'ArrowUp') {
+      e.preventDefault();
+      newIndex = (currentIndex - 1 + featureTabs.length) % featureTabs.length;
+    } else if (e.key === 'Home') {
+      e.preventDefault();
+      newIndex = 0;
+    } else if (e.key === 'End') {
+      e.preventDefault();
+      newIndex = featureTabs.length - 1;
+    } else {
+      return;
+    }
+
+    setActive(featureTabs[newIndex].id);
+    // Focus will be managed by React re-render
+  };
+
   return (
     <section
       id="features-showcase"
@@ -76,7 +99,7 @@ export default function FeaturesShowcaseSection() {
           role="tablist"
           aria-label="Key platform capabilities"
         >
-          {featureTabs.map((tab) => (
+          {featureTabs.map((tab, index) => (
             <motion.button
               key={tab.id}
               type="button"
@@ -85,8 +108,10 @@ export default function FeaturesShowcaseSection() {
               role="tab"
               aria-controls={`feature-panel-${tab.id}`}
               aria-selected={active === tab.id}
+              tabIndex={active === tab.id ? 0 : -1}
               data-active={active === tab.id ? "true" : undefined}
               onClick={() => setActive(tab.id)}
+              onKeyDown={(e) => handleKeyDown(e, index)}
               whileHover={{
                 scale: 1.03,
                 transition: { type: "spring", ...SPRING_CONFIGS.medium },
