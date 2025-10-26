@@ -1,22 +1,153 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Artifically – Offline</title>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Offline - Artifically</title>
   <style>
-    body { font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; background: #0f172a; color: #e2e8f0; margin: 0; display: flex; align-items: center; justify-content: center; min-height: 100vh; padding: 1.5rem; }
-    main { max-width: 26rem; text-align: center; background: rgba(15, 23, 42, 0.75); border: 1px solid rgba(148, 163, 184, 0.18); border-radius: 1.2rem; padding: 2.5rem 2rem; box-shadow: 0 18px 45px rgba(15, 23, 42, 0.55); }
-    h1 { font-size: 1.65rem; margin-bottom: 1rem; }
-    p { line-height: 1.6; margin-bottom: 1.5rem; }
-    button { background: #6366f1; border: none; color: #fff; border-radius: 999px; padding: 0.75rem 1.75rem; font-weight: 600; cursor: pointer; }
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+      background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%);
+      color: #e2e8f0;
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 24px;
+    }
+
+    .container {
+      text-align: center;
+      max-width: 480px;
+    }
+
+    .icon {
+      font-size: 80px;
+      margin-bottom: 24px;
+      animation: pulse 2s ease-in-out infinite;
+    }
+
+    @keyframes pulse {
+      0%, 100% { opacity: 1; transform: scale(1); }
+      50% { opacity: 0.8; transform: scale(1.05); }
+    }
+
+    h1 {
+      font-size: 32px;
+      font-weight: 700;
+      margin-bottom: 16px;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+
+    p {
+      font-size: 18px;
+      line-height: 1.6;
+      color: #94a3b8;
+      margin-bottom: 32px;
+    }
+
+    .button {
+      display: inline-block;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      color: white;
+      padding: 14px 32px;
+      border-radius: 12px;
+      text-decoration: none;
+      font-weight: 600;
+      font-size: 16px;
+      transition: transform 0.2s ease, box-shadow 0.2s ease;
+      box-shadow: 0 4px 16px rgba(102, 126, 234, 0.3);
+    }
+
+    .button:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 6px 24px rgba(102, 126, 234, 0.4);
+    }
+
+    .button:active {
+      transform: translateY(0);
+    }
+
+    .info {
+      margin-top: 48px;
+      padding: 24px;
+      background: rgba(255, 255, 255, 0.05);
+      border-radius: 12px;
+      backdrop-filter: blur(10px);
+    }
+
+    .info-title {
+      font-size: 14px;
+      font-weight: 600;
+      color: #cbd5e1;
+      margin-bottom: 12px;
+    }
+
+    .info-text {
+      font-size: 14px;
+      color: #94a3b8;
+      line-height: 1.6;
+    }
+
+    @media (max-width: 640px) {
+      h1 {
+        font-size: 24px;
+      }
+      
+      p {
+        font-size: 16px;
+      }
+      
+      .icon {
+        font-size: 60px;
+      }
+    }
   </style>
 </head>
 <body>
-  <main>
-    <h1>You’re offline</h1>
-    <p>It looks like your connection dropped. We’ll keep things ready for you — try reloading once you’re back online.</p>
-    <button type="button" onclick="window.location.reload()">Retry</button>
-  </main>
+  <div class="container">
+    <div class="icon">📡</div>
+    <h1>You're Offline</h1>
+    <p>
+      It looks like you've lost your internet connection. 
+      Don't worry, some cached content is still available.
+    </p>
+    <a href="/" class="button" onclick="window.location.reload(); return false;">
+      Try Again
+    </a>
+    
+    <div class="info">
+      <div class="info-title">💡 What you can do:</div>
+      <div class="info-text">
+        • Check your internet connection<br>
+        • View previously loaded pages<br>
+        • Come back when you're online
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // Auto-retry when connection is restored
+    window.addEventListener('online', () => {
+      console.log('Connection restored, reloading...');
+      setTimeout(() => {
+        window.location.reload();
+      }, 1000);
+    });
+
+    // Check if we're actually online
+    if (navigator.onLine) {
+      window.location.reload();
+    }
+  </script>
 </body>
 </html>

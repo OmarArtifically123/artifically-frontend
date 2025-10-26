@@ -4,10 +4,6 @@ import { Analytics } from "@vercel/analytics/react";
 import AppShell from "@/components/AppShell";
 import PageTransition from "@/components/PageTransition";
 import SkipLink from "@/components/SkipLink";
-import WebVitalsReporter from "@/components/performance/WebVitalsReporter";
-import ServiceWorkerRegistration from "@/components/performance/ServiceWorkerRegistration";
-import PredictivePrefetch from "@/components/performance/PredictivePrefetch";
-import PerformanceMonitor from "@/components/performance/PerformanceMonitor";
 import { ThemeProvider } from "@/context/ThemeContext";
 import { CONTRAST_DEFAULT, THEME_DARK } from "@/context/themeConstants";
 import inter from "@/lib/fonts/inter";
@@ -60,10 +56,6 @@ export const metadata: Metadata = {
 
 export const viewport: Viewport = {
   themeColor: "#6366f1",
-  width: "device-width",
-  initialScale: 1,
-  maximumScale: 5,
-  userScalable: true,
 };
 
 const themeBootstrapScript = getThemeBootstrapScript();
@@ -86,35 +78,14 @@ export default function RootLayout({
       suppressHydrationWarning
     >
       <head>
-        <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+        <meta name="viewport" content="width=device-width, initial-scale=1" />
         <meta name="msapplication-TileColor" content="#6366f1" />
-        
-        {/* Critical inline scripts - Run before any rendering */}
         <script
           id="theme-bootstrap"
           dangerouslySetInnerHTML={{ __html: themeBootstrapScript }}
         />
-        
-        {/* Critical CSS - Inline for instant paint */}
-        <style 
-          data-critical="true" 
-          dangerouslySetInnerHTML={{ __html: criticalStyles }} 
-        />
-        
-        {/* DNS Prefetch & Preconnect - Establish connections early */}
-        <link rel="dns-prefetch" href="https://api.artifically.com" />
-        <link rel="dns-prefetch" href="https://analytics.example.com" />
-        <link rel="dns-prefetch" href="https://cdn.artifically.com" />
-        <link 
-          rel="preconnect" 
-          href="https://api.artifically.com" 
-          crossOrigin="anonymous" 
-        />
-        
-        {/* 
-          CRITICAL: Preload LCP image with fetchpriority="high"
-          This is the single most important optimization for LCP
-        */}
+        <link rel="preconnect" href="https://api.artifically.com" crossOrigin="anonymous" />
+        <style data-critical="true" dangerouslySetInnerHTML={{ __html: criticalStyles }} />
         <link
           rel="preload"
           href="/images/hero-preview.avif"
@@ -133,26 +104,14 @@ export default function RootLayout({
           imageSrcSet="/images/hero-preview.webp 1920w"
           imageSizes="(max-width: 768px) 92vw, (max-width: 1280px) 60vw, 540px"
         />
-        
-        {/* Background image - Lower priority, can load after LCP */}
-        <link 
-          rel="preload" 
-          href="/images/hero-background.avif" 
-          as="image" 
-          type="image/avif"
-          fetchPriority="low"
-        />
-        
-        {/* Prefetch next likely navigation targets */}
+        <link rel="preload" href="/images/hero-background.avif" as="image" type="image/avif" />
         <link rel="prefetch" href="/marketplace" as="document" />
         <link rel="prefetch" href="/pricing" as="document" />
-        
-        {/* Analytics - Load asynchronously after everything else */}
         <Script
           id="artifically-analytics"
           src="https://analytics.example.com/script.js"
+          async
           strategy="lazyOnload"
-          defer
         />
       </head>
       <body
@@ -166,21 +125,7 @@ export default function RootLayout({
             <PageTransition>{children}</PageTransition>
           </AppShell>
         </ThemeProvider>
-        
-        {/* Performance Enhancements */}
         <Analytics />
-        <WebVitalsReporter />
-        <ServiceWorkerRegistration />
-        <PredictivePrefetch 
-          routeMap={{
-            '/': ['/marketplace', '/pricing', '/docs'],
-            '/marketplace': ['/pricing', '/docs'],
-            '/pricing': ['/marketplace', '/contact'],
-          }}
-          prefetchOnHover={true}
-          onlyOnFastConnection={true}
-        />
-        <PerformanceMonitor />
       </body>
     </html>
   );

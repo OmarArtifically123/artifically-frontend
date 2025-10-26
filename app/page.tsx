@@ -1,5 +1,5 @@
-import HomePage from "@/app/(site)/_components/HomePage";
+import HomePageOptimized from "@/app/(site)/_components/HomePageOptimized";
 
 export default function HomeRoute() {
-  return <HomePage />;
+  return <HomePageOptimized />;
 }
