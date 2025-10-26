@@ -18,7 +18,7 @@ interface HeroSceneProps {
   particleCount?: number;
   enablePostProcessing?: boolean;
   dpr?: number;
-  theme?: string;
+  theme?: "dark" | "light" | "contrast";
 }
 
 interface MouseState {
@@ -337,23 +337,23 @@ export default function HeroScene({
   return (
     <group ref={groupRef}>
       {/* Background Grid */}
-      {qualitySettings.grid && (
+      {qualitySettings.grid ? (
         <HeroAdvancedGrid
           theme={theme}
           enableAnimation={!prefersReducedMotion}
           quality={qualityTier === "ultra" ? 1 : 0.5}
         />
-      )}
+      ) : null}
 
       {/* Data Streams */}
-      {qualitySettings.streams && (
+      {qualitySettings.streams ? (
         <HeroDataStreams
           theme={theme}
           columnCount={10}
           enableAnimation={!prefersReducedMotion}
           quality={qualityTier === "ultra" ? 1 : 0.7}
         />
-      )}
+      ) : null}
 
       {/* Advanced Particle System with 3 layers */}
       <HeroParticleSystem
@@ -365,7 +365,7 @@ export default function HeroScene({
       />
 
       {/* Neural Connections between particles */}
-      {qualitySettings.connections && particlePositionsRef.current && (
+      {qualitySettings.connections && particlePositionsRef.current ? (
         <HeroNeuralConnections
           particlePositions={particlePositionsRef.current}
           particleCount={qualitySettings.particles}
@@ -375,10 +375,10 @@ export default function HeroScene({
           enableAnimation={!prefersReducedMotion}
           quality={qualityTier === "ultra" ? 1 : 0.7}
         />
-      )}
+      ) : null}
 
       {/* Particle Trails */}
-      {qualitySettings.trails && particlePositionsRef.current && (
+      {qualitySettings.trails && particlePositionsRef.current ? (
         <HeroParticleTrails
           particlePositions={particlePositionsRef.current}
           particleCount={qualitySettings.particles}
@@ -387,17 +387,17 @@ export default function HeroScene({
           enableAnimation={!prefersReducedMotion}
           quality={qualityTier === "ultra" ? 1 : 0.7}
         />
-      )}
+      ) : null}
 
       {/* Holographic Geometric Shapes */}
-      {qualitySettings.geometric && (
+      {qualitySettings.geometric ? (
         <HeroGeometricShapes
           theme={theme}
           mouseState={mouseStateRef}
           enableAnimation={!prefersReducedMotion}
           quality={qualityTier === "ultra" ? 1 : 0.5}
         />
-      )}
+      ) : null}
 
       {/* Interaction Ripples */}
       <HeroInteractionRipple
@@ -408,35 +408,34 @@ export default function HeroScene({
       />
 
       {/* Post-processing effects - disabled when context is lost */}
-      {enablePostProcessing && qualitySettings.postProcessing && !prefersReducedMotion && !contextLost && (
+      {enablePostProcessing && qualitySettings.postProcessing && !prefersReducedMotion && !contextLost ? (
         <EffectComposer>
-          {/* Bloom for glowing effects and god rays */}
-          <Bloom
-            luminanceThreshold={0.2}
-            luminanceSmoothing={0.9}
-            height={300}
-            intensity={qualitySettings.bloomIntensity}
-            radius={0.8}
-          />
-          
-          {/* Depth of Field - focus center, blur edges */}
-          {qualitySettings.dof && (
-            <DepthOfField
-              focusDistance={0.05}
-              focalLength={0.1}
-              bokehScale={2}
-              height={480}
+          <>
+            <Bloom
+              luminanceThreshold={0.2}
+              luminanceSmoothing={0.9}
+              height={300}
+              intensity={qualitySettings.bloomIntensity}
+              radius={0.8}
             />
-          )}
-          
-          {/* Vignette for darker edges */}
-          <Vignette
-            offset={0.3}
-            darkness={theme === "contrast" ? 0.8 : 0.5}
-            eskil={false}
-          />
+            
+            {qualitySettings.dof ? (
+              <DepthOfField
+                focusDistance={0.05}
+                focalLength={0.1}
+                bokehScale={2}
+                height={480}
+              />
+            ) : null}
+            
+            <Vignette
+              offset={0.3}
+              darkness={theme === "contrast" ? 0.8 : 0.5}
+              eskil={false}
+            />
+          </>
         </EffectComposer>
-      )}
+      ) : null}
     </group>
   );
 }
