@@ -75,7 +75,7 @@ export default function PredictivePrefetch({
     // Setup hover-based prefetching
     const handleMouseOver = (event: MouseEvent) => {
       const target = event.target as HTMLElement;
-      const link = target.closest('a[href^="/"]') as HTMLAnchorElement;
+      const link = target.closest('a[href^="/"]') as HTMLAnchorElement | null;
 
       if (link && !link.hasAttribute('data-no-prefetch')) {
         const href = link.getAttribute('href');
@@ -96,12 +96,12 @@ export default function PredictivePrefetch({
     // Setup viewport-based prefetching for visible links
     if (!('IntersectionObserver' in window)) return;
 
-    observerRef.current = new IntersectionObserver(
+      observerRef.current = new IntersectionObserver(
       (entries) => {
         entries.forEach((entry) => {
           if (entry.isIntersecting) {
             const link = entry.target as HTMLAnchorElement;
-            const href = link.getAttribute('href');
+            const href = link.getAttribute('href') || '';
 
             if (href && !prefetchedRef.current.has(href)) {
               // Prefetch after link is visible for 1 second
@@ -141,7 +141,7 @@ export default function PredictivePrefetch({
  */
 function prefetchRoute(route: string) {
   // Check if already prefetched
-  const prefetched = (window as any).__NEXT_DATA__?.props?.pageProps?.prefetched || new Set();
+  const prefetched = ((window as Window & { __NEXT_DATA__?: { props?: { pageProps?: { prefetched?: Set<string> } } } }).__NEXT_DATA__?.props?.pageProps?.prefetched) || new Set<string>();
   
   if (prefetched.has(route)) {
     return;
@@ -181,7 +181,13 @@ function prefetchRoutes(routes: string[]) {
 function isFastConnection(): boolean {
   if (typeof navigator === 'undefined') return true;
 
-  const connection = (navigator as any).connection || (navigator as any).mozConnection || (navigator as any).webkitConnection;
+  const nav = navigator as Navigator & {
+    connection?: { saveData?: boolean; effectiveType?: string };
+    mozConnection?: { saveData?: boolean; effectiveType?: string };
+    webkitConnection?: { saveData?: boolean; effectiveType?: string };
+  };
+
+  const connection = nav.connection || nav.mozConnection || nav.webkitConnection;
 
   if (!connection) return true;
 
@@ -207,6 +213,6 @@ function requestIdleCallback(callback: () => void, options?: { timeout?: number 
   }
 
   // Fallback
-  return setTimeout(callback, options?.timeout || 1) as any;
+  return setTimeout(callback, options?.timeout || 1) as unknown as number;
 }
 

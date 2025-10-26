@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, useCallback } from "react";
 
 /**
  * Service Worker Registration Component
@@ -75,13 +75,13 @@ export default function ServiceWorkerRegistration() {
   }, []);
 
   // Show update notification
-  const handleUpdate = () => {
+  const handleUpdate = useCallback(() => {
     if (registration?.waiting) {
       registration.waiting.postMessage({ type: 'SKIP_WAITING' });
       setUpdateAvailable(false);
       window.location.reload();
     }
-  };
+  }, [registration]);
 
   // Render update notification if available
   if (updateAvailable) {

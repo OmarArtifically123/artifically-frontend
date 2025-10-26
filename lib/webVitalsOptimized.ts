@@ -241,6 +241,10 @@ export function reportWebVitals(callback: WebVitalsCallback) {
  * Send metric to analytics endpoint
  */
 export function sendToAnalytics(metric: Metric) {
+  const nav = navigator as Navigator & {
+    connection?: { effectiveType?: string };
+  };
+
   const body = JSON.stringify({
     id: metric.id,
     name: metric.name,
@@ -248,7 +252,7 @@ export function sendToAnalytics(metric: Metric) {
     rating: metric.rating,
     url: window.location.href,
     userAgent: navigator.userAgent,
-    effectiveType: (navigator as any).connection?.effectiveType || 'unknown',
+    effectiveType: nav.connection?.effectiveType || 'unknown',
     timestamp: Date.now(),
   });
 
