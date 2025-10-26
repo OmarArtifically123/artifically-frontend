@@ -16,8 +16,10 @@ html {
   background-color: var(--bg-primary);
   color: var(--text-primary);
   overflow-x: hidden;
+  overflow-y: visible;
   width: 100%;
   min-height: 100%;
+  height: auto;
 }
 
 body {
@@ -25,7 +27,9 @@ body {
   margin: 0;
   min-height: 100vh;
   overflow-x: hidden;
+  overflow-y: visible;
   width: 100%;
+  height: auto;
 }
 
 *:focus-visible {

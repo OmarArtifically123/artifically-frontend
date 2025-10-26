@@ -35,16 +35,20 @@
 html {
   font-size: 14px;
   overflow-x: hidden;
+  overflow-y: visible;
   width: 100%;
   min-height: 100%;
+  height: auto;
 }
 
 body {
   font-size: 1rem;
   line-height: var(--responsive-body-line-height-mobile);
   overflow-x: hidden;
+  overflow-y: visible;
   width: 100%;
   min-height: 100vh;
+  height: auto;
   margin: 0;
   padding: 0;
 }
@@ -711,6 +715,9 @@ textarea:focus {
     line-height: 1.6;
     scroll-padding-top: calc(var(--header-offset) + var(--space-sm));
     background: linear-gradient(180deg, var(--bg-from), var(--bg-to)) fixed;
+    overflow-x: hidden;
+    overflow-y: visible;
+    height: auto;
     view-transition-name: root;
   }
 
@@ -727,7 +734,9 @@ textarea:focus {
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
     overflow-x: hidden;
+    overflow-y: visible;
     position: relative;
+    height: auto;
     view-transition-name: body;
   }
 
