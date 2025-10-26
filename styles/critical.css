@@ -19,7 +19,7 @@ html {
   overflow-y: auto;
   width: 100%;
   min-height: 100%;
-  scrollbar-gutter: stable both-edges;
+  scrollbar-gutter: stable;
 }
 
 body {

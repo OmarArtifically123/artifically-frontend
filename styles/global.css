@@ -31,7 +31,7 @@ html {
   overflow-y: auto;
   width: 100%;
   min-height: 100%;
-  scrollbar-gutter: stable both-edges;
+  scrollbar-gutter: stable;
 }
 
 body {
@@ -2346,7 +2346,7 @@ main :where(section, div)[id] {
   --brand-logo-font-family: var(--font-inter), "Inter", "Segoe UI", "Helvetica Neue", Arial, sans-serif;
   --brand-logo-font-weight: 650;
   --brand-logo-font-size: 30px;
-  --brand-logo-letter-spacing: 0.18em;
+  --brand-logo-letter-spacing: 0.12em;
   --brand-logo-word-outline: rgba(5, 18, 37, 0.28);
 }
 
@@ -2371,7 +2371,7 @@ main :where(section, div)[id] {
   --brand-logo-bridge-width: 2.6;
   --brand-logo-word-stroke: 0.7;
   --brand-logo-font-weight: 660;
-  --brand-logo-letter-spacing: 0.2em;
+  --brand-logo-letter-spacing: 0.14em;
   --brand-logo-word-outline: rgba(58, 140, 255, 0.32);
 }
 
@@ -2396,7 +2396,7 @@ main :where(section, div)[id] {
   --brand-logo-bridge-width: 2.4;
   --brand-logo-word-stroke: 1.05;
   --brand-logo-font-weight: 680;
-  --brand-logo-letter-spacing: 0.22em;
+  --brand-logo-letter-spacing: 0.16em;
   --brand-logo-word-outline: rgba(0, 240, 255, 0.6);
 }
 
@@ -3382,7 +3382,7 @@ main :where(section, div)[id] {
   overflow-y: auto;
   padding-right: 4px;
   margin-right: -4px;
-  scrollbar-gutter: stable both-edges;
+  scrollbar-gutter: stable;
 }
 
 .resources-mega__header {
@@ -3557,7 +3557,7 @@ main :where(section, div)[id] {
     padding-right: 4px;
     margin-right: -4px;
     -webkit-overflow-scrolling: touch;
-    scrollbar-gutter: stable both-edges;
+    scrollbar-gutter: stable;
     mask-image: linear-gradient(to bottom, transparent 0, rgba(0, 0, 0, 0.9) 18px, rgba(0, 0, 0, 0.9) calc(100% - 18px), transparent 100%);
   }
 }
@@ -8650,7 +8650,7 @@ body.solutions-mega-open {
   overflow-y: auto;
   padding-right: 4px;
   margin-right: -4px;
-  scrollbar-gutter: stable both-edges;
+  scrollbar-gutter: stable;
 }
 
 .solutions-mega__column {
@@ -8925,7 +8925,7 @@ body.solutions-mega-open {
     padding-right: 4px;
     margin-right: -4px;
     -webkit-overflow-scrolling: touch;
-    scrollbar-gutter: stable both-edges;
+    scrollbar-gutter: stable;
     mask-image: linear-gradient(to bottom, transparent 0, rgba(0, 0, 0, 0.9) 18px, rgba(0, 0, 0, 0.9) calc(100% - 18px), transparent 100%);
   }
 
