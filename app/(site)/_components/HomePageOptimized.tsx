@@ -63,13 +63,6 @@ const ProvenAtScale = dynamic(
   }
 );
 
-const TransformationVisualizerV2 = dynamic(
-  () => import("@/components/landing/TransformationVisualizerV2"),
-  {
-    loading: () => <SectionSkeleton height="800px" />,
-  }
-);
-
 // Lazy load SectionTransition to reduce initial bundle
 const SectionTransition = dynamic(
   () => import("@/components/landing/SectionTransition"),
@@ -179,18 +172,6 @@ export default function HomePageOptimized() {
           </SectionTransition>
         </LazySection>
 
-        {/* Section 6: Transformation Visualizer V2 */}
-        <LazySection
-          minHeight="800px"
-          rootMargin="200px"
-          strategy="lazy"
-          priority={4}
-          fallback={<SectionSkeleton height="800px" />}
-        >
-          <SectionTransition>
-            <TransformationVisualizerV2 />
-          </SectionTransition>
-        </LazySection>
       </div>
     </>
   );

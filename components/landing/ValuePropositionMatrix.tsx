@@ -3,8 +3,6 @@
 import { useState, useRef } from "react";
 import { motion } from "framer-motion";
 import useInViewState from "@/hooks/useInViewState";
-import Problem3DCube from "./components/Problem3DCube";
-import ParticleMorph from "./components/ParticleMorph";
 import RealTimeMetrics from "./components/RealTimeMetrics";
 import InteractiveRoleSelector from "./components/InteractiveRoleSelector";
 import type { UserRole, Metric } from "@/types/landing";
@@ -61,52 +59,12 @@ const ROLES: UserRole[] = [
   },
 ];
 
-const CUBE_FACES = [
-  {
-    id: "fragmentation",
-    title: "Fragmented Systems",
-    description: "47 disconnected tools, siloed data, manual sync",
-    color: "#ef4444",
-  },
-  {
-    id: "unified",
-    title: "Unified Intelligence",
-    description: "One system, seamless flow, automated orchestration",
-    color: "#10b981",
-  },
-  {
-    id: "manual",
-    title: "Manual Processes",
-    description: "Hours of repetitive work, human error, bottlenecks",
-    color: "#f59e0b",
-  },
-  {
-    id: "automated",
-    title: "Intelligent Automation",
-    description: "AI-powered workflows, 99.97% accuracy, instant execution",
-    color: "#06b6d4",
-  },
-  {
-    id: "reactive",
-    title: "Reactive Operations",
-    description: "Fighting fires, delayed insights, missed opportunities",
-    color: "#a855f7",
-  },
-  {
-    id: "predictive",
-    title: "Predictive Intelligence",
-    description: "Proactive alerts, real-time optimization, continuous improvement",
-    color: "#8b5cf6",
-  },
-];
-
 /**
  * Value Proposition Matrix - Interactive 3D visualization
  * Shows problem/solution transformations with particle morphing
  */
 export default function ValuePropositionMatrix() {
   const [activeRole, setActiveRole] = useState("finance");
-  const [morphProgress, setMorphProgress] = useState(0);
   const containerRef = useRef(null);
   const isInView = useInViewState(containerRef);
 
@@ -114,11 +72,6 @@ export default function ValuePropositionMatrix() {
 
   const handleRoleChange = (roleId: string) => {
     setActiveRole(roleId);
-    // Reset morph animation
-    setMorphProgress(0);
-    setTimeout(() => {
-      setMorphProgress(1);
-    }, 100);
   };
 
   return (
@@ -192,39 +145,6 @@ export default function ValuePropositionMatrix() {
         </motion.div>
 
         {/* Main Content Grid */}
-        <div className={styles.grid}>
-          {/* 3D Cube */}
-          <motion.div
-            className={styles.visualizationCard}
-            initial={{ opacity: 0, x: -40 }}
-            animate={isInView ? { opacity: 1, x: 0 } : { opacity: 0, x: -40 }}
-            transition={{ duration: 0.6, delay: 0.3 }}
-          >
-            <div className={styles.cardHeader}>
-              <h3 className={styles.cardTitle}>Problem → Solution Space</h3>
-              <p className={styles.cardDescription}>
-                Drag to explore different transformation dimensions
-              </p>
-            </div>
-            <Problem3DCube faces={CUBE_FACES} />
-          </motion.div>
-
-          {/* Particle Morph */}
-          <motion.div
-            className={styles.visualizationCard}
-            initial={{ opacity: 0, x: 40 }}
-            animate={isInView ? { opacity: 1, x: 0 } : { opacity: 0, x: 40 }}
-            transition={{ duration: 0.6, delay: 0.4 }}
-          >
-            <div className={styles.cardHeader}>
-              <h3 className={styles.cardTitle}>Transformation in Action</h3>
-              <p className={styles.cardDescription}>
-                From scattered chaos to structured intelligence
-              </p>
-            </div>
-            <ParticleMorph progress={morphProgress} isActive={isInView} />
-          </motion.div>
-        </div>
 
         {/* Metrics */}
         <motion.div
