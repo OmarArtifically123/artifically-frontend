@@ -35,7 +35,6 @@
 html {
   font-size: 14px;
   overflow-x: hidden;
-  overflow-y: auto;
   width: 100%;
   min-height: 100%;
 }
@@ -44,6 +43,7 @@ body {
   font-size: 1rem;
   line-height: var(--responsive-body-line-height-mobile);
   overflow-x: hidden;
+  overflow-y: auto;
   width: 100%;
   min-height: 100vh;
   margin: 0;
