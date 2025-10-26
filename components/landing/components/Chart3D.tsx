@@ -79,8 +79,10 @@ export default function Chart3D({ data, type, title }: Chart3DProps) {
 
     // Animation loop
     let animationId: number;
+    let isMounted = true;
 
     function animate() {
+      if (!isMounted) return;
       controls.update();
       renderer.render(scene, camera);
       animationId = requestAnimationFrame(animate);
@@ -102,6 +104,7 @@ export default function Chart3D({ data, type, title }: Chart3DProps) {
 
     // Cleanup
     return () => {
+      isMounted = false;
       cancelAnimationFrame(animationId);
       window.removeEventListener("resize", handleResize);
       controls.dispose();

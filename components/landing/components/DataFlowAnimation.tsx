@@ -90,6 +90,7 @@ export default function DataFlowAnimation({
     });
 
     return () => {
+      isMounted = false;
       particleSystemsRef.current.forEach((system) => {
         system.geometry.dispose();
         (system.material as THREE.Material).dispose();
@@ -101,6 +102,7 @@ export default function DataFlowAnimation({
     let animationId: number;
 
     const animate = () => {
+      if (!isMounted) return;
       const time = Date.now() * 0.001;
 
       // Update all particle systems
@@ -117,6 +119,7 @@ export default function DataFlowAnimation({
     animate();
 
     return () => {
+      isMounted = false;
       if (animationId) {
         cancelAnimationFrame(animationId);
       }

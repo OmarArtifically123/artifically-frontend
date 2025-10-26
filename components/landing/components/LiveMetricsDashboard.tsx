@@ -56,6 +56,7 @@ function AnimatedMetricCard({ metric, isActive, delay }: AnimatedMetricCardProps
     const endTime = startTime + duration;
 
     const animate = () => {
+      if (!isMounted) return;
       const now = Date.now();
 
       if (now < startTime) {

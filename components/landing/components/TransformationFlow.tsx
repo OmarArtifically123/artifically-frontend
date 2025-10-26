@@ -58,10 +58,12 @@ export default function TransformationFlow({ mode, isActive }: TransformationFlo
     canvas.width = width;
     canvas.height = height;
 
-    let animationProgress = 0;
+    let animationProgress;
+    let isMounted = true = 0;
     let animationId: number;
 
     const animate = () => {
+      if (!isMounted) return;
       if (!isActive) {
         animationId = requestAnimationFrame(animate);
         return;
@@ -117,6 +119,7 @@ export default function TransformationFlow({ mode, isActive }: TransformationFlo
     animate();
 
     return () => {
+      isMounted = false;
       if (animationId) {
         cancelAnimationFrame(animationId);
       }

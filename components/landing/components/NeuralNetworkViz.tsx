@@ -36,6 +36,7 @@ export default function NeuralNetworkViz({ isActive, color }: NeuralNetworkVizPr
 
     // Calculate node positions
     const nodePositions: Array<{ x: number; y: number; layer: number }> = [];
+    let isMounted = true;
     layers.forEach((layer, layerIndex) => {
       const spacing = height / (layer.nodes + 1);
       for (let i = 0; i < layer.nodes; i++) {
@@ -71,6 +72,7 @@ export default function NeuralNetworkViz({ isActive, color }: NeuralNetworkVizPr
     let time = 0;
 
     const animate = () => {
+      if (!isMounted) return;
       if (!isActive) {
         animationId = requestAnimationFrame(animate);
         return;
@@ -135,6 +137,7 @@ export default function NeuralNetworkViz({ isActive, color }: NeuralNetworkVizPr
     animate();
 
     return () => {
+      isMounted = false;
       if (animationId) {
         cancelAnimationFrame(animationId);
       }

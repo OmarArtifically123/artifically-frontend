@@ -115,8 +115,20 @@ export default function ParticleMorph({ progress, isActive }: ParticleMorphProps
 
     const clock = new THREE.Clock();
     
+    // Store scene references first
+    sceneRef.current = {
+      scene,
+      camera,
+      renderer,
+      particles,
+      clock,
+      animationId: null,
+    };
+    
     // Animation loop
     function animate() {
+      if (!sceneRef.current) return; // Safety check
+      
       const elapsedTime = clock.getElapsedTime();
       
       // Update uniforms
@@ -128,22 +140,12 @@ export default function ParticleMorph({ progress, isActive }: ParticleMorphProps
       particles.rotation.x = Math.sin(elapsedTime * 0.1) * 0.1;
       
       renderer.render(scene, camera);
-      sceneRef.current!.animationId = requestAnimationFrame(animate);
+      sceneRef.current.animationId = requestAnimationFrame(animate);
     }
     
     if (isActive) {
       animate();
     }
-    
-    // Store scene references
-    sceneRef.current = {
-      scene,
-      camera,
-      renderer,
-      particles,
-      clock,
-      animationId: null,
-    };
 
     // Handle resize
     const handleResize = () => {
@@ -166,10 +168,15 @@ export default function ParticleMorph({ progress, isActive }: ParticleMorphProps
         cancelAnimationFrame(sceneRef.current.animationId);
       }
       
+      // Set ref to null to stop any pending animation frames
+      sceneRef.current = null;
+      
       geometry.dispose();
       material.dispose();
       renderer.dispose();
-      container.removeChild(renderer.domElement);
+      if (container.contains(renderer.domElement)) {
+        container.removeChild(renderer.domElement);
+      }
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [isActive]);

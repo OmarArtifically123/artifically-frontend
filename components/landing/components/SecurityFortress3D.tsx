@@ -88,6 +88,7 @@ export default function SecurityFortress3D() {
     scene.add(shield);
 
     // Security layers (rings)
+    let isMounted = true;
     for (let i = 0; i < 3; i++) {
       const ringGeometry = new THREE.TorusGeometry(2.5 + i * 0.3, 0.05, 16, 100);
       const ringMaterial = new THREE.MeshBasicMaterial({
@@ -157,6 +158,7 @@ export default function SecurityFortress3D() {
     let animationId: number;
 
     function animate() {
+      if (!isMounted) return;
       const elapsedTime = clock.getElapsedTime();
 
       // Update shield shader
@@ -194,6 +196,7 @@ export default function SecurityFortress3D() {
 
     // Cleanup
     return () => {
+      isMounted = false;
       cancelAnimationFrame(animationId);
       window.removeEventListener("resize", handleResize);
       controls.dispose();

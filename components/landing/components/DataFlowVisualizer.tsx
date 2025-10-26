@@ -40,6 +40,7 @@ export default function DataFlowVisualizer({ mode, isActive }: DataFlowVisualize
     const particleCount = mode === "chaotic" ? 50 : 30;
 
     // Initialize particles
+    let isMounted = true;
     for (let i = 0; i < particleCount; i++) {
       const colors = mode === "chaotic"
         ? ["#ef4444", "#f97316", "#f59e0b"]
@@ -59,6 +60,7 @@ export default function DataFlowVisualizer({ mode, isActive }: DataFlowVisualize
     let animationId: number;
 
     const animate = () => {
+      if (!isMounted) return;
       if (!isActive) {
         animationId = requestAnimationFrame(animate);
         return;
@@ -137,6 +139,7 @@ export default function DataFlowVisualizer({ mode, isActive }: DataFlowVisualize
     animate();
 
     return () => {
+      isMounted = false;
       if (animationId) {
         cancelAnimationFrame(animationId);
       }

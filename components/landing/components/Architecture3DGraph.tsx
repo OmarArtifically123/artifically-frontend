@@ -215,8 +215,11 @@ export default function Architecture3DGraph({
     // Animation loop
     let animationId: number;
     const clock = new THREE.Clock();
+    let isMounted = true;
 
     function animate() {
+      if (!isMounted) return;
+      
       const elapsedTime = clock.getElapsedTime();
 
       // Update controls
@@ -264,7 +267,9 @@ export default function Architecture3DGraph({
 
     // Cleanup
     return () => {
+      isMounted = false;
       cancelAnimationFrame(animationId);
+      sceneRef.current = null;
       window.removeEventListener("resize", handleResize);
       container.removeEventListener("click", handleClick);
 

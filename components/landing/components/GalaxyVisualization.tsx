@@ -117,6 +117,7 @@ export default function GalaxyVisualization({
     const randomness = new Float32Array(particleCount * 3);
     const orbitSpeeds = new Float32Array(particleCount);
 
+    let isMounted = true;
     for (let i = 0; i < particleCount; i++) {
       const i3 = i * 3;
       
@@ -202,6 +203,7 @@ export default function GalaxyVisualization({
     let animationId: number;
 
     function animate() {
+      if (!isMounted) return;
       const elapsedTime = clock.getElapsedTime();
 
       // Update shader uniforms
@@ -231,6 +233,7 @@ export default function GalaxyVisualization({
 
     // Cleanup
     return () => {
+      isMounted = false;
       cancelAnimationFrame(animationId);
       window.removeEventListener("resize", handleResize);
       controls.dispose();

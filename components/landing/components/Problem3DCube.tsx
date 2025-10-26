@@ -199,7 +199,9 @@ export default function Problem3DCube({ faces, onFaceChange }: Problem3DCubeProp
 
     // Cleanup
     return () => {
+      isMounted = false;
       cancelAnimationFrame(animationId);
+      sceneRef.current = null;
       window.removeEventListener("resize", handleResize);
       container.removeEventListener("mousedown", handleMouseDown);
       container.removeEventListener("mousemove", handleMouseMove);
