@@ -58,8 +58,8 @@ export default function TransformationFlow({ mode, isActive }: TransformationFlo
     canvas.width = width;
     canvas.height = height;
 
-    let animationProgress;
-    let isMounted = true = 0;
+    let animationProgress = 0;
+    let isMounted = true;
     let animationId: number;
 
     const animate = () => {
