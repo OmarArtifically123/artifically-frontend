@@ -3,7 +3,7 @@
 import React, { useRef, useEffect, useState, useCallback, useMemo } from "react";
 import { useFrame, useThree } from "@react-three/fiber";
 import * as THREE from "three";
-import { EffectComposer, Bloom, DepthOfField, Vignette } from "@react-three/postprocessing";
+import { EffectComposer, Bloom, Vignette } from "@react-three/postprocessing";
 import { useReducedMotion } from "framer-motion";
 import HeroParticleSystem from "./HeroParticleSystem";
 import HeroGeometricShapes from "./HeroGeometricShapes";
@@ -286,7 +286,6 @@ export default function HeroScene({
           streams: true,
           postProcessing: true,
           bloomIntensity: 2.5,
-          dof: true,
         };
       case "high":
         return {
@@ -298,7 +297,6 @@ export default function HeroScene({
           streams: false,
           postProcessing: true,
           bloomIntensity: 1.5,
-          dof: false,
         };
       case "medium":
         return {
@@ -310,7 +308,6 @@ export default function HeroScene({
           streams: false,
           postProcessing: false,
           bloomIntensity: 1.0,
-          dof: false,
         };
       default: // low
         return {
@@ -322,7 +319,6 @@ export default function HeroScene({
           streams: false,
           postProcessing: false,
           bloomIntensity: 0.5,
-          dof: false,
         };
     }
   }, [qualityTier]);
@@ -419,14 +415,7 @@ export default function HeroScene({
               radius={0.8}
             />
             
-            {qualitySettings.dof ? (
-              <DepthOfField
-                focusDistance={0.05}
-                focalLength={0.1}
-                bokehScale={2}
-                height={480}
-              />
-            ) : null}
+            {/* DoF removed - was causing unexpected blur */}
             
             <Vignette
               offset={0.3}

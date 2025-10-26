@@ -194,31 +194,31 @@ export default function HeroGeometricShapes({
 
       wireframe.rotation.copy(mesh.rotation);
 
+      // Calculate all position offsets from BASE position to avoid accumulation
+      
       // Floating motion with sine wave
       const floatOffset = Math.sin(clockRef.current * config.floatSpeed + config.delay) * config.floatAmplitude;
-      const newY = config.position.y + floatOffset;
-      mesh.position.y = newY;
-      wireframe.position.y = newY;
-
+      
       // Horizontal drift
       const driftX = Math.cos(clockRef.current * 0.3 + config.delay * 0.5) * 15;
       const driftZ = Math.sin(clockRef.current * 0.25 + config.delay * 0.7) * 20;
-      mesh.position.x = config.position.x + driftX;
-      mesh.position.z = config.position.z + driftZ;
-      wireframe.position.x = mesh.position.x;
-      wireframe.position.z = mesh.position.z;
-
+      
       // Mouse parallax (shapes move opposite to mouse for depth)
+      let parallaxX = 0;
+      let parallaxY = 0;
       if (mouseState) {
         const mouseInfluence = 0.3;
-        const parallaxX = (mouseState.current.position.x - 0.5) * -100 * mouseInfluence;
-        const parallaxY = (mouseState.current.position.y - 0.5) * -80 * mouseInfluence;
-
-        mesh.position.x += parallaxX;
-        mesh.position.y += parallaxY;
-        wireframe.position.x = mesh.position.x;
-        wireframe.position.y = mesh.position.y;
+        parallaxX = (mouseState.current.position.x - 0.5) * -100 * mouseInfluence;
+        parallaxY = (mouseState.current.position.y - 0.5) * -80 * mouseInfluence;
       }
+      
+      // Apply all offsets to BASE position (prevents glitching/teleporting)
+      mesh.position.x = config.position.x + driftX + parallaxX;
+      mesh.position.y = config.position.y + floatOffset + parallaxY;
+      mesh.position.z = config.position.z + driftZ;
+      
+      // Sync wireframe
+      wireframe.position.copy(mesh.position);
 
       // Subtle scale pulsing
       const scalePulse = 1.0 + Math.sin(clockRef.current * 0.5 + config.delay) * 0.05;
