@@ -2,7 +2,7 @@
 
 import { useId } from "react";
 
-const WORDMARK_WIDTH = 300;
+const WORDMARK_WIDTH = 360;
 
 // Infinity symbol path - same for all themes
 const INFINITY_PATH =
@@ -45,25 +45,25 @@ function getThemeColors(variant) {
   if (variant === "contrast") {
     // CONTRAST THEME: Electric, sharp, maximum saturation
     return {
-      glyphStart: "#00eaff",
-      glyphMid: "#ff00ff",
-      glyphEnd: "#ffff00",
-      accent: "#00ffe0",
-      nodes: "#00d4ff",
-      nodeOutline: "rgba(0, 234, 255, 0.8)",
-      aurora: "rgba(0, 234, 255, 0.6)",
-      plasma: "rgba(255, 0, 255, 0.5)",
-      grid: "#00eaff",
+      glyphStart: "#00f0ff",
+      glyphMid: "#66fbff",
+      glyphEnd: "#ffffff",
+      accent: "#00f0ff",
+      nodes: "#00f0ff",
+      nodeOutline: "rgba(0, 240, 255, 0.85)",
+      aurora: "rgba(0, 240, 255, 0.6)",
+      plasma: "rgba(0, 120, 160, 0.45)",
+      grid: "#00f0ff",
       textGradientStart: "#ffffff",
-      textGradientMid: "#00eaff",
+      textGradientMid: "#00f0ff",
       textGradientEnd: "#ffffff",
-      textOutline: "none",
+      textOutline: "rgba(0, 240, 255, 0.55)",
       tagline: "#ffffff",
-      taglineGlow: "rgba(0, 234, 255, 0.4)",
-      glow: "#00eaff",
+      taglineGlow: "rgba(0, 240, 255, 0.35)",
+      glow: "#00f0ff",
       depthStart: "rgba(0, 0, 0, 0.6)",
-      depthMid: "rgba(0, 234, 255, 0.2)",
-      depthEnd: "rgba(255, 0, 255, 0.2)",
+      depthMid: "rgba(0, 240, 255, 0.24)",
+      depthEnd: "rgba(0, 200, 255, 0.2)",
     };
   } else if (variant === "light") {
     // LIGHT THEME: Professional, vibrant, modern
@@ -354,15 +354,14 @@ export default function LogoWordmark({ variant = "light", className, ...props })
         <text
           x="0"
           y="0"
-          fontFamily="var(--font-sans, 'Inter', 'Segoe UI', 'Helvetica Neue', sans-serif)"
+          fontFamily="var(--brand-logo-font-family, var(--font-inter), 'Inter', 'Segoe UI', 'Helvetica Neue', sans-serif)"
           fontSize="40"
-          fontWeight="800"
+          fontWeight="680"
+          letterSpacing="0.14em"
           fill={`url(#${getId("text")})`}
           stroke={colors.textOutline !== "none" ? colors.textOutline : "none"}
-          strokeWidth={colors.textOutline !== "none" ? "1.2" : "0"}
-          style={{ paintOrder: "stroke fill" }}
-          textLength={WORDMARK_WIDTH}
-          lengthAdjust="spacingAndGlyphs"
+          strokeWidth={colors.textOutline !== "none" ? "0.8" : "0"}
+          style={{ paintOrder: "stroke fill", textRendering: "optimizeLegibility" }}
         >
           ARTIFICALLY
         </text>

@@ -71,53 +71,10 @@ const MarkGlyph = () => (
 );
 
 const WordmarkGlyph = () => (
-  <g className="ai-brand__wordmark" fill="none" strokeLinecap="round" strokeLinejoin="round">
-    <g transform="translate(0 0)">
-      <path d="M2 30L11 2L20 30" />
-      <path d="M6.8 19H15.2" />
-    </g>
-    <g transform="translate(26 0)">
-      <path d="M2 30V2H12.6C18.2 2 22 6.4 22 11.4C22 16.6 18 21 12.6 21H2" />
-      <path d="M12.6 21L22 30" />
-    </g>
-    <g transform="translate(54 0)">
-      <path d="M0 2H22" />
-      <path d="M11 2V30" />
-    </g>
-    <g transform="translate(82 0)">
-      <path d="M2 2H8" />
-      <path d="M5 2V30" />
-      <path d="M2 30H8" />
-    </g>
-    <g transform="translate(96 0)">
-      <path d="M2 2V30" />
-      <path d="M2 2H20" />
-      <path d="M2 16H16" />
-    </g>
-    <g transform="translate(122 0)">
-      <path d="M2 2H8" />
-      <path d="M5 2V30" />
-      <path d="M2 30H8" />
-    </g>
-    <g transform="translate(136 0)">
-      <path d="M20 6C18 3 14 2 10 2C4 2 2 8.3 2 16C2 23.7 4 30 10 30C14 30 18 28 20 25" />
-    </g>
-    <g transform="translate(162 0)">
-      <path d="M2 30L11 2L20 30" />
-      <path d="M6.8 19H15.2" />
-    </g>
-    <g transform="translate(188 0)">
-      <path d="M2 2V30" />
-      <path d="M2 30H20" />
-    </g>
-    <g transform="translate(212 0)">
-      <path d="M2 2V30" />
-      <path d="M2 30H20" />
-    </g>
-    <g transform="translate(236 0)">
-      <path d="M0 2L11 16L22 2" />
-      <path d="M11 16V30" />
-    </g>
+  <g className="ai-brand__wordmark" aria-label="Artifically">
+    <text className="ai-brand__wordmark-text" x={0} y={28}>
+      ARTIFICALLY
+    </text>
   </g>
 );
 

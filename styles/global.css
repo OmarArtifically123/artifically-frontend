@@ -28,16 +28,19 @@
 html {
   font-size: 14px;
   overflow-x: hidden;
-  overflow-y: scroll;
+  overflow-y: auto;
   width: 100%;
+  min-height: 100%;
+  scrollbar-gutter: stable both-edges;
 }
 
 body {
   font-size: 1rem;
   line-height: var(--responsive-body-line-height-mobile);
   overflow-x: hidden;
-  overflow-y: visible;
+  overflow-y: auto;
   width: 100%;
+  min-height: 100%;
   margin: 0;
   padding: 0;
 }
@@ -2339,7 +2342,12 @@ main :where(section, div)[id] {
   --brand-logo-focus-ring: #0e7ce3;
   --brand-logo-flow-width: 3.8;
   --brand-logo-bridge-width: 2.8;
-  --brand-logo-word-stroke: 2.8;
+  --brand-logo-word-stroke: 0.8;
+  --brand-logo-font-family: var(--font-inter), "Inter", "Segoe UI", "Helvetica Neue", Arial, sans-serif;
+  --brand-logo-font-weight: 650;
+  --brand-logo-font-size: 30px;
+  --brand-logo-letter-spacing: 0.18em;
+  --brand-logo-word-outline: rgba(5, 18, 37, 0.28);
 }
 
 [data-theme="dark"] {
@@ -2361,29 +2369,35 @@ main :where(section, div)[id] {
   --brand-logo-focus-ring: #8ae8ff;
   --brand-logo-flow-width: 3.4;
   --brand-logo-bridge-width: 2.6;
-  --brand-logo-word-stroke: 2.6;
+  --brand-logo-word-stroke: 0.7;
+  --brand-logo-font-weight: 660;
+  --brand-logo-letter-spacing: 0.2em;
+  --brand-logo-word-outline: rgba(58, 140, 255, 0.32);
 }
 
 [data-theme="contrast"] {
   --brand-logo-word: #ffffff;
-  --brand-logo-loop: #000000;
-  --brand-logo-loop-active: #000000;
-  --brand-logo-loop-highlight: #00eaff;
-  --brand-logo-loop-highlight-active: #00eaff;
+  --brand-logo-loop: #04090e;
+  --brand-logo-loop-active: #04090e;
+  --brand-logo-loop-highlight: #00f0ff;
+  --brand-logo-loop-highlight-active: #00f0ff;
   --brand-logo-bridge: #ffffff;
   --brand-logo-bridge-active: #ffffff;
   --brand-logo-core: #ffffff;
-  --brand-logo-node-intake: #00eaff;
+  --brand-logo-node-intake: #00f0ff;
   --brand-logo-node-orchestrate: #ffffff;
-  --brand-logo-node-handoff: #00eaff;
+  --brand-logo-node-handoff: #00f0ff;
   --brand-logo-node-resolve: #ffffff;
-  --brand-logo-node-active: #00eaff;
-  --brand-logo-halo: rgba(0, 0, 0, 0);
-  --brand-logo-halo-active: rgba(0, 234, 255, 0.22);
-  --brand-logo-focus-ring: #00eaff;
+  --brand-logo-node-active: #00f0ff;
+  --brand-logo-halo: rgba(0, 0, 0, 0.12);
+  --brand-logo-halo-active: rgba(0, 240, 255, 0.32);
+  --brand-logo-focus-ring: #00f0ff;
   --brand-logo-flow-width: 3.6;
   --brand-logo-bridge-width: 2.4;
-  --brand-logo-word-stroke: 3.1;
+  --brand-logo-word-stroke: 1.05;
+  --brand-logo-font-weight: 680;
+  --brand-logo-letter-spacing: 0.22em;
+  --brand-logo-word-outline: rgba(0, 240, 255, 0.6);
 }
 
 .ai-brand {
@@ -2413,7 +2427,7 @@ main :where(section, div)[id] {
   --logo-focus-ring: var(--brand-logo-focus-ring);
   --logo-flow-width: var(--brand-logo-flow-width, 3.6);
   --logo-bridge-width: var(--brand-logo-bridge-width, 2.6);
-  --logo-word-stroke: var(--brand-logo-word-stroke, 2.8);
+  --logo-word-stroke: var(--brand-logo-word-stroke, 0.8);
   --logo-node-scale-hover: 1.05;
   display: inline-block;
   color: var(--logo-word);
@@ -2506,10 +2520,21 @@ main :where(section, div)[id] {
 }
 
 .ai-brand__wordmark {
-  stroke: var(--logo-word);
-  stroke-width: var(--logo-word-stroke);
   fill: none;
-  transition: stroke 220ms ease;
+}
+
+.ai-brand__wordmark-text {
+  font-family: var(--brand-logo-font-family);
+  font-weight: var(--brand-logo-font-weight);
+  font-size: var(--brand-logo-font-size);
+  letter-spacing: var(--brand-logo-letter-spacing);
+  text-transform: uppercase;
+  fill: var(--logo-word);
+  stroke: var(--brand-logo-word-outline, transparent);
+  stroke-width: var(--logo-word-stroke, 0);
+  paint-order: stroke fill;
+  text-rendering: optimizeLegibility;
+  transition: fill 220ms ease, stroke 220ms ease, letter-spacing 220ms ease;
 }
 
 @media (prefers-reduced-motion: no-preference) {
