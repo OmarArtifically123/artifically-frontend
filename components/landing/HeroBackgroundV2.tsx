@@ -391,7 +391,7 @@ export default function HeroBackgroundV2({
               }}
               dpr={deviceTier === "high" ? [1, 2] : 1}
               gl={{
-                antialias: deviceTier !== "low",
+                antialias: true, // Always true here since low-tier devices use fallback
                 alpha: true,
                 powerPreference: deviceTier === "high" ? "high-performance" : "default",
                 precision: deviceTier === "high" ? "highp" : "mediump",
