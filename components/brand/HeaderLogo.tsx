@@ -1,13 +1,12 @@
 "use client";
 
 import Link from "next/link";
-import { useBreakpoint, usePrefersReducedMotion } from "@/hooks/useBreakpoint";
+import { useBreakpoint } from "@/hooks/useBreakpoint";
 import { BrandLogo } from "./BrandLogo";
 import { CSSProperties, MouseEvent } from "react";
 
 export default function HeaderLogo({ onClick }: { onClick?: (event: MouseEvent<HTMLAnchorElement>) => void }) {
   const { isMobile, isTablet } = useBreakpoint();
-  const reduceMotion = usePrefersReducedMotion();
 
   let variant: "icon" | "compact" | "full" = "full";
   if (isMobile) variant = "icon";
@@ -30,7 +29,7 @@ export default function HeaderLogo({ onClick }: { onClick?: (event: MouseEvent<H
     >
       <BrandLogo
         variant={variant}
-        interactive={!reduceMotion}
+        interactive={false}
         className="ai-brand"
         style={sizeStyles}
       />
