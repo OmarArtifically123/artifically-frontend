@@ -4,8 +4,6 @@ import { useState, useRef } from "react";
 import { motion } from "framer-motion";
 import useInViewState from "@/hooks/useInViewState";
 import LiveMetricsDashboard from "./components/LiveMetricsDashboard";
-import Chart3D from "./components/Chart3D";
-import CustomerSpotlightCarousel from "./components/CustomerSpotlightCarousel";
 import IndustryFilter from "./components/IndustryFilter";
 import BeforeAfterComparison from "./components/BeforeAfterComparison";
 import TrustBadges from "./components/TrustBadges";
@@ -50,66 +48,6 @@ const LIVE_METRICS = [
   },
 ];
 
-const CUSTOMERS = [
-  {
-    id: "fintech",
-    company: "Leading Financial Services",
-    industry: "FinTech",
-    size: "Fortune 500",
-    summary: "Automated financial close process, reducing cycle time by 35% while achieving 99.98% accuracy. Saved $420K annually in manual processing costs.",
-    roi: 6.2,
-    timeToRoi: "8 weeks",
-    metrics: [
-      { label: "Cost Reduction", value: "61%", color: "#10b981" },
-      { label: "Cycle Time", value: "-35%", color: "#06b6d4" },
-      { label: "Accuracy", value: "99.98%", color: "#f59e0b" },
-    ],
-    testimonial: {
-      quote: "The AI catches discrepancies we'd never spot manually. It's transformed our month-end close.",
-      author: "Sarah Chen",
-      role: "CFO",
-    },
-  },
-  {
-    id: "retail",
-    company: "Top 50 Global Retailer",
-    industry: "Retail",
-    size: "200+ locations",
-    summary: "Optimized supply chain and inventory management with AI-powered demand forecasting. Improved accuracy by 87% and reduced stockouts by 71%.",
-    roi: 4.4,
-    timeToRoi: "6 weeks",
-    metrics: [
-      { label: "Forecast Accuracy", value: "94.2%", color: "#8b5cf6" },
-      { label: "Processing Time", value: "-71%", color: "#06b6d4" },
-      { label: "Stockouts", value: "-71%", color: "#10b981" },
-    ],
-    testimonial: {
-      quote: "Demand forecasting is 87% more accurate. We're stocking exactly what customers want, when they want it.",
-      author: "Michael Rodriguez",
-      role: "COO",
-    },
-  },
-  {
-    id: "healthcare",
-    company: "Fortune 500 Healthcare Provider",
-    industry: "Healthcare",
-    size: "50+ facilities",
-    summary: "Automated patient care coordination across 50 facilities, improving outcomes by 23% while reducing administrative time by 68%.",
-    roi: 5.8,
-    timeToRoi: "10 weeks",
-    metrics: [
-      { label: "Patient Outcomes", value: "+23%", color: "#10b981" },
-      { label: "Admin Time", value: "-68%", color: "#0ea5e9" },
-      { label: "Compliance", value: "100%", color: "#f59e0b" },
-    ],
-    testimonial: {
-      quote: "Patient outcomes improved 23% while freeing our staff to focus on care instead of paperwork.",
-      author: "Dr. Jennifer Park",
-      role: "Chief Medical Officer",
-    },
-  },
-];
-
 const INDUSTRY_FILTERS = [
   { id: "finance", label: "Finance", icon: "💼", count: 127 },
   { id: "healthcare", label: "Healthcare", icon: "🏥", count: 89 },
@@ -149,15 +87,6 @@ const BEFORE_AFTER = [
     improvement: "92%",
     color: "#f59e0b",
   },
-];
-
-const CHART_DATA = [
-  { label: "Month 1", value: 15, color: "#06b6d4" },
-  { label: "Month 2", value: 32, color: "#0ea5e9" },
-  { label: "Month 3", value: 48, color: "#06b6d4" },
-  { label: "Month 4", value: 67, color: "#0ea5e9" },
-  { label: "Month 5", value: 85, color: "#06b6d4" },
-  { label: "Month 6", value: 94, color: "#0ea5e9" },
 ];
 
 /**
@@ -237,20 +166,6 @@ export default function ProvenAtScale() {
           <BeforeAfterComparison metrics={BEFORE_AFTER} isActive={isInView} />
         </motion.div>
 
-        {/* 3D Chart */}
-        <motion.div
-          className="mb-16"
-          initial={{ opacity: 0 }}
-          animate={isInView ? { opacity: 1 } : { opacity: 0 }}
-          transition={{ duration: 0.6, delay: 0.4 }}
-        >
-          <Chart3D
-            data={CHART_DATA}
-            type="bar"
-            title="Customer Growth Over 6 Months"
-          />
-        </motion.div>
-
         {/* Industry Filter */}
         <motion.div
           className="mb-8"
@@ -263,19 +178,6 @@ export default function ProvenAtScale() {
             activeFilters={activeFilters}
             onToggle={handleFilterToggle}
           />
-        </motion.div>
-
-        {/* Customer Spotlight */}
-        <motion.div
-          className="mb-16"
-          initial={{ opacity: 0 }}
-          animate={isInView ? { opacity: 1 } : { opacity: 0 }}
-          transition={{ duration: 0.6, delay: 0.6 }}
-        >
-          <h3 className="text-2xl font-bold text-white mb-6 text-center">
-            Customer Success Stories
-          </h3>
-          <CustomerSpotlightCarousel customers={CUSTOMERS} isActive={isInView} />
         </motion.div>
 
         {/* Trust Badges */}

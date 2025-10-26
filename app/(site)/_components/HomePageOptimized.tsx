@@ -63,24 +63,10 @@ const ProvenAtScale = dynamic(
   }
 );
 
-const IntegrationEcosystemGalaxy = dynamic(
-  () => import("@/components/landing/IntegrationEcosystemGalaxy"),
-  {
-    loading: () => <SectionSkeleton height="900px" />,
-  }
-);
-
 const TransformationVisualizerV2 = dynamic(
   () => import("@/components/landing/TransformationVisualizerV2"),
   {
     loading: () => <SectionSkeleton height="800px" />,
-  }
-);
-
-const TrustSecurityFortress = dynamic(
-  () => import("@/components/landing/TrustSecurityFortress"),
-  {
-    loading: () => <SectionSkeleton height="750px" variant="grid" />,
   }
 );
 
@@ -193,20 +179,7 @@ export default function HomePageOptimized() {
           </SectionTransition>
         </LazySection>
 
-        {/* Section 6: Lower Priority - 3D Heavy */}
-        <LazySection
-          minHeight="900px"
-          rootMargin="200px"
-          strategy="lazy"
-          priority={5}
-          fallback={<SectionSkeleton height="900px" />}
-        >
-          <SectionTransition>
-            <IntegrationEcosystemGalaxy />
-          </SectionTransition>
-        </LazySection>
-
-        {/* Section 7: Lower Priority */}
+        {/* Section 6: Transformation Visualizer V2 */}
         <LazySection
           minHeight="800px"
           rootMargin="200px"
@@ -216,19 +189,6 @@ export default function HomePageOptimized() {
         >
           <SectionTransition>
             <TransformationVisualizerV2 />
-          </SectionTransition>
-        </LazySection>
-
-        {/* Section 8: Lowest Priority - Load on idle or when near viewport */}
-        <LazySection
-          minHeight="750px"
-          rootMargin="100px"
-          strategy="lazy"
-          priority={3}
-          fallback={<SectionSkeleton height="750px" variant="grid" />}
-        >
-          <SectionTransition>
-            <TrustSecurityFortress />
           </SectionTransition>
         </LazySection>
       </div>
