@@ -225,3 +225,4 @@ function ResultCard({ icon, label, value, color, isActive, delay }: ResultCardPr
   );
 }
 
+

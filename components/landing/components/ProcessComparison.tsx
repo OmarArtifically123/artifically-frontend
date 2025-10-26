@@ -105,3 +105,4 @@ export default function ProcessComparison({ items, isActive }: ProcessComparison
   );
 }
 
+

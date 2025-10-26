@@ -66,3 +66,4 @@ export default function TrustBadges({ badges, isActive }: TrustBadgesProps) {
 
 
 
+

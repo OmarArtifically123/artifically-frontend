@@ -93,3 +93,4 @@ export default function IndustryFilter({ options, activeFilters, onToggle }: Ind
 
 
 
+

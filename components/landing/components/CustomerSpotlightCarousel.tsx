@@ -187,3 +187,4 @@ export default function CustomerSpotlightCarousel({ customers, isActive }: Custo
 
 
 
+

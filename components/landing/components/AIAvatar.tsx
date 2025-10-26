@@ -165,3 +165,4 @@ export default function AIAvatar({ role, color, icon, isActive }: AIAvatarProps)
 
 
 
+
