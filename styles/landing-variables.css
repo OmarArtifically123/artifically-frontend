@@ -1,0 +1,188 @@
+/**
+ * CSS Custom Properties (Variables) for Landing Page
+ * Provides consistent theming and easy customization
+ */
+
+:root {
+  /* Colors - Primary Palette */
+  --landing-primary-50: rgba(239, 246, 255, 1);
+  --landing-primary-100: rgba(219, 234, 254, 1);
+  --landing-primary-200: rgba(191, 219, 254, 1);
+  --landing-primary-300: rgba(147, 197, 253, 1);
+  --landing-primary-400: rgba(96, 165, 250, 1);
+  --landing-primary-500: rgba(59, 130, 246, 1);
+  --landing-primary-600: rgba(37, 99, 235, 1);
+  --landing-primary-700: rgba(29, 78, 216, 1);
+  --landing-primary-800: rgba(30, 64, 175, 1);
+  --landing-primary-900: rgba(30, 58, 138, 1);
+
+  /* Colors - Accent Palette */
+  --landing-accent-purple: rgba(139, 92, 246, 1);
+  --landing-accent-pink: rgba(236, 72, 153, 1);
+  --landing-accent-cyan: rgba(6, 182, 212, 1);
+  --landing-accent-green: rgba(16, 185, 129, 1);
+  --landing-accent-amber: rgba(245, 158, 11, 1);
+
+  /* Background Colors */
+  --landing-bg-primary: rgba(10, 10, 20, 1);
+  --landing-bg-secondary: rgba(15, 15, 30, 1);
+  --landing-bg-tertiary: rgba(20, 20, 40, 1);
+  --landing-bg-card: rgba(30, 30, 50, 0.5);
+  --landing-bg-overlay: rgba(0, 0, 0, 0.5);
+
+  /* Text Colors */
+  --landing-text-primary: rgba(255, 255, 255, 1);
+  --landing-text-secondary: rgba(226, 232, 240, 1);
+  --landing-text-muted: rgba(148, 163, 184, 1);
+  --landing-text-disabled: rgba(71, 85, 105, 1);
+
+  /* Border Colors */
+  --landing-border-light: rgba(71, 85, 105, 0.3);
+  --landing-border-medium: rgba(71, 85, 105, 0.5);
+  --landing-border-strong: rgba(71, 85, 105, 0.7);
+
+  /* Shadow Values */
+  --landing-shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+  --landing-shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+  --landing-shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+  --landing-shadow-xl: 0 20px 25px -5px rgba(0, 0, 0, 0.1);
+  --landing-shadow-2xl: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
+  --landing-shadow-glow: 0 0 20px rgba(59, 130, 246, 0.3);
+
+  /* Spacing Scale */
+  --landing-space-xs: 0.25rem;
+  --landing-space-sm: 0.5rem;
+  --landing-space-md: 1rem;
+  --landing-space-lg: 1.5rem;
+  --landing-space-xl: 2rem;
+  --landing-space-2xl: 3rem;
+  --landing-space-3xl: 4rem;
+  --landing-space-4xl: 6rem;
+
+  /* Typography */
+  --landing-font-sans: ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+  --landing-font-mono: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+
+  /* Font Sizes */
+  --landing-text-xs: 0.75rem;
+  --landing-text-sm: 0.875rem;
+  --landing-text-base: 1rem;
+  --landing-text-lg: 1.125rem;
+  --landing-text-xl: 1.25rem;
+  --landing-text-2xl: 1.5rem;
+  --landing-text-3xl: 1.875rem;
+  --landing-text-4xl: 2.25rem;
+  --landing-text-5xl: 3rem;
+  --landing-text-6xl: 3.75rem;
+  --landing-text-7xl: 4.5rem;
+
+  /* Line Heights */
+  --landing-leading-tight: 1.25;
+  --landing-leading-normal: 1.5;
+  --landing-leading-relaxed: 1.75;
+  --landing-leading-loose: 2;
+
+  /* Border Radius */
+  --landing-radius-sm: 0.25rem;
+  --landing-radius-md: 0.375rem;
+  --landing-radius-lg: 0.5rem;
+  --landing-radius-xl: 0.75rem;
+  --landing-radius-2xl: 1rem;
+  --landing-radius-3xl: 1.5rem;
+  --landing-radius-full: 9999px;
+
+  /* Z-Index Layers */
+  --landing-z-base: 0;
+  --landing-z-dropdown: 1000;
+  --landing-z-sticky: 1020;
+  --landing-z-fixed: 1030;
+  --landing-z-modal-backdrop: 1040;
+  --landing-z-modal: 1050;
+  --landing-z-popover: 1060;
+  --landing-z-tooltip: 1070;
+
+  /* Transitions */
+  --landing-transition-fast: 150ms;
+  --landing-transition-base: 300ms;
+  --landing-transition-slow: 500ms;
+  --landing-transition-timing: cubic-bezier(0.4, 0, 0.2, 1);
+
+  /* 3D Perspective */
+  --landing-perspective: 1000px;
+  --landing-perspective-far: 2000px;
+
+  /* Blur Effects */
+  --landing-blur-sm: 4px;
+  --landing-blur-md: 8px;
+  --landing-blur-lg: 12px;
+  --landing-blur-xl: 20px;
+
+  /* Gradients */
+  --landing-gradient-primary: linear-gradient(135deg, var(--landing-primary-500), var(--landing-accent-purple));
+  --landing-gradient-accent: linear-gradient(135deg, var(--landing-accent-cyan), var(--landing-accent-purple), var(--landing-accent-pink));
+  --landing-gradient-dark: linear-gradient(180deg, var(--landing-bg-primary), var(--landing-bg-secondary));
+  --landing-gradient-glow: radial-gradient(circle, rgba(59, 130, 246, 0.1), transparent);
+
+  /* Container Widths */
+  --landing-container-sm: 640px;
+  --landing-container-md: 768px;
+  --landing-container-lg: 1024px;
+  --landing-container-xl: 1280px;
+  --landing-container-2xl: 1536px;
+
+  /* Animations */
+  --landing-animation-spin: spin 1s linear infinite;
+  --landing-animation-pulse: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+  --landing-animation-bounce: bounce 1s infinite;
+}
+
+/* Dark mode overrides (if needed) */
+@media (prefers-color-scheme: dark) {
+  :root {
+    /* Already optimized for dark mode */
+  }
+}
+
+/* Light mode overrides (if implementing light mode) */
+[data-theme="light"] {
+  --landing-bg-primary: rgba(255, 255, 255, 1);
+  --landing-bg-secondary: rgba(248, 250, 252, 1);
+  --landing-bg-tertiary: rgba(241, 245, 249, 1);
+  --landing-bg-card: rgba(255, 255, 255, 0.9);
+
+  --landing-text-primary: rgba(15, 23, 42, 1);
+  --landing-text-secondary: rgba(51, 65, 85, 1);
+  --landing-text-muted: rgba(100, 116, 139, 1);
+  --landing-text-disabled: rgba(203, 213, 225, 1);
+
+  --landing-border-light: rgba(226, 232, 240, 1);
+  --landing-border-medium: rgba(203, 213, 225, 1);
+  --landing-border-strong: rgba(148, 163, 184, 1);
+}
+
+/* Utility: Apply landing page container */
+.landing-container {
+  max-width: var(--landing-container-2xl);
+  margin-left: auto;
+  margin-right: auto;
+  padding-left: var(--landing-space-md);
+  padding-right: var(--landing-space-md);
+}
+
+@media (min-width: 640px) {
+  .landing-container {
+    padding-left: var(--landing-space-lg);
+    padding-right: var(--landing-space-lg);
+  }
+}
+
+@media (min-width: 1024px) {
+  .landing-container {
+    padding-left: var(--landing-space-2xl);
+    padding-right: var(--landing-space-2xl);
+  }
+}
+
+
+
+

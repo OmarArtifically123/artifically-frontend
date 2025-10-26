@@ -81,35 +81,35 @@ export default function HeroGeometricShapes({
     
     return [
       {
-        // Icosahedron - Large, center-left
-        geometry: new THREE.IcosahedronGeometry(80, detailLevel),
-        position: new THREE.Vector3(-250, 100, -100),
+        // Icosahedron - Smaller, visible left side
+        geometry: new THREE.IcosahedronGeometry(50, detailLevel),
+        position: new THREE.Vector3(-180, 60, -80),
         scale: 1.0,
         rotationSpeed: new THREE.Vector3(0.001, 0.0015, 0.0008),
         floatSpeed: 0.8,
-        floatAmplitude: 30,
+        floatAmplitude: 25,
         wireframeColor: wireframeColors.primary,
         delay: 0,
       },
       {
-        // Octahedron - Medium, top-right
-        geometry: new THREE.OctahedronGeometry(60, detailLevel),
-        position: new THREE.Vector3(200, -80, 50),
+        // Octahedron - Smaller, visible right side
+        geometry: new THREE.OctahedronGeometry(40, detailLevel),
+        position: new THREE.Vector3(160, -50, 40),
         scale: 1.0,
         rotationSpeed: new THREE.Vector3(-0.0012, 0.001, -0.001),
         floatSpeed: 1.2,
-        floatAmplitude: 40,
+        floatAmplitude: 30,
         wireframeColor: wireframeColors.secondary,
         delay: 1.0,
       },
       {
-        // Dodecahedron - Small, bottom-center
-        geometry: new THREE.DodecahedronGeometry(50, detailLevel),
-        position: new THREE.Vector3(50, 180, -50),
+        // Dodecahedron - Smaller, visible upper center
+        geometry: new THREE.DodecahedronGeometry(35, detailLevel),
+        position: new THREE.Vector3(20, 120, -40),
         scale: 1.0,
         rotationSpeed: new THREE.Vector3(0.0008, -0.0012, 0.0015),
         floatSpeed: 1.0,
-        floatAmplitude: 25,
+        floatAmplitude: 20,
         wireframeColor: wireframeColors.tertiary,
         delay: 2.0,
       },

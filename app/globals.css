@@ -2,4 +2,9 @@
 @import "../styles/global.css";
 @import "../styles/landing.css";
 @import "../styles/enterprise.css";
+
+/* New 10x Enhanced Landing Page Styles */
+@import "../styles/landing-variables.css";
+@import "../styles/landing-animations.css";
+@import "../styles/landing-3d.css";
 /* stylelint-enable at-rule-no-unknown */

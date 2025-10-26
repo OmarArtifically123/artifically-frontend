@@ -323,11 +323,11 @@ export default function HeroScene({
     }
   }, [qualityTier]);
 
-  // Get geometric shapes positions for collision detection
+  // Get geometric shapes positions for collision detection (matches HeroGeometricShapes)
   const geometricShapes = useMemo(() => [
-    { position: new THREE.Vector3(-250, 100, -100), radius: 80 },
-    { position: new THREE.Vector3(200, -80, 50), radius: 60 },
-    { position: new THREE.Vector3(50, 180, -50), radius: 50 },
+    { position: new THREE.Vector3(-180, 60, -80), radius: 50 },
+    { position: new THREE.Vector3(160, -50, 40), radius: 40 },
+    { position: new THREE.Vector3(20, 120, -40), radius: 35 },
   ], []);
 
   return (

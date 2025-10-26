@@ -1,0 +1,204 @@
+/* Transformation Timeline Journey Styles */
+
+.section {
+  position: relative;
+  padding: 5rem 1rem;
+  overflow: hidden;
+  background: linear-gradient(180deg, rgba(15, 15, 30, 0.5), rgba(10, 10, 20, 0.3));
+}
+
+@media (min-width: 640px) {
+  .section {
+    padding: 6rem 1.5rem;
+  }
+}
+
+@media (min-width: 1024px) {
+  .section {
+    padding: 8rem 2rem;
+  }
+}
+
+.background {
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+  pointer-events: none;
+  z-index: 0;
+}
+
+.glowOrb {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: 700px;
+  height: 700px;
+  border-radius: 50%;
+  filter: blur(120px);
+  opacity: 0.3;
+  transition: background 0.8s ease-out;
+  animation: pulse-rotate 8s ease-in-out infinite;
+}
+
+@keyframes pulse-rotate {
+  0%, 100% {
+    opacity: 0.3;
+    transform: translate(-50%, -50%) scale(1);
+  }
+  50% {
+    opacity: 0.5;
+    transform: translate(-50%, -50%) scale(1.1);
+  }
+}
+
+.container {
+  position: relative;
+  z-index: 10;
+  max-width: 1536px;
+  margin: 0 auto;
+}
+
+.header {
+  text-align: center;
+  margin-bottom: 3rem;
+}
+
+.badge {
+  display: inline-block;
+  font-size: 0.875rem;
+  font-weight: 600;
+  padding: 0.5rem 1rem;
+  border-radius: 9999px;
+  border: 1px solid currentColor;
+  background-color: rgba(255, 255, 255, 0.05);
+  opacity: 0.8;
+  margin-bottom: 1rem;
+}
+
+.title {
+  font-size: 2.25rem;
+  font-weight: 700;
+  color: white;
+  margin-bottom: 1rem;
+  line-height: 1.2;
+}
+
+@media (min-width: 640px) {
+  .title {
+    font-size: 3rem;
+  }
+}
+
+@media (min-width: 1024px) {
+  .title {
+    font-size: 3.75rem;
+  }
+}
+
+.titleGradient {
+  position: relative;
+  display: inline-block;
+  font-weight: 700;
+}
+
+.description {
+  font-size: 1.125rem;
+  color: rgba(148, 163, 184, 1);
+  max-width: 48rem;
+  margin: 0 auto;
+  line-height: 1.75;
+}
+
+.timelineScroll {
+  position: relative;
+  overflow-x: auto;
+  overflow-y: hidden;
+  scroll-behavior: smooth;
+  -webkit-overflow-scrolling: touch;
+  scrollbar-width: thin;
+  scrollbar-color: rgba(71, 85, 105, 0.5) transparent;
+  padding: 2rem 0;
+  margin: 0 -1rem;
+  padding-left: 1rem;
+  padding-right: 1rem;
+}
+
+.timelineScroll::-webkit-scrollbar {
+  height: 8px;
+}
+
+.timelineScroll::-webkit-scrollbar-track {
+  background: transparent;
+  border-radius: 4px;
+}
+
+.timelineScroll::-webkit-scrollbar-thumb {
+  background-color: rgba(71, 85, 105, 0.5);
+  border-radius: 4px;
+}
+
+.timelineScroll::-webkit-scrollbar-thumb:hover {
+  background-color: rgba(71, 85, 105, 0.7);
+}
+
+.ctaButton {
+  padding: 1rem 2rem;
+  font-size: 1rem;
+  font-weight: 600;
+  border-radius: 0.75rem;
+  border: 1px solid;
+  transition: all 0.3s ease;
+  cursor: pointer;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+}
+
+.ctaButton:hover {
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.3);
+}
+
+/* Smooth scroll snap for timeline */
+@supports (scroll-snap-type: x mandatory) {
+  .timelineScroll {
+    scroll-snap-type: x proximity;
+  }
+
+  .timelineScroll > div > div {
+    scroll-snap-align: center;
+  }
+}
+
+/* Reduced motion support */
+@media (prefers-reduced-motion: reduce) {
+  .glowOrb {
+    animation: none;
+  }
+
+  .timelineScroll {
+    scroll-behavior: auto;
+  }
+
+  .ctaButton {
+    transition: none;
+  }
+}
+
+/* Mobile optimizations */
+@media (max-width: 768px) {
+  .timelineScroll {
+    padding-left: 0.5rem;
+    padding-right: 0.5rem;
+  }
+
+  .title {
+    font-size: 1.875rem;
+  }
+
+  .description {
+    font-size: 1rem;
+  }
+}
+
+
+
+

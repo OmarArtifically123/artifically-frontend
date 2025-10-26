@@ -35,7 +35,6 @@
 html {
   font-size: 14px;
   overflow-x: hidden;
-  overflow-y: visible;
   width: 100%;
   min-height: 100%;
   height: auto;
@@ -45,7 +44,6 @@ body {
   font-size: 1rem;
   line-height: var(--responsive-body-line-height-mobile);
   overflow-x: hidden;
-  overflow-y: visible;
   width: 100%;
   min-height: 100vh;
   height: auto;
@@ -4281,7 +4279,6 @@ body.solutions-mega-open {
   min-height: 100vh;
   width: 100%;
   overflow-x: hidden;
-  overflow-y: visible;
   isolation: isolate;
   display: flex;
   align-items: center;
