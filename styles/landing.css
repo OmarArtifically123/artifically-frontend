@@ -532,7 +532,7 @@
   container-type: inline-size;
   container-name: hero-preview;
   view-transition-name: hero-preview;
-  overflow: hidden;
+  overflow: visible;
 }
 
 .preview-card {

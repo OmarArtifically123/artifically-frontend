@@ -575,14 +575,13 @@ export default function Footer() {
           border-radius: 16px;
           background: var(--footer-brand-bg, rgba(139, 92, 246, 0.08));
           border: 1px solid var(--footer-brand-border, rgba(139, 92, 246, 0.2));
-          transition: all 300ms cubic-bezier(0.4, 0, 0.2, 1);
+          transition: background 300ms cubic-bezier(0.4, 0, 0.2, 1),
+            border-color 300ms cubic-bezier(0.4, 0, 0.2, 1);
         }
 
         .footer-brand-link:hover {
           background: rgba(139, 92, 246, 0.15);
           border-color: rgba(139, 92, 246, 0.4);
-          transform: translateY(-2px);
-          box-shadow: 0 8px 24px rgba(139, 92, 246, 0.2);
         }
 
         .footer-brand-link:focus-visible {

@@ -305,7 +305,9 @@ export default function IntelligenceUnveiling() {
             One System,
             <br />
             <span
+              className="relative inline-block z-10"
               style={{
+                color: ROLES[activeRole].color,
                 background: `linear-gradient(90deg, ${ROLES[activeRole].color}, #06b6d4)`,
                 backgroundClip: "text",
                 WebkitBackgroundClip: "text",

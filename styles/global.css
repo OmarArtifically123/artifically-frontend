@@ -2527,6 +2527,20 @@ main :where(section, div)[id] {
     --logo-halo-color: var(--logo-halo-color-active);
   }
 
+  .site-header .ai-brand-link:hover .ai-brand--interactive,
+  .site-header .ai-brand-link:focus-visible .ai-brand--interactive {
+    --logo-loop-fill: var(--brand-logo-loop);
+    --logo-flow-color: var(--brand-logo-loop-highlight);
+    --logo-bridge-color: var(--brand-logo-bridge);
+    --logo-core-fill: var(--logo-core-base);
+    --logo-node-intake-fill: var(--logo-node-intake-base);
+    --logo-node-orchestrate-fill: var(--logo-node-orchestrate-base);
+    --logo-node-handoff-fill: var(--logo-node-handoff-base);
+    --logo-node-resolve-fill: var(--logo-node-resolve-base);
+    --logo-halo-opacity: 0;
+    --logo-halo-color: var(--brand-logo-halo);
+  }
+
   .ai-brand-link:hover .ai-brand--interactive .ai-brand__node,
   .ai-brand-link:focus-visible .ai-brand--interactive .ai-brand__node {
     transform: scale(var(--logo-node-scale-hover));

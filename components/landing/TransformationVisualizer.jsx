@@ -71,6 +71,24 @@ const TRANSFORMATIONS = [
   },
 ];
 
+function hexToRgb(hex) {
+  const sanitized = hex.replace("#", "");
+  const normalized =
+    sanitized.length === 3
+      ? sanitized
+          .split("")
+          .map((char) => char + char)
+          .join("")
+      : sanitized.slice(0, 6);
+  const intValue = Number.parseInt(normalized || "000000", 16);
+
+  return {
+    r: (intValue >> 16) & 255,
+    g: (intValue >> 8) & 255,
+    b: intValue & 255,
+  };
+}
+
 function DataFlowVisualization({ isActive, color }) {
   const canvasRef = useRef(null);
   const animationRef = useRef(null);
@@ -87,6 +105,8 @@ function DataFlowVisualization({ isActive, color }) {
     const height = canvas.clientHeight;
     canvas.width = width;
     canvas.height = height;
+
+    const { r, g, b } = hexToRgb(color);
 
     const animate = () => {
       if (!isActive) {
@@ -125,9 +145,24 @@ function DataFlowVisualization({ isActive, color }) {
 
       // Draw central transformation zone
       const zoneProgress = Math.sin(timeRef.current * 1.5) * 0.3 + 0.5;
-      const zoneOpacity = zoneProgress * 0.4;
-      ctx.fillStyle = color + Math.floor(zoneOpacity * 255).toString(16).padStart(2, "0");
-      ctx.fillRect(width * 0.35, height * 0.25, width * 0.3, height * 0.5);
+      const glowStrength = Math.min(zoneProgress * 0.5, 0.45);
+
+      ctx.save();
+      ctx.globalCompositeOperation = "lighter";
+      const gradient = ctx.createRadialGradient(
+        width / 2,
+        height / 2,
+        Math.min(width, height) * 0.08,
+        width / 2,
+        height / 2,
+        Math.min(width, height) * 0.5
+      );
+      gradient.addColorStop(0, `rgba(${r}, ${g}, ${b}, ${glowStrength})`);
+      gradient.addColorStop(0.6, `rgba(${r}, ${g}, ${b}, ${glowStrength * 0.45})`);
+      gradient.addColorStop(1, `rgba(${r}, ${g}, ${b}, 0)`);
+      ctx.fillStyle = gradient;
+      ctx.fillRect(0, 0, width, height);
+      ctx.restore();
 
       animationRef.current = requestAnimationFrame(animate);
     };
