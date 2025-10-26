@@ -63,8 +63,6 @@ export default function ROICalculator({ className, onRecommendPlan }: ROICalcula
   // Estimated platform cost based on recommended tier
   const estimatedPlatformCost = useMemo(() => {
     switch (recommendedPlan) {
-      case "free":
-        return 0;
       case "starter":
         return 99 * 12; // $99/mo
       case "professional":
