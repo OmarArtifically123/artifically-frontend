@@ -17,21 +17,10 @@ import * as THREE from "three";
 // 1. FRESNEL HOLOGRAM SHADER
 // ============================================================================
 
-export interface FresnelHologramUniforms {
-  uTime: { value: number };
-  uColorPrimary: { value: THREE.Color };
-  uColorSecondary: { value: THREE.Color };
-  uFresnelPower: { value: number };
-  uScanlineSpeed: { value: number };
-  uScanlineWidth: { value: number };
-  uOpacity: { value: number };
-  uGlowIntensity: { value: number };
-}
-
 export function createFresnelHologramShader(theme: "dark" | "light" | "contrast"): THREE.ShaderMaterial {
   const colors = getThemeColors(theme);
   
-  const uniforms: FresnelHologramUniforms = {
+  const uniforms = {
     uTime: { value: 0 },
     uColorPrimary: { value: new THREE.Color(colors.primary) },
     uColorSecondary: { value: new THREE.Color(colors.secondary) },
@@ -43,7 +32,7 @@ export function createFresnelHologramShader(theme: "dark" | "light" | "contrast"
   };
 
   return new THREE.ShaderMaterial({
-    uniforms,
+    uniforms: uniforms as { [uniform: string]: THREE.IUniform },
     vertexShader: `
       varying vec3 vNormal;
       varying vec3 vPosition;
@@ -135,19 +124,10 @@ export function createFresnelHologramShader(theme: "dark" | "light" | "contrast"
 // 2. ENERGY FIELD SHADER
 // ============================================================================
 
-export interface EnergyFieldUniforms {
-  uTime: { value: number };
-  uColor: { value: THREE.Color };
-  uSpeed: { value: number };
-  uIntensity: { value: number };
-  uTrailLength: { value: number };
-  uEmission: { value: number };
-}
-
 export function createEnergyFieldShader(theme: "dark" | "light" | "contrast"): THREE.ShaderMaterial {
   const colors = getThemeColors(theme);
   
-  const uniforms: EnergyFieldUniforms = {
+  const uniforms = {
     uTime: { value: 0 },
     uColor: { value: new THREE.Color(colors.accent) },
     uSpeed: { value: 2.0 },
@@ -157,7 +137,7 @@ export function createEnergyFieldShader(theme: "dark" | "light" | "contrast"): T
   };
 
   return new THREE.ShaderMaterial({
-    uniforms,
+    uniforms: uniforms as { [uniform: string]: THREE.IUniform },
     vertexShader: `
       varying vec2 vUv;
       varying vec3 vPosition;
@@ -224,20 +204,10 @@ export function createEnergyFieldShader(theme: "dark" | "light" | "contrast"): T
 // 3. HEXAGONAL GRID SHADER
 // ============================================================================
 
-export interface GridShaderUniforms {
-  uTime: { value: number };
-  uColor: { value: THREE.Color };
-  uGridScale: { value: number };
-  uLineWidth: { value: number };
-  uPulseSpeed: { value: number };
-  uFadeDistance: { value: number };
-  uNodeGlow: { value: number };
-}
-
 export function createGridShader(theme: "dark" | "light" | "contrast"): THREE.ShaderMaterial {
   const colors = getThemeColors(theme);
   
-  const uniforms: GridShaderUniforms = {
+  const uniforms = {
     uTime: { value: 0 },
     uColor: { value: new THREE.Color(colors.grid) },
     uGridScale: { value: 0.05 },
@@ -248,7 +218,7 @@ export function createGridShader(theme: "dark" | "light" | "contrast"): THREE.Sh
   };
 
   return new THREE.ShaderMaterial({
-    uniforms,
+    uniforms: uniforms as { [uniform: string]: THREE.IUniform },
     vertexShader: `
       varying vec2 vUv;
       varying vec3 vPosition;
@@ -343,21 +313,15 @@ export function createGridShader(theme: "dark" | "light" | "contrast"): THREE.Sh
 // 4. CHROMATIC ABERRATION SHADER
 // ============================================================================
 
-export interface ChromaticAberrationUniforms {
-  tDiffuse: { value: THREE.Texture | null };
-  uOffset: { value: THREE.Vector2 };
-  uIntensity: { value: number };
-}
-
 export function createChromaticAberrationShader(): THREE.ShaderMaterial {
-  const uniforms: ChromaticAberrationUniforms = {
+  const uniforms = {
     tDiffuse: { value: null },
     uOffset: { value: new THREE.Vector2(0.001, 0.001) },
     uIntensity: { value: 1.0 },
   };
 
   return new THREE.ShaderMaterial({
-    uniforms,
+    uniforms: uniforms as { [uniform: string]: THREE.IUniform },
     vertexShader: `
       varying vec2 vUv;
       
@@ -391,20 +355,10 @@ export function createChromaticAberrationShader(): THREE.ShaderMaterial {
 // 5. DATA STREAM SHADER
 // ============================================================================
 
-export interface DataStreamUniforms {
-  uTime: { value: number };
-  uColor: { value: THREE.Color };
-  uSpeed: { value: number };
-  uDensity: { value: number };
-  uGlitchFrequency: { value: number };
-  uFadeTop: { value: number };
-  uFadeBottom: { value: number };
-}
-
 export function createDataStreamShader(theme: "dark" | "light" | "contrast"): THREE.ShaderMaterial {
   const colors = getThemeColors(theme);
   
-  const uniforms: DataStreamUniforms = {
+  const uniforms = {
     uTime: { value: 0 },
     uColor: { value: new THREE.Color(colors.stream) },
     uSpeed: { value: 1.0 },
@@ -415,7 +369,7 @@ export function createDataStreamShader(theme: "dark" | "light" | "contrast"): TH
   };
 
   return new THREE.ShaderMaterial({
-    uniforms,
+    uniforms: uniforms as { [uniform: string]: THREE.IUniform },
     vertexShader: `
       varying vec2 vUv;
       varying vec3 vPosition;
