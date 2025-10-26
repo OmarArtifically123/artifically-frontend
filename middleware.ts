@@ -1,25 +1,11 @@
-import createMiddleware from 'next-intl/middleware';
-import { locales, defaultLocale } from './i18n/config';
-
-export default createMiddleware({
-  // A list of all locales that are supported
-  locales,
-
-  // Used when no locale matches
-  defaultLocale,
-
-  // Always show locale in URL
-  localePrefix: 'always',
-
-  // Locale detection based on Accept-Language header
-  localeDetection: true,
-});
+import { NextResponse, type NextRequest } from "next/server";
 
 export const config = {
-  // Match all pathnames except for
-  // - API routes
-  // - _next (Next.js internals)
-  // - _vercel (Vercel internals)
-  // - Static files (with file extensions)
-  matcher: ['/((?!api|_next|_vercel|.*\\..*).*)'],
+  matcher: ["/((?!api|_next|_vercel|.*\\..*).*)"],
 };
+
+export default function middleware(_request: NextRequest) {
+  // Locale-aware routing is not yet wired up in the app directory structure.
+  // Passing every request through avoids redirecting to non-existent /en/... routes.
+  return NextResponse.next();
+}
