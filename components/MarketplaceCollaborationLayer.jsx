@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useRef, useState, useId } from "react";
+import { useEffect, useMemo, useRef, useState, useId, useCallback } from "react";
 
 const COLORS = [
   "#34d399",
@@ -139,7 +139,7 @@ export default function MarketplaceCollaborationLayer({
     return () => clearInterval(pruneInterval);
   }, []);
 
-  const shareDiscovery = (text) => {
+  const shareDiscovery = useCallback((text) => {
     channelRef.current?.postMessage({
       type: "discovery",
       sessionId,
@@ -147,7 +147,7 @@ export default function MarketplaceCollaborationLayer({
       text,
       votes: Math.round(Math.random() * 5),
     });
-  };
+  }, [sessionId]);
 
   useEffect(() => {
     if (!focus) return;

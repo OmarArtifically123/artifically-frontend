@@ -98,7 +98,7 @@ function CanvasErrorFallback({
 /**
  * Loading shimmer while 3D scene initializes
  */
-function LoadingShimmer({ theme }: { theme: string }) {
+function LoadingShimmer({ theme }: { theme: "dark" | "light" | "contrast" }) {
   const shimmerColor = useMemo(() => {
     switch (theme) {
       case "light":
@@ -154,7 +154,7 @@ function HeroBackgroundInner({
 }: {
   variant?: "default" | "minimal";
   onPerformanceDegrade?: (quality: number) => void;
-  theme: string;
+  theme: "dark" | "light" | "contrast";
   debug?: boolean;
 }) {
   const [particleCount, setParticleCount] = useState(500);
@@ -250,7 +250,9 @@ export default function HeroBackgroundV2({
   className = "",
   debug = false,
 }: HeroBackgroundV2Props) {
-  const { theme } = useTheme();
+  const { theme: rawTheme } = useTheme();
+  // Ensure theme is properly typed
+  const theme = (rawTheme === "light" || rawTheme === "contrast" ? rawTheme : "dark") as "dark" | "light" | "contrast";
   const prefersReducedMotion = useReducedMotion();
   const [containerRef, isInViewport] = useInViewState({
     threshold: 0.1,
