@@ -39,6 +39,7 @@ export default function DataFlowAnimation({
       (system.material as THREE.Material).dispose();
     });
     particleSystemsRef.current = [];
+    let isMounted = true;
 
     // Create particle system for each connection
     connections.forEach((connection, index) => {
@@ -100,6 +101,7 @@ export default function DataFlowAnimation({
 
   useEffect(() => {
     let animationId: number;
+    let isMounted = true;
 
     const animate = () => {
       if (!isMounted) return;

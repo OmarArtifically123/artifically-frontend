@@ -154,8 +154,11 @@ export default function Problem3DCube({ faces, onFaceChange }: Problem3DCubeProp
 
     // Animation
     let animationId: number;
+    let isMounted = true;
     
     const animate = () => {
+      if (!isMounted) return;
+      
       // Smooth rotation interpolation
       currentRotation.x += (targetRotation.x - currentRotation.x) * 0.1;
       currentRotation.y += (targetRotation.y - currentRotation.y) * 0.1;
