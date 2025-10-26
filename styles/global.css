@@ -31,7 +31,6 @@ html {
   overflow-y: auto;
   width: 100%;
   min-height: 100%;
-  scrollbar-gutter: stable;
 }
 
 body {
@@ -2538,6 +2537,20 @@ main :where(section, div)[id] {
 }
 
 @media (prefers-reduced-motion: no-preference) {
+  .site-header .ai-brand-link:hover .ai-brand,
+  .site-header .ai-brand-link:focus-visible .ai-brand,
+  .footer-brand-link:hover .ai-brand,
+  .footer-brand-link:focus-visible .ai-brand {
+    animation: none;
+  }
+
+  .site-header .ai-brand-link:hover .ai-brand .ai-brand__node,
+  .site-header .ai-brand-link:focus-visible .ai-brand .ai-brand__node,
+  .footer-brand-link:hover .ai-brand .ai-brand__node,
+  .footer-brand-link:focus-visible .ai-brand .ai-brand__node {
+    transform: scale(1.05);
+  }
+
   .ai-brand-link:hover .ai-brand--interactive,
   .ai-brand-link:focus-visible .ai-brand--interactive {
     --logo-loop-fill: var(--logo-loop-active-fill);
@@ -2590,6 +2603,11 @@ main :where(section, div)[id] {
   .ai-brand__halo,
   .ai-brand__wordmark {
     transition: none !important;
+  }
+
+  .site-header .ai-brand-link .ai-brand__node,
+  .footer-brand-link .ai-brand__node {
+    transform: none !important;
   }
 }
 
