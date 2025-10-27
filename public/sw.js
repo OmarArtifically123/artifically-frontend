@@ -18,7 +18,7 @@ const CRITICAL_ASSETS = [
   '/images/hero-preview.avif',
   '/images/hero-preview.webp',
   '/fonts/inter-var.woff2',
-  '/manifest.json',
+  '/site.webmanifest',
 ];
 
 // Routes to prefetch when idle
