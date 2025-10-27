@@ -8,7 +8,8 @@ const getBaseURL = () => {
   const apiUrl = process.env.NEXT_PUBLIC_API_URL;
 
   if (isDev) {
-    return apiUrl || "http://localhost:4000/api/v1";
+    // Use local Next.js API routes in development
+    return "/api/v1";
   }
 
   if (apiUrl) {
