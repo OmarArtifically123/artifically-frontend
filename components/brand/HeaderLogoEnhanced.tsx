@@ -19,10 +19,10 @@ export default function HeaderLogoEnhanced({
 
   // Determine size based on breakpoint
   const sizeStyles: CSSProperties = isMobile
-    ? { width: "200px", height: "auto" }
+    ? { width: "140px", height: "auto" }
     : isTablet
-    ? { width: "300px", height: "auto" }
-    : { width: "400px", height: "auto" };
+    ? { width: "180px", height: "auto" }
+    : { width: "220px", height: "auto" };
 
   return (
     <Link

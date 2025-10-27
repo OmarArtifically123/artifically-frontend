@@ -12,7 +12,7 @@ export default function FooterLogoEnhanced() {
   const logoVariant = isContrast ? "contrast" : theme === "dark" ? "dark" : "light";
 
   const logoStyles: CSSProperties = {
-    width: "280px",
+    width: "200px",
     height: "auto",
     maxWidth: "100%",
   };
