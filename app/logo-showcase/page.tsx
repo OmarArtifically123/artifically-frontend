@@ -114,7 +114,7 @@ export default function LogoShowcase() {
             : "bg-slate-900 shadow-2xl shadow-blue-500/20"
         }`}>
           <div className="flex items-center justify-center">
-            <LogoWordmarkEnhanced variant={variant} animated={animated} />
+            <LogoWordmarkEnhanced variant={variant} animated={animated} className="" />
           </div>
         </div>
 
@@ -196,7 +196,7 @@ export default function LogoShowcase() {
               }`}>
                 Large
               </span>
-              <LogoWordmarkEnhanced variant={variant} animated={false} style={{ width: '600px' }} />
+              <LogoWordmarkEnhanced variant={variant} animated={false} className="" style={{ width: '600px' }} />
             </div>
             
             <div className="flex items-center gap-4">
@@ -205,7 +205,7 @@ export default function LogoShowcase() {
               }`}>
                 Medium
               </span>
-              <LogoWordmarkEnhanced variant={variant} animated={false} style={{ width: '400px' }} />
+              <LogoWordmarkEnhanced variant={variant} animated={false} className="" style={{ width: '400px' }} />
             </div>
             
             <div className="flex items-center gap-4">
@@ -214,7 +214,7 @@ export default function LogoShowcase() {
               }`}>
                 Small
               </span>
-              <LogoWordmarkEnhanced variant={variant} animated={false} style={{ width: '280px' }} />
+              <LogoWordmarkEnhanced variant={variant} animated={false} className="" style={{ width: '280px' }} />
             </div>
             
             <div className="flex items-center gap-4">
@@ -223,7 +223,7 @@ export default function LogoShowcase() {
               }`}>
                 Tiny
               </span>
-              <LogoWordmarkEnhanced variant={variant} animated={false} style={{ width: '180px' }} />
+              <LogoWordmarkEnhanced variant={variant} animated={false} className="" style={{ width: '180px' }} />
             </div>
           </div>
         </div>

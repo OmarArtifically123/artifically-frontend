@@ -219,7 +219,7 @@ function getThemeColors(variant) {
   }
 }
 
-export default function LogoWordmarkEnhanced({ variant = "light", className, animated = true, ...props }) {
+export default function LogoWordmarkEnhanced({ variant = "light", className = "", animated = true, ...props }) {
   const uniqueId = useId();
   const getId = (suffix) => `${uniqueId}-${suffix}`;
   const colors = getThemeColors(variant);
