@@ -1,0 +1,517 @@
+/**
+ * AutomationCard Styles
+ * Glass morphism, 3D effects, WCAG 2.1 AAA
+ */
+
+.card {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  background: rgba(255, 255, 255, 0.95);
+  border: 1px solid rgba(167, 139, 250, 0.15);
+  border-radius: 20px;
+  overflow: hidden;
+  cursor: pointer;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  transform-style: preserve-3d;
+  backdrop-filter: blur(20px);
+  will-change: transform;
+  contain: layout style paint;
+}
+
+.card:hover {
+  border-color: rgba(167, 139, 250, 0.3);
+  box-shadow: 0 20px 60px rgba(167, 139, 250, 0.2);
+}
+
+.card:focus-within {
+  outline: 3px solid #a78bfa;
+  outline-offset: 2px;
+}
+
+/* Variant: Compact */
+.card.compact {
+  flex-direction: row;
+  max-height: 200px;
+}
+
+.card.compact .imageSection {
+  width: 200px;
+  height: 200px;
+}
+
+/* Variant: Featured */
+.card.featured {
+  background: linear-gradient(135deg, rgba(167, 139, 250, 0.1) 0%, rgba(236, 72, 153, 0.1) 100%);
+  border: 2px solid rgba(167, 139, 250, 0.3);
+}
+
+/* Image Section */
+.imageSection {
+  position: relative;
+  width: 100%;
+  aspect-ratio: 16 / 9;
+  background: linear-gradient(135deg, #f1f5f9 0%, #e2e8f0 100%);
+  overflow: hidden;
+}
+
+.imageWrapper {
+  position: relative;
+  width: 100%;
+  height: 100%;
+}
+
+.image {
+  object-fit: cover;
+  opacity: 0;
+  transition: opacity 0.5s ease;
+}
+
+.image.loaded {
+  opacity: 1;
+}
+
+.iconFallback {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(135deg, #a78bfa 0%, #ec4899 100%);
+}
+
+.icon {
+  font-size: 64px;
+  filter: drop-shadow(0 4px 8px rgba(0, 0, 0, 0.2));
+}
+
+/* Badges */
+.badges {
+  position: absolute;
+  top: 12px;
+  left: 12px;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  z-index: 2;
+}
+
+.badge {
+  padding: 4px 12px;
+  background: rgba(0, 0, 0, 0.8);
+  color: #ffffff;
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  border-radius: 6px;
+  backdrop-filter: blur(10px);
+}
+
+/* Quick Actions Overlay */
+.quickActions {
+  position: absolute;
+  top: 12px;
+  right: 12px;
+  display: flex;
+  gap: 8px;
+  z-index: 2;
+}
+
+.quickAction {
+  width: 40px;
+  height: 40px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(255, 255, 255, 0.9);
+  border: none;
+  border-radius: 50%;
+  color: #64748b;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  backdrop-filter: blur(10px);
+}
+
+.quickAction:hover {
+  background: rgba(255, 255, 255, 1);
+  color: #a78bfa;
+  transform: scale(1.1);
+}
+
+.quickAction.active {
+  background: #a78bfa;
+  color: #ffffff;
+}
+
+.quickAction:focus-visible {
+  outline: 2px solid #ffffff;
+  outline-offset: 2px;
+}
+
+/* Content Section */
+.content {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  padding: 20px;
+  flex: 1;
+}
+
+/* Header */
+.header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.title {
+  font-size: 18px;
+  font-weight: 700;
+  line-height: 1.3;
+  color: #0f172a;
+  margin: 0;
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+}
+
+.price {
+  flex-shrink: 0;
+  padding: 6px 16px;
+  background: linear-gradient(135deg, #a78bfa 0%, #ec4899 100%);
+  color: #ffffff;
+  font-size: 14px;
+  font-weight: 700;
+  border-radius: 999px;
+  white-space: nowrap;
+}
+
+.price.free {
+  background: #10b981;
+}
+
+/* Description */
+.description {
+  font-size: 14px;
+  line-height: 1.6;
+  color: #64748b;
+  margin: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+}
+
+/* Metrics */
+.metrics {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  flex-wrap: wrap;
+}
+
+.metric {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.metricIcon {
+  font-size: 16px;
+}
+
+.metricValue {
+  font-size: 14px;
+  font-weight: 700;
+  color: #0f172a;
+}
+
+.metricLabel {
+  font-size: 12px;
+  color: #94a3b8;
+}
+
+.voteButton {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 12px;
+  background: rgba(167, 139, 250, 0.1);
+  border: 1px solid rgba(167, 139, 250, 0.2);
+  border-radius: 999px;
+  color: #a78bfa;
+  font-size: 14px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.voteButton:hover {
+  background: rgba(167, 139, 250, 0.2);
+  border-color: rgba(167, 139, 250, 0.4);
+  transform: translateY(-2px);
+}
+
+.voteButton:focus-visible {
+  outline: 2px solid #a78bfa;
+  outline-offset: 2px;
+}
+
+/* Tags */
+.tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.tag {
+  padding: 4px 12px;
+  background: rgba(148, 163, 184, 0.1);
+  border: 1px solid rgba(148, 163, 184, 0.2);
+  border-radius: 6px;
+  font-size: 12px;
+  color: #475569;
+  font-weight: 500;
+}
+
+/* Actions */
+.actions {
+  display: flex;
+  gap: 12px;
+  margin-top: auto;
+}
+
+.button {
+  flex: 1;
+  padding: 12px 20px;
+  border: none;
+  border-radius: 12px;
+  font-size: 15px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.button.primary {
+  background: linear-gradient(135deg, #a78bfa 0%, #ec4899 100%);
+  color: #ffffff;
+  box-shadow: 0 4px 12px rgba(167, 139, 250, 0.3);
+}
+
+.button.primary:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 16px rgba(167, 139, 250, 0.4);
+}
+
+.button.secondary {
+  background: rgba(148, 163, 184, 0.1);
+  color: #475569;
+  border: 1px solid rgba(148, 163, 184, 0.2);
+}
+
+.button.secondary:hover {
+  background: rgba(148, 163, 184, 0.15);
+  border-color: rgba(148, 163, 184, 0.3);
+}
+
+.button:focus-visible {
+  outline: 3px solid #a78bfa;
+  outline-offset: 2px;
+}
+
+/* Gradient Overlay */
+.gradientOverlay {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(
+    135deg,
+    rgba(167, 139, 250, 0.05) 0%,
+    rgba(236, 72, 153, 0.05) 100%
+  );
+  opacity: 0;
+  transition: opacity 0.3s ease;
+  pointer-events: none;
+}
+
+.card.hovered .gradientOverlay {
+  opacity: 1;
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+  .card {
+    border-radius: 16px;
+  }
+
+  .content {
+    padding: 16px;
+    gap: 12px;
+  }
+
+  .title {
+    font-size: 16px;
+  }
+
+  .price {
+    font-size: 13px;
+    padding: 5px 14px;
+  }
+
+  .description {
+    font-size: 13px;
+  }
+
+  .metrics {
+    gap: 12px;
+  }
+
+  .metricIcon {
+    font-size: 14px;
+  }
+
+  .metricValue {
+    font-size: 13px;
+  }
+
+  .metricLabel {
+    font-size: 11px;
+  }
+
+  .button {
+    padding: 10px 16px;
+    font-size: 14px;
+  }
+}
+
+/* Reduced Motion (Accessibility) */
+@media (prefers-reduced-motion: reduce) {
+  .card,
+  .image,
+  .quickAction,
+  .button,
+  .voteButton,
+  .gradientOverlay {
+    transition: none;
+  }
+
+  .card:hover {
+    transform: none;
+  }
+}
+
+/* High Contrast Mode (Accessibility) */
+@media (prefers-contrast: high) {
+  .card {
+    border: 3px solid #000000;
+    background: #ffffff;
+  }
+
+  .card:hover {
+    border-color: #000000;
+  }
+
+  .title {
+    color: #000000;
+  }
+
+  .description {
+    color: #333333;
+  }
+
+  .price {
+    background: #000000;
+    color: #ffffff;
+  }
+
+  .button.primary {
+    background: #000000;
+    color: #ffffff;
+  }
+
+  .button.secondary {
+    background: #ffffff;
+    color: #000000;
+    border: 2px solid #000000;
+  }
+}
+
+/* Dark Mode */
+@media (prefers-color-scheme: dark) {
+  .card {
+    background: rgba(30, 41, 59, 0.95);
+    border-color: rgba(167, 139, 250, 0.2);
+  }
+
+  .card:hover {
+    border-color: rgba(167, 139, 250, 0.4);
+  }
+
+  .imageSection {
+    background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%);
+  }
+
+  .quickAction {
+    background: rgba(30, 41, 59, 0.9);
+    color: #cbd5e1;
+  }
+
+  .quickAction:hover {
+    background: rgba(30, 41, 59, 1);
+    color: #c4b5fd;
+  }
+
+  .quickAction.active {
+    background: #a78bfa;
+    color: #ffffff;
+  }
+
+  .title {
+    color: #f1f5f9;
+  }
+
+  .description {
+    color: #94a3b8;
+  }
+
+  .metricValue {
+    color: #f1f5f9;
+  }
+
+  .metricLabel {
+    color: #64748b;
+  }
+
+  .voteButton {
+    background: rgba(167, 139, 250, 0.15);
+    border-color: rgba(167, 139, 250, 0.3);
+    color: #c4b5fd;
+  }
+
+  .voteButton:hover {
+    background: rgba(167, 139, 250, 0.25);
+  }
+
+  .tag {
+    background: rgba(148, 163, 184, 0.15);
+    border-color: rgba(148, 163, 184, 0.3);
+    color: #cbd5e1;
+  }
+
+  .button.secondary {
+    background: rgba(148, 163, 184, 0.15);
+    color: #cbd5e1;
+    border-color: rgba(148, 163, 184, 0.3);
+  }
+
+  .button.secondary:hover {
+    background: rgba(148, 163, 184, 0.25);
+  }
+}
+

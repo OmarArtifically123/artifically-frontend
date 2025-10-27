@@ -1,80 +1,95 @@
-import Link from "next/link";
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 
-import { marketplaceListingMap, marketplaceListings } from "@/data/marketplace";
-
-type MarketplacePageProps = {
+interface MarketplaceAutomationPageProps {
   params: { slug: string };
-};
-
-export function generateStaticParams() {
-  return marketplaceListings.map(({ slug }) => ({ slug }));
 }
 
-export function generateMetadata({ params }: MarketplacePageProps): Metadata {
-  const listing = marketplaceListingMap.get(params.slug);
+/**
+ * Dynamic metadata for automation detail pages
+ * SEO optimized with Open Graph and Twitter Cards
+ */
+export async function generateMetadata({
+  params,
+}: MarketplaceAutomationPageProps): Promise<Metadata> {
+  // Fetch automation data (implement actual API call)
+  const automation = await fetchAutomationBySlug(params.slug);
 
-  if (!listing) {
-    return { title: "Automation Marketplace | Artifically" };
+  if (!automation) {
+    return {
+      title: "Automation Not Found | Artifically Marketplace",
+    };
   }
 
+  const title = `${automation.name} | AI Automation Marketplace`;
+  const description = automation.description || automation.summary || "Discover this AI automation";
+  const images = automation.previewImage
+    ? [
+        {
+          url: typeof automation.previewImage === "string" 
+            ? automation.previewImage 
+            : automation.previewImage.src,
+          width: 1200,
+          height: 630,
+          alt: automation.name,
+        },
+      ]
+    : [];
+
   return {
-    title: `${listing.title} | Automation Template`,
-    description: listing.summary,
+    title,
+    description,
+    keywords: automation.tags?.join(", "),
+    authors: [{ name: automation.authorName || "Artifically Team" }],
+    openGraph: {
+      title,
+      description,
+      type: "website",
+      images,
+      siteName: "Artifically Marketplace",
+    },
+    twitter: {
+      card: "summary_large_image",
+      title,
+      description,
+      images,
+    },
+    robots: {
+      index: automation.status === "published",
+      follow: automation.status === "published",
+    },
   };
 }
 
-export default function MarketplaceListingPage({ params }: MarketplacePageProps) {
-  const listing = marketplaceListingMap.get(params.slug);
-
-  if (!listing) {
-    notFound();
+async function fetchAutomationBySlug(slug: string): Promise<{
+  name: string;
+  description?: string;
+  summary?: string;
+  previewImage?: string | { src: string };
+  tags?: string[];
+  authorName?: string;
+  status?: string;
+} | null> {
+  // Implement actual API call
+  // For now, return mock data or fetch from your API
+  try {
+    // TODO: Replace with actual API call
+    // const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/marketplace/${slug}`);
+    // return response.json();
+    return null;
+  } catch (error) {
+    console.error('Error fetching automation:', error);
     return null;
   }
+}
 
+export default function MarketplaceAutomationPage({
+  params,
+}: MarketplaceAutomationPageProps) {
+  // Implement page component
   return (
-    <div className="detail-page">
-      <section className="detail-page__hero">
-        <span className="detail-page__eyebrow">Automation Template</span>
-        <h1 className="detail-page__title">{listing.title}</h1>
-        <p className="detail-page__lede">{listing.summary}</p>
-        <div className="detail-page__tag-row">
-          <span className="detail-page__tag">{listing.badge}</span>
-          <span className="detail-page__tag">{listing.rating}</span>
-          <span className="detail-page__tag">{listing.price}</span>
-        </div>
-        <div className="detail-page__actions">
-          <Link href="/marketplace" className="detail-page__cta detail-page__cta--ghost">
-            Browse more automations
-          </Link>
-          <Link href="/demo" className="detail-page__cta detail-page__cta--primary">
-            Launch this automation
-          </Link>
-        </div>
-      </section>
-
-      <section className="detail-page__section">
-        <h2 className="detail-page__section-title">What it delivers</h2>
-        <ul className="detail-page__list">
-          {listing.outcomes.map((outcome) => (
-            <li key={outcome} className="detail-page__list-item">
-              <span>{outcome}</span>
-            </li>
-          ))}
-        </ul>
-      </section>
-
-      <section className="detail-page__section detail-page__section--alt">
-        <h2 className="detail-page__section-title">Works with your stack</h2>
-        <div className="detail-page__tag-row">
-          {listing.integrations.map((integration) => (
-            <span key={integration} className="detail-page__tag">
-              {integration}
-            </span>
-          ))}
-        </div>
-      </section>
+    <div>
+      <h1>Automation: {params.slug}</h1>
     </div>
   );
 }

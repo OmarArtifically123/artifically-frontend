@@ -72,7 +72,7 @@ export default function ServiceWorkerRegistration() {
     return () => {
       // No cleanup needed
     };
-  }, []);
+  }, [updateAvailable]);
 
   // Show update notification
   const handleUpdate = useCallback(() => {

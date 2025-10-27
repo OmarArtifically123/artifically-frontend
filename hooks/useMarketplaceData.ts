@@ -5,25 +5,22 @@ import {
   type InfiniteData,
   useInfiniteQuery,
   useMutation,
+  useQuery,
   useQueryClient,
 } from "@tanstack/react-query";
 
 import apiClient from "@/api";
 import { fetchAutomations } from "@/data/automations";
 import { toast } from "@/components/Toast";
+import { marketplaceApi } from "@/lib/api/marketplace-api";
+import type {
+  Automation,
+  AutomationCategory,
+  MarketplaceFilters,
+  MarketplaceStatsResponse,
+} from "@/types/marketplace";
 
 type AutomationIdentifier = string | number;
-
-type AutomationRecord = {
-  id: AutomationIdentifier;
-  teamVotes?: number;
-  performance?: {
-    avgInteractionMs?: number;
-    fps?: number;
-    [key: string]: unknown;
-  };
-  [key: string]: unknown;
-};
 
 type VoteVariables = {
   automationId: AutomationIdentifier;
@@ -31,10 +28,14 @@ type VoteVariables = {
 };
 
 export const MARKETPLACE_AUTOMATIONS_QUERY_KEY = ["marketplace", "automations"] as const;
+export const MARKETPLACE_FEATURED_QUERY_KEY = ["marketplace", "featured"] as const;
+export const MARKETPLACE_TRENDING_QUERY_KEY = ["marketplace", "trending"] as const;
+export const MARKETPLACE_CATEGORIES_QUERY_KEY = ["marketplace", "categories"] as const;
+export const MARKETPLACE_STATS_QUERY_KEY = ["marketplace", "stats"] as const;
 export const MARKETPLACE_PAGE_SIZE = 20;
 
 type AutomationPage = {
-  items: AutomationRecord[];
+  items: Automation[];
   page: number;
   limit: number;
   total: number;
@@ -48,9 +49,9 @@ type VoteContext = {
   previous?: AutomationsInfiniteData;
 };
 
-const ensureAutomationArray = (value: unknown): AutomationRecord[] => {
+const ensureAutomationArray = (value: unknown): Automation[] => {
   if (Array.isArray(value)) {
-    return value as AutomationRecord[];
+    return value as Automation[];
   }
   return [];
 };
@@ -90,22 +91,22 @@ const normalizePage = (value: unknown, fallbackPage = 1): AutomationPage => {
   };
 };
 
-const flattenPages = (data: AutomationsInfiniteData | undefined): AutomationRecord[] => {
+const flattenPages = (data: AutomationsInfiniteData | undefined): Automation[] => {
   if (!data?.pages) {
     return [];
   }
-  return data.pages.reduce<AutomationRecord[]>((accumulator, page) => {
+  return data.pages.reduce<Automation[]>((accumulator, page) => {
     accumulator.push(...ensureAutomationArray(page.items));
     return accumulator;
   }, []);
 };
 
-export function useMarketplaceAutomations() {
+export function useMarketplaceAutomations(filters?: Record<string, unknown>) {
   const queryClient = useQueryClient();
   const prefetchedPageRef = useRef<number | null>(null);
 
   const query = useInfiniteQuery<AutomationPage>({
-    queryKey: MARKETPLACE_AUTOMATIONS_QUERY_KEY,
+    queryKey: [...MARKETPLACE_AUTOMATIONS_QUERY_KEY, filters],
     initialPageParam: 1,
     getNextPageParam: (lastPage) => lastPage.nextPage ?? undefined,
     structuralSharing: true,
@@ -114,7 +115,7 @@ export function useMarketplaceAutomations() {
     refetchOnMount: true,
     queryFn: async ({ pageParam = 1, signal }) => {
       const pageNumber = Number(pageParam) || 1;
-      const response = await fetchAutomations({ page: pageNumber, limit: MARKETPLACE_PAGE_SIZE, signal });
+      const response = await fetchAutomations({ page: pageNumber, limit: MARKETPLACE_PAGE_SIZE, signal, ...filters });
       return normalizePage(response, pageNumber);
     },
   });
@@ -247,7 +248,7 @@ export function useTeamVoteHandler() {
   const { mutateAsync: vote } = useAutomationVote();
 
   return useCallback(
-    async (automation: AutomationRecord | null | undefined) => {
+    async (automation: Automation | null | undefined) => {
       if (!automation?.id) {
         return;
       }
@@ -256,4 +257,85 @@ export function useTeamVoteHandler() {
     },
     [vote],
   );
+}
+
+/**
+ * Hook to fetch featured automations
+ */
+export function useFeaturedAutomations(limit = 6) {
+  return useQuery<Automation[], Error>({
+    queryKey: [...MARKETPLACE_FEATURED_QUERY_KEY, limit],
+    queryFn: ({ signal }) => marketplaceApi.getFeaturedAutomations(limit, signal),
+    staleTime: 1000 * 60 * 5, // 5 minutes
+    gcTime: 1000 * 60 * 15, // 15 minutes
+  });
+}
+
+/**
+ * Hook to fetch trending automations
+ */
+export function useTrendingAutomations(limit = 10) {
+  return useQuery<Automation[], Error>({
+    queryKey: [...MARKETPLACE_TRENDING_QUERY_KEY, limit],
+    queryFn: ({ signal }) => marketplaceApi.getTrendingAutomations(limit, signal),
+    staleTime: 1000 * 60 * 10, // 10 minutes
+    gcTime: 1000 * 60 * 20, // 20 minutes
+  });
+}
+
+/**
+ * Hook to fetch marketplace categories
+ */
+export function useMarketplaceCategories() {
+  return useQuery<AutomationCategory[], Error>({
+    queryKey: MARKETPLACE_CATEGORIES_QUERY_KEY,
+    queryFn: ({ signal }) => marketplaceApi.getCategories(signal),
+    staleTime: 1000 * 60 * 15, // 15 minutes
+    gcTime: 1000 * 60 * 30, // 30 minutes
+  });
+}
+
+/**
+ * Hook to fetch marketplace statistics
+ */
+export function useMarketplaceStats() {
+  return useQuery<MarketplaceStatsResponse, Error>({
+    queryKey: MARKETPLACE_STATS_QUERY_KEY,
+    queryFn: ({ signal }) => marketplaceApi.getMarketplaceStats(signal),
+    staleTime: 1000 * 60 * 5, // 5 minutes
+    gcTime: 1000 * 60 * 15, // 15 minutes
+    refetchInterval: 1000 * 60 * 10, // Refetch every 10 minutes
+  });
+}
+
+/**
+ * Hook to fetch single automation by ID
+ */
+export function useAutomation(id: number | string | null | undefined) {
+  return useQuery<Automation, Error>({
+    queryKey: ["marketplace", "automation", id],
+    queryFn: ({ signal }) => {
+      if (!id) throw new Error("Automation ID is required");
+      return marketplaceApi.getAutomationById(id, signal);
+    },
+    enabled: !!id,
+    staleTime: 1000 * 60 * 5, // 5 minutes
+    gcTime: 1000 * 60 * 15, // 15 minutes
+  });
+}
+
+/**
+ * Hook to fetch related automations
+ */
+export function useRelatedAutomations(automationId: number | string | null | undefined, limit = 6) {
+  return useQuery<Automation[], Error>({
+    queryKey: ["marketplace", "related", automationId, limit],
+    queryFn: ({ signal }) => {
+      if (!automationId) throw new Error("Automation ID is required");
+      return marketplaceApi.getRelatedAutomations(automationId, limit, signal);
+    },
+    enabled: !!automationId,
+    staleTime: 1000 * 60 * 10, // 10 minutes
+    gcTime: 1000 * 60 * 20, // 20 minutes
+  });
 }

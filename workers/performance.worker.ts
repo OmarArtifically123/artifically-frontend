@@ -261,3 +261,4 @@ self.postMessage({ type: 'WORKER_READY' });
 
 console.log('[Worker] Performance Worker initialized');
 
+

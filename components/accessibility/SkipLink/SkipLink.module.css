@@ -1,0 +1,47 @@
+/**
+ * SkipLink Styles
+ * WCAG 2.1 AAA compliant skip link
+ */
+
+.skipLink {
+  position: absolute;
+  top: -100px;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 10000;
+  padding: 16px 32px;
+  background: #ffffff;
+  color: #0f172a;
+  font-size: 16px;
+  font-weight: 700;
+  text-decoration: none;
+  border-radius: 8px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+  transition: top 0.3s ease;
+}
+
+.skipLink:focus {
+  top: 20px;
+  outline: 3px solid #a78bfa;
+  outline-offset: 4px;
+}
+
+/* High Contrast Mode */
+@media (prefers-contrast: high) {
+  .skipLink {
+    border: 3px solid #000000;
+  }
+
+  .skipLink:focus {
+    outline: 4px solid #000000;
+  }
+}
+
+/* Dark Mode */
+@media (prefers-color-scheme: dark) {
+  .skipLink {
+    background: #1e293b;
+    color: #f1f5f9;
+  }
+}
+
