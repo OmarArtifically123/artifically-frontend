@@ -1,5 +1,5 @@
-import MarketplacePage from "@/app/(site)/_components/MarketplacePage";
+import MarketplacePageNew from "@/app/(site)/_components/MarketplacePageNew";
 
 export default function MarketplaceRoute() {
-  return <MarketplacePage />;
+  return <MarketplacePageNew />;
 }
