@@ -10,7 +10,7 @@ import useMicroInteractions from "../hooks/useMicroInteractions";
 import { space } from "../styles/spacing";
 import MagneticButton from "./animation/MagneticButton";
 import { StaggeredContainer, StaggeredItem } from "./animation/StaggeredList";
-import HeaderLogo from "./brand/HeaderLogo";
+import HeaderLogoEnhanced from "./brand/HeaderLogoEnhanced";
 import motionCatalog from "../design/motion/catalog";
 import useViewTransitionNavigate from "../hooks/useViewTransitionNavigate";
 import { Icon } from "./icons";
@@ -997,7 +997,7 @@ export default function Header({ user, onSignIn, onSignUp, onSignOut }) {
             transformOrigin: "center",
           }}
         >
-          <HeaderLogo onClick={(event) => handleLinkNavigation(event, "/")} />
+          <HeaderLogoEnhanced onClick={(event) => handleLinkNavigation(event, "/")} />
         </div>
 
         <nav className="nav" aria-label="Main navigation">

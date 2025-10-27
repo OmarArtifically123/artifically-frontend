@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { useEffect, useId, useRef, useState } from "react";
 import { useInView } from "react-intersection-observer";
-import { BrandMark } from "./brand/BrandLogo";
+import FooterLogoEnhanced from "./brand/FooterLogoEnhanced";
 
 // Icon components - using lucide-react pattern
 import {
@@ -204,13 +204,7 @@ export default function Footer() {
             {/* Top section: Brand + Newsletter */}
             <div className="footer-top-section">
               <div className="footer-brand-area">
-                <Link href="/" aria-label="Artifically home" className="footer-brand-link">
-                  <BrandMark
-                    interactive={false}
-                    className="footer-brand-mark"
-                    style={{ width: 48, height: 48 }}
-                  />
-                </Link>
+                <FooterLogoEnhanced />
                 <h2 className="footer-brand-tagline">
                   Enterprise AI Automation Infrastructure
                 </h2>
@@ -440,6 +434,8 @@ export default function Footer() {
           padding: 120px 0 0;
           overflow: hidden;
           border-top: 1px solid var(--footer-edge, rgba(139, 92, 246, 0.2));
+          min-height: 800px;
+          contain: layout;
         }
 
         /* ============================================================
@@ -461,6 +457,8 @@ export default function Footer() {
           filter: blur(120px);
           opacity: 0.6;
           will-change: transform;
+          pointer-events: none;
+          contain: strict;
         }
 
         .footer-gradient-orb-1 {
@@ -470,6 +468,7 @@ export default function Footer() {
           top: -300px;
           left: -200px;
           animation: float-orb-1 20s ease-in-out infinite;
+          transform: translate(0, 0) scale(1);
         }
 
         .footer-gradient-orb-2 {
@@ -479,6 +478,7 @@ export default function Footer() {
           bottom: -200px;
           right: 10%;
           animation: float-orb-2 25s ease-in-out infinite;
+          transform: translate(0, 0) scale(1);
         }
 
         .footer-gradient-orb-3 {
@@ -488,6 +488,7 @@ export default function Footer() {
           top: 40%;
           right: -150px;
           animation: float-orb-3 30s ease-in-out infinite;
+          transform: translate(0, 0) scale(1);
         }
 
         @keyframes float-orb-1 {
@@ -557,6 +558,8 @@ export default function Footer() {
           margin-bottom: 80px;
           padding-bottom: 80px;
           border-bottom: 1px solid var(--footer-divider, rgba(255, 255, 255, 0.08));
+          min-height: 400px;
+          contain: layout;
         }
 
         /* Brand Area */
@@ -613,6 +616,7 @@ export default function Footer() {
           grid-template-columns: repeat(3, 1fr);
           gap: 16px;
           margin-top: 8px;
+          min-height: 80px;
         }
 
         .footer-stat-card {
@@ -624,6 +628,8 @@ export default function Footer() {
           border: 1px solid var(--footer-stat-border, rgba(255, 255, 255, 0.08));
           border-radius: 12px;
           transition: all 300ms cubic-bezier(0.4, 0, 0.2, 1);
+          min-height: 72px;
+          contain: layout;
         }
 
         .footer-stat-card:hover {
@@ -663,6 +669,8 @@ export default function Footer() {
           display: flex;
           flex-direction: column;
           gap: 20px;
+          min-height: 350px;
+          contain: layout;
         }
 
         .footer-newsletter-heading {
@@ -854,6 +862,8 @@ export default function Footer() {
           grid-template-columns: repeat(5, 1fr);
           gap: 48px;
           margin-bottom: 80px;
+          min-height: 250px;
+          contain: layout;
         }
 
         .footer-nav-column {
@@ -861,6 +871,7 @@ export default function Footer() {
           flex-direction: column;
           gap: 20px;
           min-width: 0;
+          min-height: 200px;
         }
 
         .footer-nav-heading {
@@ -1143,21 +1154,28 @@ export default function Footer() {
 
         /* Tablet: 640px - 1024px */
         @media (max-width: 1024px) {
+          .footer-world-class {
+            min-height: 1000px;
+          }
+
           .footer-top-section {
             grid-template-columns: 1fr;
             gap: 60px;
             margin-bottom: 60px;
             padding-bottom: 60px;
+            min-height: 600px;
           }
 
           .footer-nav-grid {
             grid-template-columns: repeat(2, 1fr);
             gap: 40px;
             margin-bottom: 60px;
+            min-height: 400px;
           }
 
           .footer-stats-grid {
             grid-template-columns: 1fr;
+            min-height: 220px;
           }
         }
 
@@ -1169,12 +1187,14 @@ export default function Footer() {
 
           .footer-world-class {
             padding: 80px 0 0;
+            min-height: 1400px;
           }
 
           .footer-top-section {
             gap: 48px;
             margin-bottom: 48px;
             padding-bottom: 48px;
+            min-height: 700px;
           }
 
           .footer-brand-tagline {
