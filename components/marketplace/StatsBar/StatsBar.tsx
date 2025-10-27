@@ -101,3 +101,4 @@ export function StatsBar({ stats }: StatsBarProps) {
 
 export default StatsBar;
 
+

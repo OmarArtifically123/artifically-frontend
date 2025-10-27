@@ -65,3 +65,4 @@ export function getResponsiveSizes(variant: "card" | "hero" | "thumbnail" = "car
 
 export default customImageLoader;
 
+

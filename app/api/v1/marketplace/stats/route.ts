@@ -1,19 +1,36 @@
 import { NextResponse } from 'next/server';
 import { SAMPLE_AUTOMATIONS } from '@/data/automations';
 
+interface AutomationItem {
+  id: string;
+  name: string;
+  description: string;
+  category?: string | { slug: string; [key: string]: unknown };
+  deploymentCount?: number;
+  deploymentsPerWeek?: number;
+  [key: string]: unknown;
+}
+
 /**
  * Mock Marketplace Stats API Route
  * Returns marketplace statistics for development
  */
 export async function GET() {
   try {
-    const totalAutomations = SAMPLE_AUTOMATIONS.length;
+    const automations = SAMPLE_AUTOMATIONS as unknown as AutomationItem[];
+    const totalAutomations = automations.length;
     const categories = new Set(
-      SAMPLE_AUTOMATIONS.map((auto) => auto.category?.slug || auto.category).filter(Boolean)
+      automations.map((auto) => {
+        const cat = auto.category;
+        if (typeof cat === 'object' && cat !== null && 'slug' in cat) {
+          return cat.slug;
+        }
+        return cat;
+      }).filter(Boolean)
     ).size;
     
     // Calculate total deployments
-    const totalDeployments = SAMPLE_AUTOMATIONS.reduce(
+    const totalDeployments = automations.reduce(
       (sum, auto) => sum + (auto.deploymentCount || auto.deploymentsPerWeek || 0),
       0
     );
@@ -36,4 +53,5 @@ export async function GET() {
     );
   }
 }
+
 

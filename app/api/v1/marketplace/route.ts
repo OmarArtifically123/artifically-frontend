@@ -1,8 +1,25 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { SAMPLE_AUTOMATIONS } from '@/data/automations';
 
-type AutomationData = typeof SAMPLE_AUTOMATIONS;
-type AutomationItem = AutomationData[number];
+interface AutomationItem {
+  id: string;
+  name: string;
+  description: string;
+  icon?: string;
+  priceMonthly?: number;
+  currency?: string;
+  priceTier?: string;
+  category?: string | { slug: string; [key: string]: unknown };
+  tags?: string[];
+  previewImage?: unknown;
+  teamVotes?: number;
+  performance?: {
+    avgInteractionMs?: number;
+    fps?: number;
+    [key: string]: unknown;
+  };
+  [key: string]: unknown;
+}
 
 /**
  * Mock Marketplace API Route
@@ -17,7 +34,7 @@ export async function GET(request: NextRequest) {
     const priceTier = searchParams.get('priceTier');
     const search = searchParams.get('search');
 
-    let filteredAutomations: AutomationItem[] = [...SAMPLE_AUTOMATIONS];
+    let filteredAutomations: AutomationItem[] = [...SAMPLE_AUTOMATIONS] as unknown as AutomationItem[];
 
     // Apply filters
     if (category) {
@@ -49,7 +66,7 @@ export async function GET(request: NextRequest) {
           return (
             name.toLowerCase().includes(searchLower) ||
             description.toLowerCase().includes(searchLower) ||
-            tags.some((tag) => String(tag).toLowerCase().includes(searchLower))
+            tags.some((tag: string) => String(tag).toLowerCase().includes(searchLower))
           );
         }
       );

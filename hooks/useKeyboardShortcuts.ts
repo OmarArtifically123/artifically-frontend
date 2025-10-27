@@ -43,3 +43,4 @@ export function useKeyboardShortcuts(shortcuts: ShortcutConfig[], enabled: boole
 
 export default useKeyboardShortcuts;
 
+
