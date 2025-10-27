@@ -256,7 +256,7 @@ export default function DocsPage() {
   }, [playgroundSelection]);
 
   return (
-    <main
+    <div
       className="container"
       style={{
         padding: `${space("xl")} 0 ${space("2xl", 1.5)}`,
@@ -668,6 +668,6 @@ console.log(deployment.status);
           </article>
         </div>
       </div>
-    </main>
+    </div>
   );
 }

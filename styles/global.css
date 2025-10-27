@@ -713,6 +713,8 @@ textarea:focus {
     scroll-padding-top: calc(var(--header-offset) + var(--space-sm));
     background: linear-gradient(180deg, var(--bg-from), var(--bg-to)) fixed;
     view-transition-name: root;
+    overflow-x: hidden;
+    overflow-y: auto;
   }
 
   body {
@@ -729,6 +731,7 @@ textarea:focus {
     -moz-osx-font-smoothing: grayscale;
     position: relative;
     view-transition-name: body;
+    overflow-x: hidden;
   }
 
   main,
