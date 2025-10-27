@@ -173,9 +173,6 @@ export default function AutomationsMegaMenu({
                     href={entry.href}
                     className="automations-mega__function-link"
                     data-prefetch-route={entry.href}
-                    onClick={(event) => {
-                      onNavigate(event, entry.href);
-                    }}
                   >
                     <span className="automations-mega__function-icon">
                       <Icon name={entry.icon} size={14} strokeWidth={2} />

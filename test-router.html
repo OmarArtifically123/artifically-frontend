@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Router Test</title>
+</head>
+<body>
+  <h1>Open Browser Console and run these tests:</h1>
+  
+  <script>
+    console.log('%c=== Next.js Router Debug ===', 'background: #6366f1; color: white; padding: 8px; font-weight: bold;');
+    
+    // Test 1: Check if router exists
+    setTimeout(() => {
+      console.log('\n%c1. Checking for Next.js router...', 'font-weight: bold;');
+      
+      // Try to access the Next.js router from window
+      const nextData = window.next;
+      console.log('window.next:', nextData);
+      
+      // Check if useRouter is being called
+      console.log('\n%c2. Copy and run this in console:', 'font-weight: bold; color: #22c55e;');
+      console.log(`
+// Test navigation directly
+if (window.next && window.next.router) {
+  console.log('Router found:', window.next.router);
+  window.next.router.push('/pricing');
+} else {
+  console.log('Router not found on window.next');
+  // Manual navigation test
+  console.log('Testing manual navigation...');
+  window.location.href = '/pricing';
+}
+      `);
+      
+      console.log('\n%c3. Alternative test - Direct link click:', 'font-weight: bold; color: #22c55e;');
+      console.log(`
+// Remove onClick handlers and test raw link
+const pricingLink = document.querySelector('a[href="/pricing"]');
+if (pricingLink) {
+  const clone = pricingLink.cloneNode(true);
+  clone.removeAttribute('onClick');
+  clone.style.background = 'red';
+  clone.style.color = 'white';
+  clone.style.padding = '10px';
+  clone.textContent = 'TEST: Click me to go to pricing';
+  document.body.appendChild(clone);
+  console.log('✅ Test link added to bottom of page - try clicking it!');
+} else {
+  console.log('❌ No pricing link found');
+}
+      `);
+    }, 500);
+  </script>
+</body>
+</html>
+

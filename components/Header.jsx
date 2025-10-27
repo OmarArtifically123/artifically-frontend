@@ -997,7 +997,7 @@ export default function Header({ user, onSignIn, onSignUp, onSignOut }) {
             transformOrigin: "center",
           }}
         >
-          <HeaderLogo onClick={(event) => handleLinkNavigation(event, "/")} />
+          <HeaderLogo />
         </div>
 
         <nav className="nav" aria-label="Main navigation">
@@ -1215,7 +1215,6 @@ export default function Header({ user, onSignIn, onSignUp, onSignOut }) {
                     ]
                       .filter(Boolean)
                       .join(" ")}
-                    onClick={(event) => handleLinkNavigation(event, path)}
                   >
                     {label}
                   </Link>

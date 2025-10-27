@@ -1,0 +1,179 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Navigation Test</title>
+  <style>
+    body {
+      font-family: system-ui;
+      max-width: 800px;
+      margin: 40px auto;
+      padding: 20px;
+      background: #0f172a;
+      color: #e2e8f0;
+    }
+    button {
+      background: #6366f1;
+      color: white;
+      border: none;
+      padding: 12px 24px;
+      border-radius: 8px;
+      cursor: pointer;
+      font-size: 16px;
+      margin: 8px;
+    }
+    button:hover {
+      background: #4f46e5;
+    }
+    .status {
+      margin: 20px 0;
+      padding: 16px;
+      background: rgba(255,255,255,0.05);
+      border-radius: 8px;
+      border: 1px solid rgba(255,255,255,0.1);
+    }
+    .success { border-color: #22c55e; background: rgba(34,197,94,0.1); }
+    .error { border-color: #ef4444; background: rgba(239,68,68,0.1); }
+  </style>
+</head>
+<body>
+  <h1>🧪 Navigation Test Page</h1>
+  <p>This page helps test if routing is working correctly.</p>
+  
+  <div id="status" class="status">
+    <strong>Instructions:</strong>
+    <ol>
+      <li>Click "Run All Tests" below</li>
+      <li>Watch the results</li>
+      <li>Copy the console output and send to developer</li>
+    </ol>
+  </div>
+
+  <div>
+    <button onclick="runAllTests()">Run All Tests</button>
+    <button onclick="testManualNav()">Test Manual Navigation</button>
+    <button onclick="checkDOM()">Check DOM Structure</button>
+  </div>
+
+  <script>
+    function updateStatus(message, type = 'info') {
+      const status = document.getElementById('status');
+      status.className = `status ${type}`;
+      status.innerHTML = `<strong>${type.toUpperCase()}:</strong> ${message}`;
+    }
+
+    function runAllTests() {
+      console.clear();
+      console.log('%c🧪 Running Navigation Tests', 'background: #6366f1; color: white; padding: 8px; font-weight: bold; font-size: 16px;');
+      console.log('');
+
+      // Test 1: Check for duplicate mains
+      const mains = document.querySelectorAll('main');
+      console.log(`%c1. Main Elements: ${mains.length}`, 'font-weight: bold; font-size: 14px;');
+      if (mains.length > 1) {
+        console.error('   ❌ FAIL: Multiple <main> elements found!');
+        mains.forEach((m, i) => console.log(`     Main ${i+1}:`, m));
+        updateStatus(`FAILED: ${mains.length} main elements (should be 1)`, 'error');
+        return;
+      } else if (mains.length === 1) {
+        console.log('   ✅ PASS: Only one <main> element');
+      }
+
+      // Test 2: Check view-transition-name duplicates
+      console.log('');
+      console.log('%c2. View Transition Names', 'font-weight: bold; font-size: 14px;');
+      const transitions = {};
+      document.querySelectorAll('*').forEach(el => {
+        const name = window.getComputedStyle(el).viewTransitionName;
+        if (name && name !== 'none') {
+          if (!transitions[name]) transitions[name] = [];
+          transitions[name].push(el);
+        }
+      });
+      
+      let hasDuplicates = false;
+      Object.entries(transitions).forEach(([name, elements]) => {
+        if (elements.length > 1) {
+          console.error(`   ❌ FAIL: Duplicate "${name}" on ${elements.length} elements`);
+          hasDuplicates = true;
+        }
+      });
+      
+      if (!hasDuplicates) {
+        console.log('   ✅ PASS: No duplicate view-transition-names');
+      }
+
+      // Test 3: Check links
+      console.log('');
+      console.log('%c3. Navigation Links', 'font-weight: bold; font-size: 14px;');
+      const links = document.querySelectorAll('a[href^="/"]');
+      console.log(`   Found ${links.length} internal links`);
+      
+      if (links.length > 0) {
+        console.log('   Sample links:', Array.from(links).slice(0, 5).map(l => ({
+          href: l.getAttribute('href'),
+          hasOnClick: l.onclick !== null,
+          text: l.textContent.trim().substring(0, 30)
+        })));
+        
+        const linksWithOnClick = Array.from(links).filter(l => l.onclick !== null);
+        if (linksWithOnClick.length > 0) {
+          console.warn(`   ⚠️ ${linksWithOnClick.length} links have onClick handlers`);
+        } else {
+          console.log('   ✅ PASS: No onClick handlers blocking navigation');
+        }
+      }
+
+      // Test 4: Try navigation
+      console.log('');
+      console.log('%c4. Navigation Test', 'font-weight: bold; font-size: 14px;');
+      console.log('   Current path:', window.location.pathname);
+      
+      updateStatus('Tests complete! Check console for results.', 'success');
+    }
+
+    function testManualNav() {
+      console.log('%c🧪 Manual Navigation Test', 'background: #22c55e; color: white; padding: 8px; font-weight: bold;');
+      const currentPath = window.location.pathname;
+      const testPath = currentPath === '/pricing' ? '/marketplace' : '/pricing';
+      console.log(`Navigating from ${currentPath} to ${testPath}...`);
+      
+      updateStatus(`Navigating to ${testPath}...`, 'info');
+      setTimeout(() => {
+        window.location.href = testPath;
+      }, 500);
+    }
+
+    function checkDOM() {
+      console.log('%c🔍 DOM Structure Check', 'background: #f59e0b; color: white; padding: 8px; font-weight: bold;');
+      
+      const mains = document.querySelectorAll('main');
+      console.log('Main elements:', mains);
+      
+      const appShell = document.querySelector('.app-shell');
+      console.log('App shell:', appShell);
+      
+      const pricingLinks = document.querySelectorAll('a[href="/pricing"]');
+      console.log('Pricing links found:', pricingLinks.length);
+      if (pricingLinks.length > 0) {
+        console.log('First pricing link:', {
+          element: pricingLinks[0],
+          href: pricingLinks[0].getAttribute('href'),
+          onClick: pricingLinks[0].onclick,
+          className: pricingLinks[0].className
+        });
+      }
+      
+      updateStatus('DOM check complete - see console', 'info');
+    }
+
+    // Auto-run on load
+    window.addEventListener('load', () => {
+      console.log('%c📄 Test page loaded', 'color: #22c55e; font-weight: bold;');
+      console.log('Click "Run All Tests" to begin diagnostics');
+    });
+  </script>
+</body>
+</html>
+
