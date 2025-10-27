@@ -73,11 +73,29 @@ self.addEventListener('install', (event) => {
   console.log('[SW] Installing service worker...');
   
   event.waitUntil(
-    caches.open(CACHE_NAME).then((cache) => {
+    caches.open(CACHE_NAME).then(async (cache) => {
       console.log('[SW] Caching critical assets');
-      return cache.addAll(CRITICAL_ASSETS);
+      // Cache each asset individually to avoid failure on missing files
+      const cachePromises = CRITICAL_ASSETS.map(async (asset) => {
+        try {
+          const response = await fetch(asset);
+          if (response.ok) {
+            await cache.put(asset, response);
+            console.log('[SW] Cached:', asset);
+          } else {
+            console.warn('[SW] Failed to cache (not found):', asset);
+          }
+        } catch (error) {
+          console.warn('[SW] Failed to cache:', asset, error.message);
+        }
+      });
+      await Promise.allSettled(cachePromises);
     }).then(() => {
       console.log('[SW] Skip waiting');
+      return self.skipWaiting();
+    }).catch((error) => {
+      console.error('[SW] Install failed:', error);
+      // Still skip waiting even if caching failed
       return self.skipWaiting();
     })
   );
