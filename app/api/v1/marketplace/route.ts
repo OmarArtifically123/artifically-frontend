@@ -1,6 +1,9 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { SAMPLE_AUTOMATIONS } from '@/data/automations';
 
+type AutomationData = typeof SAMPLE_AUTOMATIONS;
+type AutomationItem = AutomationData[number];
+
 /**
  * Mock Marketplace API Route
  * Returns sample automation data for development
@@ -14,28 +17,41 @@ export async function GET(request: NextRequest) {
     const priceTier = searchParams.get('priceTier');
     const search = searchParams.get('search');
 
-    let filteredAutomations = [...SAMPLE_AUTOMATIONS] as any[];
+    let filteredAutomations: AutomationItem[] = [...SAMPLE_AUTOMATIONS];
 
     // Apply filters
     if (category) {
       filteredAutomations = filteredAutomations.filter(
-        (auto: any) => auto.category === category || auto.category?.slug === category
+        (auto) => {
+          const autoCategory = auto.category as Record<string, unknown> | string | undefined;
+          if (typeof autoCategory === 'object' && autoCategory !== null) {
+            return autoCategory.slug === category;
+          }
+          return autoCategory === category;
+        }
       );
     }
 
     if (priceTier && priceTier !== 'all') {
       filteredAutomations = filteredAutomations.filter(
-        (auto: any) => auto.priceTier === priceTier
+        (auto) => auto.priceTier === priceTier
       );
     }
 
     if (search) {
       const searchLower = search.toLowerCase();
       filteredAutomations = filteredAutomations.filter(
-        (auto: any) =>
-          auto.name?.toLowerCase().includes(searchLower) ||
-          auto.description?.toLowerCase().includes(searchLower) ||
-          auto.tags?.some((tag: string) => tag.toLowerCase().includes(searchLower))
+        (auto) => {
+          const name = auto.name || '';
+          const description = auto.description || '';
+          const tags = auto.tags || [];
+          
+          return (
+            name.toLowerCase().includes(searchLower) ||
+            description.toLowerCase().includes(searchLower) ||
+            tags.some((tag) => String(tag).toLowerCase().includes(searchLower))
+          );
+        }
       );
     }
 
