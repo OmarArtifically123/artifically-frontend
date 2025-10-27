@@ -153,7 +153,7 @@ function useExperienceActivation(enableExperience) {
       window.removeEventListener("keydown", activate);
       window.removeEventListener("focusin", activate);
     };
-  }, [enableExperience, state]);
+  }, [enableExperience, state.pointerFine, state.reducedMotion]);
 
   const eligible = enableExperience && state.pointerFine && !state.reducedMotion;
   const activated = eligible && state.activated;
