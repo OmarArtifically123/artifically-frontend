@@ -2,7 +2,6 @@ import Script from "next/script";
 import type { Metadata, Viewport } from "next";
 import { Analytics } from "@vercel/analytics/react";
 import AppShell from "@/components/AppShell";
-import PageTransition from "@/components/PageTransition";
 import SkipLink from "@/components/SkipLink";
 import WebVitalsReporter from "@/components/performance/WebVitalsReporter";
 import ServiceWorkerRegistration from "@/components/performance/ServiceWorkerRegistration";
@@ -163,7 +162,7 @@ export default function RootLayout({
         <SkipLink />
         <ThemeProvider>
           <AppShell>
-            <PageTransition>{children}</PageTransition>
+            {children}
           </AppShell>
         </ThemeProvider>
         
