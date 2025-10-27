@@ -39,7 +39,7 @@ export default function EnterprisePage() {
   const hoursId = useId();
 
   return (
-    <main className="enterprise-page">
+    <div className="enterprise-page">
       {/* HERO SECTION */}
       <section className="enterprise-hero" aria-labelledby="enterprise-hero-title">
         <div className="container">
@@ -2667,6 +2667,6 @@ export default function EnterprisePage() {
           }
         }
       `}</style>
-    </main>
+    </div>
   );
 }

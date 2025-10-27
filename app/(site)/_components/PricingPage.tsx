@@ -105,7 +105,7 @@ export default function PricingPage() {
   );
 
   return (
-    <main className="pricing-page" dir={dir}>
+    <div className="pricing-page" dir={dir}>
       <section className="hero" aria-labelledby="pricing-hero-title">
         <header className="hero-inner">
           <h1 id="pricing-hero-title">Launch automated operations today. Scale into enterprise governance anytime.</h1>
@@ -391,6 +391,6 @@ export default function PricingPage() {
           }
         }
       `}</style>
-    </main>
+    </div>
   );
 }

@@ -33,7 +33,7 @@ export default function HelpCenterPage() {
   );
 
   return (
-    <main className="container" style={{ padding: `${space("2xl")} 0`, minHeight: "80vh" }}>
+    <div className="container" style={{ padding: `${space("2xl")} 0`, minHeight: "80vh" }}>
       <header style={{ maxWidth: "720px", margin: `0 auto ${space("xl")}`, textAlign: "center" }}>
         <h1 style={{ fontSize: "2.75rem", fontWeight: 800, marginBottom: space("sm") }}>Help Center</h1>
         <p style={{ color: "var(--gray-400)", fontSize: "1.1rem", lineHeight: 1.7 }}>
@@ -96,6 +96,6 @@ export default function HelpCenterPage() {
           ))}
         </ul>
       </section>
-    </main>
+    </div>
   );
 }

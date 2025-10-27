@@ -86,7 +86,7 @@ export default function DesignSystemPage() {
   );
 
   return (
-    <main className="design-system" data-animate-root>
+    <div className="design-system" data-animate-root>
       <header className="design-system__header">
         <div>
           <h1>Design System</h1>
@@ -181,6 +181,6 @@ export default function DesignSystemPage() {
           {JSON.stringify({ color: tokens.color, spacing: tokens.spacing, typography: tokens.typography }, null, 2)}
         </pre>
       </section>
-    </main>
+    </div>
   );
 }

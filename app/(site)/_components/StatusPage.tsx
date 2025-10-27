@@ -46,7 +46,7 @@ export default function StatusPage() {
   );
 
   return (
-    <main className="container" style={{ padding: `${space("2xl")} 0`, minHeight: "80vh" }}>
+    <div className="container" style={{ padding: `${space("2xl")} 0`, minHeight: "80vh" }}>
       <header style={{ maxWidth: "720px", margin: `0 auto ${space("lg", 1.25)}`, textAlign: "center" }}>
         <h1 style={{ fontSize: "2.75rem", fontWeight: 800, marginBottom: space("xs", 1.5) }}>Status</h1>
         <p style={{ color: "var(--gray-400)", fontSize: "1.05rem", lineHeight: 1.7 }}>
@@ -126,6 +126,6 @@ export default function StatusPage() {
           </div>
         )}
       </section>
-    </main>
+    </div>
   );
 }

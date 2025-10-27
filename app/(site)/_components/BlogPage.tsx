@@ -33,7 +33,7 @@ export default function BlogPage() {
   );
 
   return (
-    <main className="container" style={{ padding: `${space("2xl")} 0`, minHeight: "80vh" }}>
+    <div className="container" style={{ padding: `${space("2xl")} 0`, minHeight: "80vh" }}>
       <header style={{ maxWidth: "680px", margin: `0 auto ${space("lg", 1.25)}`, textAlign: "center" }}>
         <h1 style={{ fontSize: "2.75rem", fontWeight: 800, marginBottom: space("xs", 1.5) }}>Artifically Blog</h1>
         <p style={{ color: "var(--gray-400)", fontSize: "1.1rem", lineHeight: 1.7 }}>
@@ -69,6 +69,6 @@ export default function BlogPage() {
           </article>
         ))}
       </section>
-    </main>
+    </div>
   );
 }

@@ -100,7 +100,7 @@ export default function MarketplacePageNew() {
           )}
 
           {/* Main Grid Area */}
-          <main className={styles.main}>
+          <div className={styles.main}>
             {/* Toolbar */}
             <div className={styles.toolbar}>
               <div className={styles.toolbarLeft}>
@@ -183,7 +183,7 @@ export default function MarketplacePageNew() {
               onAutomationClick={handleAutomationClick}
               onDeploy={handleDeploy}
             />
-          </main>
+          </div>
         </div>
       </div>
     </div>

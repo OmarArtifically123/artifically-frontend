@@ -1419,7 +1419,7 @@ function SkeletonSurface({ height, className = "" }) {
 
 function DashboardSkeleton({ darkMode }) {
   return (
-    <main className="dashboard-shell" aria-busy="true" aria-live="polite">
+    <div className="dashboard-shell" aria-busy="true" aria-live="polite">
       <div
         className="container"
         style={{ display: "grid", gap: space("xl"), padding: `${space("xl")} 0` }}
@@ -1472,6 +1472,6 @@ function DashboardSkeleton({ darkMode }) {
         </section>
       </div>
       <span className="sr-only">Loading your dashboard data…</span>
-    </main>
+    </div>
   );
 }
