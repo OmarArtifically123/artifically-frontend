@@ -34,14 +34,14 @@ export function FilterSidebar({ isLoading = false }: Partial<FilterSidebarProps>
   });
 
   // Price tiers
-  const priceTiers = [
+  const priceTiers = useMemo(() => [
     { value: "all", label: "All Prices" },
     { value: "free", label: "Free" },
     { value: "freemium", label: "Freemium" },
     { value: "paid", label: "Paid" },
     { value: "premium", label: "Premium" },
     { value: "enterprise", label: "Enterprise" },
-  ];
+  ], []);
 
   // Rating options
   const ratingOptions = [
@@ -66,13 +66,13 @@ export function FilterSidebar({ isLoading = false }: Partial<FilterSidebarProps>
   ];
 
   // Attributes (would come from API in production)
-  const attributes = [
+  const attributes = useMemo(() => [
     { value: "one-click", label: "One-Click Deploy" },
     { value: "verified", label: "Verified" },
     { value: "staff-pick", label: "Staff Pick" },
     { value: "new", label: "New" },
     { value: "trending", label: "Trending" },
-  ];
+  ], []);
 
   const toggleSection = (section: string) => {
     setExpandedSections((prev) => ({ ...prev, [section]: !prev[section] }));

@@ -14,25 +14,25 @@ export async function GET(request: NextRequest) {
     const priceTier = searchParams.get('priceTier');
     const search = searchParams.get('search');
 
-    let filteredAutomations = [...SAMPLE_AUTOMATIONS];
+    let filteredAutomations = [...SAMPLE_AUTOMATIONS] as any[];
 
     // Apply filters
     if (category) {
       filteredAutomations = filteredAutomations.filter(
-        (auto) => auto.category === category || auto.category?.slug === category
+        (auto: any) => auto.category === category || auto.category?.slug === category
       );
     }
 
     if (priceTier && priceTier !== 'all') {
       filteredAutomations = filteredAutomations.filter(
-        (auto) => auto.priceTier === priceTier
+        (auto: any) => auto.priceTier === priceTier
       );
     }
 
     if (search) {
       const searchLower = search.toLowerCase();
       filteredAutomations = filteredAutomations.filter(
-        (auto) =>
+        (auto: any) =>
           auto.name?.toLowerCase().includes(searchLower) ||
           auto.description?.toLowerCase().includes(searchLower) ||
           auto.tags?.some((tag: string) => tag.toLowerCase().includes(searchLower))
