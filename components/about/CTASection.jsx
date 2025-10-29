@@ -41,8 +41,8 @@ export default function CTASection() {
               transition={{ duration: 0.6, delay: 0.2 }}
               viewport={{ once: true }}
             >
-              <Link href="/careers" className="cta-button cta-button--primary">
-                <span>Join Our Team</span>
+              <Link href="/demo" className="cta-button cta-button--primary">
+                <span>Get a Demo</span>
               </Link>
               <Link href="/contact" className="cta-button cta-button--secondary">
                 <span>Get in Touch</span>

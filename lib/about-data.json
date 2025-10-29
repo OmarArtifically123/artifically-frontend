@@ -1,0 +1,256 @@
+{
+  "aboutSettings": {
+    "primaryCTA": "Get a Demo",
+    "secondaryCTA": "See Deployment",
+    "trustStrip": [
+      { "type": "stat", "value": "87%", "label": "faster deployment" },
+      { "type": "stat", "value": "99.9%", "label": "uptime SLA" },
+      { "type": "logo", "name": "SOC 2", "url": "/trust/soc2" }
+    ],
+    "statusUrl": "https://status.artifically.com",
+    "privacyUrl": "/privacy",
+    "trustCenterUrl": "/trust"
+  },
+  "hookVariants": [
+    {
+      "id": "origin",
+      "type": "Origin",
+      "headline": "From AI Pilots to Proof",
+      "text": "Three years ago, enterprise AI meant endless pilots that never shipped. Today, Artifically customers deploy production AI in 4 weeks, not 4 quarters. We built the infrastructure that turns AI theater into measurable outcomes—because if it doesn't move a KPI, it doesn't ship."
+    },
+    {
+      "id": "problem-first", 
+      "type": "Problem-First",
+      "headline": "End AI Theater. Ship Outcomes.",
+      "text": "The enterprise AI market is drowning in proof-of-concepts that never see production. 73% of AI pilots fail to scale beyond the lab. We solved the deployment gap with security-first infrastructure, outcome-tracking, and governed rollouts that actually work at enterprise scale."
+    }
+  ],
+  "customerOutcomes": [
+    {
+      "company": "Global Manufacturing Leader",
+      "industry": "Manufacturing", 
+      "outcome": "87% faster deployment times",
+      "metric": "From 16 weeks to 2 weeks average",
+      "persona": "CTO",
+      "quote": "Artifically turned our AI strategy from PowerPoints to production systems.",
+      "speaker": "Director of Digital Innovation",
+      "timeframe": "Q2 2024"
+    },
+    {
+      "company": "Fortune 500 Retailer",
+      "industry": "Retail",
+      "outcome": "43 hours saved per incident",
+      "metric": "Automated root cause analysis",
+      "persona": "COO",
+      "quote": "We went from reactive firefighting to predictive operations.",
+      "speaker": "VP of Operations",
+      "timeframe": "Q1 2024"
+    },
+    {
+      "company": "Healthcare Technology Provider",
+      "industry": "Healthcare",
+      "outcome": "Zero security incidents",
+      "metric": "18 months of HIPAA-compliant AI in production",
+      "persona": "CISO",
+      "quote": "The audit trail capabilities gave us confidence to scale AI across patient data.",
+      "speaker": "Chief Security Officer",
+      "timeframe": "Q3 2023"
+    }
+  ],
+  "trustInventory": {
+    "certifications": [
+      { "name": "SOC 2 Type II", "status": "Certified", "url": "/trust/soc2" },
+      { "name": "ISO 27001", "status": "In Progress", "expectedDate": "Q2 2024" },
+      { "name": "GDPR Compliant", "status": "Certified", "url": "/trust/gdpr" }
+    ],
+    "sla": {
+      "uptime": "99.9%",
+      "support": "24/7",
+      "responseTime": "< 2 hours critical"
+    },
+    "pressMentions": [
+      { "outlet": "TechCrunch", "title": "Artifically raises Series A", "date": "2023-09", "url": "#" },
+      { "outlet": "Forbes", "title": "AI Infrastructure for Enterprise", "date": "2023-11", "url": "#" }
+    ],
+    "analystNotes": [
+      { "firm": "Gartner", "report": "Magic Quadrant AI Platforms", "mention": "Visionary", "date": "2024-01" }
+    ]
+  },
+  "values": [
+    {
+      "name": "Outcomes Over Output",
+      "oneLiner": "If it doesn't move a KPI, it doesn't ship.",
+      "story": "We killed our ML Insights feature after 90 days when customers reported zero business impact. The engineering team wasn't happy, but our retention metrics improved 23% when we focused on features that drove measurable outcomes.",
+      "antiValue": "Building features because they're technically interesting",
+      "decisionRule": "Every feature must have a success metric defined before development starts",
+      "artifactImg": "/images/about/outcomes-dashboard.png"
+    },
+    {
+      "name": "Trust Is a Feature",
+      "oneLiner": "Security and compliance aren't afterthoughts—they're product requirements.",
+      "story": "We delayed our Series A launch by 6 months to complete SOC 2 Type II certification. That decision cost us $500K in runway but won us our first Fortune 50 customer who specifically chose us for our compliance posture.",
+      "antiValue": "Moving fast and breaking things in enterprise environments",
+      "decisionRule": "Security review is required before any feature touches customer data",
+      "artifactImg": "/images/about/security-first.png"
+    },
+    {
+      "name": "No Black Boxes",
+      "oneLiner": "Explainability trumps marginal accuracy gains.",
+      "story": "Our fraud detection model achieved 94% accuracy, but customers couldn't explain decisions to auditors. We rebuilt with interpretable ML that hit 91% accuracy—and customers could explain every decision. Adoption increased 340%.",
+      "antiValue": "Optimizing for model performance over business usability",
+      "decisionRule": "If a business user can't explain the AI decision, we don't ship it",
+      "artifactImg": "/images/about/explainable-ai.png"
+    },
+    {
+      "name": "One Week to Evidence",
+      "oneLiner": "Every AI deployment must show value within one business week.",
+      "story": "We implemented 'evidence sprints'—one-week cycles where new AI models must demonstrate measurable business impact. If we can't prove value in 5 business days, we pivot or kill the project. This rule has saved us from 12 failed initiatives.",
+      "antiValue": "Multi-month AI projects without measurable milestones",
+      "decisionRule": "No AI project runs longer than 1 week without validated business impact",
+      "artifactImg": "/images/about/evidence-sprint.png"
+    },
+    {
+      "name": "Build With, Not For",
+      "oneLiner": "Our best features come from shadowing customer teams.",
+      "story": "We spent 2 weeks embedded with an AP team at a Fortune 500 manufacturer. Watching them process invoices revealed 6 workflow gaps our engineering team never imagined. The resulting co-designed features increased processing speed by 67%.",
+      "antiValue": "Building based on assumptions about user needs",
+      "decisionRule": "Direct customer observation is required before building any new workflow feature",
+      "artifactImg": "/images/about/customer-shadowing.png"
+    },
+    {
+      "name": "Default to Open Standards",
+      "oneLiner": "Customer data portability isn't a feature request—it's a right.",
+      "story": "We built export connectors for three major competitors, including Salesforce and ServiceNow. This decision seemed counterintuitive, but customers trust us more knowing they're never locked in. Our NPS score is 73, and 'data portability' is the #2 cited reason.",
+      "antiValue": "Creating vendor lock-in through proprietary data formats",
+      "decisionRule": "Every data format we create must have a standard export path",
+      "artifactImg": "/images/about/open-standards.png"
+    }
+  ],
+  "teamPods": [
+    {
+      "pod": "Leadership",
+      "description": "Setting strategic direction and company culture",
+      "members": [
+        {
+          "name": "Sarah Chen",
+          "role": "Co-founder & CEO",
+          "bio": "I help enterprises deploy AI that actually works by building security-first infrastructure. Previously scaled ML platforms at Google Cloud. Outside work: rock climbing and terrible woodworking projects.",
+          "image": "/images/team/sarah-chen.jpg",
+          "video": "/videos/team/sarah-why-im-here.mp4"
+        },
+        {
+          "name": "Marcus Rodriguez",
+          "role": "Co-founder & CTO", 
+          "bio": "I architect systems that turn AI pilots into production deployments. Previously built ML infrastructure at Stripe. Outside work: brewing coffee and debugging my smart home.",
+          "image": "/images/team/marcus-rodriguez.jpg",
+          "video": "/videos/team/marcus-why-im-here.mp4"
+        }
+      ]
+    },
+    {
+      "pod": "Engineering",
+      "description": "Building the infrastructure that makes AI deployments actually work",
+      "members": [
+        {
+          "name": "Dr. Priya Patel",
+          "role": "VP of Engineering",
+          "bio": "I ship secure, scalable AI systems that enterprises can trust. Previously led ML security at Microsoft Azure. Outside work: training for marathons and reading sci-fi novels.",
+          "image": "/images/team/priya-patel.jpg",
+          "video": "/videos/team/priya-why-im-here.mp4"
+        }
+      ]
+    }
+  ],
+  "milestones": [
+    {
+      "date": "2024-12",
+      "title": "Company Founded",
+      "description": "Artifically launched with focus on enterprise AI infrastructure",
+      "impact": "Began building the platform that turns AI pilots into production systems",
+      "type": "foundation"
+    },
+    {
+      "date": "2025-01",
+      "title": "MVP Platform Launch",
+      "description": "Released first version of AI deployment infrastructure",
+      "impact": "Enabled enterprises to deploy AI with governance and security",
+      "type": "milestone"
+    },
+    {
+      "date": "2025-02",
+      "title": "First Enterprise Customer",
+      "description": "Fortune 500 manufacturer signs on as launch customer",
+      "impact": "Validated product-market fit for enterprise AI deployment",
+      "type": "customer"
+    },
+    {
+      "date": "2025-03",
+      "title": "Security Certifications Begin",
+      "description": "Started SOC 2 Type II certification process",
+      "impact": "Established security-first approach as core differentiator",
+      "type": "milestone"
+    },
+    {
+      "date": "2025-04",
+      "title": "Production Deployment Record",
+      "description": "Customer deploys AI to production in 2 weeks instead of 4 months",
+      "impact": "Proved platform could dramatically accelerate enterprise AI adoption",
+      "type": "milestone"
+    },
+    {
+      "date": "2025-05",
+      "title": "Healthcare Customer Win",
+      "description": "HIPAA-compliant AI deployment for healthcare technology provider",
+      "impact": "Expanded into regulated industries with zero security incidents",
+      "type": "customer"
+    },
+    {
+      "date": "2025-06",
+      "title": "Platform Scale Milestone",
+      "description": "Supporting 50+ enterprise AI models in production",
+      "impact": "Demonstrated platform reliability at enterprise scale",
+      "type": "milestone"
+    },
+    {
+      "date": "2025-07",
+      "title": "Industry Recognition",
+      "description": "Featured in enterprise AI infrastructure analyst reports",
+      "impact": "Gained third-party validation and market visibility",
+      "type": "recognition"
+    },
+    {
+      "date": "2025-08",
+      "title": "Fortune 100 Expansion",
+      "description": "Multiple Fortune 100 companies adopt platform",
+      "impact": "Validated enterprise-grade scalability and reliability",
+      "type": "customer"
+    },
+    {
+      "date": "2025-10",
+      "title": "99.9% Uptime Achievement",
+      "description": "Achieved enterprise SLA requirements consistently",
+      "impact": "Established platform as mission-critical infrastructure",
+      "type": "milestone"
+    }
+  ],
+  "proofPool": [
+    {
+      "personaTag": "CTO",
+      "quote": "Artifically cut our AI deployment time from 16 weeks to 2 weeks.",
+      "metric": "87% faster deployment",
+      "company": "Fortune 500 Manufacturer",
+      "logo": "/images/logos/manufacturing-leader.png",
+      "permissionId": "MFG-001",
+      "weight": 10
+    },
+    {
+      "personaTag": "CISO",
+      "quote": "The audit trail capabilities gave us confidence to scale AI across patient data.",
+      "metric": "Zero security incidents in 18 months",
+      "company": "Healthcare Technology Provider",  
+      "logo": "/images/logos/healthcare-tech.png",
+      "permissionId": "HLT-001",
+      "weight": 8
+    }
+  ]
+}

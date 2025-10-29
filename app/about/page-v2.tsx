@@ -2,9 +2,11 @@ import { Metadata } from 'next';
 import { Suspense } from 'react';
 import HeroSection from '@/components/about-v2/HeroSection';
 import ActOneSection from '@/components/about-v2/ActOneSection';
+import ActTwoSection from '@/components/about-v2/ActTwoSection';
 import ActThreeSection from '@/components/about-v2/ActThreeSection';
 import ActFourSection from '@/components/about-v2/ActFourSection';
 import ValuesSection from '@/components/about-v2/ValuesSection';
+import TeamSection from '@/components/about-v2/TeamSection';
 import TimelineSection from '@/components/about-v2/TimelineSection';
 import FinalCTASection from '@/components/about-v2/FinalCTASection';
 import StructuredData from '@/components/about-v2/StructuredData';
@@ -35,9 +37,11 @@ export default function AboutPageV2() {
         
         <HeroSection />
         <ActOneSection />
+        <ActTwoSection />
         <ActThreeSection />
         <ActFourSection />
         <ValuesSection />
+        <TeamSection />
         <TimelineSection />
         <FinalCTASection />
       </main>

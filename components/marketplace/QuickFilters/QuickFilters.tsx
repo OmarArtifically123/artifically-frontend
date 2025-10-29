@@ -20,8 +20,8 @@ export function QuickFilters() {
   const handleQuickFilter = (filter: { label: string; value: string; type: string }) => {
     if (filter.type === "price") {
       setFilter("priceTier", filter.value as "all" | "free" | "freemium" | "paid" | "premium" | "enterprise");
-    } else if (filter.type === "sort") {
-      // Update sort via search params
+    } else if (filter.type === "sort" && typeof window !== "undefined") {
+      // Update sort via search params (client-side only)
       const params = new URLSearchParams(window.location.search);
       params.set("sortBy", filter.value);
       window.history.pushState({}, "", `${window.location.pathname}?${params.toString()}`);
@@ -35,7 +35,7 @@ export function QuickFilters() {
         {quickFilters.map((filter) => {
           const isActive =
             (filter.type === "price" && filters.priceTier === filter.value) ||
-            (filter.type === "sort" &&
+            (filter.type === "sort" && typeof window !== "undefined" &&
               new URLSearchParams(window.location.search).get("sortBy") === filter.value);
 
           return (

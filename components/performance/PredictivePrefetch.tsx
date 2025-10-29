@@ -27,7 +27,7 @@ const DEFAULT_ROUTE_MAP: Record<string, string[]> = {
   '/marketplace': ['/pricing', '/docs', '/integrations'],
   '/pricing': ['/marketplace', '/docs', '/contact'],
   '/docs': ['/marketplace', '/api', '/integrations'],
-  '/about': ['/careers', '/contact', '/press'],
+  '/about': ['/contact', '/press', '/demo'],
 };
 
 /**
