@@ -1,5 +1,5 @@
-import ContactPage from "@/app/(site)/_components/ContactPage";
+import ContactPageV2 from "./page-v2";
 
 export default function ContactRoute() {
-  return <ContactPage />;
+  return <ContactPageV2 />;
 }

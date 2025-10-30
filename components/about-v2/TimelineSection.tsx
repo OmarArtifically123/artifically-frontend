@@ -8,7 +8,7 @@ export default function TimelineSection() {
   const ref = useRef(null);
   const isInView = useInView(ref, { once: true, margin: "-100px" });
 
-  const handleTimelineView = (milestone: any, index: number) => {
+  const handleTimelineView = (milestone: { title: string; date: string; type: string }, index: number) => {
     if (typeof window !== 'undefined' && window.gtag) {
       window.gtag('event', 'timeline_card_view', {
         milestone_title: milestone.title,

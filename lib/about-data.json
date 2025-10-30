@@ -252,5 +252,19 @@
       "permissionId": "HLT-001",
       "weight": 8
     }
-  ]
+  ],
+  "founderStory": {
+    "catalyst": {
+      "title": "The Catalyst Moment",
+      "date": "2019-03",
+      "place": "San Francisco, CA",
+      "story": "In 2019, our founder watched countless brilliant companies struggle with fragmented AI solutions. That's when the vision crystallized: what if AI could be truly unified, intelligent, and transformative?",
+      "decision": "We decided to turn down three lucrative consulting contracts to build the infrastructure that turns AI pilots into production systems",
+      "consequence": "Six months later, we had our first enterprise customer who deployed AI in 2 weeks instead of 6 months",
+      "impact": "This moment sparked the creation of Artifically - where artificial intelligence meets genuine business transformation.",
+      "vision": "To democratize AI and make it accessible to every business, regardless of size or technical expertise.",
+      "quote": "We chose to build the future we wanted to see, not just the solutions clients were asking for.",
+      "speaker": "Sarah Chen, CEO & Co-founder"
+    }
+  }
 }
